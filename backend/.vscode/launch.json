@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-JobplatformApplication<jobplatform>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "edu.tlu.jobplatform.JobplatformApplication",
+      "projectName": "jobplatform",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
