@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///jobplatform_test   # Testcontainers auto-start
+  flyway:
+    enabled: true
+  jpa:
+    show-sql: true
+
+app:
+  jwt:
+    secret: test-secret-key-for-unit-tests-only-32chars
+    access-token-expiry-ms: 60000       # 1 phút khi test
+    refresh-token-expiry-ms: 120000     # 2 phút khi test
+
+logging:
+  level:
+    com.jobplatform: DEBUG
