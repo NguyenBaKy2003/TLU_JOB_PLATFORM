@@ -31,7 +31,15 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
 	 <dependencies>
-
+     <!-- Mail -->
+     	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <!-- ── CORE ──────────────────────────────────────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

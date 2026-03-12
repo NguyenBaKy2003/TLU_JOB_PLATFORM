@@ -11,21 +11,19 @@ import java.time.LocalDateTime;
  * JPA Entity map với bảng "users" trong PostgreSQL.
  *
  * Tách biệt khỏi domain User:
- *   - Entity này biết về DB (@Column, indexes, JPA lifecycle)
- *   - Domain User không biết DB tồn tại
+ * - Entity này biết về DB (@Column, indexes, JPA lifecycle)
+ * - Domain User không biết DB tồn tại
  *
- * UserMapper chuyển đổi giữa hai:  UserJpaEntity ↔ User (domain)
+ * UserMapper chuyển đổi giữa hai: UserJpaEntity ↔ User (domain)
  */
 @Entity
-@Table(
-    name = "users",
-    indexes = {
-        @Index(name = "idx_users_email",  columnList = "email",    unique = true),
-        @Index(name = "idx_users_role",   columnList = "role"),
+@Table(name = "users", indexes = {
+        @Index(name = "idx_users_email", columnList = "email", unique = true),
+        @Index(name = "idx_users_role", columnList = "role"),
         @Index(name = "idx_users_active", columnList = "is_active")
-    }
-)
-@Getter @Setter
+})
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,7 +33,7 @@ public class UserJpaEntity extends BaseJpaEntity {
     private String email;
 
     @Column(name = "password_hash", length = 255)
-    private String passwordHash;   // NULL nếu OAuth2-only
+    private String passwordHash;
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;

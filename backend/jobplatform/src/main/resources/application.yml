@@ -52,6 +52,11 @@ spring:
             user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
             user-name-attribute: id
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: schoolreliefsystem@gmail.com
+    password: ovtuiucrdjbzhfye
   jpa:
     hibernate:
       ddl-auto: update
@@ -131,6 +136,8 @@ app:
     authorized-redirect-uris:
       - http://localhost:3000/oauth2/callback
       - http://localhost:3001/oauth2/callback
+  mail:
+    from: "JobPlatform <noreply@jobplatform.vn>"
 
 springdoc:
   api-docs:
