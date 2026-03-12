@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TokenStorage } from "../../../lib/auth.utils";
+import { TokenStorage } from "../../../../lib/auth.utils";
 
 export default function OAuth2CallbackPage() {
   const [status, setStatus] = useState<"loading" | "error">("loading");
@@ -30,7 +30,7 @@ export default function OAuth2CallbackPage() {
       TokenStorage.setTokens(accessToken, refreshToken ?? "");
       // Clean URL before redirect
       window.history.replaceState({}, "", window.location.pathname);
-      window.location.href = "/dashboard";
+      window.location.href = "/home";
       return;
     }
 

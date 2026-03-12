@@ -70,16 +70,17 @@ public class SecurityConfig {
 
                                 // ── Authorization rules ────────────────────────────────
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/auth/**").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/jobs/**", "/api/companies/**",
-                                                                "/api/search/**", "/api/categories/**")
+                                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**",
+                                                                "/api/v1/companies/**",
+                                                                "/api/v1/search/**", "/api/v1/categories/**")
                                                 .permitAll()
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
                                                 .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
                                                                                                  // signature riêng
-                                                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                                                .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                                                 .anyRequest().authenticated())
 
                                 // ── OAuth2 Login ───────────────────────────────────────
