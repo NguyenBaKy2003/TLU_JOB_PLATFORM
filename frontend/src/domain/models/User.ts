@@ -75,8 +75,8 @@ export interface PasswordResetRequest {
 }
 
 export interface PasswordResetVerify {
-  email: string;
-  code: string;
+  token: string;
+  userId: string;
   newPassword: string;
 }
 

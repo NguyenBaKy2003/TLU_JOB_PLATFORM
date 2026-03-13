@@ -14,23 +14,31 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 import java.util.Properties;
 
 /**
- * Cấu hình JavaMailSender + Thymeleaf TemplateEngine cho email HTML.
+ * Cấu hình JavaMailSender + Thymeleaf TemplateEngine riêng cho email HTML.
  *
- * application.yml cần có:
+ * Tại sao dùng TemplateEngine riêng (không dùng chung với Spring MVC)?
+ * - Spring MVC Thymeleaf dùng SpringResourceTemplateResolver
+ * (classpath:templates/)
+ * - Email cần ClassLoaderTemplateResolver (classpath:templates/email/)
+ * - Tách ra để tránh conflict, cache policy khác nhau (prod: email cached)
  *
+ * application.yml cần thêm:
+ * 
+ * <pre>
  * spring:
- * mail:
- * host: smtp.gmail.com
- * port: 587
- * username: your@gmail.com
- * password: app-password
- * properties:
- * mail.smtp.auth: true
- * mail.smtp.starttls.enable: true
+ *   mail:
+ *     host: smtp.gmail.com
+ *     port: 587
+ *     username: your@gmail.com
+ *     password: app-password   # Gmail App Password (không phải mật khẩu thường)
+ *     properties:
+ *       mail.smtp.auth: true
+ *       mail.smtp.starttls.enable: true
  *
  * app:
- * mail:
- * from: "JobPlatform <noreply@jobplatform.vn>"
+ *   mail:
+ *     from: "JobPlatform <noreply@jobplatform.vn>"
+ * </pre>
  */
 @Configuration
 public class EmailConfig {
@@ -47,7 +55,7 @@ public class EmailConfig {
     @Value("${spring.mail.password}")
     private String password;
 
-    // ── JavaMailSender ────────────────────────────────────────────────────────
+    // ── JavaMailSender ─────────────────────────────────────────────
 
     @Bean
     public JavaMailSender javaMailSender() {
@@ -68,8 +76,12 @@ public class EmailConfig {
         return mailSender;
     }
 
-    // ── Thymeleaf Template Engine cho email ───────────────────────────────────
+    // ── Thymeleaf Template Engine riêng cho email ──────────────────
 
+    /**
+     * Bean tên "emailTemplateEngine" — @Qualifier dùng để inject đúng bean này
+     * thay vì Spring MVC TemplateEngine mặc định.
+     */
     @Bean(name = "emailTemplateEngine")
     public TemplateEngine emailTemplateEngine() {
         SpringTemplateEngine engine = new SpringTemplateEngine();
@@ -79,11 +91,11 @@ public class EmailConfig {
 
     private ITemplateResolver emailTemplateResolver() {
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-        resolver.setPrefix("templates/email/"); // resources/templates/email/
+        resolver.setPrefix("templates/email/"); // src/main/resources/templates/email/
         resolver.setSuffix(".html");
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
-        resolver.setCacheable(false); // true khi production
+        resolver.setCacheable(false); // TODO: đổi true khi production
         resolver.setOrder(1);
         return resolver;
     }

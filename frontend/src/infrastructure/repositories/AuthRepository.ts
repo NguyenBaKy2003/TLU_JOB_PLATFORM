@@ -129,11 +129,11 @@ export class AuthRepository implements IAuthRepository {
   // ── Password Reset ─────────────────────────────────────────────────────────
 
   async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
-    await api.post("/auth/password/reset/request", data);
+    await api.post("auth/forgot-password", data);
   }
 
   async verifyPasswordReset(data: PasswordResetVerify): Promise<void> {
-    await api.post("/auth/password/reset/verify", data);
+    await api.post("/auth/reset-password", data);
   }
 
   // ── Password Change ────────────────────────────────────────────────────────

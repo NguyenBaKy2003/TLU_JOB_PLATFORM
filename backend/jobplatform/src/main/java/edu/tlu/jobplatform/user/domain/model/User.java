@@ -43,6 +43,27 @@ public class User {
     }
 
     /**
+     * Cập nhật họ tên.
+     */
+    public void updateFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    /**
+     * Cập nhật số điện thoại.
+     */
+    public void updatePhone(String phone) {
+        this.phone = phone;
+    }
+
+    /**
+     * Cập nhật avatar.
+     */
+    public void updateAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    /**
      * Kiểm tra user có phải OAuth2-only không (chưa set password).
      */
     public boolean isOAuth2Only() {

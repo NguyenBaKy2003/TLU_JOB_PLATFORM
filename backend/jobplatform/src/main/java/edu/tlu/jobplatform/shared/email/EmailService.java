@@ -2,7 +2,6 @@ package edu.tlu.jobplatform.shared.email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,33 +15,87 @@ import org.thymeleaf.context.Context;
 import java.util.Map;
 
 /**
- * EmailService — gửi email HTML dùng Thymeleaf template.
+ * Core email service — render Thymeleaf template rồi gửi qua JavaMail.
  *
- * Tất cả method đều @Async — không block request thread.
+ * Tất cả method đều @Async (dùng aiTaskExecutor từ AsyncConfig) —
+ * không block request thread khi gửi email.
+ *
+ * Template locations: src/main/resources/templates/email/
+ * ├── reset-password.html (forgot password link)
+ * └── password-changed.html (thông báo đổi mật khẩu thành công)
+ *
+ * Class này là shared infrastructure — không phải domain service.
+ * Domain UseCase không gọi trực tiếp class này mà gọi qua EmailPort interface.
+ * JavaMailEmailAdapter (auth domain) implements EmailPort và delegate vào đây.
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
-
-    @Qualifier("emailTemplateEngine")
     private final TemplateEngine templateEngine;
 
     @Value("${app.mail.from:noreply@jobplatform.vn}")
     private String fromAddress;
 
-    // ── Public API ────────────────────────────────────────────────────────────
+    public EmailService(
+            JavaMailSender mailSender,
+            @Qualifier("emailTemplateEngine") TemplateEngine templateEngine) {
+        this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
+    }
+
+    // ── Public API ────────────────────────────────────────────────
+
+    /**
+     * Gửi link đặt lại mật khẩu.
+     *
+     * Template variables:
+     * - fullName : tên người nhận
+     * - resetLink : URL đặt lại mật khẩu (hết hạn 15 phút)
+     * - expireMinutes : "15"
+     */
+    @Async("aiTaskExecutor")
+    public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
+        send(
+                toEmail,
+                "[JobPlatform] Đặt lại mật khẩu của bạn",
+                "reset-password",
+                Map.of(
+                        "fullName", fullName,
+                        "resetLink", resetLink,
+                        "expireMinutes", "15"));
+    }
+
+    /**
+     * Gửi thông báo mật khẩu vừa được thay đổi.
+     * Giúp user phát hiện nếu tài khoản bị xâm phạm.
+     *
+     * Template variables:
+     * - fullName : tên người nhận
+     * - supportEmail : địa chỉ support
+     */
+    @Async("aiTaskExecutor")
+    public void sendPasswordChangedNotification(String toEmail, String fullName) {
+        send(
+                toEmail,
+                "[JobPlatform] Mật khẩu của bạn vừa được thay đổi",
+                "password-changed",
+                Map.of(
+                        "fullName", fullName,
+                        "supportEmail", "support@jobplatform.vn"));
+    }
 
     /**
      * Gửi OTP xác thực email đăng ký.
+     * (Dùng cho Sprint 4 khi bật email verification flow)
      *
-     * @param toEmail  email người nhận
-     * @param fullName tên hiển thị trong email
-     * @param otpCode  mã 6 chữ số
+     * Template variables:
+     * - fullName : tên người nhận
+     * - otpCode : mã 6 chữ số
+     * - expireMinutes : "10"
      */
-    @Async
+    @Async("aiTaskExecutor")
     public void sendVerificationOtp(String toEmail, String fullName, String otpCode) {
         send(
                 toEmail,
@@ -54,8 +107,12 @@ public class EmailService {
                         "expireMinutes", "10"));
     }
 
-    // ── Core send ─────────────────────────────────────────────────────────────
+    // ── Core send ─────────────────────────────────────────────────
 
+    /**
+     * Render template Thymeleaf → HTML → gửi MimeMessage.
+     * Không throw exception — email fail không được crash request.
+     */
     private void send(String to, String subject, String template, Map<String, Object> vars) {
         try {
             Context ctx = new Context();
@@ -71,9 +128,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Email sent: template={} to={}", template, to);
+
         } catch (MessagingException e) {
-            log.error("Failed to send email: template={} to={} error={}", template, to, e.getMessage());
-            // Không throw — email fail không nên crash request
+            // Log lỗi nhưng không re-throw — tránh rollback transaction của UseCase
+            log.error("Failed to send email: template={} to={} error={}",
+                    template, to, e.getMessage());
         }
     }
 }

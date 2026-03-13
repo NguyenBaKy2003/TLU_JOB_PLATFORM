@@ -131,13 +131,10 @@ export class AuthService {
   // ── Password Reset (quên mật khẩu) ───────────────────────────────────────────
 
   async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
-    assertValidEmail(data.email)
     return this.authRepository.requestPasswordReset(data)
   }
 
   async verifyPasswordReset(data: PasswordResetVerify): Promise<void> {
-    assertValidEmail(data.email)
-    assertOtpCode(data.code)
     assertStrongPassword(data.newPassword, "Mật khẩu mới")
 
     return this.authRepository.verifyPasswordReset(data)
