@@ -36,7 +36,8 @@ public class AuthController {
         private final RefreshTokenUseCase refreshTokenUseCase;
         private final LogoutUseCase logoutUseCase;
         private final VerifyEmailUseCase verifyEmailUseCase;
-
+        private final ResetPasswordUseCase resetPasswordUseCase;
+        private final ForgotPasswordUseCase forgotPasswordUseCase;
         @Value("${app.base-url:http://localhost:8080}")
         private String baseUrl;
 
@@ -119,6 +120,65 @@ public class AuthController {
 
                 AuthToken token = refreshTokenUseCase.execute(refreshToken);
                 return ResponseEntity.ok(ApiResponse.success(TokenResponse.from(token)));
+        }
+
+        // ── POST /api/auth/forgot-password ───────────────────────────
+
+        @Operation(summary = "Quên mật khẩu — gửi link đặt lại qua email", description = """
+                        Gửi email chứa link đặt lại mật khẩu (hết hạn sau **15 phút**).
+
+                        **Bảo mật:** Response luôn trả về thành công dù email không tồn tại.
+                        Điều này ngăn kẻ tấn công dò tìm email đã đăng ký.
+
+                        **Kiểm tra link** trong môi trường dev: xem log console.
+                        """)
+        @ApiResponses({
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Đã gửi email (nếu email tồn tại)"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Email sai định dạng")
+        })
+        @PostMapping("/forgot-password")
+        public ResponseEntity<ApiResponse<Void>> forgotPassword(
+                        @Valid @RequestBody ForgotPasswordRequest req) {
+
+                forgotPasswordUseCase.execute(req.getEmail());
+
+                // Luôn trả về cùng message — không tiết lộ email có tồn tại không
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Nếu email này đã đăng ký, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút."));
+        }
+
+        // ── POST /api/auth/reset-password ────────────────────────────
+
+        @Operation(summary = "Đặt lại mật khẩu bằng reset token", description = """
+                        Đặt mật khẩu mới bằng token nhận được qua email.
+
+                        **Lấy tham số:** Từ link email dạng:
+                        `/reset-password?token={token}&userId={userId}`
+
+                        **Sau khi đặt lại:**
+                        - Tất cả phiên đăng nhập trên mọi thiết bị bị thu hồi
+                        - User cần đăng nhập lại bằng mật khẩu mới
+
+                        **Mật khẩu yêu cầu:** ≥8 ký tự, ít nhất 1 chữ hoa, 1 chữ thường, 1 số.
+                        """)
+        @ApiResponses({
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Đặt lại mật khẩu thành công"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Token hết hạn / không hợp lệ / mật khẩu yếu / trùng mật khẩu cũ")
+        })
+        @PostMapping("/reset-password")
+        @Loggable(action = "PASSWORD_RESET", resourceType = "User")
+        public ResponseEntity<ApiResponse<Void>> resetPassword(
+                        @Valid @RequestBody ResetPasswordRequest req) {
+
+                resetPasswordUseCase.execute(
+                                new ResetPasswordUseCase.Command(
+                                                req.getUserId(),
+                                                req.getToken(),
+                                                req.getNewPassword()));
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại."));
         }
 
         // ── POST /api/v1/auth/logout ──────────────────────────────────────────────
