@@ -2,27 +2,26 @@ name: Backend CI/CD → EC2 Dev
 
 on:
   push:
-    branches: [dev, main, 'feature/**', 'sprint/**']
+    branches: [dev, main, "feature/**", "sprint/**"]
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend-cicd.yml'
+      - "backend/**"
+      - ".github/workflows/backend-cicd.yml"
   pull_request:
     branches: [dev, main]
     paths:
-      - 'backend/**'
+      - "backend/**"
 
 concurrency:
   group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: "21"
   IMAGE_NAME: jobplatform-backend
   WORKING_DIR: backend/jobplatform
 
 # ════════════════════════════════════════════════════════════════
 jobs:
-
   # ── Job 1: Build + Test ─────────────────────────────────────────
   ci:
     name: Build & Test
@@ -120,7 +119,7 @@ jobs:
     if: github.ref == 'refs/heads/dev'
     environment:
       name: development
-      url: http://${{ secrets.EC2_DEV_HOST }}
+      url: http://dev-jobplatform.example.com
 
     steps:
       - uses: actions/checkout@v4
@@ -135,30 +134,30 @@ jobs:
       - name: Copy image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host:     ${{ secrets.EC2_DEV_HOST }}
+          host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
-          source:   /tmp/jobplatform-backend.tar
-          target:   /opt/jobplatform/images/
+          key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          source: /tmp/jobplatform-backend.tar
+          target: /opt/jobplatform/images/
 
       # Copy docker-compose và nginx config mới nhất
       - name: Copy compose files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host:     ${{ secrets.EC2_DEV_HOST }}
+          host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
-          source:   "backend/jobplatform/docker/docker-compose.dev.yml,backend/jobplatform/docker/nginx-dev.conf"
-          target:   /opt/jobplatform/
-          strip_components: 3   # bỏ prefix backend/jobplatform/docker/
+          key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          source: "backend/jobplatform/docker/docker-compose.dev.yml,backend/jobplatform/docker/nginx-dev.conf"
+          target: /opt/jobplatform/
+          strip_components: 3 # bỏ prefix backend/jobplatform/docker/
 
       # SSH vào EC2 và deploy
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_DEV_HOST }}
+          host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
+          key: ${{ secrets.EC2_DEV_SSH_KEY }}
           script: |
             set -e
             cd /opt/jobplatform
