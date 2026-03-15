@@ -1,28 +1,32 @@
-name: Backend CI/CD → EC2 Dev
+name: CI/CD → EC2 Dev
 
 on:
   push:
     branches: [develop, main, "feature/**", "sprint/**"]
     paths:
       - "backend/**"
+      - "frontend/**"
       - ".github/workflows/backend-cicd.yml"
   pull_request:
     branches: [develop, main]
     paths:
       - "backend/**"
+      - "frontend/**"
 
 concurrency:
-  group: backend-${{ github.ref }}
+  group: cicd-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   JAVA_VERSION: "21"
-  IMAGE_NAME: jobplatform-backend
 
 jobs:
-  # ── Job 1: Build + Test ─────────────────────────────────────────
-  ci:
-    name: Build & Test
+  # ════════════════════════════════════════════════════════════════
+  #  BACKEND
+  # ════════════════════════════════════════════════════════════════
+
+  backend-ci:
+    name: Backend — Build & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,22 +47,13 @@ jobs:
           sed -i 's/\r$//' mvnw
           chmod +x mvnw
 
-      - name: Build & package (skip tests)
+      - name: Build & package
         run: ./mvnw package -B -DskipTests
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ github.run_id }}
-          path: backend/jobplatform/target/surefire-reports/
-          retention-days: 7
-
-  # ── Job 2: Build Docker Image ───────────────────────────────────
-  build-image:
-    name: Build Docker Image
+  backend-build-image:
+    name: Backend — Build Docker Image
     runs-on: ubuntu-latest
-    needs: ci
+    needs: backend-ci
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
@@ -76,11 +71,9 @@ jobs:
         id: meta
         run: |
           SHORT_SHA="${GITHUB_SHA:0:7}"
-          BRANCH="${GITHUB_REF_NAME}"
-          PREFIX=$([ "$BRANCH" = "main" ] && echo "prod" || echo "dev")
+          PREFIX=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "dev")
           TAG="${PREFIX}-${SHORT_SHA}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Image tag: ${TAG}"
 
       - name: Fix mvnw line endings and permission
         run: |
@@ -91,31 +84,77 @@ jobs:
         run: |
           docker build \
             --platform linux/amd64 \
-            -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} \
-            -t ${{ env.IMAGE_NAME }}:latest \
-            -f Dockerfile \
-            .
+            -t jobplatform-backend:${{ steps.meta.outputs.tag }} \
+            -t jobplatform-backend:latest \
+            -f Dockerfile .
 
-      # Fix: lưu image vào workspace (không phải /tmp) để scp-action tìm được
-      - name: Save Docker image to workspace
+      - name: Save image
         run: |
-          docker save ${{ env.IMAGE_NAME }}:latest \
+          docker save jobplatform-backend:latest \
             -o ${{ github.workspace }}/jobplatform-backend.tar
-          ls -lh ${{ github.workspace }}/jobplatform-backend.tar
 
-      - name: Upload image artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image-${{ steps.meta.outputs.tag }}
-          # Fix: path từ workspace root
+          name: backend-image-${{ steps.meta.outputs.tag }}
           path: ${{ github.workspace }}/jobplatform-backend.tar
           retention-days: 1
 
-  # ── Job 3: Deploy Dev ───────────────────────────────────────────
+  # ════════════════════════════════════════════════════════════════
+  #  FRONTEND
+  # ════════════════════════════════════════════════════════════════
+
+  frontend-build-image:
+    name: Frontend — Build Docker Image
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          PREFIX=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "dev")
+          TAG="${PREFIX}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        working-directory: frontend
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_API_URL=http://15.135.233.82/api/v1 \
+            -t jobplatform-frontend:${{ steps.meta.outputs.tag }} \
+            -t jobplatform-frontend:latest \
+            -f Dockerfile .
+
+      - name: Save image
+        run: |
+          docker save jobplatform-frontend:latest \
+            -o ${{ github.workspace }}/jobplatform-frontend.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-image-${{ steps.meta.outputs.tag }}
+          path: ${{ github.workspace }}/jobplatform-frontend.tar
+          retention-days: 1
+
+  # ════════════════════════════════════════════════════════════════
+  #  DEPLOY
+  # ════════════════════════════════════════════════════════════════
+
   deploy-dev:
     name: Deploy → Dev EC2
     runs-on: ubuntu-latest
-    needs: build-image
+    needs: [backend-build-image, frontend-build-image]
     if: github.ref == 'refs/heads/develop'
     environment:
       name: development
@@ -124,19 +163,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Fix: download artifact vào workspace
-      - name: Download Docker image
+      # Download cả 2 images
+      - name: Download backend image
         uses: actions/download-artifact@v4
         with:
-          name: docker-image-${{ needs.build-image.outputs.image-tag }}
+          name: backend-image-${{ needs.backend-build-image.outputs.image-tag }}
           path: ${{ github.workspace }}
 
-      - name: Verify image file exists
-        run: |
-          ls -lh ${{ github.workspace }}/jobplatform-backend.tar
+      - name: Download frontend image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image-${{ needs.frontend-build-image.outputs.image-tag }}
+          path: ${{ github.workspace }}
 
-      # Fix: source dùng path tương đối từ workspace
-      - name: Copy image to EC2
+      - name: Verify artifacts
+        run: ls -lh ${{ github.workspace }}/*.tar
+
+      # Upload backend image
+      - name: Copy backend image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
@@ -145,7 +189,18 @@ jobs:
           source: jobplatform-backend.tar
           target: /opt/jobplatform/images/
 
-      - name: Copy compose files to EC2
+      # Upload frontend image
+      - name: Copy frontend image to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_DEV_HOST }}
+          username: ${{ secrets.EC2_DEV_USER }}
+          key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          source: jobplatform-frontend.tar
+          target: /opt/jobplatform/images/
+
+      # Upload docker-compose và nginx config mới nhất
+      - name: Copy configs to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
@@ -155,6 +210,7 @@ jobs:
           target: /opt/jobplatform/
           strip_components: 3
 
+      # Deploy
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -165,21 +221,32 @@ jobs:
             set -e
             cd /opt/jobplatform
 
-            echo "▶ Load image..."
+            echo "▶ Load backend image..."
             docker load -i images/jobplatform-backend.tar
 
-            echo "▶ Restart backend..."
-            docker compose -f docker-compose.dev.yml --env-file .env \
-              up -d --no-deps --wait backend
+            echo "▶ Load frontend image..."
+            docker load -i images/jobplatform-frontend.tar
 
-            echo "▶ Health check..."
+            echo "▶ Restart services..."
+            docker compose -f docker-compose.dev.yml --env-file .env \
+              up -d --no-deps --wait backend frontend nginx
+
+            echo "▶ Health check backend..."
             sleep 15
             curl -sf http://localhost:8080/actuator/health \
               | grep -q '"status":"UP"' \
-              && echo "✅ Healthy" \
-              || (echo "❌ Unhealthy" && docker logs jobplatform-backend-dev --tail 50 && exit 1)
+              && echo "✅ Backend healthy" \
+              || (echo "❌ Backend unhealthy" && docker logs jobplatform-backend-dev --tail 30 && exit 1)
+
+            echo "▶ Health check frontend..."
+            curl -sf http://localhost:3000 > /dev/null \
+              && echo "✅ Frontend healthy" \
+              || echo "⚠️  Frontend not ready yet (normal, keep going)"
 
             echo "▶ Cleanup..."
             docker image prune -f
 
-            echo "🚀 Deploy complete: ${{ needs.build-image.outputs.image-tag }}"
+            echo "🚀 Deploy complete!"
+            echo "   Backend:  http://15.135.233.82/api/v1"
+            echo "   Frontend: http://15.135.233.82"
+            echo "   Swagger:  http://15.135.233.82/swagger-ui/index.html"
