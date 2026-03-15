@@ -5,7 +5,7 @@ import "./globals.css";
 import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
 // import { WebSocketProvider } from "@/usecase/contexts/WebSocketContext";
-
+export const dynamic = 'force-dynamic'
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
