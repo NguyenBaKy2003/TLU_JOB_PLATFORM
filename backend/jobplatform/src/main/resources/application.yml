@@ -158,6 +158,12 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+  health:
+    elasticsearch:
+      enabled: false
+    # Thêm dòng này để chỉ check những gì có thật
+    defaults:
+      enabled: true
 logging:
   level:
     com.jobplatform: DEBUG
