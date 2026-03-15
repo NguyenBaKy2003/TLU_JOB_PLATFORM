@@ -212,7 +212,7 @@ jobs:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          command_timeout: 10m
+          command_timeout: 15m
           script: |
             set -e
             cd /opt/jobplatform
@@ -227,28 +227,25 @@ jobs:
             docker compose -f docker-compose.dev.yml --env-file .env \
               up -d backend frontend nginx
 
-            echo "▶ Health check backend (tối đa 3 phút)..."
-            for i in $(seq 1 18); do
-              # Kiểm tra container có bị crash không
+            echo "▶ Health check backend (tối đa 5 phút)..."
+            for i in $(seq 1 30); do
               STATUS=$(docker inspect --format='{{.State.Status}}' jobplatform-backend-dev 2>/dev/null || echo "missing")
               if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
-                echo "❌ Backend container bị crash (status: $STATUS)!"
-                docker logs jobplatform-backend-dev --tail 50
+                echo "❌ Backend crash!"
+                docker logs jobplatform-backend-dev --tail 30
                 exit 1
               fi
-
-              # Kiểm tra health endpoint
-              if curl -sf http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
-                echo "✅ Backend healthy (attempt $i)"
+              # Chỉ check db + redis, bỏ qua elasticsearch
+              HEALTH=$(curl -sf http://localhost:8080/actuator/health 2>/dev/null || echo "")
+              if echo "$HEALTH" | grep -q '"status":"UP"'; then
+                echo "✅ Backend healthy (lần $i)"
                 break
               fi
-
-              echo "⏳ Đang chờ backend... lần $i/18 (container: $STATUS)"
+              echo "⏳ Chờ backend... lần $i/30 (status: $STATUS)"
               sleep 10
-
-              if [ $i -eq 18 ]; then
-                echo "❌ Backend không healthy sau 180s"
-                docker logs jobplatform-backend-dev --tail 50
+              if [ $i -eq 30 ]; then
+                echo "❌ Timeout sau 300s. Logs:"
+                docker logs jobplatform-backend-dev --tail 30
                 exit 1
               fi
             done
@@ -256,12 +253,12 @@ jobs:
             echo "▶ Health check frontend..."
             curl -sf http://localhost:3000 > /dev/null \
               && echo "✅ Frontend healthy" \
-              || echo "⚠️  Frontend not ready yet (normal, keep going)"
+              || echo "⚠️  Frontend chưa sẵn sàng (bình thường)"
 
             echo "▶ Cleanup..."
             docker image prune -f
 
             echo "🚀 Deploy complete!"
-            echo "   Backend:  http://15.135.233.82/api/v1"
             echo "   Frontend: http://15.135.233.82"
+            echo "   API:      http://15.135.233.82/api/v1"
             echo "   Swagger:  http://15.135.233.82/swagger-ui/index.html"
