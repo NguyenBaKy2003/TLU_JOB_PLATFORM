@@ -38,8 +38,6 @@ jobs:
           distribution: temurin
           cache: maven
 
-      # Fix CRLF: Windows tạo mvnw với line ending \r\n
-      # Linux không chạy được → convert sang LF trước
       - name: Fix mvnw line endings and permission
         run: |
           sed -i 's/\r$//' mvnw
@@ -84,7 +82,6 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Image tag: ${TAG}"
 
-      # Dockerfile cũng gọi mvnw → cần fix CRLF trước khi docker build
       - name: Fix mvnw line endings and permission
         run: |
           sed -i 's/\r$//' mvnw
@@ -99,17 +96,19 @@ jobs:
             -f Dockerfile \
             .
 
-      - name: Save Docker image
+      # Fix: lưu image vào workspace (không phải /tmp) để scp-action tìm được
+      - name: Save Docker image to workspace
         run: |
           docker save ${{ env.IMAGE_NAME }}:latest \
-            -o /tmp/jobplatform-backend.tar
-          ls -lh /tmp/jobplatform-backend.tar
+            -o ${{ github.workspace }}/jobplatform-backend.tar
+          ls -lh ${{ github.workspace }}/jobplatform-backend.tar
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ steps.meta.outputs.tag }}
-          path: /tmp/jobplatform-backend.tar
+          # Fix: path từ workspace root
+          path: ${{ github.workspace }}/jobplatform-backend.tar
           retention-days: 1
 
   # ── Job 3: Deploy Dev ───────────────────────────────────────────
@@ -125,19 +124,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fix: download artifact vào workspace
       - name: Download Docker image
         uses: actions/download-artifact@v4
         with:
           name: docker-image-${{ needs.build-image.outputs.image-tag }}
-          path: /tmp
+          path: ${{ github.workspace }}
 
+      - name: Verify image file exists
+        run: |
+          ls -lh ${{ github.workspace }}/jobplatform-backend.tar
+
+      # Fix: source dùng path tương đối từ workspace
       - name: Copy image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          source: /tmp/jobplatform-backend.tar
+          source: jobplatform-backend.tar
           target: /opt/jobplatform/images/
 
       - name: Copy compose files to EC2
@@ -161,7 +166,7 @@ jobs:
             cd /opt/jobplatform
 
             echo "▶ Load image..."
-            docker load -i images/tmp/jobplatform-backend.tar
+            docker load -i images/jobplatform-backend.tar
 
             echo "▶ Restart backend..."
             docker compose -f docker-compose.dev.yml --env-file .env \
