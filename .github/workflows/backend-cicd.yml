@@ -2,24 +2,25 @@ name: Backend CI/CD → EC2 Dev
 
 on:
   push:
-    branches: [dev, main, "feature/**", "sprint/**"]
+    branches: [dev, main, 'feature/**', 'sprint/**']
     paths:
-      - "backend/**"
-      - ".github/workflows/backend-cicd.yml"
+      - 'backend/**'
+      - '.github/workflows/backend-cicd.yml'
   pull_request:
     branches: [dev, main]
     paths:
-      - "backend/**"
+      - 'backend/**'
 
 concurrency:
   group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: "21"
+  JAVA_VERSION: '21'
   IMAGE_NAME: jobplatform-backend
 
 jobs:
+
   # ── Job 1: Build + Test ─────────────────────────────────────────
   ci:
     name: Build & Test
@@ -38,13 +39,15 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Grant execute permission for mvnw
-        run: chmod +x mvnw
+      # Fix CRLF: Windows tạo mvnw với line ending \r\n
+      # Linux không chạy được → convert sang LF trước
+      - name: Fix mvnw line endings and permission
+        run: |
+          sed -i 's/\r$//' mvnw
+          chmod +x mvnw
 
-      - name: Build (skip tests for now)
-        run: ./mvnw package -B --enable-preview -DskipTests
-        env:
-          SPRING_PROFILES_ACTIVE: test
+      - name: Build & package (skip tests)
+        run: ./mvnw package -B -DskipTests
 
       - name: Upload test results
         if: always()
@@ -82,8 +85,11 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Image tag: ${TAG}"
 
-      - name: Grant execute permission for mvnw
-        run: chmod +x mvnw
+      # Dockerfile cũng gọi mvnw → cần fix CRLF trước khi docker build
+      - name: Fix mvnw line endings and permission
+        run: |
+          sed -i 's/\r$//' mvnw
+          chmod +x mvnw
 
       - name: Build Docker image
         run: |
@@ -129,28 +135,28 @@ jobs:
       - name: Copy image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_DEV_HOST }}
+          host:     ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          source: /tmp/jobplatform-backend.tar
-          target: /opt/jobplatform/images/
+          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
+          source:   /tmp/jobplatform-backend.tar
+          target:   /opt/jobplatform/images/
 
       - name: Copy compose files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_DEV_HOST }}
+          host:     ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          source: "backend/jobplatform/docker/docker-compose.dev.yml,backend/jobplatform/docker/nginx-dev.conf"
-          target: /opt/jobplatform/
+          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
+          source:   "backend/jobplatform/docker/docker-compose.dev.yml,backend/jobplatform/docker/nginx-dev.conf"
+          target:   /opt/jobplatform/
           strip_components: 3
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_DEV_HOST }}
+          host:     ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
-          key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          key:      ${{ secrets.EC2_DEV_SSH_KEY }}
           script: |
             set -e
             cd /opt/jobplatform
