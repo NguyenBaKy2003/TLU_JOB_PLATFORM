@@ -232,7 +232,7 @@ jobs:
               up -d backend frontend nginx
 
             echo "▶ Health check backend..."
-            sleep 15
+            sleep 40
             curl -sf http://localhost:8080/actuator/health \
               | grep -q '"status":"UP"' \
               && echo "✅ Backend healthy" \
