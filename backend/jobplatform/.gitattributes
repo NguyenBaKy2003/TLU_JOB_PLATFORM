@@ -1,2 +1,3 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
+# Luôn dùng LF cho shell scripts
+mvnw text eol=lf
+*.sh text eol=lf
