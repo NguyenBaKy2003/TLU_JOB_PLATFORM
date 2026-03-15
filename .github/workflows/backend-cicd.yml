@@ -163,7 +163,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Download cả 2 images
       - name: Download backend image
         uses: actions/download-artifact@v4
         with:
@@ -179,7 +178,6 @@ jobs:
       - name: Verify artifacts
         run: ls -lh ${{ github.workspace }}/*.tar
 
-      # Upload backend image
       - name: Copy backend image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -189,7 +187,6 @@ jobs:
           source: jobplatform-backend.tar
           target: /opt/jobplatform/images/
 
-      # Upload frontend image
       - name: Copy frontend image to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -199,7 +196,6 @@ jobs:
           source: jobplatform-frontend.tar
           target: /opt/jobplatform/images/
 
-      # Upload docker-compose và nginx config mới nhất
       - name: Copy configs to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -210,13 +206,13 @@ jobs:
           target: /opt/jobplatform/
           strip_components: 3
 
-      # Deploy
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          command_timeout: 10m
           script: |
             set -e
             cd /opt/jobplatform
@@ -231,12 +227,31 @@ jobs:
             docker compose -f docker-compose.dev.yml --env-file .env \
               up -d backend frontend nginx
 
-            echo "▶ Health check backend..."
-            sleep 40
-            curl -sf http://localhost:8080/actuator/health \
-              | grep -q '"status":"UP"' \
-              && echo "✅ Backend healthy" \
-              || (echo "❌ Backend unhealthy" && docker logs jobplatform-backend-dev --tail 30 && exit 1)
+            echo "▶ Health check backend (tối đa 3 phút)..."
+            for i in $(seq 1 18); do
+              # Kiểm tra container có bị crash không
+              STATUS=$(docker inspect --format='{{.State.Status}}' jobplatform-backend-dev 2>/dev/null || echo "missing")
+              if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
+                echo "❌ Backend container bị crash (status: $STATUS)!"
+                docker logs jobplatform-backend-dev --tail 50
+                exit 1
+              fi
+
+              # Kiểm tra health endpoint
+              if curl -sf http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "✅ Backend healthy (attempt $i)"
+                break
+              fi
+
+              echo "⏳ Đang chờ backend... lần $i/18 (container: $STATUS)"
+              sleep 10
+
+              if [ $i -eq 18 ]; then
+                echo "❌ Backend không healthy sau 180s"
+                docker logs jobplatform-backend-dev --tail 50
+                exit 1
+              fi
+            done
 
             echo "▶ Health check frontend..."
             curl -sf http://localhost:3000 > /dev/null \
