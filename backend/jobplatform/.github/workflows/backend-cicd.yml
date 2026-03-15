@@ -2,12 +2,20 @@ name: Backend CI/CD → EC2 Dev
 
 on:
   push:
+<<<<<<< HEAD
     branches: [develop, main, "feature/**", "sprint/**"]
+=======
+    branches: [dev, main, "feature/**", "sprint/**"]
+>>>>>>> 4c508bd5fd859cb31102e9cfd1ddd090b64b5d6d
     paths:
       - "backend/**"
       - ".github/workflows/backend-cicd.yml"
   pull_request:
+<<<<<<< HEAD
     branches: [develop, main]
+=======
+    branches: [dev, main]
+>>>>>>> 4c508bd5fd859cb31102e9cfd1ddd090b64b5d6d
     paths:
       - "backend/**"
 
@@ -61,7 +69,11 @@ jobs:
     # Chỉ build khi push vào dev hoặc main (không build khi PR)
     if: |
       github.event_name == 'push' &&
+<<<<<<< HEAD
       (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+=======
+      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+>>>>>>> 4c508bd5fd859cb31102e9cfd1ddd090b64b5d6d
     defaults:
       run:
         working-directory: backend/jobplatform
@@ -116,7 +128,9 @@ jobs:
     name: Deploy → Dev EC2
     runs-on: ubuntu-latest
     needs: build-image
+
     if: github.ref == 'refs/heads/develop'
+
     environment:
       name: development
       url: http://dev-jobplatform.example.com
