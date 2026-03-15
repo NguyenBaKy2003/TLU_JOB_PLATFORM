@@ -229,7 +229,7 @@ jobs:
 
             echo "▶ Restart services..."
             docker compose -f docker-compose.dev.yml --env-file .env \
-              up -d --no-deps --wait backend frontend nginx
+              up -d --wait backend frontend nginx
 
             echo "▶ Health check backend..."
             sleep 15

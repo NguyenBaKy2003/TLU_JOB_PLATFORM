@@ -108,6 +108,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+  # ── Next.js Frontend ──────────────────────────────────────────
+  frontend:
+    image: jobplatform-frontend:latest
+    container_name: jobplatform-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://15.135.233.82/api/v1
+    expose:
+      - "3000"
+    networks:
+      - jobplatform-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # ── Nginx ─────────────────────────────────────────────────────
   nginx:
