@@ -78,4 +78,9 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> errorWithData(T data, String message, String errorCode) {
         return new ApiResponse<>(false, data, message, errorCode, null);
     }
+
+    /** Thất bại — không có errorCode (dùng cho lỗi đơn giản) */
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, null, message, null, null);
+    }
 }

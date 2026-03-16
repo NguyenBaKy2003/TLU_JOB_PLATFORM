@@ -29,6 +29,8 @@ public class User {
     private UserRole role;
     private boolean active;
     private boolean verified;
+    private String authProvider;
+    private String authProviderId;
     private LocalDateTime lastLoginAt;
     private final LocalDateTime createdAt;
 
@@ -67,7 +69,9 @@ public class User {
      * Kiểm tra user có phải OAuth2-only không (chưa set password).
      */
     public boolean isOAuth2Only() {
-        return passwordHash == null || passwordHash.isBlank();
+        return "google".equalsIgnoreCase(authProvider)
+                || "facebook".equalsIgnoreCase(authProvider)
+                || "linkedin".equalsIgnoreCase(authProvider);
     }
 
     /**
@@ -117,5 +121,19 @@ public class User {
      */
     public boolean isCandidate() {
         return role == UserRole.CANDIDATE;
+    }
+
+    // User.java — thêm 2 method
+    public void linkOAuth2Provider(String provider, String providerId) {
+        if (this.authProvider == null || "local".equalsIgnoreCase(this.authProvider)) {
+            this.authProvider = provider;
+            this.authProviderId = providerId;
+        }
+    }
+
+    public void syncOAuth2Profile(String avatarUrl) {
+        if (this.avatarUrl == null && avatarUrl != null) {
+            this.avatarUrl = avatarUrl;
+        }
     }
 }

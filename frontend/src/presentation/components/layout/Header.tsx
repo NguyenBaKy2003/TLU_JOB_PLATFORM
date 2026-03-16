@@ -208,7 +208,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
                   >
                     {user.avatarUrl ? (
                       <img
-                        src={user.avatarUrl}
+                        src={user?.avatarUrl}
                         alt={user.fullName}
                         className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-100"
                       />

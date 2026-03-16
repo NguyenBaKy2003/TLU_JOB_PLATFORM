@@ -1,11 +1,15 @@
 package edu.tlu.jobplatform.user.infrastructure.persistence.adapter;
 
 import edu.tlu.jobplatform.user.domain.model.User;
+import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import edu.tlu.jobplatform.user.infrastructure.persistence.entity.UserJpaEntity;
 import edu.tlu.jobplatform.user.infrastructure.persistence.mapper.UserMapper;
 import edu.tlu.jobplatform.user.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -62,5 +66,12 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public void deleteById(UUID id) {
         jpaRepo.deleteById(id);
+    }
+
+    @Override
+    public Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable) {
+        String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+        return jpaRepo.searchUsers(kw, role, active, pageable)
+                .map(mapper::toDomain);
     }
 }
