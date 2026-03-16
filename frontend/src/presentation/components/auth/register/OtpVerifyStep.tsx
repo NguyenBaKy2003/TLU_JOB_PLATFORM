@@ -92,9 +92,8 @@ const handleVerify = async (e: React.FormEvent) => {
   setLoading(true);
   setError("");
   try {
-    // ✅ Đúng endpoint — không cần newPassword
     await authService.verifyEmail(email, otp.join(""));
-    onVerified(); // ✅ Chuyển sang step tiếp theo
+    onVerified();
   } catch (err) {
     setError(err instanceof Error ? err.message : "Mã OTP không chính xác. Vui lòng thử lại.");
   } finally {

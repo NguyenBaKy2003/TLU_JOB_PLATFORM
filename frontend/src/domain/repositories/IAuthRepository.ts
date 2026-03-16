@@ -78,8 +78,10 @@ export interface IAuthRepository {
   verifyPasswordChange(data: PasswordChangeVerify): Promise<void>;
   
   /** POST /api/auth/verify-email — xác thực email sau đăng ký */
-verifyEmail(email: string, code: string): Promise<void>;
+  verifyEmail(email: string, code: string): Promise<void>;
 
-/** POST /api/auth/resend-verification — gửi lại OTP xác thực email */
-resendVerificationEmail(email: string): Promise<void>;
+  /** POST /api/auth/resend-verification — gửi lại OTP xác thực email */
+  resendVerificationEmail(email: string): Promise<void>;
+
+  
 }

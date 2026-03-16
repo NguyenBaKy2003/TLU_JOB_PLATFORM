@@ -38,6 +38,7 @@ public class AuthController {
         private final VerifyEmailUseCase verifyEmailUseCase;
         private final ResetPasswordUseCase resetPasswordUseCase;
         private final ForgotPasswordUseCase forgotPasswordUseCase;
+        private final ResendOtpUseCase resendOtpUseCase;
         @Value("${app.base-url:http://localhost:8080}")
         private String baseUrl;
 
@@ -90,6 +91,36 @@ public class AuthController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Email xác thực thành công. Bạn có thể đăng nhập ngay."));
+        }
+
+        // ── POST /api/v1/auth/resend-otp ──────────────────────────────────────────
+
+        @Operation(summary = "Gửi lại mã OTP xác thực email", description = """
+                        Gửi lại OTP 6 số nếu mã cũ đã hết hạn hoặc bị mất.
+
+                        OTP cũ sẽ bị **ghi đè** — chỉ mã mới nhất có hiệu lực.
+                        Mã có hiệu lực trong **10 phút**.
+
+                        **Bảo mật:** Response luôn trả về thành công dù email không tồn tại
+                        (tương tự forgot-password, tránh dò tìm email).
+                        """)
+        @ApiResponses({
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OTP đã được gửi lại (nếu email hợp lệ và chưa verified)"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Email sai định dạng")
+        })
+        @PostMapping("/resend-otp")
+        public ResponseEntity<ApiResponse<Void>> resendOtp(
+                        @Valid @RequestBody ResendOtpRequest req) {
+
+                try {
+                        resendOtpUseCase.execute(req.email());
+                } catch (BusinessRuleException e) {
+                        // Không lộ lý do thất bại (user not found / already verified)
+                        log.debug("resendOtp silenced: code={} email={}", e.getErrorCode(), req.email());
+                }
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Nếu email này hợp lệ và chưa xác thực, bạn sẽ nhận được mã OTP mới trong vài phút."));
         }
 
         // ── POST /api/v1/auth/login ───────────────────────────────────────────────
@@ -252,5 +283,9 @@ public class AuthController {
         public record VerifyEmailRequest(
                         @NotBlank @Email String email,
                         @NotBlank String code) {
+        }
+
+        public record ResendOtpRequest(
+                        @NotBlank @Email String email) {
         }
 }
