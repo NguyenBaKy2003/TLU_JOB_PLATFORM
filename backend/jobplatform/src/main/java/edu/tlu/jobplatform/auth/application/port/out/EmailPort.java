@@ -7,11 +7,11 @@ package edu.tlu.jobplatform.auth.application.port.out;
  * Interface chỉ mô tả "cần gửi email gì" — không quan tâm "gửi bằng cách nào".
  *
  * Implementations:
- *   - ConsoleEmailAdapter      (Sprint 1 dev: chỉ log ra console)
- *   - SendGridEmailAdapter     (Sprint 4 production)
+ * - ConsoleEmailAdapter (Sprint 1 dev: chỉ log ra console)
+ * - SendGridEmailAdapter (Sprint 4 production)
  *
  * Để đổi từ console sang SendGrid:
- *   → Chỉ thêm @Primary vào SendGridEmailAdapter, UseCase không cần sửa.
+ * → Chỉ thêm @Primary vào SendGridEmailAdapter, UseCase không cần sửa.
  */
 public interface EmailPort {
 
@@ -20,7 +20,8 @@ public interface EmailPort {
      *
      * @param toEmail       địa chỉ email người nhận
      * @param recipientName tên hiển thị trong email (thân thiện hơn)
-     * @param resetLink     link dạng: https://jobplatform.vn/reset-password?token=xxx&userId=yyy
+     * @param resetLink     link dạng:
+     *                      https://jobplatform.vn/reset-password?token=xxx&userId=yyy
      */
     void sendPasswordResetEmail(String toEmail, String recipientName, String resetLink);
 
@@ -32,4 +33,12 @@ public interface EmailPort {
      * @param recipientName tên hiển thị
      */
     void sendPasswordChangedNotification(String toEmail, String recipientName);
+
+    /**
+     * Gửi mã OTP xác thực email sau đăng ký (hoặc gửi lại).
+     *
+     * @param toEmail địa chỉ email người nhận
+     * @param otp     mã OTP 6 số
+     */
+    void sendOtpEmail(String toEmail, String otp);
 }
