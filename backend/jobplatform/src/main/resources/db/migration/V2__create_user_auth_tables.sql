@@ -3,28 +3,25 @@
 --  Sprint 1 — User & Auth Domain
 -- ════════════════════════════════════════════════════════════════
 -- ── users ────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
-    -- NULL nếu chỉ dùng OAuth2
     full_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     avatar_url VARCHAR(500),
-    role VARCHAR(20) NOT NULL DEFAULT 'CANDIDATE',
-    -- CANDIDATE|EMPLOYER|ADMIN
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    is_verified BOOLEAN NOT NULL DEFAULT false,
-    -- email đã xác thực chưa
+    role VARCHAR(20) NOT NULL,
+    auth_provider VARCHAR(50),
+    auth_provider_id VARCHAR(255),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     last_login_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by VARCHAR(36),
-    updated_by VARCHAR(36)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
-CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
-CREATE INDEX IF NOT EXISTS idx_users_active ON users (is_active)
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_active ON users(is_active);
+CREATE INDEX idx_users_provider ON users(auth_provider);
 WHERE is_active = true;
 COMMENT ON TABLE users IS 'Tài khoản người dùng hệ thống';
 COMMENT ON COLUMN users.role IS 'CANDIDATE | EMPLOYER | ADMIN | SUPER_ADMIN';

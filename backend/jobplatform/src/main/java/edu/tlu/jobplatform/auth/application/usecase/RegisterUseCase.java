@@ -64,6 +64,7 @@ public class RegisterUseCase {
                 .passwordHash(passwordEncoder.encode(cmd.password()))
                 .fullName(cmd.fullName().trim())
                 .role(cmd.role() != null ? cmd.role() : UserRole.CANDIDATE)
+                .authProvider("local")
                 .active(true)
                 .verified(false) // ← Phải verify email trước khi login
                 .createdAt(LocalDateTime.now())

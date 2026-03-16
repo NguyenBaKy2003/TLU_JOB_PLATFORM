@@ -20,7 +20,8 @@ import java.time.LocalDateTime;
 @Table(name = "users", indexes = {
         @Index(name = "idx_users_email", columnList = "email", unique = true),
         @Index(name = "idx_users_role", columnList = "role"),
-        @Index(name = "idx_users_active", columnList = "is_active")
+        @Index(name = "idx_users_active", columnList = "is_active"),
+        @Index(name = "idx_users_provider", columnList = "auth_provider")
 })
 @Getter
 @Setter
@@ -47,6 +48,12 @@ public class UserJpaEntity extends BaseJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role;
+
+    @Column(name = "auth_provider", length = 50)
+    private String authProvider; // ← thêm
+
+    @Column(name = "auth_provider_id", length = 255)
+    private String authProviderId; // ← thêm
 
     @Column(name = "is_verified", nullable = false)
     private boolean verified;

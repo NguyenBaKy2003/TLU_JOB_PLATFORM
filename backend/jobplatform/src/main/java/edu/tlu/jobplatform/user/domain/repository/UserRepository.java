@@ -1,18 +1,12 @@
 package edu.tlu.jobplatform.user.domain.repository;
 
+import edu.tlu.jobplatform.user.domain.model.User;
+import edu.tlu.jobplatform.user.domain.model.UserRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Optional;
 import java.util.UUID;
-
-import edu.tlu.jobplatform.user.domain.model.User;
-
-/**
- * Port (interface) để truy cập user data.
- *
- * Domain định nghĩa interface này — không biết implement thế nào.
- * Infrastructure layer (UserRepositoryAdapter) sẽ implement bằng JPA.
- *
- * Quy tắc: chỉ dùng domain model (User), không dùng JPA entity.
- */
 
 public interface UserRepository {
 
@@ -25,4 +19,7 @@ public interface UserRepository {
     User save(User user);
 
     void deleteById(UUID id);
+
+    // ── Admin search ──────────────────────────────────────────────
+    Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable);
 }
