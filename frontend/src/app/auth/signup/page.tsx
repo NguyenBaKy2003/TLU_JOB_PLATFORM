@@ -33,11 +33,7 @@ export default function SignupPage() {
 
   return (
     <AuthLayout imageSrc="/Frame1.png">
-      {serverError && (
-        <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-          {serverError}
-        </div>
-      )}
+      
       <RegisterPage
         onGoogleLogin={handleGoogleLogin}
         oauthLoading={oauthLoading}

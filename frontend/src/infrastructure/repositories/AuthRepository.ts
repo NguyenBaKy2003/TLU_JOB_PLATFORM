@@ -152,6 +152,6 @@ export class AuthRepository implements IAuthRepository {
 }
 
 async resendVerificationEmail(email: string): Promise<void> {
-  await api.post("/auth/resend-verification", { email });
+  await api.post("/auth/resend-otp", { email });
 }
 }

@@ -33,6 +33,7 @@ export interface AuthTokenUser {
   email: string;
   fullName: string;
   role: UserRole;
+  active: boolean;
   avatarUrl: string | null;
   verified: boolean;
 }

@@ -10,14 +10,11 @@ import {
   SubmitButton,
 } from "@/presentation/components/common/auth-ui";
 import { validateRegisterForm, filterErrors, hasErrors } from "@/lib/validation";
-import { AuthService } from "@/application/services/AuthService";
+import { AuthService }    from "@/application/services/AuthService";
 import { AuthRepository } from "@/infrastructure/repositories/AuthRepository";
-
-// ─── Singleton ────────────────────────────────────────────────────────────────
+import { useToast }       from "@/presentation/components/ui/toast";
 
 const authService = new AuthService(new AuthRepository());
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 const INIT_FORM = {
   firstName:       "",
@@ -28,28 +25,26 @@ const INIT_FORM = {
 };
 
 export interface RegisterInfoStepProps {
-  onNext:        (email: string) => void;
+  onNext:         (email: string) => void;
   onGoogleLogin?: () => void;
   oauthLoading?:  boolean;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterInfoStep({
   onNext,
   onGoogleLogin,
   oauthLoading = false,
 }: RegisterInfoStepProps) {
-  const [form,        setForm]        = useState(INIT_FORM);
-  const [errors,      setErrors]      = useState<Partial<typeof INIT_FORM>>({});
-  const [loading,     setLoading]     = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const toast = useToast();
+
+  const [form,    setForm]    = useState(INIT_FORM);
+  const [errors,  setErrors]  = useState<Partial<typeof INIT_FORM>>({});
+  const [loading, setLoading] = useState(false);
 
   const set = (field: keyof typeof INIT_FORM) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm(f => ({ ...f, [field]: e.target.value }));
       setErrors(err => ({ ...err, [field]: undefined }));
-      setServerError(null);
     };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,24 +53,25 @@ export function RegisterInfoStep({
     if (hasErrors(errs)) { setErrors(errs); return; }
 
     setLoading(true);
-    setServerError(null);
-
     try {
       const fullName =
         `${form.firstName} ${form.lastName}`.trim() || form.email.split("@")[0];
 
-      // ✅ Gọi API đăng ký — backend gửi OTP về email
       await authService.signup({
         email:    form.email,
         password: form.password,
         fullName,
       });
 
-      onNext(form.email);
-    } catch (err) {
-      setServerError(
-        err instanceof Error ? err.message : "Đăng ký thất bại. Vui lòng thử lại."
+      toast.success(
+        "Đăng ký thành công!",
+        "Vui lòng kiểm tra email và nhập mã OTP để xác thực tài khoản."
       );
+      onNext(form.email);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ?? "Đăng ký thất bại. Vui lòng thử lại.";
+      toast.error("Đăng ký thất bại", message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +81,6 @@ export function RegisterInfoStep({
 
   return (
     <div className="w-full">
-      {/* Logo */}
       <div className="text-center mb-3">
         <Link href="/">
           <img src="/Logo.svg" alt="Job" className="h-16 !w-[144] mx-auto" />
@@ -100,15 +95,8 @@ export function RegisterInfoStep({
         và cá nhân hóa trải nghiệm của bạn
       </p>
 
-      {/* Server error */}
-      {serverError && (
-        <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-          {serverError}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
-       <FormInput
+        <FormInput
           label="Tên" type="text" placeholder="Nhập tên"
           value={form.firstName} onChange={set("firstName")} error={errors.firstName}
         />
@@ -116,7 +104,7 @@ export function RegisterInfoStep({
           label="Họ" placeholder="Nhập họ"
           value={form.lastName} onChange={set("lastName")} error={errors.lastName}
         />
-       <FormInput
+        <FormInput
           label="Địa chỉ Email" type="email" placeholder="Nhập địa chỉ Email"
           value={form.email} onChange={set("email")} error={errors.email}
         />
