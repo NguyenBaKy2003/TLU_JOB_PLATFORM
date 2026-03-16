@@ -78,9 +78,12 @@ public class SecurityConfig {
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
+
                                                 .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
                                                                                                  // signature riêng
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
+                                                .requestMatchers("/api/v1/candidate/**").permitAll()
+
                                                 .anyRequest().authenticated())
 
                                 // ── OAuth2 Login ───────────────────────────────────────

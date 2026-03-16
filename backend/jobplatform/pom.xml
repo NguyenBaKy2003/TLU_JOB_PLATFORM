@@ -94,6 +94,18 @@
     <scope>runtime</scope>
 </dependency>
 
+        <!-- S3 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.2</version>
+        </dependency>
         <!-- ── DATABASE ──────────────────────────────────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
