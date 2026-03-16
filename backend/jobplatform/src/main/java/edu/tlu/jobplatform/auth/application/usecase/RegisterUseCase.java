@@ -2,6 +2,8 @@ package edu.tlu.jobplatform.auth.application.usecase;
 
 import edu.tlu.jobplatform.auth.application.port.out.OtpStorePort;
 import edu.tlu.jobplatform.auth.domain.service.PasswordEncoder;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.user.domain.model.User;
@@ -37,12 +39,12 @@ public class RegisterUseCase {
 
     private static final String OTP_PURPOSE = "verify-email";
     private static final Duration OTP_TTL = Duration.ofMinutes(10);
-    private static final int OTP_LENGTH = 6;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpStorePort otpStore;
     private final EmailService emailService;
+    private final CandidateProfileRepository candidateProfileRepository;
 
     @Transactional
     public Result execute(Command cmd) {
@@ -71,6 +73,23 @@ public class RegisterUseCase {
                 .build();
 
         User saved = userRepository.save(user);
+        // ── Tạo CandidateProfile mặc định ─────────────────────────────
+        if (saved.getRole() == UserRole.CANDIDATE) {
+            CandidateProfile profile = CandidateProfile.builder()
+                    .id(UUID.randomUUID())
+                    .userId(saved.getId())
+                    .headline("")
+                    .summary("")
+                    .phone("")
+                    .location("")
+                    .avatarUrl("")
+                    .jobSearchStatus(CandidateProfile.JobSearchStatus.OPEN_TO_OFFERS)
+                    .expectedSalary(0)
+                    .currency("VND")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            candidateProfileRepository.save(profile);
+        }
 
         // Sinh OTP và lưu vào Redis
         String otp = generateOtp();
