@@ -1,0 +1,26 @@
+import { UserProfile } from "@/types/profile";
+
+export const mockUser: UserProfile = {
+  id: "LF-8752322",
+  firstName: "Ana",
+  lastName: "Amiri",
+  email: "anaamiri@gmail.com",
+  phone: "+1 (555) 123-4567",
+  maritalStatus: "Độc thân",
+  birthYear: 2005,
+  city: "Tehran",
+  gender: "Nữ",
+  avatar: undefined,
+  jobTitle: "Product Designer",
+  university: "Trường Đại học Thăng Long",
+  completionPercent: 0,
+  profileUrl: "Joblin.com/u/LF-8752322",
+  bio: undefined,
+  skills: [],
+  experiences: [],
+  educations: [],
+  links: [],
+  languages: [],
+  desiredJobs: [],
+  benefits: [],
+};
