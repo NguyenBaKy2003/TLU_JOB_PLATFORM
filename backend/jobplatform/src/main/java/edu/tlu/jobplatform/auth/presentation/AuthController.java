@@ -83,16 +83,16 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "OTP sai / hết hạn / email không tồn tại")
         })
         @PostMapping("/verify-email")
-        public ResponseEntity<ApiResponse<Void>> verifyEmail(
+        public ResponseEntity<ApiResponse<TokenResponse>> verifyEmail(
                         @Valid @RequestBody VerifyEmailRequest req) {
 
-                verifyEmailUseCase.execute(
+                AuthToken token = verifyEmailUseCase.execute(
                                 new VerifyEmailUseCase.Command(req.email(), req.code()));
 
-                return ResponseEntity.ok(
-                                ApiResponse.success("Email xác thực thành công. Bạn có thể đăng nhập ngay."));
+                return ResponseEntity.ok(ApiResponse.success(
+                                TokenResponse.from(token),
+                                "Xác thực thành công! Đang đăng nhập..."));
         }
-
         // ── POST /api/v1/auth/resend-otp ──────────────────────────────────────────
 
         @Operation(summary = "Gửi lại mã OTP xác thực email", description = """

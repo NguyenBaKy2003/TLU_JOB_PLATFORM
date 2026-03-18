@@ -59,7 +59,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<FileText size={16} />}
           addLabel="Giới thiệu bản thân"
           onAdd={() => {}}
-          isEmpty={!user.bio}
+          isEmpty={!user?.bio}
           emptyText="Giới thiệu về bản thân bạn"
         />
 
@@ -68,7 +68,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Target size={16} />}
           addLabel="Kỹ năng chuyên môn"
           onAdd={() => {}}
-          isEmpty={!user.skills?.length}
+          isEmpty={!user?.skills?.length}
           emptyText="Giới thiệu về bản thân bạn"
         />
 
@@ -77,7 +77,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Briefcase size={16} />}
           addLabel="Kinh nghiệm làm việc"
           onAdd={() => {}}
-          isEmpty={!user.experiences?.length}
+          isEmpty={!user?.experiences?.length}
           emptyText="Giới thiệu về bản thân bạn"
         />
 
@@ -86,7 +86,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<BookOpen size={16} />}
           addLabel="Học vấn"
           onAdd={() => {}}
-          isEmpty={!user.educations?.length}
+          isEmpty={!user?.educations?.length}
           emptyText="Thêm quá trình học vấn"
         />
 
@@ -95,7 +95,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Link2 size={16} />}
           addLabel="Liên kết"
           onAdd={() => {}}
-          isEmpty={!user.links?.length}
+          isEmpty={!user?.links?.length}
           emptyText="Thêm danh mục dự án (Portfolio) và liên kết mạng xã hội của bạn"
         />
 
@@ -104,7 +104,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Globe size={16} />}
           addLabel="Ngôn ngữ"
           onAdd={() => {}}
-          isEmpty={!user.languages?.length}
+          isEmpty={!user?.languages?.length}
           emptyText="Thêm trình độ ngoại ngữ"
         />
 
@@ -113,7 +113,7 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Target size={16} />}
           addLabel="Công việc mong muốn"
           onAdd={() => {}}
-          isEmpty={!user.desiredJobs?.length}
+          isEmpty={!user?.desiredJobs?.length}
           emptyText="Thêm công việc mong muốn"
         />
 
@@ -122,20 +122,20 @@ export function ProfilePageContent({ initialUser }: ProfilePageContentProps) {
           icon={<Gift size={16} />}
           addLabel="Phúc lợi kỳ vọng"
           onAdd={() => {}}
-          isEmpty={!user.benefits?.length}
+          isEmpty={!user?.benefits?.length}
           emptyText="Add your preferred job benefits"
         />
       </div>
 
       {/* Sidebar */}
       <div className="w-64 flex-shrink-0 space-y-4">
-        <ProfileCompletion percent={user.completionPercent} />
+        <ProfileCompletion percent={user?.completionPercent} />
         <CVUpload
           onUpload={(file) => setCvFile(file.name)}
           currentFile={cvFile}
           onRemove={() => setCvFile(undefined)}
         />
-        <ProfileUrl url={user.profileUrl} />
+        <ProfileUrl url={user?.profileUrl} />
 
         {/* Save button */}
         <button

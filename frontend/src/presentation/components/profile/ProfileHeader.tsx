@@ -37,10 +37,10 @@ export function ProfileHeader({
             onClick={handleAvatarClick}
             className="w-20 h-20 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all group overflow-hidden"
           >
-            {user.avatar ? (
+            {user?.avatar ? (
               <img
-                src={user.avatar}
-                alt={`${user.firstName} ${user.lastName}`}
+                src={user?.avatar}
+                alt={`${user?.firstName} ${user?.lastName}`}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -52,7 +52,7 @@ export function ProfileHeader({
               </div>
             )}
           </div>
-          {user.avatar && (
+          {user?.avatar && (
             <button
               onClick={handleAvatarClick}
               className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
@@ -65,17 +65,17 @@ export function ProfileHeader({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <h2 className="text-xl font-bold text-gray-900">
-            {user.firstName} {user.lastName}
+            {user?.firstName} {user?.lastName}
           </h2>
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            {user.jobTitle && (
-              <span className="text-sm text-gray-500 font-medium">{user.jobTitle}</span>
+            {user?.jobTitle && (
+              <span className="text-sm text-gray-500 font-medium">{user?.jobTitle}</span>
             )}
-            {user.jobTitle && user.university && (
+            {user?.jobTitle && user?.university && (
               <span className="text-gray-300">•</span>
             )}
-            {user.university && (
-              <span className="text-sm text-gray-500">{user.university}</span>
+            {user?.university && (
+              <span className="text-sm text-gray-500">{user?.university}</span>
             )}
           </div>
 

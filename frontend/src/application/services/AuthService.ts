@@ -2,6 +2,7 @@ import { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import {
   AuthResult,
   AuthToken,
+  AuthTokenResponse,
   OAuthUserData,
   PasswordChangeRequest,
   PasswordChangeVerify,
@@ -166,10 +167,13 @@ export class AuthService {
     return this.authRepository.verifyPasswordChange(data);
   }
 
-  async verifyEmail(email: string, code: string): Promise<void> {
+  // ── Email Verification ────────────────────────────────────────
+
+  async verifyEmail(email: string, code: string): Promise<AuthTokenResponse> {
     assertValidEmail(email);
     assertOtpCode(code);
-    return this.authRepository.verifyEmail(email, code);
+    // fix: dùng this.authRepository thay vì this.repo
+    return this.authRepository.verifyEmail({ email, code });
   }
 
   async resendVerificationEmail(email: string): Promise<void> {

@@ -1,6 +1,7 @@
 import {
   AuthResult,
   AuthToken,
+  AuthTokenResponse,
   OAuthUserData,
   PasswordChangeRequest,
   PasswordChangeVerify,
@@ -11,6 +12,7 @@ import {
   UpdateProfileData,
   User,
   UserCredentials,
+  VerifyEmailRequest,
 } from "../models/User";
 
 /**
@@ -76,12 +78,10 @@ export interface IAuthRepository {
 
   /** Xác nhận OTP + đổi mật khẩu */
   verifyPasswordChange(data: PasswordChangeVerify): Promise<void>;
-  
+
   /** POST /api/auth/verify-email — xác thực email sau đăng ký */
-  verifyEmail(email: string, code: string): Promise<void>;
+  verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse>;
 
   /** POST /api/auth/resend-verification — gửi lại OTP xác thực email */
   resendVerificationEmail(email: string): Promise<void>;
-
-  
 }

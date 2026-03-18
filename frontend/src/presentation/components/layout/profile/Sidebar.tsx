@@ -1,53 +1,54 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
+import React        from "react";
+import Link         from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  User,
-  Bell,
-  MessageSquare,
-  Settings,
-  Activity,
-  LogOut,
-  HelpCircle,
-  Briefcase,
-  ChevronLeft,
+  User, Bell, MessageSquare, Settings,
+  Activity, LogOut, HelpCircle, Briefcase, ChevronLeft,
 } from "lucide-react";
+import { useAuth } from "@/application/contexts/AuthContext";
 
 interface SidebarItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
+  label:  string;
+  href:   string;
+  icon:   React.ReactNode;
   badge?: number;
-  active?: boolean;
 }
 
 interface SidebarProps {
   activeHref?: string;
-  collapsed?: boolean;
-  onToggle?: () => void;
+  collapsed?:  boolean;
+  onToggle?:   () => void;
 }
 
 const mainNavItems: SidebarItem[] = [
-  { label: "Hồ sơ của tôi", href: "/profile", icon: <User size={18} /> },
-  { label: "Thông báo", href: "/notifications", icon: <Bell size={18} />, badge: 6 },
-  { label: "Tin nhắn", href: "/messages", icon: <MessageSquare size={18} />, badge: 6 },
-  { label: "Cài đặt tài khoản", href: "/settings", icon: <Settings size={18} /> },
-  { label: "Hoạt động", href: "/activity", icon: <Activity size={18} /> },
+  { label: "Hồ sơ của tôi",    href: "/profile",       icon: <User         size={18} /> },
+  { label: "Thông báo",         href: "/notifications", icon: <Bell         size={18} />, badge: 6 },
+  { label: "Tin nhắn",          href: "/messages",      icon: <MessageSquare size={18} />, badge: 6 },
+  { label: "Cài đặt tài khoản", href: "/settings",      icon: <Settings     size={18} /> },
+  { label: "Hoạt động",         href: "/activity",      icon: <Activity     size={18} /> },
 ];
 
 const bottomNavItems: SidebarItem[] = [
-  { label: "Đăng xuất", href: "/logout", icon: <LogOut size={18} /> },
   { label: "Trợ giúp", href: "/help", icon: <HelpCircle size={18} /> },
 ];
 
 export function Sidebar({ activeHref = "/profile", collapsed = false, onToggle }: SidebarProps) {
+  const router     = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/auth/login");
+  };
+
   return (
-    <aside
-      className={`relative flex flex-col bg-white border-r border-gray-100 h-screen sticky top-0 transition-all duration-300 ${
-        collapsed ? "w-16" : "w-56"
-      }`}
-    >
+    <aside className={`
+      relative flex flex-col bg-white border-r border-gray-100
+      h-screen sticky top-0 transition-all duration-300
+      ${collapsed ? "w-16" : "w-56"}
+    `}>
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-gray-100">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -55,8 +56,8 @@ export function Sidebar({ activeHref = "/profile", collapsed = false, onToggle }
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm font-bold text-gray-900 leading-none">Job</p>
-            <p className="text-[10px] text-gray-400">Bảng điều kiển</p>
+            <p className="text-sm font-bold text-gray-900 leading-none">JobPlatform</p>
+            <p className="text-[10px] text-gray-400">Bảng điều khiển</p>
           </div>
         )}
       </div>
@@ -76,21 +77,22 @@ export function Sidebar({ activeHref = "/profile", collapsed = false, onToggle }
       <nav className="flex-1 px-2 py-4">
         {!collapsed && (
           <p className="px-2 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-            Main
+            Menu
           </p>
         )}
         <ul className="space-y-0.5">
-          {mainNavItems.map((item) => {
+          {mainNavItems.map(item => {
             const isActive = activeHref === item.href;
             return (
-              <li key={item.href}>
+              <li key={item.href} className="relative">
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group ${
-                    isActive
+                  className={`
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group
+                    ${isActive
                       ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
+                  `}
                 >
                   <span className={`flex-shrink-0 ${isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"}`}>
                     {item.icon}
@@ -119,20 +121,25 @@ export function Sidebar({ activeHref = "/profile", collapsed = false, onToggle }
 
       {/* Bottom nav */}
       <div className="px-2 pb-4 border-t border-gray-100 pt-3 space-y-0.5">
-        {bottomNavItems.map((item) => (
+        {bottomNavItems.map(item => (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group ${
-              item.href === "/logout"
-                ? "text-red-500 hover:bg-red-50"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            }`}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
           >
-            <span className="flex-shrink-0">{item.icon}</span>
+            <span className="flex-shrink-0 text-gray-400">{item.icon}</span>
             {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         ))}
+
+        {/* Logout — button thay vì Link */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all"
+        >
+          <LogOut size={18} className="flex-shrink-0" />
+          {!collapsed && <span className="truncate">Đăng xuất</span>}
+        </button>
       </div>
     </aside>
   );
