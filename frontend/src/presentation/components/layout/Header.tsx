@@ -96,7 +96,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
 
   // ── Avatar initials fallback ───────────────────────────────────────────────
   const initials = user?.fullName
-    ? user.fullName
+    ? user?.fullName
         .trim()
         .split(" ")
         .slice(-2)
@@ -191,7 +191,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Nhà tuyển dụng link — chỉ cho CANDIDATE */}
-                {user.role === "CANDIDATE" && (
+                {user?.role === "CANDIDATE" && (
                   <Link
                     href="/employer"
                     className="hidden lg:block text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
@@ -206,10 +206,10 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
                     onClick={() => setDropdownOpen((v) => !v)}
                     className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    {user.avatarUrl ? (
+                    {user?.avatarUrl ? (
                       <img
                         src={user?.avatarUrl}
-                        alt={user.fullName}
+                        alt={user?.fullName}
                         className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-100"
                       />
                     ) : (
@@ -229,10 +229,10 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
                       {/* User info */}
                       <div className="px-4 py-3 border-b border-gray-50">
                         <p className="text-sm font-semibold text-gray-900 truncate">
-                          {user.fullName}
+                          {user?.fullName}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {user.role === "CANDIDATE"
+                          {user?.role === "CANDIDATE"
                             ? "Ứng viên"
                             : "Nhà tuyển dụng"}
                         </p>

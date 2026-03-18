@@ -1,64 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { SubmitButton } from "@/presentation/components/common/auth-ui";
-import { AuthService } from "@/application/services/AuthService";
-import { AuthRepository } from "@/infrastructure/repositories/AuthRepository";
-
-// ─── Singleton ────────────────────────────────────────────────────────────────
+import { useState }                        from "react";
+import Link                                from "next/link";
+import { SubmitButton }                    from "@/presentation/components/common/auth-ui";
+import { AuthService }                     from "@/application/services/AuthService";
+import { AuthRepository }                  from "@/infrastructure/repositories/AuthRepository";
+import { AuthTokenResponse }               from "@/domain/models/User";
+import { setAccessToken, setRefreshToken } from "@/lib/auth-helpers";
+import { useAuth }                         from "@/application/contexts/AuthContext";
+import { useToast }                        from "@/presentation/components/ui/toast";
 
 const authService = new AuthService(new AuthRepository());
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const OTP_LEN = 6;
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface OtpVerifyStepProps {
   email:      string;
-  onVerified: () => void;
+  onVerified: (token: AuthTokenResponse) => void;
   onBack:     () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function OtpVerifyStep({ email, onVerified, onBack }: OtpVerifyStepProps) {
-  const [otp,      setOtp]      = useState<string[]>(Array(OTP_LEN).fill(""));
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
-  const [resendCd, setResendCd] = useState(0);
-  const [resending, setResending] = useState(false);
+  const { setUserFromToken } = useAuth();
+  const toast                = useToast();
 
-  // ── Countdown helper ────────────────────────────────────────────────────────
+  const [otp,       setOtp]       = useState<string[]>(Array(OTP_LEN).fill(""));
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState("");
+  const [resendCd,  setResendCd]  = useState(0);
+  const [resending, setResending] = useState(false);
 
   const startCountdown = () => {
     setResendCd(60);
     const t = setInterval(() =>
-      setResendCd(v => {
-        if (v <= 1) { clearInterval(t); return 0; }
-        return v - 1;
-      }), 1000);
+      setResendCd(v => { if (v <= 1) { clearInterval(t); return 0; } return v - 1; }),
+      1000);
   };
 
-  // ── Resend OTP ──────────────────────────────────────────────────────────────
-
-const handleResend = async () => {
-  setResending(true);
-  setError("");
-  try {
-    // ✅ Đúng endpoint
-    await authService.resendVerificationEmail(email);
-    startCountdown();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Không thể gửi lại mã. Vui lòng thử lại.");
-  } finally {
-    setResending(false);
-  }
-};
-
-  // ── Input handlers ──────────────────────────────────────────────────────────
+  const handleResend = async () => {
+    setResending(true);
+    setError("");
+    try {
+      await authService.resendVerificationEmail(email);
+      startCountdown();
+      toast.success("Đã gửi lại mã!", `Mã OTP mới đã được gửi tới ${email}.`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? "Không thể gửi lại mã. Vui lòng thử lại.";
+      setError(msg);
+      toast.error("Gửi thất bại", msg);
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleChange = (i: number, val: string) => {
     if (!/^\d*$/.test(val)) return;
@@ -83,29 +75,40 @@ const handleResend = async () => {
     }
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.join("").length < OTP_LEN) { setError("Vui lòng nhập đủ mã OTP"); return; }
 
-const handleVerify = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (otp.join("").length < OTP_LEN) { setError("Vui lòng nhập đủ mã OTP"); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const token = await authService.verifyEmail(email, otp.join(""));
 
-  setLoading(true);
-  setError("");
-  try {
-    await authService.verifyEmail(email, otp.join(""));
-    onVerified();
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Mã OTP không chính xác. Vui lòng thử lại.");
-  } finally {
-    setLoading(false);
-  }
-};
+      // Lưu token ngay — user đóng tab vẫn còn session
+      setAccessToken(token.accessToken);
+      setRefreshToken(token.refreshToken);
+      setUserFromToken(token.user);
+
+      // Toast xác nhận ngay tại bước này
+      toast.success(
+        "Tài khoản đã được xác thực!",
+        `Chào mừng ${token.user?.fullName} đến với JobPlatform.`
+      );
+
+      onVerified(token);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? "Mã OTP không chính xác. Vui lòng thử lại.";
+      setError(msg);
+      toast.error("Xác thực thất bại", msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filled = otp.filter(Boolean).length;
 
   return (
     <div className="w-full max-w-[300px] mx-auto">
-      {/* Logo */}
       <div className="text-center mb-3">
         <Link href="/">
           <img src="/Logo.svg" alt="Job" className="h-10 w-auto mx-auto" />
@@ -122,7 +125,6 @@ const handleVerify = async (e: React.FormEvent) => {
       </p>
 
       <form onSubmit={handleVerify}>
-        {/* OTP inputs */}
         <div className="flex gap-2 justify-center mb-1" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
@@ -136,9 +138,9 @@ const handleVerify = async (e: React.FormEvent) => {
               onKeyDown={e => handleKeyDown(i, e)}
               className={[
                 "w-11 h-11 text-center text-lg font-bold border rounded-lg outline-none transition-all",
-                digit   ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300",
-                error   ? "border-red-400 bg-red-50"
-                        : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200",
+                digit ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300",
+                error ? "border-red-400 bg-red-50"
+                      : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200",
               ].join(" ")}
             />
           ))}
@@ -148,11 +150,8 @@ const handleVerify = async (e: React.FormEvent) => {
           {filled}/{OTP_LEN} ký tự
         </p>
 
-        {error && (
-          <p className="text-red-500 text-xs text-center mb-2">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-xs text-center mb-2">{error}</p>}
 
-        {/* Resend */}
         <p className="text-center text-xs text-gray-500 mb-4">
           Mã hết hạn sau 10 phút.{" "}
           {resendCd > 0 ? (
@@ -176,10 +175,7 @@ const handleVerify = async (e: React.FormEvent) => {
 
       <p className="text-center text-xs text-gray-500 mt-4">
         Nhập sai email?{" "}
-        <button
-          onClick={onBack}
-          className="text-blue-600 hover:underline font-medium"
-        >
+        <button onClick={onBack} className="text-blue-600 hover:underline font-medium">
           Quay lại
         </button>
       </p>

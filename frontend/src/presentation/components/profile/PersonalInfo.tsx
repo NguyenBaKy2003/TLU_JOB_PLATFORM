@@ -30,14 +30,14 @@ function InfoField({ label, value, placeholder = "—" }: InfoFieldProps) {
 export function PersonalInfo({ user, onSave }: PersonalInfoProps) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone || "",
-    maritalStatus: user.maritalStatus || "",
-    city: user.city || "",
-    birthYear: user.birthYear?.toString() || "",
-    gender: user.gender || "",
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    email: user?.email,
+    phone: user?.phone || "",
+    maritalStatus: user?.maritalStatus || "",
+    city: user?.city || "",
+    birthYear: user?.birthYear?.toString() || "",
+    gender: user?.gender || "",
   });
 
   const handleSave = () => {
@@ -90,14 +90,14 @@ export function PersonalInfo({ user, onSave }: PersonalInfoProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-          <InfoField label="Tên" value={user.firstName} />
-          <InfoField label="Họ" value={user.lastName} />
-          <InfoField label="Địa chỉ Email" value={user.email} />
-          <InfoField label="Số điện thoại" value={user.phone} />
-          <InfoField label="Tình trạng hôn nhân" value={user.maritalStatus} />
-          <InfoField label="Thành phố" value={user.city} />
-          <InfoField label="Năm sinh" value={user.birthYear} />
-          <InfoField label="Giới tính" value={user.gender} />
+          <InfoField label="Tên" value={user?.firstName} />
+          <InfoField label="Họ" value={user?.lastName} />
+          <InfoField label="Địa chỉ Email" value={user?.email} />
+          <InfoField label="Số điện thoại" value={user?.phone} />
+          <InfoField label="Tình trạng hôn nhân" value={user?.maritalStatus} />
+          <InfoField label="Thành phố" value={user?.city} />
+          <InfoField label="Năm sinh" value={user?.birthYear} />
+          <InfoField label="Giới tính" value={user?.gender} />
         </div>
       )}
 
