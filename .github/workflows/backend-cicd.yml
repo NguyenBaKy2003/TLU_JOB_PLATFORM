@@ -167,8 +167,9 @@ jobs:
             echo "▶ Health check (chờ tối đa 3 phút)..."
             for i in $(seq 1 18); do
               sleep 10
-              STATUS=$(curl -sf http://localhost:8080/actuator/health 2>/dev/null \
-                       | grep -o '"status":"[^"]*"' | head -1 || true)
+              STATUS=$(docker exec jobplatform-backend-dev \
+                wget -qO- http://localhost:8080/actuator/health 2>/dev/null \
+                | grep -o '"status":"[^"]*"' | head -1 || true)
               echo "  attempt ${i}/18: ${STATUS:-no response}"
               if echo "$STATUS" | grep -q '"status":"UP"'; then
                 echo "✅ Healthy"
