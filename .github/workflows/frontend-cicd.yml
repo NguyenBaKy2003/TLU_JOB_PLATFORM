@@ -162,7 +162,7 @@ jobs:
 
             echo "▶ Health check..."
             sleep 10
-            curl -sf http://localhost:3000 \
+            curl -sfL http://localhost:3000 \
               && echo "✅ Frontend healthy" \
               || (echo "❌ Frontend unhealthy" \
                   && docker logs jobplatform-frontend-dev --tail 50 \
