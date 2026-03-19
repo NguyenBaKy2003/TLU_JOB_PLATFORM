@@ -103,7 +103,7 @@ jobs:
           platforms: linux/amd64
           push: true
           build-args: |
-            NEXT_PUBLIC_API_URL=http://${{ secrets.EC2_DEV_HOST }}/api/v1
+            NEXT_PUBLIC_API_BASE_URL=http://${{ secrets.EC2_DEV_HOST }}/api/v1
           tags: |
             ${{ steps.meta.outputs.full_image }}
             ${{ steps.meta.outputs.rolling }}
