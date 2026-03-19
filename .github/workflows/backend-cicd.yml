@@ -1,32 +1,31 @@
-name: CI/CD → EC2 Dev
+name: Backend CI/CD → EC2 Dev
 
 on:
   push:
     branches: [develop, main, "feature/**", "sprint/**"]
     paths:
       - "backend/**"
-      - "frontend/**"
       - ".github/workflows/backend-cicd.yml"
   pull_request:
     branches: [develop, main]
     paths:
       - "backend/**"
-      - "frontend/**"
 
 concurrency:
-  group: cicd-${{ github.ref }}
+  group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   JAVA_VERSION: "21"
+  # GitHub Container Registry
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/jobplatform-backend
 
+# ════════════════════════════════════════════════════════════════
 jobs:
-  # ════════════════════════════════════════════════════════════════
-  #  BACKEND
-  # ════════════════════════════════════════════════════════════════
-
-  backend-ci:
-    name: Backend — Build & Test
+  # ── Job 1: Build + Test ─────────────────────────────────────────
+  ci:
+    name: Build & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,18 +41,25 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Fix mvnw line endings and permission
-        run: |
-          sed -i 's/\r$//' mvnw
-          chmod +x mvnw
+      - name: Run tests
+        run: ./mvnw test -B --enable-preview
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
-      - name: Build & package
-        run: ./mvnw package -B -DskipTests
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: backend/jobplatform/target/surefire-reports/
+          retention-days: 3
 
-  backend-build-image:
-    name: Backend — Build Docker Image
+  # ── Job 2: Build & Push Docker Image to GHCR ───────────────────
+  build-image:
+    name: Build & Push to GHCR
     runs-on: ubuntu-latest
-    needs: backend-ci
+    needs: ci
+    # Chỉ build khi push vào develop hoặc main (không build khi PR)
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
@@ -63,140 +69,76 @@ jobs:
 
     outputs:
       image-tag: ${{ steps.meta.outputs.tag }}
+      full-image: ${{ steps.meta.outputs.full_image }}
+
+    # Cần quyền write packages để push lên GHCR
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set image tag
+      - name: Compute image tag
         id: meta
         run: |
           SHORT_SHA="${GITHUB_SHA:0:7}"
-          PREFIX=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "dev")
+          BRANCH="${GITHUB_REF_NAME}"
+          PREFIX=$([ "$BRANCH" = "main" ] && echo "prod" || echo "dev")
           TAG="${PREFIX}-${SHORT_SHA}"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          FULL_IMAGE="${{ env.IMAGE_NAME }}:${TAG}"
+          echo "tag=${TAG}"           >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+          echo "Image: ${FULL_IMAGE}"
 
-      - name: Fix mvnw line endings and permission
-        run: |
-          sed -i 's/\r$//' mvnw
-          chmod +x mvnw
-
-      - name: Build Docker image
-        run: |
-          docker build \
-            --platform linux/amd64 \
-            -t jobplatform-backend:${{ steps.meta.outputs.tag }} \
-            -t jobplatform-backend:latest \
-            -f Dockerfile .
-
-      - name: Save image
-        run: |
-          docker save jobplatform-backend:latest \
-            -o ${{ github.workspace }}/jobplatform-backend.tar
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          name: backend-image-${{ steps.meta.outputs.tag }}
-          path: ${{ github.workspace }}/jobplatform-backend.tar
-          retention-days: 1
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # token tự động, không cần tạo secret
 
-  # ════════════════════════════════════════════════════════════════
-  #  FRONTEND
-  # ════════════════════════════════════════════════════════════════
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  frontend-build-image:
-    name: Frontend — Build Docker Image
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
-
-    outputs:
-      image-tag: ${{ steps.meta.outputs.tag }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set image tag
-        id: meta
-        run: |
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-          PREFIX=$([ "${GITHUB_REF_NAME}" = "main" ] && echo "prod" || echo "dev")
-          TAG="${PREFIX}-${SHORT_SHA}"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-
-      - name: Build Docker image
-        working-directory: frontend
-        run: |
-          docker build \
-            --platform linux/amd64 \
-            --build-arg NEXT_PUBLIC_API_BASE_URL=http://15.135.233.82/api/v1 \
-            -t jobplatform-frontend:${{ steps.meta.outputs.tag }} \
-            -t jobplatform-frontend:latest \
-            -f Dockerfile .
-
-      - name: Save image
-        run: |
-          docker save jobplatform-frontend:latest \
-            -o ${{ github.workspace }}/jobplatform-frontend.tar
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
         with:
-          name: frontend-image-${{ steps.meta.outputs.tag }}
-          path: ${{ github.workspace }}/jobplatform-frontend.tar
-          retention-days: 1
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
 
-  # ════════════════════════════════════════════════════════════════
-  #  DEPLOY
-  # ════════════════════════════════════════════════════════════════
+      - name: Build & push image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/jobplatform
+          file: backend/jobplatform/Dockerfile
+          platforms: linux/amd64
+          push: true
+          # Push 2 tag: tag cụ thể + latest (theo nhánh)
+          tags: |
+            ${{ steps.meta.outputs.full_image }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name == 'main' && 'latest-prod' || 'latest-dev' }}
+          # Cache layer giữa các lần build để tăng tốc
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
+  # ── Job 3: Deploy Dev ───────────────────────────────────────────
   deploy-dev:
     name: Deploy → Dev EC2
     runs-on: ubuntu-latest
-    needs: [backend-build-image, frontend-build-image]
+    needs: build-image
     if: github.ref == 'refs/heads/develop'
+
     environment:
       name: development
-      url: http://15.135.233.82
+      url: http://dev-jobplatform.example.com
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download backend image
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-image-${{ needs.backend-build-image.outputs.image-tag }}
-          path: ${{ github.workspace }}
-
-      - name: Download frontend image
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-image-${{ needs.frontend-build-image.outputs.image-tag }}
-          path: ${{ github.workspace }}
-
-      - name: Verify artifacts
-        run: ls -lh ${{ github.workspace }}/*.tar
-
-      - name: Copy backend image to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_DEV_HOST }}
-          username: ${{ secrets.EC2_DEV_USER }}
-          key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          source: jobplatform-backend.tar
-          target: /opt/jobplatform/images/
-
-      - name: Copy frontend image to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_DEV_HOST }}
-          username: ${{ secrets.EC2_DEV_USER }}
-          key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          source: jobplatform-frontend.tar
-          target: /opt/jobplatform/images/
-
-      - name: Copy configs to EC2
+      # Copy docker-compose và nginx config mới nhất lên EC2
+      - name: Copy compose & nginx config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
@@ -204,53 +146,42 @@ jobs:
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
           source: "backend/jobplatform/docker/docker-compose.dev.yml,backend/jobplatform/docker/nginx-dev.conf"
           target: /opt/jobplatform/
-          strip_components: 3
+          strip_components: 3 # bỏ prefix backend/jobplatform/docker/
 
+      # SSH vào EC2: pull image từ GHCR rồi deploy
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
-          command_timeout: 15m
+          envs: IMAGE_TAG,FULL_IMAGE,REGISTRY,REPO_OWNER
           script: |
             set -e
             cd /opt/jobplatform
 
-            echo "▶ Load images..."
-            docker load -i images/jobplatform-backend.tar
-            docker load -i images/jobplatform-frontend.tar
+            echo "▶ Log in to GHCR..."
+            echo "${{ secrets.GHCR_PAT }}" \
+              | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            echo "▶ Restart services..."
+            echo "▶ Pull image: ${{ needs.build-image.outputs.full-image }}..."
+            docker pull ${{ needs.build-image.outputs.full-image }}
+
+            echo "▶ Restart backend..."
+            BACKEND_IMAGE=${{ needs.build-image.outputs.full-image }} \
             docker compose -f docker-compose.dev.yml --env-file .env \
-              up -d backend frontend nginx
+              up -d --no-deps --wait backend
 
-            echo "▶ Chờ backend healthy (tối đa 3 phút)..."
-            TIMEOUT=180
-            ELAPSED=0
-            until [ "$(docker inspect --format='{{.State.Health.Status}}' jobplatform-backend-dev 2>/dev/null)" = "healthy" ]; do
-              STATUS=$(docker inspect --format='{{.State.Status}}' jobplatform-backend-dev 2>/dev/null)
-              if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
-                echo "❌ Backend crash!"
-                docker logs jobplatform-backend-dev --tail 30
-                exit 1
-              fi
-              if [ $ELAPSED -ge $TIMEOUT ]; then
-                echo "⚠️  Timeout nhưng container vẫn running — tiếp tục deploy"
-                break
-              fi
-              echo "⏳ ${ELAPSED}s - Health: $(docker inspect --format='{{.State.Health.Status}}' jobplatform-backend-dev 2>/dev/null)"
-              sleep 15
-              ELAPSED=$((ELAPSED + 15))
-            done
+            echo "▶ Health check..."
+            sleep 15
+            curl -sf http://localhost:8080/actuator/health \
+              | grep -q '"status":"UP"' \
+              && echo "✅ Healthy" \
+              || (echo "❌ Unhealthy" \
+                  && docker logs jobplatform-backend-dev --tail 50 \
+                  && exit 1)
 
-            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jobplatform-backend-dev 2>/dev/null)
-            echo "✅ Backend status: $HEALTH"
-
-            echo "▶ Cleanup..."
+            echo "▶ Cleanup dangling images..."
             docker image prune -f
 
-            echo "🚀 Deploy complete!"
-            echo "   Frontend: http://15.135.233.82"
-            echo "   API:      http://15.135.233.82/api/v1"
-            echo "   Swagger:  http://15.135.233.82/swagger-ui/index.html"
+            echo "🚀 Deploy complete: ${{ needs.build-image.outputs.image-tag }}"

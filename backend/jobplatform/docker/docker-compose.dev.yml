@@ -3,6 +3,9 @@
 #
 # Tất cả services trên 1 EC2 instance (t3.medium đủ dùng cho dev)
 # Volumes được mount vào /opt/jobplatform/data/ để data tồn tại qua restart
+#
+# Lưu ý: Image được pull từ GHCR bởi CI/CD pipeline.
+#         EC2 phải đã đăng nhập GHCR trước: docker login ghcr.io
 networks:
   jobplatform-net:
     driver: bridge
@@ -41,10 +44,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    ports:
-      - "5432:5432" 
     expose:
       - "5432"
+    ports:
+      - "5432:5432" 
 
   # ── Redis ─────────────────────────────────────────────────────
   redis:
@@ -71,7 +74,9 @@ services:
 
   # ── Spring Boot Backend ───────────────────────────────────────
   backend:
-    image: jobplatform-backend:latest
+    # [FIX 2] Pull image từ GHCR thay vì dùng local image.
+    # IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${IMAGE_NAME:-jobplatform-backend}:${IMAGE_TAG:-latest-dev}
     container_name: jobplatform-backend-dev
     restart: unless-stopped
     depends_on:
@@ -129,7 +134,9 @@ services:
 
   # ── Next.js Frontend ──────────────────────────────────────────
   frontend:
-    image: jobplatform-frontend:latest
+    # [FIX 3] Pull image từ GHCR — đồng bộ cách deploy với backend.
+    # Khi chưa có CI/CD pipeline cho frontend, giữ tag cố định hoặc build tay rồi push lên GHCR.
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${FRONTEND_IMAGE_NAME:-jobplatform-frontend}:${FRONTEND_IMAGE_TAG:-latest-dev}
     container_name: jobplatform-frontend-dev
     restart: unless-stopped
     environment:
