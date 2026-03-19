@@ -127,7 +127,7 @@ jobs:
 
     environment:
       name: development
-      url: http://${{ secrets.EC2_DEV_HOST }}
+      url: http://dev-jobplatform.example.com
 
     steps:
       - uses: actions/checkout@v4
