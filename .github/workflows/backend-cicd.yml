@@ -164,14 +164,22 @@ jobs:
             docker compose -f docker-compose.dev.yml --env-file .env \
               up -d --no-deps --wait backend
 
-            echo "▶ Health check..."
-            sleep 15
-            curl -sf http://localhost:8080/actuator/health \
-              | grep -q '"status":"UP"' \
-              && echo "✅ Healthy" \
-              || (echo "❌ Unhealthy" \
-                  && docker logs jobplatform-backend-dev --tail 50 \
-                  && exit 1)
+            echo "▶ Health check (chờ tối đa 3 phút)..."
+            for i in $(seq 1 18); do
+              sleep 10
+              STATUS=$(curl -sf http://localhost:8080/actuator/health 2>/dev/null \
+                       | grep -o '"status":"[^"]*"' | head -1 || true)
+              echo "  attempt ${i}/18: ${STATUS:-no response}"
+              if echo "$STATUS" | grep -q '"status":"UP"'; then
+                echo "✅ Healthy"
+                break
+              fi
+              if [ "$i" -eq 18 ]; then
+                echo "❌ Unhealthy after 3 minutes"
+                docker logs jobplatform-backend-dev --tail 80
+                exit 1
+              fi
+            done
 
             echo "▶ Cleanup dangling images..."
             docker image prune -f
