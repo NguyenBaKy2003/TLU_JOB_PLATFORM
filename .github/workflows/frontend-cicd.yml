@@ -162,7 +162,8 @@ jobs:
 
             echo "▶ Health check..."
             sleep 10
-            curl -sfL http://localhost:3000 \
+            docker exec jobplatform-frontend-dev \
+              node -e "require('http').get('http://localhost:3000', r => { process.exit(r.statusCode >= 500 ? 1 : 0) }).on('error', () => process.exit(1))" \
               && echo "✅ Frontend healthy" \
               || (echo "❌ Frontend unhealthy" \
                   && docker logs jobplatform-frontend-dev --tail 50 \
