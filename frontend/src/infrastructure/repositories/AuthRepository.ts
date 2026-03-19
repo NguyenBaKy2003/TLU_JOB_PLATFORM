@@ -8,6 +8,7 @@ import { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import {
   AuthResult,
   AuthToken,
+  AuthTokenResponse,
   OAuthUserData,
   PasswordChangeRequest,
   PasswordChangeVerify,
@@ -18,7 +19,9 @@ import {
   UpdateProfileData,
   User,
   UserCredentials,
+  VerifyEmailRequest,
 } from "@/domain/models/User";
+import { ApiResponse } from "@/types/auth.types";
 
 /**
  * AuthRepository — implement IAuthRepository bằng HTTP (axios).
@@ -146,12 +149,15 @@ export class AuthRepository implements IAuthRepository {
     await api.post("/auth/password/change/verify", data);
   }
 
+  async verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse> {
+      const res = await api.post<ApiResponse<AuthTokenResponse>>(
+        "/auth/verify-email",
+        data
+      );
+      return res.data.data as AuthTokenResponse;
+  }
 
-  async verifyEmail(email: string, code: string): Promise<void> {
-  await api.post("/auth/verify-email", { email, code });
-}
-
-async resendVerificationEmail(email: string): Promise<void> {
-  await api.post("/auth/resend-otp", { email });
-}
+  async resendVerificationEmail(email: string): Promise<void> {
+    await api.post("/auth/resend-otp", { email });
+  }
 }

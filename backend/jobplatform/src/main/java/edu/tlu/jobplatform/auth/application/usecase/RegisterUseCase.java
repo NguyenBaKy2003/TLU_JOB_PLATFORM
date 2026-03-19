@@ -1,9 +1,13 @@
 package edu.tlu.jobplatform.auth.application.usecase;
 
 import edu.tlu.jobplatform.auth.application.port.out.OtpStorePort;
+import edu.tlu.jobplatform.auth.application.port.out.TokenStorePort;
+import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.domain.service.PasswordEncoder;
+import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
 import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
+import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
@@ -20,15 +24,16 @@ import java.util.UUID;
 /**
  * UseCase: Đăng ký tài khoản mới.
  *
- * Flow Sprint 4:
- * 1. Validate email unique
- * 2. Validate password đủ mạnh
- * 3. Hash password, tạo User (verified = false)
- * 4. Sinh OTP 6 số → lưu Redis (TTL 10 phút)
- * 5. Gửi email HTML chứa OTP (@Async)
- * 6. Trả về userId + email + role
+ * Flow:
+ * 1. Validate email unique + password strength
+ * 2. Tạo User (verified = false)
+ * 3. Tạo profile mặc định (CandidateProfile / EmployerProfile)
+ * 4. Sinh OTP → lưu Redis → gửi email
+ * 5. Trả về userId + email + role
+ * (Không đăng nhập ngay — phải verify email trước)
  *
- * User chỉ có thể đăng nhập sau khi xác thực email qua VerifyEmailUseCase.
+ * Sau khi verify email xong (VerifyEmailUseCase):
+ * → Trả về AuthToken để frontend đăng nhập luôn không cần redirect.
  */
 @Slf4j
 @Service
@@ -37,12 +42,12 @@ public class RegisterUseCase {
 
     private static final String OTP_PURPOSE = "verify-email";
     private static final Duration OTP_TTL = Duration.ofMinutes(10);
-    private static final int OTP_LENGTH = 6;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpStorePort otpStore;
     private final EmailService emailService;
+    private final ProfileCreationService profileCreationService;
 
     @Transactional
     public Result execute(Command cmd) {
@@ -57,7 +62,7 @@ public class RegisterUseCase {
         // BR-02: Password đủ mạnh
         validatePassword(cmd.password());
 
-        // Tạo User (verified = false — chờ OTP)
+        // Tạo User
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .email(cmd.email().toLowerCase().trim())
@@ -66,29 +71,30 @@ public class RegisterUseCase {
                 .role(cmd.role() != null ? cmd.role() : UserRole.CANDIDATE)
                 .authProvider("local")
                 .active(true)
-                .verified(false) // ← Phải verify email trước khi login
+                .verified(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         User saved = userRepository.save(user);
 
-        // Sinh OTP và lưu vào Redis
+        // Tạo profile mặc định theo role
+        profileCreationService.createProfileForUser(saved);
+
+        // Sinh OTP → Redis → Email
         String otp = generateOtp();
         otpStore.save(OTP_PURPOSE, saved.getEmail(), otp, OTP_TTL);
-
-        // Gửi email OTP (@Async — không block)
         emailService.sendVerificationOtp(saved.getEmail(), saved.getFullName(), otp);
 
-        log.info("User registered (pending verification): {} [{}]", saved.getEmail(), saved.getRole());
+        log.info("User registered (pending verification): {} [{}]",
+                saved.getEmail(), saved.getRole());
 
         return new Result(saved.getId(), saved.getEmail(), saved.getRole().name());
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────
 
     private String generateOtp() {
-        SecureRandom rng = new SecureRandom();
-        int code = rng.nextInt(900_000) + 100_000; // 100000 – 999999
+        int code = new SecureRandom().nextInt(900_000) + 100_000;
         return String.valueOf(code);
     }
 
@@ -102,8 +108,6 @@ public class RegisterUseCase {
         if (!pw.matches(".*\\d.*"))
             throw new BusinessRuleException("Mật khẩu phải có ít nhất 1 chữ số.", "WEAK_PASSWORD");
     }
-
-    // ── Records ───────────────────────────────────────────────────────────────
 
     public record Command(String email, String password, String fullName, UserRole role) {
     }

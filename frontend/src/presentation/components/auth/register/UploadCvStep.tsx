@@ -58,14 +58,11 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
 
   // ── Submit ──────────────────────────────────────────────────────────────────
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
     setLoading(true);
     try {
-      // ✅ TODO: Thay bằng cvService.upload(file) khi có endpoint
-      // await cvService.upload(file)
-      await new Promise(r => setTimeout(r, 800)); // placeholder
       onComplete(file);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Tải lên thất bại. Vui lòng thử lại.");
