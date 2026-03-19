@@ -149,7 +149,6 @@ export class AuthRepository implements IAuthRepository {
     await api.post("/auth/password/change/verify", data);
   }
 
-
   async verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse> {
       const res = await api.post<ApiResponse<AuthTokenResponse>>(
         "/auth/verify-email",
@@ -158,7 +157,7 @@ export class AuthRepository implements IAuthRepository {
       return res.data.data as AuthTokenResponse;
   }
 
-async resendVerificationEmail(email: string): Promise<void> {
-  await api.post("/auth/resend-otp", { email });
-}
+  async resendVerificationEmail(email: string): Promise<void> {
+    await api.post("/auth/resend-otp", { email });
+  }
 }
