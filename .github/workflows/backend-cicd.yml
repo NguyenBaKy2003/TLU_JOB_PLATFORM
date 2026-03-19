@@ -42,7 +42,7 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: ./mvnw test -B --enable-preview
+        run: ./mvnw test -B
         env:
           SPRING_PROFILES_ACTIVE: test
 
