@@ -35,7 +35,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [router, setUserFromToken]); // ← toast không cần trong deps
+  }, [router, setUserFromToken,toast]); // ← toast không cần trong deps
 
   // ── Google OAuth ────────────────────────────────────────────────────────────
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
       toast.error("Lỗi kết nối", message);
       setOauthLoading(false);
     }
-  }, [router]); // ← toast không cần trong deps
+  }, [toast]); // ← toast không cần trong deps
 
   return (
     <AuthLayout imageSrc="/Frame1.png">

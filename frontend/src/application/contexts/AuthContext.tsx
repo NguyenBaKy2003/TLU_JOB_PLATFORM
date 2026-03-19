@@ -48,20 +48,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── setUserFromToken ───────────────────────────────────────────────────────
   // Dùng sau login — user đã có trong token response, không cần gọi /users/me
-  const setUserFromToken = useCallback((tokenUser: AuthTokenUser) => {
-    setUser({
-      id: tokenuser?.id,
-      email: tokenuser?.email,
-      fullName: tokenuser?.fullName,
-      role: tokenuser?.role as UserRole,
-      avatarUrl: tokenuser?.avatarUrl,
-      verified: tokenuser?.verified,
-      phone: null,
-      active: true,
-      lastLoginAt: null,
-    });
-  }, []);
-
+      const setUserFromToken = useCallback((tokenUser: AuthTokenUser) => {
+        setUser({
+          id: tokenUser?.id,         // ✅ chữ U hoa
+          email: tokenUser?.email,
+          fullName: tokenUser?.fullName,
+          role: tokenUser?.role as UserRole,
+          avatarUrl: tokenUser?.avatarUrl,
+          verified: tokenUser?.verified,
+          phone: null,
+          active: true,
+          lastLoginAt: null,
+        });
+      }, []);
   // ── refreshUser ───────────────────────────────────────────────────────────
   // Gọi GET /users/me — dùng khi cần thông tin đầy đủ hoặc sau OAuth2 callback
   const refreshUser = useCallback(async () => {
