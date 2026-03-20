@@ -5,16 +5,53 @@ import {
   JobSearchStatus,
 } from "@/domain/models/Candidate";
 
+// ─── Nested payload types (mirror Java DTO exactly) ───────────────────────────
+
+export interface SkillPayload {
+  name:       string;
+  level:      string;
+  yearsOfExp: number;
+}
+
+export interface LanguagePayload {
+  name:  string;
+  level: string;    // A1 | A2 | B1 | B2 | C1 | C2 | NATIVE
+}
+
+export interface SocialLinkPayload {
+  platform: string;  // LINKEDIN | GITHUB | DRIBBBLE | ...
+  url:      string;
+}
+
+/** Backend accepts a single desiredJob object — NOT an array */
+export interface DesiredJobPayload {
+  industry?:      string;
+  minSalary?:     number;
+  currency?:      string;
+  contractTypes?: string[];  // FULL_TIME | PART_TIME | REMOTE | INTERNSHIP
+  levels?:        string[];  // FRESHER | JUNIOR | SENIOR | MANAGER | DIRECTOR
+}
+
+// ─── Main payload ─────────────────────────────────────────────────────────────
+
 export interface UpdateProfilePayload {
+  firstName?:      string;
+  lastName?:       string;
   headline?:       string;
   summary?:        string;
   phone?:          string;
   location?:       string;
-  dateOfBirth?:    string;
+  dateOfBirth?:    string;   // ISO "YYYY-MM-DD"
   gender?:         string;
+  maritalStatus?:  string;
   expectedSalary?: number;
   currency?:       string;
-  skills?:         { name: string; level: string; yearsOfExp: number }[];
+  skills?:         SkillPayload[];
+  languages?:      LanguagePayload[];
+  socialLinks?:    SocialLinkPayload[];
+  desiredJob?:     DesiredJobPayload;  // singular — matches Java field name
+  benefits?:       string[];
+  // NOTE: experiences managed via a separate API endpoint
 }
 
 export interface UploadCVPayload {
@@ -22,10 +59,10 @@ export interface UploadCVPayload {
   title: string;
 }
 
+// ─── Service ──────────────────────────────────────────────────────────────────
+
 export class CandidateService {
   constructor(private readonly repo: ICandidateRepository) {}
-
-  // ── Profile ───────────────────────────────────────────────────
 
   async getProfile(): Promise<CandidateProfile> {
     return this.repo.getProfile();
@@ -42,8 +79,6 @@ export class CandidateService {
     if (!status) throw new Error("Trạng thái tìm việc không hợp lệ");
     return this.repo.updateJobSearchStatus(status);
   }
-
-  // ── CV ────────────────────────────────────────────────────────
 
   async listCVs(): Promise<CandidateCV[]> {
     return this.repo.listCVs();

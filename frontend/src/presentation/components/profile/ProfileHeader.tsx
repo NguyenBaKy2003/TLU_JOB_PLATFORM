@@ -2,13 +2,13 @@
 
 import React from "react";
 import { Camera, FileText, Download } from "lucide-react";
-import { UserProfile } from "@/types/profile";
+import { CandidateProfile } from "@/domain/models/Candidate";
 
 interface ProfileHeaderProps {
-  user: UserProfile;
-  onViewCV?: () => void;
-  onDownloadPDF?: () => void;
-  onAvatarChange?: (file: File) => void;
+  user:             CandidateProfile;
+  onViewCV?:        () => void;
+  onDownloadPDF?:   () => void;
+  onAvatarChange?:  (file: File) => void;
 }
 
 export function ProfileHeader({
@@ -28,6 +28,14 @@ export function ProfileHeader({
     input.click();
   };
 
+  // Derive display values from CandidateProfile fields
+  const fullName    = [user.firstName, user.lastName].filter(Boolean).join(" ") || "—";
+  const headline    = user.headline ?? null;
+  // Latest education school as fallback sub-line
+  const latestSchool = user.educations?.length
+    ? user.educations[user.educations.length - 1].school
+    : null;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
       <div className="flex items-start gap-4">
@@ -37,10 +45,10 @@ export function ProfileHeader({
             onClick={handleAvatarClick}
             className="w-20 h-20 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all group overflow-hidden"
           >
-            {user?.avatar ? (
+            {user.avatarUrl ? (
               <img
-                src={user?.avatar}
-                alt={`${user?.firstName} ${user?.lastName}`}
+                src={user.avatarUrl}
+                alt={fullName}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -52,7 +60,8 @@ export function ProfileHeader({
               </div>
             )}
           </div>
-          {user?.avatar && (
+
+          {user.avatarUrl && (
             <button
               onClick={handleAvatarClick}
               className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
@@ -64,23 +73,22 @@ export function ProfileHeader({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-gray-900">
-            {user?.firstName} {user?.lastName}
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 truncate">{fullName}</h2>
+
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            {user?.jobTitle && (
-              <span className="text-sm text-gray-500 font-medium">{user?.jobTitle}</span>
+            {headline && (
+              <span className="text-sm text-gray-500 font-medium">{headline}</span>
             )}
-            {user?.jobTitle && user?.university && (
+            {headline && latestSchool && (
               <span className="text-gray-300">•</span>
             )}
-            {user?.university && (
-              <span className="text-sm text-gray-500">{user?.university}</span>
+            {latestSchool && (
+              <span className="text-sm text-gray-500">{latestSchool}</span>
             )}
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
             <button
               onClick={onViewCV}
               className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"

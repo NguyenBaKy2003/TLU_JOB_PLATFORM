@@ -1,3 +1,4 @@
+// ── CandidateMapper.java (updated) ───────────────────────────────
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.mapper;
 
 import edu.tlu.jobplatform.candidate.domain.model.*;
@@ -7,178 +8,302 @@ import org.springframework.stereotype.Component;
 @Component
 public class CandidateMapper {
 
-    // ── CandidateProfile ──────────────────────────────────────────
+        // ── CandidateProfile ──────────────────────────────────────────
 
-    public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
-        return CandidateProfile.builder()
-                .id(e.getId())
-                .userId(e.getUserId())
-                .headline(e.getHeadline())
-                .summary(e.getSummary())
-                .phone(e.getPhone())
-                .location(e.getLocation())
-                .avatarUrl(e.getAvatarUrl())
-                .dateOfBirth(e.getDateOfBirth())
-                .gender(e.getGender())
-                .jobSearchStatus(e.getJobSearchStatus())
-                .expectedSalary(e.getExpectedSalary())
-                .currency(e.getCurrency())
-                .experiences(e.getExperiences().stream()
-                        .map(this::toDomain).toList())
-                .educations(e.getEducations().stream()
-                        .map(this::toDomain).toList())
-                .skills(e.getSkills().stream()
-                        .map(this::toDomain).toList())
-                .createdAt(e.getCreatedAt())
-                .updatedAt(e.getUpdatedAt())
-                .build();
-    }
+        public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
+                return CandidateProfile.builder()
+                                .id(e.getId())
+                                .userId(e.getUserId())
+                                .firstName(e.getFirstName())
+                                .lastName(e.getLastName())
+                                .headline(e.getHeadline())
+                                .summary(e.getSummary())
+                                .phone(e.getPhone())
+                                .location(e.getLocation())
+                                .avatarUrl(e.getAvatarUrl())
+                                .dateOfBirth(e.getDateOfBirth())
+                                .gender(e.getGender())
+                                .maritalStatus(e.getMaritalStatus())
+                                .profileUrl(e.getProfileUrl())
+                                .jobSearchStatus(e.getJobSearchStatus())
+                                .expectedSalary(e.getExpectedSalary())
+                                .currency(e.getCurrency())
+                                .skills(e.getSkills().stream()
+                                                .map(this::toDomain).toList())
+                                .experiences(e.getExperiences().stream()
+                                                .map(this::toDomain).toList())
+                                .educations(e.getEducations().stream()
+                                                .map(this::toDomain).toList())
+                                .languages(e.getLanguages().stream()
+                                                .map(this::toDomain).toList())
+                                .socialLinks(e.getSocialLinks().stream()
+                                                .map(this::toDomain).toList())
+                                .desiredJobs(e.getDesiredJobs().stream()
+                                                .map(this::toDomain).toList())
+                                .benefits(e.getBenefits().stream()
+                                                .map(this::toDomain).toList())
+                                .createdAt(e.getCreatedAt())
+                                .updatedAt(e.getUpdatedAt())
+                                .build();
+        }
 
-    public CandidateProfileJpaEntity toNewEntity(CandidateProfile p) {
-        return CandidateProfileJpaEntity.builder()
-                .userId(p.getUserId())
-                .headline(p.getHeadline())
-                .summary(p.getSummary())
-                .phone(p.getPhone())
-                .location(p.getLocation())
-                .avatarUrl(p.getAvatarUrl())
-                .dateOfBirth(p.getDateOfBirth())
-                .gender(p.getGender())
-                .jobSearchStatus(p.getJobSearchStatus())
-                .expectedSalary(p.getExpectedSalary())
-                .currency(p.getCurrency())
-                .build();
-    }
+        public CandidateProfileJpaEntity toNewEntity(CandidateProfile p) {
+                return CandidateProfileJpaEntity.builder()
+                                .userId(p.getUserId())
+                                .firstName(p.getFirstName())
+                                .lastName(p.getLastName())
+                                .headline(p.getHeadline())
+                                .summary(p.getSummary())
+                                .phone(p.getPhone())
+                                .location(p.getLocation())
+                                .avatarUrl(p.getAvatarUrl())
+                                .dateOfBirth(p.getDateOfBirth())
+                                .gender(p.getGender())
+                                .maritalStatus(p.getMaritalStatus())
+                                .profileUrl(p.getProfileUrl())
+                                .jobSearchStatus(p.getJobSearchStatus())
+                                .expectedSalary(p.getExpectedSalary())
+                                .currency(p.getCurrency())
+                                .build();
+        }
 
-    public void updateEntity(CandidateProfileJpaEntity e, CandidateProfile p) {
-        e.setHeadline(p.getHeadline());
-        e.setSummary(p.getSummary());
-        e.setPhone(p.getPhone());
-        e.setLocation(p.getLocation());
-        e.setAvatarUrl(p.getAvatarUrl());
-        e.setDateOfBirth(p.getDateOfBirth());
-        e.setGender(p.getGender());
-        e.setJobSearchStatus(p.getJobSearchStatus());
-        e.setExpectedSalary(p.getExpectedSalary());
-        e.setCurrency(p.getCurrency());
+        public void updateEntity(CandidateProfileJpaEntity e, CandidateProfile p) {
+                e.setFirstName(p.getFirstName());
+                e.setLastName(p.getLastName());
+                e.setHeadline(p.getHeadline());
+                e.setSummary(p.getSummary());
+                e.setPhone(p.getPhone());
+                e.setLocation(p.getLocation());
+                e.setAvatarUrl(p.getAvatarUrl());
+                e.setDateOfBirth(p.getDateOfBirth());
+                e.setGender(p.getGender());
+                e.setMaritalStatus(p.getMaritalStatus());
+                e.setProfileUrl(p.getProfileUrl());
+                e.setJobSearchStatus(p.getJobSearchStatus());
+                e.setExpectedSalary(p.getExpectedSalary());
+                e.setCurrency(p.getCurrency());
 
-        // Sync skills (embeddable — xóa + insert lại)
-        e.getSkills().clear();
-        p.getSkills().stream()
-                .map(this::toEmbeddable)
-                .forEach(e.getSkills()::add);
+                // Skills — embeddable, xóa + insert lại
+                e.getSkills().clear();
+                p.getSkills().stream()
+                                .map(this::toEmbeddable)
+                                .forEach(e.getSkills()::add);
 
-        // Sync experiences
-        e.getExperiences().clear();
-        p.getExperiences().stream()
-                .map(exp -> toEntity(exp, e))
-                .forEach(e.getExperiences()::add);
+                // Experiences
+                e.getExperiences().clear();
+                p.getExperiences().stream()
+                                .map(exp -> toEntity(exp, e))
+                                .forEach(e.getExperiences()::add);
 
-        // Sync educations
-        e.getEducations().clear();
-        p.getEducations().stream()
-                .map(edu -> toEntity(edu, e))
-                .forEach(e.getEducations()::add);
-    }
+                // Educations
+                e.getEducations().clear();
+                p.getEducations().stream()
+                                .map(edu -> toEntity(edu, e))
+                                .forEach(e.getEducations()::add);
 
-    // ── WorkExperience ────────────────────────────────────────────
+                // Languages
+                e.getLanguages().clear();
+                p.getLanguages().stream()
+                                .map(lang -> toEntity(lang, e))
+                                .forEach(e.getLanguages()::add);
 
-    public WorkExperience toDomain(WorkExperienceJpaEntity e) {
-        return WorkExperience.builder()
-                .id(e.getId())
-                .companyName(e.getCompanyName())
-                .position(e.getPosition())
-                .description(e.getDescription())
-                .startDate(e.getStartDate())
-                .endDate(e.getEndDate())
-                .current(e.isCurrent())
-                .build();
-    }
+                // Social links
+                e.getSocialLinks().clear();
+                p.getSocialLinks().stream()
+                                .map(link -> toEntity(link, e))
+                                .forEach(e.getSocialLinks()::add);
 
-    public WorkExperienceJpaEntity toEntity(WorkExperience w,
-            CandidateProfileJpaEntity profile) {
-        return WorkExperienceJpaEntity.builder()
-                .profile(profile)
-                .companyName(w.getCompanyName())
-                .position(w.getPosition())
-                .description(w.getDescription())
-                .startDate(w.getStartDate())
-                .endDate(w.getEndDate())
-                .current(w.isCurrent())
-                .build();
-    }
+                // Desired jobs
+                e.getDesiredJobs().clear();
+                p.getDesiredJobs().stream()
+                                .map(job -> toEntity(job, e))
+                                .forEach(e.getDesiredJobs()::add);
 
-    // ── Education ─────────────────────────────────────────────────
+                // Benefits
+                e.getBenefits().clear();
+                p.getBenefits().stream()
+                                .map(benefit -> toEntity(benefit, e))
+                                .forEach(e.getBenefits()::add);
+        }
 
-    public Education toDomain(EducationJpaEntity e) {
-        return Education.builder()
-                .id(e.getId())
-                .school(e.getSchool())
-                .major(e.getMajor())
-                .degree(e.getDegree())
-                .startDate(e.getStartDate())
-                .endDate(e.getEndDate())
-                .description(e.getDescription())
-                .build();
-    }
+        // ── WorkExperience ────────────────────────────────────────────
 
-    public EducationJpaEntity toEntity(Education edu,
-            CandidateProfileJpaEntity profile) {
-        return EducationJpaEntity.builder()
-                .profile(profile)
-                .school(edu.getSchool())
-                .major(edu.getMajor())
-                .degree(edu.getDegree())
-                .startDate(edu.getStartDate())
-                .endDate(edu.getEndDate())
-                .description(edu.getDescription())
-                .build();
-    }
+        public WorkExperience toDomain(WorkExperienceJpaEntity e) {
+                return WorkExperience.builder()
+                                .id(e.getId())
+                                .companyName(e.getCompanyName())
+                                .position(e.getPosition())
+                                .description(e.getDescription())
+                                .startDate(e.getStartDate())
+                                .endDate(e.getEndDate())
+                                .current(e.isCurrent())
+                                .build();
+        }
 
-    // ── Skill ─────────────────────────────────────────────────────
+        public WorkExperienceJpaEntity toEntity(WorkExperience w,
+                        CandidateProfileJpaEntity profile) {
+                return WorkExperienceJpaEntity.builder()
+                                .profile(profile)
+                                .companyName(w.getCompanyName())
+                                .position(w.getPosition())
+                                .description(w.getDescription())
+                                .startDate(w.getStartDate())
+                                .endDate(w.getEndDate())
+                                .current(w.isCurrent())
+                                .build();
+        }
 
-    public Skill toDomain(SkillEmbeddable e) {
-        return Skill.of(e.getName(), e.getLevel(), e.getYearsOfExp());
-    }
+        // ── Education ─────────────────────────────────────────────────
 
-    public SkillEmbeddable toEmbeddable(Skill s) {
-        return SkillEmbeddable.builder()
-                .name(s.getName())
-                .level(s.getLevel())
-                .yearsOfExp(s.getYearsOfExp())
-                .build();
-    }
+        public Education toDomain(EducationJpaEntity e) {
+                return Education.builder()
+                                .id(e.getId())
+                                .school(e.getSchool())
+                                .major(e.getMajor())
+                                .degree(e.getDegree())
+                                .startDate(e.getStartDate())
+                                .endDate(e.getEndDate())
+                                .description(e.getDescription())
+                                .build();
+        }
 
-    // ── CandidateCV ───────────────────────────────────────────────
+        public EducationJpaEntity toEntity(Education edu,
+                        CandidateProfileJpaEntity profile) {
+                return EducationJpaEntity.builder()
+                                .profile(profile)
+                                .school(edu.getSchool())
+                                .major(edu.getMajor())
+                                .degree(edu.getDegree())
+                                .startDate(edu.getStartDate())
+                                .endDate(edu.getEndDate())
+                                .description(edu.getDescription())
+                                .build();
+        }
 
-    public CandidateCV toDomain(CandidateCVJpaEntity e) {
-        return CandidateCV.builder()
-                .id(e.getId())
-                .candidateId(e.getCandidateId())
-                .title(e.getTitle())
-                .type(e.getType())
-                .fileUrl(e.getFileUrl())
-                .parsedContent(e.getParsedContent())
-                .primary(e.isPrimary())
-                .createdAt(e.getCreatedAt())
-                .updatedAt(e.getUpdatedAt())
-                .build();
-    }
+        // ── Skill ─────────────────────────────────────────────────────
 
-    public CandidateCVJpaEntity toNewEntity(CandidateCV cv) {
-        return CandidateCVJpaEntity.builder()
-                .candidateId(cv.getCandidateId())
-                .title(cv.getTitle())
-                .type(cv.getType())
-                .fileUrl(cv.getFileUrl())
-                .parsedContent(cv.getParsedContent())
-                .primary(cv.isPrimary())
-                .build();
-    }
+        public Skill toDomain(SkillEmbeddable e) {
+                return Skill.of(e.getName(), e.getLevel(), e.getYearsOfExp());
+        }
 
-    public void updateCVEntity(CandidateCVJpaEntity e, CandidateCV cv) {
-        e.setTitle(cv.getTitle());
-        e.setPrimary(cv.isPrimary());
-        e.setParsedContent(cv.getParsedContent());
-    }
+        public SkillEmbeddable toEmbeddable(Skill s) {
+                return SkillEmbeddable.builder()
+                                .name(s.getName())
+                                .level(s.getLevel())
+                                .yearsOfExp(s.getYearsOfExp())
+                                .build();
+        }
+
+        // ── Language ──────────────────────────────────────────────────
+
+        public Language toDomain(LanguageJpaEntity e) {
+                return Language.builder()
+                                .id(e.getId())
+                                .name(e.getName())
+                                .level(e.getLevel())
+                                .build();
+        }
+
+        public LanguageJpaEntity toEntity(Language l,
+                        CandidateProfileJpaEntity profile) {
+                return LanguageJpaEntity.builder()
+                                .profile(profile)
+                                .name(l.getName())
+                                .level(l.getLevel())
+                                .build();
+        }
+
+        // ── SocialLink ────────────────────────────────────────────────
+
+        public SocialLink toDomain(SocialLinkJpaEntity e) {
+                return SocialLink.builder()
+                                .id(e.getId())
+                                .platform(e.getPlatform())
+                                .url(e.getUrl())
+                                .build();
+        }
+
+        public SocialLinkJpaEntity toEntity(SocialLink l,
+                        CandidateProfileJpaEntity profile) {
+                return SocialLinkJpaEntity.builder()
+                                .profile(profile)
+                                .platform(l.getPlatform())
+                                .url(l.getUrl())
+                                .build();
+        }
+
+        // ── DesiredJob ────────────────────────────────────────────────
+
+        public DesiredJob toDomain(DesiredJobJpaEntity e) {
+                return DesiredJob.builder()
+                                .id(e.getId())
+                                .industry(e.getIndustry())
+                                .minSalary(e.getMinSalary())
+                                .currency(e.getCurrency())
+                                .contractTypes(new java.util.ArrayList<>(e.getContractTypes()))
+                                .levels(new java.util.ArrayList<>(e.getLevels()))
+                                .build();
+        }
+
+        public DesiredJobJpaEntity toEntity(DesiredJob j,
+                        CandidateProfileJpaEntity profile) {
+                return DesiredJobJpaEntity.builder()
+                                .profile(profile)
+                                .industry(j.getIndustry())
+                                .minSalary(j.getMinSalary())
+                                .currency(j.getCurrency())
+                                .contractTypes(new java.util.ArrayList<>(j.getContractTypes()))
+                                .levels(new java.util.ArrayList<>(j.getLevels()))
+                                .build();
+        }
+
+        // ── Benefit ───────────────────────────────────────────────────
+
+        public Benefit toDomain(BenefitJpaEntity e) {
+                return Benefit.builder()
+                                .id(e.getId())
+                                .name(e.getName())
+                                .build();
+        }
+
+        public BenefitJpaEntity toEntity(Benefit b,
+                        CandidateProfileJpaEntity profile) {
+                return BenefitJpaEntity.builder()
+                                .profile(profile)
+                                .name(b.getName())
+                                .build();
+        }
+
+        // ── CandidateCV ───────────────────────────────────────────────
+
+        public CandidateCV toDomain(CandidateCVJpaEntity e) {
+                return CandidateCV.builder()
+                                .id(e.getId())
+                                .candidateId(e.getCandidateId())
+                                .title(e.getTitle())
+                                .type(e.getType())
+                                .fileUrl(e.getFileUrl())
+                                .parsedContent(e.getParsedContent())
+                                .primary(e.isPrimary())
+                                .createdAt(e.getCreatedAt())
+                                .updatedAt(e.getUpdatedAt())
+                                .build();
+        }
+
+        public CandidateCVJpaEntity toNewEntity(CandidateCV cv) {
+                return CandidateCVJpaEntity.builder()
+                                .candidateId(cv.getCandidateId())
+                                .title(cv.getTitle())
+                                .type(cv.getType())
+                                .fileUrl(cv.getFileUrl())
+                                .parsedContent(cv.getParsedContent())
+                                .primary(cv.isPrimary())
+                                .build();
+        }
+
+        public void updateCVEntity(CandidateCVJpaEntity e, CandidateCV cv) {
+                e.setTitle(cv.getTitle());
+                e.setPrimary(cv.isPrimary());
+                e.setParsedContent(cv.getParsedContent());
+        }
 }
