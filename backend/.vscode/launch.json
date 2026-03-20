@@ -1,4 +1,11 @@
 {
+  "type": "java",
+  "name": "Spring Boot",
+  "request": "launch",
+  "mainClass": "edu.tlu.jobplatform.JobplatformApplication",
+  "projectName": "jobplatform",
+  "vmArgs": "-Dspring-boot.run.profiles=dev",
+  "console": "internalConsole",
   "configurations": [
     {
       "type": "java",

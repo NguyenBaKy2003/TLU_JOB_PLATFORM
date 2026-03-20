@@ -6,6 +6,7 @@ import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.domain.service.PasswordEncoder;
 import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
 import edu.tlu.jobplatform.shared.email.EmailService;
+import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
@@ -13,6 +14,8 @@ import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,7 @@ public class RegisterUseCase {
     private final OtpStorePort otpStore;
     private final EmailService emailService;
     private final ProfileCreationService profileCreationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Result execute(Command cmd) {
@@ -78,7 +82,7 @@ public class RegisterUseCase {
         User saved = userRepository.save(user);
 
         // Tạo profile mặc định theo role
-        profileCreationService.createProfileForUser(saved);
+        eventPublisher.publishEvent(new UserRegisteredEvent(saved));
 
         // Sinh OTP → Redis → Email
         String otp = generateOtp();

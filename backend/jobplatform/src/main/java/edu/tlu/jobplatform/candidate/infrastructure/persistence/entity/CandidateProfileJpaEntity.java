@@ -1,3 +1,4 @@
+// ── CandidateProfileJpaEntity.java (updated) ──────────────────────
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile.JobSearchStatus;
@@ -24,6 +25,12 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
+    @Column(name = "first_name", length = 100)
+    private String firstName;
+
+    @Column(name = "last_name", length = 100)
+    private String lastName;
+
     @Column(length = 255)
     private String headline;
 
@@ -45,6 +52,12 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     @Column(length = 10)
     private String gender;
 
+    @Column(name = "marital_status", length = 20)
+    private String maritalStatus;
+
+    @Column(name = "profile_url", length = 255, unique = true)
+    private String profileUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "job_search_status", length = 20)
     private JobSearchStatus jobSearchStatus;
@@ -57,6 +70,11 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
 
     // ── Relations ─────────────────────────────────────────────────
 
+    @ElementCollection
+    @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "profile_id"))
+    @Builder.Default
+    private Set<SkillEmbeddable> skills = new HashSet<>();
+
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<WorkExperienceJpaEntity> experiences = new HashSet<>();
@@ -65,8 +83,19 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     @Builder.Default
     private Set<EducationJpaEntity> educations = new HashSet<>();
 
-    @ElementCollection
-    @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "profile_id"))
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private Set<SkillEmbeddable> skills = new HashSet<>();
+    private Set<LanguageJpaEntity> languages = new HashSet<>();
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<SocialLinkJpaEntity> socialLinks = new HashSet<>();
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<DesiredJobJpaEntity> desiredJobs = new HashSet<>();
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<BenefitJpaEntity> benefits = new HashSet<>();
 }

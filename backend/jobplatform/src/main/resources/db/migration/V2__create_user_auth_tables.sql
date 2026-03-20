@@ -1,92 +1,142 @@
--- ════════════════════════════════════════════════════════════════
---  V2__create_user_auth_tables.sql
---  Sprint 1 — User & Auth Domain
--- ════════════════════════════════════════════════════════════════
--- ── users ────────────────────────────────────────────────────────
+-- ── Users ─────────────────────────────────────────────────────────
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
-    full_name VARCHAR(100) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     avatar_url VARCHAR(500),
-    role VARCHAR(20) NOT NULL,
-    auth_provider VARCHAR(50),
-    auth_provider_id VARCHAR(255),
-    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('CANDIDATE', 'EMPLOYER'."ADMIN")),
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    oauth2_only BOOLEAN NOT NULL DEFAULT FALSE,
     last_login_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_active ON users(is_active);
-CREATE INDEX idx_users_provider ON users(auth_provider);
-WHERE is_active = true;
-COMMENT ON TABLE users IS 'Tài khoản người dùng hệ thống';
-COMMENT ON COLUMN users.role IS 'CANDIDATE | EMPLOYER | ADMIN | SUPER_ADMIN';
-COMMENT ON COLUMN users.password_hash IS 'BCrypt hash. NULL nếu đăng nhập chỉ qua OAuth2';
-COMMENT ON COLUMN users.is_verified IS 'true sau khi xác thực email bằng OTP';
--- ── oauth2_accounts ──────────────────────────────────────────────
--- Liên kết tài khoản với OAuth2 provider (Google, FaceBook...)
-CREATE TABLE IF NOT EXISTS oauth2_accounts (
+-- ── Candidate Profiles ────────────────────────────────────────────
+CREATE TABLE candidate_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider VARCHAR(20) NOT NULL,
-    -- GOOGLE | FaceBook
-    provider_id VARCHAR(255) NOT NULL,
-    -- ID từ provider
-    provider_email VARCHAR(255),
-    access_token TEXT,
-    -- Lưu tạm, không quan trọng
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    headline VARCHAR(255),
+    summary TEXT,
+    phone VARCHAR(20),
+    location VARCHAR(255),
+    avatar_url VARCHAR(500),
+    date_of_birth DATE,
+    gender VARCHAR(10),
+    marital_status VARCHAR(20),
+    profile_url VARCHAR(255) UNIQUE,
+    job_search_status VARCHAR(20) CHECK (
+        job_search_status IN (
+            'ACTIVELY_LOOKING',
+            'OPEN_TO_OFFERS',
+            'NOT_LOOKING'
+        )
+    ),
+    expected_salary INT DEFAULT 0,
+    currency VARCHAR(10) DEFAULT 'VND',
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE (provider, provider_id) -- 1 provider account = 1 user
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_oauth2_user ON oauth2_accounts (user_id);
-CREATE INDEX IF NOT EXISTS idx_oauth2_provider ON oauth2_accounts (provider, provider_id);
--- ── email_verifications ──────────────────────────────────────────
--- OTP xác thực email khi đăng ký
-CREATE TABLE IF NOT EXISTS email_verifications (
+-- ── Skills ────────────────────────────────────────────────────────
+CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    otp VARCHAR(6) NOT NULL,
-    purpose VARCHAR(30) NOT NULL DEFAULT 'REGISTER',
-    -- REGISTER | CHANGE_EMAIL
-    expires_at TIMESTAMP NOT NULL,
-    used_at TIMESTAMP,
-    -- NULL = chưa dùng
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    level VARCHAR(50),
+    years_of_exp INT DEFAULT 0
+);
+-- ── Experiences ───────────────────────────────────────────────────
+CREATE TABLE experiences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    company_name VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL,
+    description TEXT,
+    start_date DATE,
+    end_date DATE,
+    current BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_email_verif_user ON email_verifications (user_id, purpose);
--- ── password_reset_tokens ────────────────────────────────────────
--- Token reset password (gửi qua email)
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
+-- ── Educations ────────────────────────────────────────────────────
+CREATE TABLE educations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    -- Hash của token, không lưu raw
-    expires_at TIMESTAMP NOT NULL,
-    used_at TIMESTAMP,
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    school VARCHAR(255) NOT NULL,
+    major VARCHAR(255),
+    degree VARCHAR(100),
+    start_date DATE,
+    end_date DATE,
+    description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_pwd_reset_user ON password_reset_tokens (user_id);
--- ── login_attempts ───────────────────────────────────────────────
--- Brute force protection: đếm số lần sai password
-CREATE TABLE IF NOT EXISTS login_attempts (
+-- ── Languages ─────────────────────────────────────────────────────
+CREATE TABLE languages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL,
-    ip_address VARCHAR(45),
-    success BOOLEAN NOT NULL DEFAULT false,
-    attempted_at TIMESTAMP NOT NULL DEFAULT NOW()
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    level VARCHAR(10) NOT NULL CHECK (
+        level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIVE')
+    )
 );
--- Chỉ cần query gần đây, không cần index phức tạp
-CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts (email, attempted_at DESC);
--- Tự xóa record cũ hơn 24h (dùng pg_cron hoặc scheduled job)
-COMMENT ON TABLE login_attempts IS 'Brute force tracking. Record > 24h được cleanup định kỳ.';
--- ── Trigger: auto update updated_at ──────────────────────────────
-CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW();
-RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER trg_users_updated_at BEFORE
-UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- ── Social Links ──────────────────────────────────────────────────
+CREATE TABLE social_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    platform VARCHAR(20) NOT NULL CHECK (
+        platform IN (
+            'LINKEDIN',
+            'GITHUB',
+            'DRIBBLE',
+            'INSTAGRAM',
+            'PORTFOLIO',
+            'BEHANCE'
+        )
+    ),
+    url VARCHAR(500) NOT NULL
+);
+-- ── Desired Jobs ──────────────────────────────────────────────────
+CREATE TABLE desired_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    industry VARCHAR(255),
+    min_salary INT DEFAULT 0,
+    currency VARCHAR(10) DEFAULT 'VND'
+);
+CREATE TABLE desired_job_contract_types (
+    desired_job_id UUID NOT NULL REFERENCES desired_jobs(id) ON DELETE CASCADE,
+    contract_type VARCHAR(50) NOT NULL CHECK (
+        contract_type IN ('FULL_TIME', 'PART_TIME', 'REMOTE', 'INTERNSHIP')
+    ),
+    PRIMARY KEY (desired_job_id, contract_type)
+);
+CREATE TABLE desired_job_levels (
+    desired_job_id UUID NOT NULL REFERENCES desired_jobs(id) ON DELETE CASCADE,
+    level VARCHAR(50) NOT NULL CHECK (
+        level IN (
+            'FRESHER',
+            'JUNIOR',
+            'SENIOR',
+            'MANAGER',
+            'DIRECTOR'
+        )
+    ),
+    PRIMARY KEY (desired_job_id, level)
+);
+-- ── Benefits ──────────────────────────────────────────────────────
+CREATE TABLE benefits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL
+);
+-- ── Indexes ───────────────────────────────────────────────────────
+CREATE INDEX idx_skills_profile ON skills(candidate_profile_id);
+CREATE INDEX idx_experiences_profile ON experiences(candidate_profile_id);
+CREATE INDEX idx_educations_profile ON educations(candidate_profile_id);
+CREATE INDEX idx_languages_profile ON languages(candidate_profile_id);
+CREATE INDEX idx_social_links_profile ON social_links(candidate_profile_id);
+CREATE INDEX idx_desired_jobs_profile ON desired_jobs(candidate_profile_id);
+CREATE INDEX idx_benefits_profile ON benefits(candidate_profile_id);
