@@ -5,7 +5,7 @@ export type CVType          = "UPLOADED" | "ONLINE";
 export type SkillLevel      = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 export type Degree          = "BACHELOR" | "MASTER" | "PHD" | "OTHER";
 
-// ─── Skill ────────────────────────────────────────────────────────────────────
+// ─── Sub-models ───────────────────────────────────────────────────────────────
 
 export interface Skill {
   name:       string;
@@ -13,19 +13,15 @@ export interface Skill {
   yearsOfExp: number;
 }
 
-// ─── Work Experience ──────────────────────────────────────────────────────────
-
 export interface WorkExperience {
   id:          string;
   companyName: string;
   position:    string;
   description: string | null;
-  startDate:   string;       // ISO date: "2022-01-01"
+  startDate:   string;
   endDate:     string | null;
   current:     boolean;
 }
-
-// ─── Education ────────────────────────────────────────────────────────────────
 
 export interface Education {
   id:          string;
@@ -37,24 +33,54 @@ export interface Education {
   description: string | null;
 }
 
+export interface Language {
+  id:    string;
+  name:  string;
+  level: string;
+}
+
+export interface SocialLink {
+  id:       string;
+  platform: string;
+  url:      string;
+}
+
+export interface DesiredJob {
+  id:            string;
+  industry:      string;
+  minSalary:     number;
+  currency:      string;
+  contractTypes: string[];
+  levels:        string[];
+}
+
 // ─── Candidate Profile ────────────────────────────────────────────────────────
 
 export interface CandidateProfile {
   id:              string;
   userId:          string;
+  email:           string | null;
+  firstName:       string | null;
+  lastName:        string | null;
   headline:        string | null;
   summary:         string | null;
   phone:           string | null;
   location:        string | null;
   avatarUrl:       string | null;
-  dateOfBirth:     string | null;   // ISO date
+  dateOfBirth:     string | null;
   gender:          string | null;
+  maritalStatus:   string | null;
+  profileUrl:      string | null;
   jobSearchStatus: JobSearchStatus | null;
   expectedSalary:  number;
   currency:        string;
   skills:          Skill[];
   experiences:     WorkExperience[];
   educations:      Education[];
+  languages:       Language[];
+  socialLinks:     SocialLink[];
+  desiredJobs:     DesiredJob[];
+  benefits:        string[];
   createdAt:       string;
   updatedAt:       string;
 }

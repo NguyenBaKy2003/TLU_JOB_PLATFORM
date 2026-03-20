@@ -4,14 +4,26 @@ import React, { useState } from "react";
 import { Copy, Check, QrCode } from "lucide-react";
 
 interface ProfileUrlProps {
-  url: string;
+  url?: string | null;
 }
 
 export function ProfileUrl({ url }: ProfileUrlProps) {
   const [copied, setCopied] = useState(false);
 
+  if (!url) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-800 mb-1">Đường dẫn hồ sơ</h3>
+        <p className="text-xs text-gray-400">Chưa có đường dẫn hồ sơ.</p>
+      </div>
+    );
+  }
+
+  // Support both "https://..." full URLs and bare slugs
+  const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://${url}`).catch(() => {});
+    navigator.clipboard.writeText(fullUrl).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -24,14 +36,14 @@ export function ProfileUrl({ url }: ProfileUrlProps) {
       </p>
 
       <div className="flex flex-col items-center gap-3">
-        {/* QR placeholder - integrate qrcode lib if needed */}
+        {/* QR placeholder */}
         <div className="w-20 h-20 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center">
           <QrCode size={36} className="text-gray-400" />
         </div>
 
         {/* URL */}
         <a
-          href={`https://${url}`}
+          href={fullUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-blue-600 hover:text-blue-700 font-medium truncate max-w-full text-center"
