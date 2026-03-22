@@ -2,22 +2,43 @@ package edu.tlu.jobplatform.candidate.application.port.out;
 
 import java.io.InputStream;
 
+/**
+ * Port để tương tác với file storage (S3, GCS, local...).
+ * Implementation nằm ở infrastructure layer.
+ */
 public interface FileStoragePort {
 
-    /**
-     * Upload file lên storage (S3 / Cloudinary / local).
-     *
-     * @param inputStream nội dung file
-     * @param fileName    tên file gốc
-     * @param contentType MIME type (application/pdf, ...)
-     * @param folder      thư mục lưu trên storage ("cv", "avatar", ...)
-     * @return public URL để truy cập file
-     */
-    String upload(InputStream inputStream, String fileName,
-            String contentType, String folder);
+        /**
+         * Upload file lên storage.
+         *
+         * @param inputStream nội dung file
+         * @param fileName    tên file gốc (dùng để sinh S3 key)
+         * @param contentType MIME type
+         * @param folder      thư mục (vd: "cv", "avatars")
+         * @return URL đầy đủ của file trên storage
+         */
+        String upload(InputStream inputStream, String fileName, String contentType, String folder);
 
-    /**
-     * Xóa file theo URL.
-     */
-    void delete(String fileUrl);
+        /**
+         * Tải file từ storage về dạng stream.
+         *
+         * @param fileUrl URL đầy đủ hoặc S3 key
+         * @return FileResult chứa stream + metadata
+         */
+        FileResult download(String fileUrl);
+
+        /**
+         * Xóa file khỏi storage.
+         *
+         * @param fileUrl URL đầy đủ hoặc S3 key
+         */
+        void delete(String fileUrl);
+
+        // ── Result record ─────────────────────────────────────────────────────────
+
+        record FileResult(
+                        InputStream inputStream,
+                        String contentType,
+                        long contentLength) {
+        }
 }

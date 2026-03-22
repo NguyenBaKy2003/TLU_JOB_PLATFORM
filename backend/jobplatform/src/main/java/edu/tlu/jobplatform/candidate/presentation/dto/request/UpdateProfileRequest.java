@@ -1,44 +1,93 @@
-// ── UpdateProfileRequest.java ─────────────────────────────────────
 package edu.tlu.jobplatform.candidate.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-@Data
+@Getter
+@NoArgsConstructor
 public class UpdateProfileRequest {
 
-    @Size(max = 100)
-    private String firstName;
+    // ── Basic info — Optional<T> để hỗ trợ xóa giá trị ──────────────────────
 
-    @Size(max = 100)
-    private String lastName;
+    private Optional<String> firstName = null;
+    private Optional<String> lastName = null;
+    private Optional<String> headline = null;
+    private Optional<String> summary = null;
+    private Optional<String> phone = null;
+    private Optional<String> location = null;
+    private Optional<LocalDate> dateOfBirth = null;
+    private Optional<String> gender = null;
+    private Optional<String> maritalStatus = null;
 
-    @Size(max = 255)
-    private String headline;
+    private Optional<Integer> expectedSalary = null; // validation trong setter bên dưới
 
-    @Size(max = 2000)
-    private String summary;
+    private Optional<String> currency = null;
 
-    @Pattern(regexp = "^(\\+84|0)\\d{9}$", message = "Số điện thoại không hợp lệ")
-    private String phone;
+    @JsonSetter("firstName")
+    public void setFirstName(String v) {
+        this.firstName = Optional.ofNullable(v);
+    }
 
-    @Size(max = 255)
-    private String location;
+    @JsonSetter("lastName")
+    public void setLastName(String v) {
+        this.lastName = Optional.ofNullable(v);
+    }
 
-    private LocalDate dateOfBirth;
+    @JsonSetter("headline")
+    public void setHeadline(String v) {
+        this.headline = Optional.ofNullable(v);
+    }
 
-    private String gender;
+    @JsonSetter("summary")
+    public void setSummary(String v) {
+        this.summary = Optional.ofNullable(v);
+    }
 
-    private String maritalStatus;
+    @JsonSetter("phone")
+    public void setPhone(String v) {
+        this.phone = Optional.ofNullable(v);
+    }
 
-    @Min(value = 0, message = "Mức lương không được âm")
-    private int expectedSalary;
+    @JsonSetter("location")
+    public void setLocation(String v) {
+        this.location = Optional.ofNullable(v);
+    }
 
-    private String currency;
+    @JsonSetter("dateOfBirth")
+    public void setDateOfBirth(LocalDate v) {
+        this.dateOfBirth = Optional.ofNullable(v);
+    }
+
+    @JsonSetter("gender")
+    public void setGender(String v) {
+        this.gender = Optional.ofNullable(v);
+    }
+
+    @JsonSetter("maritalStatus")
+    public void setMaritalStatus(String v) {
+        this.maritalStatus = Optional.ofNullable(v);
+    }
+
+    @JsonSetter("expectedSalary")
+    public void setExpectedSalary(Integer v) {
+        if (v != null && v < 0) {
+            throw new jakarta.validation.ValidationException("Mức lương không được âm");
+        }
+        this.expectedSalary = Optional.ofNullable(v);
+    }
+
+    @JsonSetter("currency")
+    public void setCurrency(String v) {
+        this.currency = Optional.ofNullable(v);
+    }
+
+    // ── Collections — null = không đổi, [] = xóa hết ─────────────────────────
 
     @Valid
     private List<SkillRequest> skills;
@@ -54,53 +103,37 @@ public class UpdateProfileRequest {
 
     private List<String> benefits;
 
-    // ── Nested requests ───────────────────────────────────────────
+    // ── Nested DTOs ───────────────────────────────────────────────────────────
 
-    @Data
+    @Getter
+    @NoArgsConstructor
     public static class SkillRequest {
-        @NotBlank(message = "Tên kỹ năng không được để trống")
-        @Size(max = 100)
         private String name;
-
         private String level;
-
-        @Min(0)
-        @Max(50)
         private int yearsOfExp;
     }
 
-    @Data
+    @Getter
+    @NoArgsConstructor
     public static class LanguageRequest {
-        @NotBlank(message = "Tên ngôn ngữ không được để trống")
-        @Size(max = 100)
         private String name;
-
-        @NotNull(message = "Trình độ không được để trống")
-        private String level; // A1, A2, B1, B2, C1, C2, NATIVE
+        private String level;
     }
 
-    @Data
+    @Getter
+    @NoArgsConstructor
     public static class SocialLinkRequest {
-        @NotNull(message = "Platform không được để trống")
-        private String platform; // LINKEDIN, GITHUB, ...
-
-        @NotBlank(message = "URL không được để trống")
-        @Size(max = 500)
+        private String platform;
         private String url;
     }
 
-    @Data
+    @Getter
+    @NoArgsConstructor
     public static class DesiredJobRequest {
-        @Size(max = 255)
         private String industry;
-
-        @Min(0)
-        private int minSalary;
-
+        private Integer minSalary;
         private String currency;
-
-        private List<String> contractTypes; // FULL_TIME, PART_TIME, ...
-
-        private List<String> levels; // FRESHER, JUNIOR, ...
+        private List<String> contractTypes;
+        private List<String> levels;
     }
 }

@@ -1,69 +1,97 @@
 "use client";
 
-import React, { useState } from "react";
-import { FileText } from "lucide-react";
-import { SectionCard } from "@/presentation/components/layout/profile/SectionCard";
+import { UserCircle }            from "lucide-react";
+import { useState, useEffect }   from "react";
+import SectionWrapper            from "./SectionWrapper";
+import { CandidateProfile,
+         UpdateProfilePayload }  from "@/domain/models/Candidate";
+import { SectionKey } from "./types/SectionKey";
 
-const MAX_LENGTH = 512;
+const MAX = 512;
 
-interface BioSectionProps {
-  value?:    string | null;
-  onChange?: (val: string) => void;
+interface Props {
+  profile: CandidateProfile;
+  saving:  boolean;
+  error?:  string;
+  onSave:  (section: SectionKey, payload: UpdateProfilePayload) => Promise<void>;
 }
 
-export function BioSection({ value = "", onChange }: BioSectionProps) {
+export default function BioSection({ profile, saving, error, onSave }: Props) {
   const [editing, setEditing] = useState(false);
-  const [text, setText]       = useState(value ?? "");
+  const [draft,   setDraft]   = useState(profile.summary ?? "");
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value.slice(0, MAX_LENGTH);
-    setText(val);
+  // Sync draft khi profile thay đổi từ bên ngoài (reload sau khi lưu)
+  useEffect(() => {
+    if (!editing) setDraft(profile.summary ?? "");
+  }, [profile.summary, editing]);
+
+  const handleSave = async () => {
+    await onSave("bio", { summary: draft.trim() === "" ? null : draft });
+    setEditing(false);
   };
 
-  const handleSave = () => {
-    onChange?.(text);
+  const handleCancel = () => {
+    setDraft(profile.summary ?? "");
     setEditing(false);
   };
 
   return (
-    <SectionCard
+    <SectionWrapper
       title="Giới thiệu bản thân"
-      icon={<FileText size={16} />}
-      isEmpty={false}
+      icon={<UserCircle size={16} />}
       onEdit={() => setEditing(true)}
+      editing={editing}
     >
+      {error && (
+        <p className="mb-3 text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+      )}
+
       {editing ? (
-        <div className="space-y-2">
-          <textarea
-            rows={4}
-            value={text}
-            onChange={handleChange}
-            autoFocus
-            placeholder="Giới thiệu về bản thân bạn..."
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all placeholder:text-gray-300 leading-relaxed"
-          />
-          <div className="flex items-center justify-between">
-            <span className={`text-[11px] tabular-nums ${text.length >= MAX_LENGTH ? "text-red-500" : "text-gray-400"}`}>
-              {text.length}/{MAX_LENGTH}
+        <>
+          <label className="block text-xs text-gray-500 mb-1.5">Tóm tắt hồ sơ</label>
+          <div className="relative">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.slice(0, MAX))}
+              placeholder="Giới thiệu về bản thân bạn..."
+              rows={5}
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white
+                resize-none focus:outline-none focus:ring-2 focus:ring-blue-500
+                placeholder:text-gray-300 text-gray-800"
+            />
+            <span className="absolute bottom-2.5 right-3 text-[11px] text-gray-400">
+              {draft.length}/{MAX}
             </span>
-            <div className="flex gap-2">
-              <button onClick={handleSave}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                Lưu
-              </button>
-              <button onClick={() => { setText(value ?? ""); setEditing(false); }}
-                className="px-4 py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors">
-                Hủy
-              </button>
-            </div>
           </div>
-        </div>
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              onClick={handleCancel}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg
+                hover:bg-gray-200 disabled:opacity-50 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg
+                hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+            >
+              {saving && (
+                <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              )}
+              Lưu
+            </button>
+          </div>
+        </>
       ) : (
-        /* ── View mode ── */
-        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-          {text || <span className="text-gray-400 italic">Chưa có giới thiệu.</span>}
+        <p className="text-sm text-gray-700 leading-relaxed">
+          {profile.summary || (
+            <span className="text-gray-400 italic">Chưa có giới thiệu</span>
+          )}
         </p>
       )}
-    </SectionCard>
+    </SectionWrapper>
   );
 }
