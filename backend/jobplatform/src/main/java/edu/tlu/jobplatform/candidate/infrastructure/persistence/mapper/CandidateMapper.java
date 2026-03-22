@@ -1,14 +1,16 @@
-// ── CandidateMapper.java (updated) ───────────────────────────────
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.mapper;
 
 import edu.tlu.jobplatform.candidate.domain.model.*;
 import edu.tlu.jobplatform.candidate.infrastructure.persistence.entity.*;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Component
 public class CandidateMapper {
 
-        // ── CandidateProfile ──────────────────────────────────────────
+        // ── CandidateProfile ──────────────────────────────────────────────────────
 
         public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
                 return CandidateProfile.builder()
@@ -29,19 +31,26 @@ public class CandidateMapper {
                                 .expectedSalary(e.getExpectedSalary())
                                 .currency(e.getCurrency())
                                 .skills(e.getSkills().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .experiences(e.getExperiences().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .educations(e.getEducations().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .languages(e.getLanguages().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .socialLinks(e.getSocialLinks().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .desiredJobs(e.getDesiredJobs().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .benefits(e.getBenefits().stream()
-                                                .map(this::toDomain).toList())
+                                                .map(this::toDomain)
+                                                .collect(Collectors.toCollection(ArrayList::new)))
                                 .createdAt(e.getCreatedAt())
                                 .updatedAt(e.getUpdatedAt())
                                 .build();
@@ -83,50 +92,51 @@ public class CandidateMapper {
                 e.setExpectedSalary(p.getExpectedSalary());
                 e.setCurrency(p.getCurrency());
 
-                // Skills — embeddable, xóa + insert lại
+                // Skills — dedup theo name (case-insensitive) trước khi insert
                 e.getSkills().clear();
                 p.getSkills().stream()
+                                .filter(distinctByName()) // ← chặn trùng ngay tại tầng persistence
                                 .map(this::toEmbeddable)
                                 .forEach(e.getSkills()::add);
 
-                // Experiences
-                e.getExperiences().clear();
-                p.getExperiences().stream()
-                                .map(exp -> toEntity(exp, e))
-                                .forEach(e.getExperiences()::add);
-
-                // Educations
-                e.getEducations().clear();
-                p.getEducations().stream()
-                                .map(edu -> toEntity(edu, e))
-                                .forEach(e.getEducations()::add);
-
-                // Languages
+                // Languages — replace toàn bộ
                 e.getLanguages().clear();
                 p.getLanguages().stream()
                                 .map(lang -> toEntity(lang, e))
                                 .forEach(e.getLanguages()::add);
 
-                // Social links
+                // Social links — replace toàn bộ
                 e.getSocialLinks().clear();
                 p.getSocialLinks().stream()
                                 .map(link -> toEntity(link, e))
                                 .forEach(e.getSocialLinks()::add);
 
-                // Desired jobs
+                // Experiences — replace toàn bộ
+                e.getExperiences().clear();
+                p.getExperiences().stream()
+                                .map(exp -> toEntity(exp, e))
+                                .forEach(e.getExperiences()::add);
+
+                // Educations — replace toàn bộ
+                e.getEducations().clear();
+                p.getEducations().stream()
+                                .map(edu -> toEntity(edu, e))
+                                .forEach(e.getEducations()::add);
+
+                // Desired jobs — replace toàn bộ
                 e.getDesiredJobs().clear();
                 p.getDesiredJobs().stream()
                                 .map(job -> toEntity(job, e))
                                 .forEach(e.getDesiredJobs()::add);
 
-                // Benefits
+                // Benefits — replace toàn bộ
                 e.getBenefits().clear();
                 p.getBenefits().stream()
                                 .map(benefit -> toEntity(benefit, e))
                                 .forEach(e.getBenefits()::add);
         }
 
-        // ── WorkExperience ────────────────────────────────────────────
+        // ── WorkExperience ────────────────────────────────────────────────────────
 
         public WorkExperience toDomain(WorkExperienceJpaEntity e) {
                 return WorkExperience.builder()
@@ -140,8 +150,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        public WorkExperienceJpaEntity toEntity(WorkExperience w,
-                        CandidateProfileJpaEntity profile) {
+        public WorkExperienceJpaEntity toEntity(WorkExperience w, CandidateProfileJpaEntity profile) {
                 return WorkExperienceJpaEntity.builder()
                                 .profile(profile)
                                 .companyName(w.getCompanyName())
@@ -153,7 +162,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Education ─────────────────────────────────────────────────
+        // ── Education ─────────────────────────────────────────────────────────────
 
         public Education toDomain(EducationJpaEntity e) {
                 return Education.builder()
@@ -167,8 +176,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        public EducationJpaEntity toEntity(Education edu,
-                        CandidateProfileJpaEntity profile) {
+        public EducationJpaEntity toEntity(Education edu, CandidateProfileJpaEntity profile) {
                 return EducationJpaEntity.builder()
                                 .profile(profile)
                                 .school(edu.getSchool())
@@ -180,7 +188,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Skill ─────────────────────────────────────────────────────
+        // ── Skill ─────────────────────────────────────────────────────────────────
 
         public Skill toDomain(SkillEmbeddable e) {
                 return Skill.of(e.getName(), e.getLevel(), e.getYearsOfExp());
@@ -194,7 +202,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Language ──────────────────────────────────────────────────
+        // ── Language ──────────────────────────────────────────────────────────────
 
         public Language toDomain(LanguageJpaEntity e) {
                 return Language.builder()
@@ -204,8 +212,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        public LanguageJpaEntity toEntity(Language l,
-                        CandidateProfileJpaEntity profile) {
+        public LanguageJpaEntity toEntity(Language l, CandidateProfileJpaEntity profile) {
                 return LanguageJpaEntity.builder()
                                 .profile(profile)
                                 .name(l.getName())
@@ -213,7 +220,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── SocialLink ────────────────────────────────────────────────
+        // ── SocialLink ────────────────────────────────────────────────────────────
 
         public SocialLink toDomain(SocialLinkJpaEntity e) {
                 return SocialLink.builder()
@@ -223,8 +230,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        public SocialLinkJpaEntity toEntity(SocialLink l,
-                        CandidateProfileJpaEntity profile) {
+        public SocialLinkJpaEntity toEntity(SocialLink l, CandidateProfileJpaEntity profile) {
                 return SocialLinkJpaEntity.builder()
                                 .profile(profile)
                                 .platform(l.getPlatform())
@@ -232,7 +238,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── DesiredJob ────────────────────────────────────────────────
+        // ── DesiredJob ────────────────────────────────────────────────────────────
 
         public DesiredJob toDomain(DesiredJobJpaEntity e) {
                 return DesiredJob.builder()
@@ -240,24 +246,23 @@ public class CandidateMapper {
                                 .industry(e.getIndustry())
                                 .minSalary(e.getMinSalary())
                                 .currency(e.getCurrency())
-                                .contractTypes(new java.util.ArrayList<>(e.getContractTypes()))
-                                .levels(new java.util.ArrayList<>(e.getLevels()))
+                                .contractTypes(new ArrayList<>(e.getContractTypes()))
+                                .levels(new ArrayList<>(e.getLevels()))
                                 .build();
         }
 
-        public DesiredJobJpaEntity toEntity(DesiredJob j,
-                        CandidateProfileJpaEntity profile) {
+        public DesiredJobJpaEntity toEntity(DesiredJob j, CandidateProfileJpaEntity profile) {
                 return DesiredJobJpaEntity.builder()
                                 .profile(profile)
                                 .industry(j.getIndustry())
                                 .minSalary(j.getMinSalary())
                                 .currency(j.getCurrency())
-                                .contractTypes(new java.util.ArrayList<>(j.getContractTypes()))
-                                .levels(new java.util.ArrayList<>(j.getLevels()))
+                                .contractTypes(new ArrayList<>(j.getContractTypes()))
+                                .levels(new ArrayList<>(j.getLevels()))
                                 .build();
         }
 
-        // ── Benefit ───────────────────────────────────────────────────
+        // ── Benefit ───────────────────────────────────────────────────────────────
 
         public Benefit toDomain(BenefitJpaEntity e) {
                 return Benefit.builder()
@@ -266,15 +271,14 @@ public class CandidateMapper {
                                 .build();
         }
 
-        public BenefitJpaEntity toEntity(Benefit b,
-                        CandidateProfileJpaEntity profile) {
+        public BenefitJpaEntity toEntity(Benefit b, CandidateProfileJpaEntity profile) {
                 return BenefitJpaEntity.builder()
                                 .profile(profile)
                                 .name(b.getName())
                                 .build();
         }
 
-        // ── CandidateCV ───────────────────────────────────────────────
+        // ── CandidateCV ───────────────────────────────────────────────────────────
 
         public CandidateCV toDomain(CandidateCVJpaEntity e) {
                 return CandidateCV.builder()
@@ -305,5 +309,16 @@ public class CandidateMapper {
                 e.setTitle(cv.getTitle());
                 e.setPrimary(cv.isPrimary());
                 e.setParsedContent(cv.getParsedContent());
+        }
+
+        // ── Private utils ─────────────────────────────────────────────────────────
+
+        /**
+         * Stateful predicate — giữ lại phần tử đầu tiên theo name (case-insensitive).
+         * Dùng như safety net ở tầng persistence; dedup chính vẫn nên ở domain/usecase.
+         */
+        private static java.util.function.Predicate<Skill> distinctByName() {
+                Set<String> seen = new LinkedHashSet<>();
+                return s -> seen.add(s.getName().toLowerCase());
         }
 }
