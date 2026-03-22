@@ -5,7 +5,7 @@ import { useState }             from "react";
 import SectionWrapper           from "./SectionWrapper";
 import { CandidateProfile,
          UpdateProfilePayload } from "@/domain/models/Candidate";
-import { SectionKey }           from "@/presentation/hooks/useCandidateProfile";
+import { SectionKey } from "./types/SectionKey";
 
 // API trả về Benefit object {id, name} nhưng gửi lên chỉ cần name string
 const PRESET_BENEFITS = [

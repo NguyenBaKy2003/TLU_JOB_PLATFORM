@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.candidate.domain.model;
 
 import lombok.Builder;
 import lombok.Getter;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -81,46 +82,48 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── patchBasicInfo — PARTIAL update (null = giữ nguyên) ──────────────────
-    // Dùng trong UpdateProfileUseCase để tránh reset field khi
-    // frontend chỉ gửi 1 field (vd: chỉ sửa summary).
+    // ── patchBasicInfo — PARTIAL update với Optional<T> ──────────────────────
+    //
+    // Ba trạng thái của mỗi Optional parameter:
+    // null = frontend không gửi field → giữ nguyên giá trị cũ
+    // Optional.empty() = frontend gửi null → xóa (set null / 0)
+    // Optional.of(v) = frontend gửi giá trị v → cập nhật thành v
 
     public void patchBasicInfo(
-            String firstName,
-            String lastName,
-            String headline,
-            String summary,
-            String phone,
-            String location,
-            LocalDate dateOfBirth,
-            String gender,
-            String maritalStatus,
-            Integer expectedSalary, // Integer nullable
-            String currency) {
+            Optional<String> firstName,
+            Optional<String> lastName,
+            Optional<String> headline,
+            Optional<String> summary,
+            Optional<String> phone,
+            Optional<String> location,
+            Optional<LocalDate> dateOfBirth,
+            Optional<String> gender,
+            Optional<String> maritalStatus,
+            Optional<Integer> expectedSalary,
+            Optional<String> currency) {
 
-        // Chỉ ghi đè nếu giá trị được gửi (không null)
         if (firstName != null)
-            this.firstName = firstName;
+            this.firstName = firstName.orElse(null);
         if (lastName != null)
-            this.lastName = lastName;
+            this.lastName = lastName.orElse(null);
         if (headline != null)
-            this.headline = headline;
+            this.headline = headline.orElse(null);
         if (summary != null)
-            this.summary = summary;
+            this.summary = summary.orElse(null);
         if (phone != null)
-            this.phone = phone;
+            this.phone = phone.orElse(null);
         if (location != null)
-            this.location = location;
+            this.location = location.orElse(null);
         if (dateOfBirth != null)
-            this.dateOfBirth = dateOfBirth;
+            this.dateOfBirth = dateOfBirth.orElse(null);
         if (gender != null)
-            this.gender = gender;
+            this.gender = gender.orElse(null);
         if (maritalStatus != null)
-            this.maritalStatus = maritalStatus;
+            this.maritalStatus = maritalStatus.orElse(null);
         if (expectedSalary != null)
-            this.expectedSalary = Math.max(expectedSalary, 0);
+            this.expectedSalary = Math.max(expectedSalary.orElse(0), 0);
         if (currency != null)
-            this.currency = currency;
+            this.currency = currency.orElse(null);
 
         this.updatedAt = LocalDateTime.now();
     }

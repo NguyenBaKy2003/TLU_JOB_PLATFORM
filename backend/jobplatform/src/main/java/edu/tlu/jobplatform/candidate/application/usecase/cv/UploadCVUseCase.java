@@ -41,28 +41,36 @@ public class UploadCVUseCase {
                         String fileName,
                         String contentType,
                         long fileSize,
-                        InputStream inputStream) {
+                        InputStream inputStream,
+                        /**
+                         * true = đặt CV mới này làm primary ngay sau khi upload.
+                         * false = giữ nguyên primary hiện tại.
+                         * null = tự động: primary nếu là CV đầu tiên, không primary nếu đã có CV khác.
+                         */
+                        Boolean setAsPrimary) {
+
+                /** Factory method — hành vi tự động (backward compatible) */
+                public static Command auto(UUID candidateId, String title, String fileName,
+                                String contentType, long fileSize, InputStream inputStream) {
+                        return new Command(candidateId, title, fileName, contentType, fileSize, inputStream, null);
+                }
         }
 
         @Transactional
         public CandidateCV execute(Command cmd) {
-                // Validate file type
                 if (!ALLOWED_TYPES.contains(cmd.contentType())) {
-                        throw new BusinessRuleException(
-                                        "Chỉ chấp nhận PDF, DOC, DOCX.", "INVALID_FILE_TYPE");
+                        throw new BusinessRuleException("Chỉ chấp nhận PDF, DOC, DOCX.", "INVALID_FILE_TYPE");
                 }
 
-                // BR-01: Validate số lượng CV
-                int count = cvRepository.countByCandidateId(cmd.candidateId());
-                cvDomainService.validateCanAddCV(count);
+                List<CandidateCV> existing = cvRepository.findAllByCandidateId(cmd.candidateId());
+                cvDomainService.validateCanAddCV(existing.size());
 
-                // Đọc bytes một lần — dùng cho cả upload lẫn parse
+                // Đọc bytes một lần
                 byte[] fileBytes;
                 try {
                         fileBytes = cmd.inputStream().readAllBytes();
                 } catch (Exception e) {
-                        throw new BusinessRuleException(
-                                        "Không thể đọc file. Vui lòng thử lại.", "FILE_READ_ERROR");
+                        throw new BusinessRuleException("Không thể đọc file. Vui lòng thử lại.", "FILE_READ_ERROR");
                 }
 
                 // Upload lên S3
@@ -70,18 +78,46 @@ public class UploadCVUseCase {
                                 new java.io.ByteArrayInputStream(fileBytes),
                                 cmd.fileName(), cmd.contentType(), CV_FOLDER);
 
-                // Parse nội dung — best-effort, không throw nếu lỗi
+                // Parse nội dung — best-effort
                 String parsedContent = "";
                 try {
                         parsedContent = cvParser.parse(
-                                        new java.io.ByteArrayInputStream(fileBytes),
-                                        cmd.contentType());
+                                        new java.io.ByteArrayInputStream(fileBytes), cmd.contentType());
                 } catch (Exception e) {
-                        log.warn("CV parse failed for candidateId={}: {}",
-                                        cmd.candidateId(), e.getMessage());
+                        log.warn("CV parse failed for candidateId={}: {}", cmd.candidateId(), e.getMessage());
                 }
 
-                boolean isPrimary = count == 0; // CV đầu tiên tự động là primary
+                // ── Quyết định primary ────────────────────────────────────────────────
+                // Logic:
+                // setAsPrimary = null → tự động: primary nếu chưa có CV nào
+                // setAsPrimary = true → user chủ động muốn set primary
+                // setAsPrimary = false → giữ nguyên primary hiện tại
+                boolean isFirstCV = existing.isEmpty();
+                boolean makePrimary = cmd.setAsPrimary() != null
+                                ? cmd.setAsPrimary()
+                                : isFirstCV;
+
+                // Nếu cần set primary → unset primary của CV cũ
+                if (makePrimary && !isFirstCV) {
+                        List<CandidateCV> updated = existing.stream()
+                                        .map(cv -> {
+                                                if (!cv.isPrimary())
+                                                        return cv;
+                                                return CandidateCV.builder()
+                                                                .id(cv.getId())
+                                                                .candidateId(cv.getCandidateId())
+                                                                .title(cv.getTitle())
+                                                                .type(cv.getType())
+                                                                .fileUrl(cv.getFileUrl())
+                                                                .parsedContent(cv.getParsedContent())
+                                                                .primary(false) // ← unset primary
+                                                                .createdAt(cv.getCreatedAt())
+                                                                .updatedAt(LocalDateTime.now())
+                                                                .build();
+                                        })
+                                        .toList();
+                        cvRepository.saveAll(updated);
+                }
 
                 CandidateCV cv = CandidateCV.builder()
                                 .id(UUID.randomUUID())
@@ -90,24 +126,20 @@ public class UploadCVUseCase {
                                 .type(CandidateCV.CVType.UPLOADED)
                                 .fileUrl(fileUrl)
                                 .parsedContent(parsedContent)
-                                .primary(isPrimary)
+                                .primary(makePrimary)
                                 .createdAt(LocalDateTime.now())
                                 .updatedAt(LocalDateTime.now())
                                 .build();
 
                 CandidateCV saved = cvRepository.save(cv);
 
-                // Publish event để AI domain tạo embedding (chạy async)
                 if (!parsedContent.isBlank()) {
                         eventPublisher.publishEvent(new CVUploadedEvent(
-                                        saved.getCandidateId(),
-                                        saved.getId(),
-                                        parsedContent,
-                                        isPrimary));
+                                        saved.getCandidateId(), saved.getId(), parsedContent, makePrimary));
                 }
 
                 log.info("CV uploaded: cvId={} candidateId={} primary={}",
-                                saved.getId(), saved.getCandidateId(), isPrimary);
+                                saved.getId(), saved.getCandidateId(), makePrimary);
 
                 return saved;
         }

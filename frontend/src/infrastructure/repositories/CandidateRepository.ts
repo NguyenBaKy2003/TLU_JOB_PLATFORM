@@ -83,16 +83,19 @@ export class CandidateRepository implements ICandidateRepository {
     return res.data.data;
   }
 
-  async uploadCV({ file, title }: UploadCVPayload): Promise<CandidateCV> {
+  async uploadCV({ file, title, setAsPrimary }: UploadCVPayload & { setAsPrimary?: boolean }): Promise<CandidateCV> {
     const form = new FormData();
     form.append("file", file);
-    form.append("data", new Blob([JSON.stringify({ title })], { type: "application/json" }));
-    const res = await api.post<ApiResponse<CandidateCV>>(
-      "/candidate/cv/upload", form,
-      { headers: { "Content-Type": undefined } }
-    );
+    form.append("data", new Blob(
+      [JSON.stringify({ title, setAsPrimary })],
+      { type: "application/json" }
+    ));
+    const res = await api.post<ApiResponse<CandidateCV>>("/candidate/cv/upload", form, {
+      headers: { "Content-Type": undefined },
+    });
     return res.data.data;
   }
+ 
 
   async createOnlineCV(data: CreateOnlineCVPayload): Promise<CandidateCV> {
     const res = await api.post<ApiResponse<CandidateCV>>("/candidate/cv/online", data);

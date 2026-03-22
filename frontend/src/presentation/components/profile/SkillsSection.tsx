@@ -2,13 +2,13 @@
 
 import { Star, X, Plus }           from "lucide-react";
 import { useState, KeyboardEvent } from "react";
+import SectionWrapper              from "./SectionWrapper";
 import {
   CandidateProfile,
   UpdateProfilePayload,
   SkillPayload,
 }                                  from "@/domain/models/Candidate";
 import { SectionKey } from "./types/SectionKey";
-import SectionWrapper from "./SectionWrapper";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

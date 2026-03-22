@@ -23,28 +23,24 @@ public class S3FileStorageAdapter implements FileStoragePort {
 
     @Value("${aws.s3.bucket}")
     private String bucket;
-
     @Value("${aws.s3.region}")
     private String region;
 
-    // ── Upload ────────────────────────────────────────────────────
+    // ── Upload ────────────────────────────────────────────────────────────────
 
     @Override
     public String upload(InputStream inputStream, String fileName,
             String contentType, String folder) {
         String key = buildKey(folder, fileName);
-
         try {
             byte[] bytes = inputStream.readAllBytes();
-
-            PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .contentType(contentType)
-                    .contentLength((long) bytes.length)
-                    .build();
-
-            s3Client.putObject(request, RequestBody.fromBytes(bytes));
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket).key(key)
+                            .contentType(contentType)
+                            .contentLength((long) bytes.length)
+                            .build(),
+                    RequestBody.fromBytes(bytes));
 
             String url = buildUrl(key);
             log.info("Uploaded to S3: key={} url={}", key, url);
@@ -57,10 +53,10 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
-    // ── Download ──────────────────────────────────────────────────
+    // ── Download ──────────────────────────────────────────────────────────────
 
     @Override
-    public DownloadResult download(String fileUrl) {
+    public FileResult download(String fileUrl) { // ← FileResult, không phải DownloadResult
         String key = extractKeyFromUrl(fileUrl);
         if (key == null) {
             log.warn("Cannot extract S3 key from url={}", fileUrl);
@@ -69,24 +65,16 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
 
         try {
-            GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .build();
+            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(
+                    GetObjectRequest.builder().bucket(bucket).key(key).build());
 
-            // ResponseInputStream tự động đóng khi controller đọc xong stream
-            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
-            GetObjectResponse metadata = response.response();
+            GetObjectResponse meta = response.response();
+            String contentType = meta.contentType() != null ? meta.contentType() : "application/octet-stream";
+            long contentLength = meta.contentLength() != null ? meta.contentLength() : -1L;
 
-            String contentType = metadata.contentType();
-            long contentLength = metadata.contentLength() != null
-                    ? metadata.contentLength()
-                    : -1L;
+            log.info("Downloaded from S3: key={} contentType={} size={}", key, contentType, contentLength);
 
-            log.info("Downloaded from S3: key={} contentType={} size={}",
-                    key, contentType, contentLength);
-
-            return new DownloadResult(response, contentType, contentLength);
+            return new FileResult(response, contentType, contentLength); // ← FileResult record
 
         } catch (NoSuchKeyException e) {
             log.warn("S3 key not found: key={}", key);
@@ -99,7 +87,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
-    // ── Delete ────────────────────────────────────────────────────
+    // ── Delete ────────────────────────────────────────────────────────────────
 
     @Override
     public void delete(String fileUrl) {
@@ -108,22 +96,17 @@ public class S3FileStorageAdapter implements FileStoragePort {
             log.warn("Cannot extract S3 key from url={}", fileUrl);
             return;
         }
-
         try {
             s3Client.deleteObject(DeleteObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .build());
-
+                    .bucket(bucket).key(key).build());
             log.info("Deleted from S3: key={}", key);
-
         } catch (Exception e) {
             // Không throw — xóa file thất bại không nên block business flow
             log.error("S3 delete failed: key={} error={}", key, e.getMessage());
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private String buildKey(String folder, String fileName) {
         String sanitized = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");

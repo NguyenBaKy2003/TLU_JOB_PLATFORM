@@ -43,7 +43,7 @@ public class CandidateCVController {
         private final DeleteCVUseCase deleteCVUseCase;
         private final DownloadCVUseCase downloadCVUseCase;
 
-        // ── GET /api/v1/candidate/cv ──────────────────────────────────
+        // ── GET /api/v1/candidate/cv ──────────────────────────────────────────────
 
         @Operation(summary = "Danh sách CV của tôi")
         @GetMapping
@@ -55,7 +55,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success(cvs));
         }
 
-        // ── POST /api/v1/candidate/cv/upload ─────────────────────────
+        // ── POST /api/v1/candidate/cv/upload ──────────────────────────────────────
 
         @Operation(summary = "Upload CV (PDF / DOC / DOCX)", description = """
                         Upload file CV lên S3.
@@ -63,6 +63,7 @@ public class CandidateCVController {
                         - Định dạng: PDF, DOC, DOCX
                         - Dung lượng tối đa: **10 MB**
                         - CV đầu tiên tự động là **primary**
+                        - Gửi `setAsPrimary: true` trong phần `data` để đặt làm primary ngay
                         """)
         @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, encoding = @Encoding(name = "data", contentType = "application/json")))
         @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -71,20 +72,24 @@ public class CandidateCVController {
                         @RequestPart("file") MultipartFile file,
                         @RequestPart(value = "data", required = false) @Valid CVUploadRequest data) {
 
+                validateFile(file);
+
+                // Lấy title và setAsPrimary từ data (nếu có)
                 String title = (data != null && data.getTitle() != null)
                                 ? data.getTitle()
                                 : file.getOriginalFilename();
-
-                validateFile(file);
+                Boolean setAsPrimary = (data != null) ? data.getSetAsPrimary() : null;
 
                 UploadCVUseCase.Command cmd;
                 try {
                         cmd = new UploadCVUseCase.Command(
-                                        userId, title,
+                                        userId,
+                                        title,
                                         file.getOriginalFilename(),
                                         file.getContentType(),
                                         file.getSize(),
-                                        file.getInputStream());
+                                        file.getInputStream(),
+                                        setAsPrimary); // ← tham số thứ 7
                 } catch (IOException e) {
                         throw new BusinessRuleException(
                                         "Không thể đọc file. Vui lòng thử lại.", "FILE_READ_ERROR");
@@ -95,7 +100,7 @@ public class CandidateCVController {
                                 CVResponse.from(cv), "CV đã được tải lên thành công."));
         }
 
-        // ── POST /api/v1/candidate/cv/online ─────────────────────────
+        // ── POST /api/v1/candidate/cv/online ──────────────────────────────────────
 
         @Operation(summary = "Tạo CV online", description = """
                         Tạo CV trực tiếp trên hệ thống (không cần upload file).
@@ -112,7 +117,7 @@ public class CandidateCVController {
                                 CVResponse.from(cv), "CV đã được tạo thành công."));
         }
 
-        // ── GET /api/v1/candidate/cv/{cvId}/view ─────────────────────
+        // ── GET /api/v1/candidate/cv/{cvId}/view ──────────────────────────────────
 
         @Operation(summary = "Xem CV (inline)", description = """
                         Trả về file stream với Content-Disposition: inline.
@@ -133,7 +138,7 @@ public class CandidateCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── GET /api/v1/candidate/cv/{cvId}/download ─────────────────
+        // ── GET /api/v1/candidate/cv/{cvId}/download ──────────────────────────────
 
         @Operation(summary = "Tải CV xuống", description = """
                         Trả về file stream với Content-Disposition: attachment.
@@ -154,7 +159,7 @@ public class CandidateCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── PATCH /api/v1/candidate/cv/{cvId}/primary ─────────────────
+        // ── PATCH /api/v1/candidate/cv/{cvId}/primary ─────────────────────────────
 
         @Operation(summary = "Đặt CV làm primary", description = """
                         CV primary là CV mặc định khi ứng tuyển.
@@ -169,7 +174,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success("CV primary đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/candidate/cv/{cvId} ────────────────────────
+        // ── DELETE /api/v1/candidate/cv/{cvId} ────────────────────────────────────
 
         @Operation(summary = "Xóa CV", description = """
                         Xóa CV và file trên S3 (nếu là UPLOADED).
@@ -184,7 +189,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success("CV đã được xóa."));
         }
 
-        // ── Helper ────────────────────────────────────────────────────
+        // ── Validation helper ─────────────────────────────────────────────────────
 
         private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
         private static final List<String> ALLOWED_TYPES = List.of(

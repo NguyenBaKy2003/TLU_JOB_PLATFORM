@@ -5,7 +5,7 @@ import { useState, useEffect }   from "react";
 import SectionWrapper            from "./SectionWrapper";
 import { CandidateProfile,
          UpdateProfilePayload }  from "@/domain/models/Candidate";
-import type { SectionKey }       from "@/presentation/components/profile/types/SectionKey";
+import { SectionKey } from "./types/SectionKey";
 
 const MAX = 512;
 
@@ -26,7 +26,7 @@ export default function BioSection({ profile, saving, error, onSave }: Props) {
   }, [profile.summary, editing]);
 
   const handleSave = async () => {
-    await onSave("bio", { summary: draft || undefined });
+    await onSave("bio", { summary: draft.trim() === "" ? null : draft });
     setEditing(false);
   };
 

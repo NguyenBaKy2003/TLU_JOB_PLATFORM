@@ -16,21 +16,21 @@ import java.util.*;
 public class UpdateProfileUseCase {
 
     private final CandidateProfileRepository profileRepository;
-    private final UserRepository userRepository; // ← thêm để inject email
+    private final UserRepository userRepository;
 
     public record Command(
             UUID userId,
-            String firstName,
-            String lastName,
-            String headline,
-            String summary,
-            String phone,
-            String location,
-            LocalDate dateOfBirth,
-            String gender,
-            String maritalStatus,
-            Integer expectedSalary,
-            String currency,
+            Optional<String> firstName,
+            Optional<String> lastName,
+            Optional<String> headline,
+            Optional<String> summary,
+            Optional<String> phone,
+            Optional<String> location,
+            Optional<LocalDate> dateOfBirth,
+            Optional<String> gender,
+            Optional<String> maritalStatus,
+            Optional<Integer> expectedSalary,
+            Optional<String> currency,
             List<Skill> skills,
             List<Language> languages,
             List<SocialLink> socialLinks,
@@ -44,13 +44,18 @@ public class UpdateProfileUseCase {
                 .orElseThrow(() -> new BusinessRuleException(
                         "Hồ sơ ứng viên không tồn tại.", "PROFILE_NOT_FOUND"));
 
-        // Basic info — patch semantics (null = không đổi)
         profile.patchBasicInfo(
-                cmd.firstName(), cmd.lastName(),
-                cmd.headline(), cmd.summary(),
-                cmd.phone(), cmd.location(),
-                cmd.dateOfBirth(), cmd.gender(), cmd.maritalStatus(),
-                cmd.expectedSalary(), cmd.currency());
+                cmd.firstName(),
+                cmd.lastName(),
+                cmd.headline(),
+                cmd.summary(),
+                cmd.phone(),
+                cmd.location(),
+                cmd.dateOfBirth(),
+                cmd.gender(),
+                cmd.maritalStatus(),
+                cmd.expectedSalary(),
+                cmd.currency());
 
         if (cmd.skills() != null)
             profile.replaceSkills(deduplicateSkills(cmd.skills()));
@@ -65,9 +70,6 @@ public class UpdateProfileUseCase {
 
         CandidateProfile saved = profileRepository.save(profile);
 
-        // ── Inject email sau khi save ─────────────────────────────────────────
-        // Email không lưu trong candidate_profiles → mapper.toDomain() không có email
-        // → phải inject lại từ users table, giống GetProfileUseCase
         userRepository.findById(cmd.userId())
                 .ifPresent(user -> saved.setEmail(user.getEmail()));
 

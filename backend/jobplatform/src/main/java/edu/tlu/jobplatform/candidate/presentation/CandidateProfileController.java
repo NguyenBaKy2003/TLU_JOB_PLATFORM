@@ -20,8 +20,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,7 +41,6 @@ public class CandidateProfileController {
         private final UpdateProfileUseCase updateProfileUseCase;
         private final UpdateJobSearchStatusUseCase updateJobSearchStatusUseCase;
         private final UpdateAvatarUseCase updateAvatarUseCase;
-        private final GetAvatarUseCase getAvatarUseCase;
         private final AddExperienceUseCase addExperienceUseCase;
         private final UpdateExperienceUseCase updateExperienceUseCase;
         private final DeleteExperienceUseCase deleteExperienceUseCase;
@@ -51,6 +48,7 @@ public class CandidateProfileController {
         private final UpdateEducationUseCase updateEducationUseCase;
         private final DeleteEducationUseCase deleteEducationUseCase;
         private final UpdateProfileUrlUseCase updateProfileUrlUseCase;
+
         // ── GET /me ───────────────────────────────────────────────────
 
         @Operation(summary = "Lấy hồ sơ của tôi")
@@ -65,14 +63,16 @@ public class CandidateProfileController {
 
         // ── PUT /me ───────────────────────────────────────────────────
 
-        @Operation(summary = "Cập nhật hồ sơ (PATCH semantics — chỉ gửi field cần đổi)")
+        @Operation(summary = "Cập nhật hồ sơ (PATCH semantics — chỉ gửi field cần đổi; gửi null để xóa)")
         @PutMapping("/me")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateProfile(
                         @CurrentUser UUID userId,
                         @Valid @RequestBody UpdateProfileRequest req) {
 
-                // Map request → Command
-                // null field trong request → null trong Command → UseCase giữ nguyên DB
+                // req.getXxx() trả về Optional<T>:
+                // null → field vắng mặt trong JSON → UseCase giữ nguyên
+                // Optional.empty() → field có mặt với null → UseCase xóa giá trị
+                // Optional.of(v) → field có mặt với giá trị → UseCase cập nhật
                 UpdateProfileUseCase.Command cmd = new UpdateProfileUseCase.Command(
                                 userId,
                                 req.getFirstName(),
@@ -84,7 +84,7 @@ public class CandidateProfileController {
                                 req.getDateOfBirth(),
                                 req.getGender(),
                                 req.getMaritalStatus(),
-                                req.getExpectedSalary(), // Integer nullable
+                                req.getExpectedSalary(),
                                 req.getCurrency(),
                                 mapSkills(req),
                                 mapLanguages(req),
@@ -98,7 +98,7 @@ public class CandidateProfileController {
                                 "Hồ sơ đã được cập nhật."));
         }
 
-        // ── PATCH /me/avatar — upload ─────────────────────────────────
+        // ── PATCH /me/avatar ──────────────────────────────────────────
 
         @Operation(summary = "Cập nhật avatar")
         @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -111,34 +111,8 @@ public class CandidateProfileController {
                                 CandidateProfileResponse.from(updated), "Ảnh đại diện đã được cập nhật."));
         }
 
-        // ── GET /me/avatar — stream ảnh về client ─────────────────────
-        // Giống pattern /cv/{cvId}/view: stream file từ S3 qua backend
-        // để đính kèm Authorization header (S3 bucket là private).
+        // ── PATCH /me/profile-url ─────────────────────────────────────
 
-        @Operation(summary = "Xem ảnh đại diện", description = """
-                        Trả về ảnh dưới dạng stream với Content-Disposition: inline.
-                        Dùng endpoint này làm src cho <img> thay vì dùng S3 key trực tiếp.
-                        """)
-        @GetMapping("/me/avatar")
-        public ResponseEntity<InputStreamResource> getAvatar(
-                        @CurrentUser UUID userId) {
-
-                GetAvatarUseCase.Result result = getAvatarUseCase.execute(userId);
-
-                return ResponseEntity.ok()
-                                .header(HttpHeaders.CONTENT_DISPOSITION,
-                                                "inline; filename=\"" + result.fileName() + "\"")
-                                // Cache 5 phút ở browser — ảnh đại diện ít thay đổi
-                                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")
-                                .contentType(MediaType.parseMediaType(result.contentType()))
-                                .body(new InputStreamResource(result.inputStream()));
-        }
-
-        /**
-         * PATCH /me/profile-url
-         * Body: { "slug": "minh-hang" }
-         * Response: profile với profileUrl mới
-         */
         @Operation(summary = "Cập nhật URL hồ sơ cá nhân")
         @PatchMapping("/me/profile-url")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateProfileUrl(
@@ -150,6 +124,7 @@ public class CandidateProfileController {
                                 CandidateProfileResponse.from(updated),
                                 "URL hồ sơ đã được cập nhật."));
         }
+
         // ── PATCH /me/job-search-status ───────────────────────────────
 
         @Operation(summary = "Cập nhật trạng thái tìm việc")
