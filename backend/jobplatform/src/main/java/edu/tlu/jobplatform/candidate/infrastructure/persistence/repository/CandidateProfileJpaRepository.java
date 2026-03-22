@@ -1,34 +1,44 @@
-// ── CandidateProfileJpaRepository.java ───────────────────────────
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.repository;
 
 import edu.tlu.jobplatform.candidate.infrastructure.persistence.entity.CandidateProfileJpaEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
 public interface CandidateProfileJpaRepository
                 extends JpaRepository<CandidateProfileJpaEntity, UUID> {
 
-        @Query("""
-                        SELECT DISTINCT p FROM CandidateProfileJpaEntity p
-                        LEFT JOIN FETCH p.skills
-                        LEFT JOIN FETCH p.experiences
-                        LEFT JOIN FETCH p.educations
-                        LEFT JOIN FETCH p.languages
-                        LEFT JOIN FETCH p.socialLinks
-                        LEFT JOIN FETCH p.desiredJobs
-                        LEFT JOIN FETCH p.benefits
-                        WHERE p.userId = :userId
-                        """)
-        Optional<CandidateProfileJpaEntity> findByUserIdWithDetails(
-                        @Param("userId") UUID userId);
+        // ── Finders ───────────────────────────────────────────────────────────────
 
-        Optional<CandidateProfileJpaEntity> findByUserId(UUID userId);
+        /**
+         * Fetch đầy đủ collections qua @EntityGraph — tránh Cartesian product
+         * của JOIN FETCH nhiều List cùng lúc.
+         */
+        @EntityGraph(attributePaths = {
+                        "skills", "experiences", "educations",
+                        "languages", "socialLinks", "desiredJobs", "benefits"
+        })
+        @Query("SELECT p FROM CandidateProfileJpaEntity p WHERE p.userId = :userId")
+        Optional<CandidateProfileJpaEntity> findByUserIdWithDetails(@Param("userId") UUID userId);
+
+        /**
+         * Tìm theo profileUrl — dùng khi check duplicate trong ProfileUrlService.
+         * Không cần fetch collections, chỉ cần scalar fields để lấy id.
+         */
+        @Query("SELECT p FROM CandidateProfileJpaEntity p WHERE p.profileUrl = :profileUrl")
+        Optional<CandidateProfileJpaEntity> findByProfileUrl(@Param("profileUrl") String profileUrl);
+
+        // ── Existence checks ──────────────────────────────────────────────────────
 
         boolean existsByUserId(UUID userId);
+
+        /**
+         * Dùng trong ProfileUrlService.generateSlug() để check trùng
+         * và validateAndBuildUrl() để ngăn user dùng slug đã có.
+         */
+        boolean existsByProfileUrl(String profileUrl);
 }

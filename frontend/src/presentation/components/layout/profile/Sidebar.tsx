@@ -1,197 +1,120 @@
 "use client";
 
-import React        from "react";
-import Link         from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
 import {
-  User, Bell, MessageSquare, Settings,
-  Activity, LogOut, HelpCircle, Briefcase, ChevronLeft, X,
+  User,
+  Bell,
+  MessageSquare,
+  Settings,
+  Activity,
+  LogOut,
+  HelpCircle,
+  ChevronLeft,
+  Briefcase,
 } from "lucide-react";
-import { useAuth } from "@/application/contexts/AuthContext";
 
-interface SidebarItem {
-  label:  string;
-  href:   string;
-  icon:   React.ReactNode;
+interface NavItem {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
   badge?: number;
+  active?: boolean;
 }
 
-interface SidebarProps {
-  activeHref?: string;
-  collapsed?:  boolean;
-  onToggle?:   () => void;
-  /** Mobile drawer open state */
-  mobileOpen?: boolean;
-  onMobileClose?: () => void;
-}
-
-const mainNavItems: SidebarItem[] = [
-  { label: "Hồ sơ của tôi",    href: "/profile",       icon: <User         size={18} /> },
-  { label: "Thông báo",         href: "/notifications", icon: <Bell         size={18} />, badge: 6 },
-  { label: "Tin nhắn",          href: "/messages",      icon: <MessageSquare size={18} />, badge: 6 },
-  { label: "Cài đặt tài khoản", href: "/settings",      icon: <Settings     size={18} /> },
-  { label: "Hoạt động",         href: "/activity",      icon: <Activity     size={18} /> },
+const mainNavItems: NavItem[] = [
+  { label: "Hồ sơ của tôi", icon: <User size={18} />, href: "/profile", active: true },
+  { label: "Thông báo", icon: <Bell size={18} />, href: "/notifications", badge: 6 },
+  { label: "Tin nhắn", icon: <MessageSquare size={18} />, href: "/messages", badge: 6 },
+  { label: "Cài đặt tài khoản", icon: <Settings size={18} />, href: "/settings" },
+  { label: "Hoạt động", icon: <Activity size={18} />, href: "/activity" },
 ];
 
-const bottomNavItems: SidebarItem[] = [
-  { label: "Trợ giúp", href: "/help", icon: <HelpCircle size={18} /> },
+const bottomNavItems: NavItem[] = [
+  { label: "Đăng xuất", icon: <LogOut size={18} />, href: "/logout" },
+  { label: "Trợ giúp", icon: <HelpCircle size={18} />, href: "/help" },
 ];
 
-export function Sidebar({
-  activeHref = "/profile",
-  collapsed = false,
-  onToggle,
-  mobileOpen = false,
-  onMobileClose,
-}: SidebarProps) {
-  const router     = useRouter();
-  const { logout } = useAuth();
+export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/auth/login");
-  };
-
-  const handleLinkClick = () => {
-    // Close mobile drawer on nav
-    onMobileClose?.();
-  };
-
-  const sidebarContent = (isDrawer = false) => (
-    <aside className={`
-      relative flex flex-col bg-white border-r border-gray-100
-      h-full transition-all duration-300
-      ${!isDrawer ? (collapsed ? "w-16" : "w-56") : "w-64"}
-    `}>
+  return (
+    <aside
+      className={`relative flex flex-col h-screen bg-white border-r border-gray-100 transition-all duration-300 ${
+        collapsed ? "w-16" : "w-60"
+      }`}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-gray-100">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <Briefcase size={16} className="text-white" />
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-center w-9 h-9 bg-blue-600 rounded-lg shrink-0">
+          <Briefcase size={18} className="text-white" />
         </div>
-        {(!collapsed || isDrawer) && (
-          <div>
-            <p className="text-sm font-bold text-gray-900 leading-none">JobPlatform</p>
-            <p className="text-[10px] text-gray-400">Bảng điều khiển</p>
+        {!collapsed && (
+          <div className="leading-tight">
+            <p className="text-sm font-bold text-gray-900">Job</p>
+            <p className="text-xs text-gray-400">Bảng điều kiển</p>
           </div>
-        )}
-        {/* Close button for mobile drawer */}
-        {isDrawer && (
-          <button
-            onClick={onMobileClose}
-            className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X size={16} className="text-gray-500" />
-          </button>
         )}
       </div>
 
-      {/* Collapse toggle — desktop only */}
-      {!isDrawer && (
-        <button
-          onClick={onToggle}
-          className="absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors z-10"
-        >
-          <ChevronLeft
-            size={12}
-            className={`text-gray-500 transition-transform ${collapsed ? "rotate-180" : ""}`}
-          />
-        </button>
-      )}
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-14 z-10 flex items-center justify-center w-6 h-6 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+      >
+        <ChevronLeft
+          size={12}
+          className={`text-gray-500 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
+        />
+      </button>
 
       {/* Main nav */}
-      <nav className="flex-1 px-2 py-4">
-        {(!collapsed || isDrawer) && (
-          <p className="px-2 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-            Menu
+      <nav className="flex flex-col gap-0.5 px-2 pt-4 flex-1">
+        {!collapsed && (
+          <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+            Main
           </p>
         )}
-        <ul className="space-y-0.5">
-          {mainNavItems.map(item => {
-            const isActive = activeHref === item.href;
-            const showLabel = !collapsed || isDrawer;
-            return (
-              <li key={item.href} className="relative">
-                <Link
-                  href={item.href}
-                  onClick={handleLinkClick}
-                  className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group
-                    ${isActive
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}
-                  `}
-                >
-                  <span className={`flex-shrink-0 ${isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"}`}>
-                    {item.icon}
-                  </span>
-                  {showLabel && (
-                    <>
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.badge !== undefined && (
-                        <span className="w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {!showLabel && item.badge !== undefined && (
-                    <span className="absolute left-7 top-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {mainNavItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group ${
+              item.active
+                ? "bg-blue-50 text-blue-600 font-medium"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            <span className="shrink-0">{item.icon}</span>
+            {!collapsed && (
+              <span className="flex-1 truncate">{item.label}</span>
+            )}
+            {!collapsed && item.badge !== undefined && (
+              <span className="flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                {item.badge}
+              </span>
+            )}
+          </Link>
+        ))}
       </nav>
 
       {/* Bottom nav */}
-      <div className="px-2 pb-4 border-t border-gray-100 pt-3 space-y-0.5">
-        {bottomNavItems.map(item => (
+      <div className="flex flex-col gap-0.5 px-2 pb-4 border-t border-gray-100 pt-3">
+        {bottomNavItems.map((item) => (
           <Link
-            key={item.href}
+            key={item.label}
             href={item.href}
-            onClick={handleLinkClick}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              item.label === "Đăng xuất"
+                ? "text-red-500 hover:bg-red-50"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            }`}
           >
-            <span className="flex-shrink-0 text-gray-400">{item.icon}</span>
-            {(!collapsed || isDrawer) && <span className="truncate">{item.label}</span>}
+            <span className="shrink-0">{item.icon}</span>
+            {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         ))}
-
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all"
-        >
-          <LogOut size={18} className="flex-shrink-0" />
-          {(!collapsed || isDrawer) && <span className="truncate">Đăng xuất</span>}
-        </button>
       </div>
     </aside>
-  );
-
-  return (
-    <>
-      {/* ── Desktop sidebar (md+) ── */}
-      <div className="hidden md:flex h-screen sticky top-0">
-        {sidebarContent(false)}
-      </div>
-
-      {/* ── Mobile drawer overlay ── */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={onMobileClose}
-          />
-          {/* Drawer panel */}
-          <div className="relative h-full">
-            {sidebarContent(true)}
-          </div>
-        </div>
-      )}
-    </>
   );
 }

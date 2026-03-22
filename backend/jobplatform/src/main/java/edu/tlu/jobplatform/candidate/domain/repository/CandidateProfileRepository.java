@@ -16,4 +16,8 @@ public interface CandidateProfileRepository {
     CandidateProfile save(CandidateProfile profile);
 
     void deleteById(UUID id);
+
+    boolean existsByProfileUrl(String profileUrl);
+
+    Optional<CandidateProfile> findByProfileUrl(String profileUrl);
 }

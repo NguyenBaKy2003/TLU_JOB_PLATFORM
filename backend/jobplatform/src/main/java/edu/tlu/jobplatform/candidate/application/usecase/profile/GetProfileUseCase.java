@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.candidate.application.usecase.profile;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.candidate.domain.model.Skill;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.user.domain.model.User;
@@ -9,54 +10,75 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class GetProfileUseCase {
 
-    private final CandidateProfileRepository profileRepository;
-    private final UserRepository userRepository;
+        private final CandidateProfileRepository profileRepository;
+        private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public CandidateProfile execute(UUID userId) {
-        CandidateProfile candidateProfile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Hồ sơ ứng viên không tồn tại.", "PROFILE_NOT_FOUND"));
+        @Transactional(readOnly = true)
+        public CandidateProfile execute(UUID userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Người dùng không tồn tại.", "USER_NOT_FOUND"));
+                CandidateProfile profile = profileRepository.findByUserId(userId)
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Hồ sơ ứng viên không tồn tại.", "PROFILE_NOT_FOUND"));
 
-        return CandidateProfile.builder()
-                .id(candidateProfile.getId())
-                .userId(candidateProfile.getUserId())
-                // Từ users table
-                .email(user.getEmail())
-                // Từ candidate_profiles table
-                .firstName(candidateProfile.getFirstName())
-                .lastName(candidateProfile.getLastName())
-                .headline(candidateProfile.getHeadline())
-                .summary(candidateProfile.getSummary())
-                .phone(candidateProfile.getPhone())
-                .location(candidateProfile.getLocation())
-                .avatarUrl(candidateProfile.getAvatarUrl())
-                .dateOfBirth(candidateProfile.getDateOfBirth())
-                .gender(candidateProfile.getGender())
-                .maritalStatus(candidateProfile.getMaritalStatus())
-                .profileUrl(candidateProfile.getProfileUrl())
-                .jobSearchStatus(candidateProfile.getJobSearchStatus())
-                .expectedSalary(candidateProfile.getExpectedSalary())
-                .currency(candidateProfile.getCurrency())
-                .skills(candidateProfile.getSkills())
-                .experiences(candidateProfile.getExperiences())
-                .educations(candidateProfile.getEducations())
-                .languages(candidateProfile.getLanguages())
-                .socialLinks(candidateProfile.getSocialLinks())
-                .desiredJobs(candidateProfile.getDesiredJobs())
-                .benefits(candidateProfile.getBenefits())
-                .createdAt(candidateProfile.getCreatedAt())
-                .updatedAt(candidateProfile.getUpdatedAt())
-                .build();
-    }
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Người dùng không tồn tại.", "USER_NOT_FOUND"));
+
+                return CandidateProfile.builder()
+                                .id(profile.getId())
+                                .userId(profile.getUserId())
+                                // ── Từ users table ──────────────────────────────────────────
+                                .email(user.getEmail())
+                                // ── Từ candidate_profiles table ─────────────────────────────
+                                .firstName(profile.getFirstName())
+                                .lastName(profile.getLastName())
+                                .headline(profile.getHeadline())
+                                .summary(profile.getSummary())
+                                .phone(profile.getPhone())
+                                .location(profile.getLocation())
+                                .avatarUrl(profile.getAvatarUrl())
+                                .dateOfBirth(profile.getDateOfBirth())
+                                .gender(profile.getGender())
+                                .maritalStatus(profile.getMaritalStatus())
+                                .profileUrl(profile.getProfileUrl())
+                                .jobSearchStatus(profile.getJobSearchStatus())
+                                .expectedSalary(profile.getExpectedSalary())
+                                .currency(profile.getCurrency())
+                                .skills(deduplicateSkills(profile.getSkills()))
+                                .experiences(profile.getExperiences())
+                                .educations(profile.getEducations())
+                                .languages(profile.getLanguages())
+                                .socialLinks(profile.getSocialLinks())
+                                .desiredJobs(profile.getDesiredJobs())
+                                .benefits(profile.getBenefits())
+                                .createdAt(profile.getCreatedAt())
+                                .updatedAt(profile.getUpdatedAt())
+                                .build();
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+
+        /**
+         * Giữ lại skill đầu tiên của mỗi name (case-insensitive).
+         * Thứ tự gốc được bảo toàn nhờ LinkedHashMap.
+         *
+         * Đây là safety-net tại READ. Fix gốc rễ phải ở UpdateProfileUseCase
+         * — xem comment trong file đó.
+         */
+        private List<Skill> deduplicateSkills(List<Skill> skills) {
+                if (skills == null || skills.isEmpty())
+                        return Collections.emptyList();
+
+                Map<String, Skill> seen = new LinkedHashMap<>();
+                for (Skill s : skills) {
+                        seen.putIfAbsent(s.getName().toLowerCase(Locale.ROOT), s);
+                }
+                return new ArrayList<>(seen.values());
+        }
 }

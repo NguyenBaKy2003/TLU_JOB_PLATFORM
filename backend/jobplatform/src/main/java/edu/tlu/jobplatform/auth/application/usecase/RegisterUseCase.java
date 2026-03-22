@@ -1,14 +1,10 @@
 package edu.tlu.jobplatform.auth.application.usecase;
 
 import edu.tlu.jobplatform.auth.application.port.out.OtpStorePort;
-import edu.tlu.jobplatform.auth.application.port.out.TokenStorePort;
-import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.domain.service.PasswordEncoder;
-import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
 import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
-import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
@@ -50,7 +46,6 @@ public class RegisterUseCase {
     private final PasswordEncoder passwordEncoder;
     private final OtpStorePort otpStore;
     private final EmailService emailService;
-    private final ProfileCreationService profileCreationService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional

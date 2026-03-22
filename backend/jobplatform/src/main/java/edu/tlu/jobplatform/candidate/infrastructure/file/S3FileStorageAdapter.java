@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -56,6 +57,48 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
+    // ── Download ──────────────────────────────────────────────────
+
+    @Override
+    public DownloadResult download(String fileUrl) {
+        String key = extractKeyFromUrl(fileUrl);
+        if (key == null) {
+            log.warn("Cannot extract S3 key from url={}", fileUrl);
+            throw new BusinessRuleException(
+                    "Đường dẫn file không hợp lệ.", "INVALID_FILE_URL");
+        }
+
+        try {
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build();
+
+            // ResponseInputStream tự động đóng khi controller đọc xong stream
+            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
+            GetObjectResponse metadata = response.response();
+
+            String contentType = metadata.contentType();
+            long contentLength = metadata.contentLength() != null
+                    ? metadata.contentLength()
+                    : -1L;
+
+            log.info("Downloaded from S3: key={} contentType={} size={}",
+                    key, contentType, contentLength);
+
+            return new DownloadResult(response, contentType, contentLength);
+
+        } catch (NoSuchKeyException e) {
+            log.warn("S3 key not found: key={}", key);
+            throw new BusinessRuleException(
+                    "File không tồn tại trên server.", "FILE_NOT_FOUND");
+        } catch (Exception e) {
+            log.error("S3 download failed: key={} error={}", key, e.getMessage());
+            throw new BusinessRuleException(
+                    "Không thể tải file. Vui lòng thử lại.", "FILE_DOWNLOAD_FAILED");
+        }
+    }
+
     // ── Delete ────────────────────────────────────────────────────
 
     @Override
@@ -82,10 +125,6 @@ public class S3FileStorageAdapter implements FileStoragePort {
 
     // ── Helpers ───────────────────────────────────────────────────
 
-    /**
-     * key pattern: {folder}/{uuid}_{originalFileName}
-     * VD: cv/a1b2c3d4_my-resume.pdf
-     */
     private String buildKey(String folder, String fileName) {
         String sanitized = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
         return folder + "/" + UUID.randomUUID() + "_" + sanitized;
@@ -95,10 +134,6 @@ public class S3FileStorageAdapter implements FileStoragePort {
         return "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
     }
 
-    /**
-     * Tách key từ URL dạng:
-     * https://{bucket}.s3.{region}.amazonaws.com/{key}
-     */
     private String extractKeyFromUrl(String url) {
         if (url == null || url.isBlank())
             return null;
