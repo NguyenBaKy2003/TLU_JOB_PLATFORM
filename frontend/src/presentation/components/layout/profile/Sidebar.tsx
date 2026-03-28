@@ -95,7 +95,7 @@ function SidebarContent({
         </div>
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">Joblin</p>
+            <p className="text-sm font-bold text-gray-900 truncate"><Link href="/home">Joblin</Link></p>
             <p className="text-[11px] text-gray-400">Bảng điều khiển</p>
           </div>
         )}
