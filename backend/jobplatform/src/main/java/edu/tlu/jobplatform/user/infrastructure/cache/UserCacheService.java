@@ -111,7 +111,6 @@ public class UserCacheService {
             UUID id,
             String email,
             String fullName,
-            String phone,
             String avatarUrl,
             UserRole role,
             boolean active,
@@ -121,7 +120,7 @@ public class UserCacheService {
         static CachedUser from(User u) {
             return new CachedUser(
                     u.getId(), u.getEmail(), u.getFullName(),
-                    u.getPhone(), u.getAvatarUrl(), u.getRole(),
+                    u.getAvatarUrl(), u.getRole(),
                     u.isActive(), u.isVerified(),
                     u.getLastLoginAt(), u.getCreatedAt());
         }
@@ -129,7 +128,7 @@ public class UserCacheService {
         User toDomain() {
             return User.builder()
                     .id(id).email(email).fullName(fullName)
-                    .phone(phone).avatarUrl(avatarUrl).role(role)
+                    .avatarUrl(avatarUrl).role(role)
                     .active(active).verified(verified)
                     .lastLoginAt(lastLoginAt).createdAt(createdAt)
                     .passwordHash(null) // không cache password — load từ DB nếu cần

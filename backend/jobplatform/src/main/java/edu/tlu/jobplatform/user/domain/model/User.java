@@ -24,7 +24,6 @@ public class User {
     private String email;
     private String passwordHash;
     private String fullName;
-    private String phone;
     private String avatarUrl;
     private UserRole role;
     private boolean active;
@@ -49,13 +48,6 @@ public class User {
      */
     public void updateFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    /**
-     * Cập nhật số điện thoại.
-     */
-    public void updatePhone(String phone) {
-        this.phone = phone;
     }
 
     /**

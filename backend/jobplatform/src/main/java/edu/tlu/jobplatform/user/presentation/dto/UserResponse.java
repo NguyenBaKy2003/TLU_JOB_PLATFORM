@@ -36,9 +36,6 @@ public class UserResponse {
     @Schema(description = "Ký tự viết tắt để hiển thị avatar placeholder", example = "NV")
     private final String initials;
 
-    @Schema(description = "Số điện thoại", example = "0912345678")
-    private final String phone;
-
     @Schema(description = "URL ảnh đại diện")
     private final String avatarUrl;
 
@@ -68,7 +65,6 @@ public class UserResponse {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .initials(buildInitials(user.getFullName()))
-                .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
                 .role(user.getRole().name())
                 .verified(user.isVerified())

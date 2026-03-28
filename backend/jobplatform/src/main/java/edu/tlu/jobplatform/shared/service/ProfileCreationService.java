@@ -68,7 +68,6 @@ public class ProfileCreationService {
                 .lastName(lastName)
                 .headline("")
                 .summary("")
-                .phone(user.getPhone() != null ? user.getPhone() : "")
                 .location("")
                 .avatarUrl("")
                 .profileUrl(profileUrl) // ← sinh tự động

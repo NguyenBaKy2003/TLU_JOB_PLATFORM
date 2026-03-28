@@ -30,7 +30,6 @@ public class AdminUserSummary {
                 .id(u.getId())
                 .email(u.getEmail())
                 .fullName(u.getFullName())
-                .phone(u.getPhone())
                 .avatarUrl(u.getAvatarUrl())
                 .role(u.getRole())
                 .authProvider(u.getAuthProvider())
