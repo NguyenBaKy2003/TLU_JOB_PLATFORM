@@ -23,7 +23,6 @@ public class UserMapper {
                 .email(e.getEmail())
                 .passwordHash(e.getPasswordHash())
                 .fullName(e.getFullName())
-                .phone(e.getPhone())
                 .avatarUrl(e.getAvatarUrl())
                 .role(e.getRole())
                 .authProvider(e.getAuthProvider()) // ← thêm
@@ -41,7 +40,6 @@ public class UserMapper {
                 .email(u.getEmail())
                 .passwordHash(u.getPasswordHash())
                 .fullName(u.getFullName())
-                .phone(u.getPhone())
                 .avatarUrl(u.getAvatarUrl())
                 .role(u.getRole())
                 .authProvider(u.getAuthProvider()) // ← thêm
@@ -56,7 +54,6 @@ public class UserMapper {
         entity.setEmail(u.getEmail());
         entity.setPasswordHash(u.getPasswordHash());
         entity.setFullName(u.getFullName());
-        entity.setPhone(u.getPhone());
         entity.setAvatarUrl(u.getAvatarUrl());
         entity.setRole(u.getRole());
         entity.setVerified(u.isVerified());

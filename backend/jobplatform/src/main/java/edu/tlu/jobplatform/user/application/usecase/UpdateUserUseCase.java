@@ -51,9 +51,6 @@ public class UpdateUserUseCase {
             validateFullName(cmd.fullName());
             user.updateFullName(cmd.fullName().trim());
         }
-        if (cmd.phone() != null) {
-            user.updatePhone(cmd.phone().isBlank() ? null : cmd.phone().trim());
-        }
         if (cmd.avatarUrl() != null) {
             user.updateAvatarUrl(cmd.avatarUrl().isBlank() ? null : cmd.avatarUrl().trim());
         }

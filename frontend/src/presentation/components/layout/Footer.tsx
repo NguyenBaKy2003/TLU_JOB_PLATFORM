@@ -8,9 +8,6 @@ import {
   Twitter,
   MapPin,
   Phone,
-  FacebookIcon,
-  InstagramIcon,
-  LinkedinIcon,
 } from "lucide-react";
 
 // lucide-react không có WhatsApp — giữ SVG inline riêng
@@ -68,20 +65,7 @@ export function Footer() {
               thông minh, Job giúp quá trình tuyển dụng trở nên dễ dàng và hiệu
               quả hơn bao giờ hết.
             </p>
-
-            {/* Social icons */}
-            <div className="flex items-center gap-2">
-              {SOCIALS.map(({ Icon, href, label, color }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 transition-all duration-150 ${color}`}
-                >
-                  <Icon size={18} />
-                </a>
-              ))}
-            </div>
+            
           </div>
 
           {/* ── Col 2: Dịch vụ ───────────────────────────────────────────── */}
@@ -119,23 +103,31 @@ export function Footer() {
           </div>
 
           {/* ── Col 4: Liên hệ ───────────────────────────────────────────── */}
-          <div>
+          <div >
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
               Liên hệ với chúng mình
             </h3>
-            <div className="flex">
-                <FacebookIcon></FacebookIcon>
-                <InstagramIcon></InstagramIcon>
-                <WhatsAppIcon></WhatsAppIcon>
-                <LinkedinIcon></LinkedinIcon>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-2">
+              {SOCIALS.map(({ Icon, href, label, color }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 transition-all duration-150 ${color}`}
+                >
+                  <Icon size={18} />
+                </a>
+              ))}
             </div>
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5 text-sm text-gray-500">
-                <MapPin size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <MapPin size={16} className="text-blue-500  mt-0.5" />
                 <span>140, Nguyễn Trãi, Hà Nội</span>
               </li>
               <li className="flex items-center gap-2.5 text-sm text-gray-500">
-                <Phone size={16} className="text-blue-500 flex-shrink-0" />
+                <Phone size={16} className="text-blue-500 " />
                 <span>1(647)558-5560</span>
               </li>
             </ul>
@@ -146,7 +138,7 @@ export function Footer() {
 
       {/* ── Bottom bar ────────────────────────────────────────────────────── */}
       <div className="border-t border-gray-100">
-        <div className="max-w-[1232px] mx-auto px-4 h-12 flex items-center justify-between">
+        <div className="max-w-[308] mx-auto px-4 h-12 flex items-center justify-between">
           <p className="text-xs text-gray-400">
             Job Copyright © {new Date().getFullYear()}
           </p>
