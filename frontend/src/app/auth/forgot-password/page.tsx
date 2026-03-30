@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
   const [sentEmail, setSentEmail] = useState<string | null>(null);
 
   return (
-    <AuthLayout imageSrc="/Frame1.png">
+    <AuthLayout imageSrc="/candidate.png">
       {sentEmail
         ? <SentConfirmation email={sentEmail} />
         : <ForgotPasswordForm onSent={setSentEmail} />

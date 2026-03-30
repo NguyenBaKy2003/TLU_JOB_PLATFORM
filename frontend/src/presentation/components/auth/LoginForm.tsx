@@ -56,7 +56,7 @@ export function LoginForm({
       {/* Employer link */}
       <p className="text-center text-xs text-gray-500 mb-6">
         Bạn là nhà tuyển dụng?{" "}
-        <Link href="/employer" className="text-blue-600 hover:underline font-medium">
+        <Link href="/auth/employer/login" className="text-blue-600 hover:underline font-medium">
           Nhấn vào đây
         </Link>
       </p>

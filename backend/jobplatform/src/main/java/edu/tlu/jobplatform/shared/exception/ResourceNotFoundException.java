@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
  * Entity không tìm thấy trong database — HTTP 404.
  *
  * Cách dùng:
+ * 
  * <pre>
  *   repo.findById(id)
  *       .orElseThrow(() -> new ResourceNotFoundException("JobPost", id));
@@ -18,8 +19,8 @@ public class ResourceNotFoundException extends DomainException {
 
     public ResourceNotFoundException(String resourceName, Object id) {
         super(resourceName + " không tìm thấy với id: " + id,
-              "RESOURCE_NOT_FOUND",
-              HttpStatus.NOT_FOUND);
+                "RESOURCE_NOT_FOUND",
+                HttpStatus.NOT_FOUND);
     }
 
     public ResourceNotFoundException(String message) {
@@ -27,6 +28,10 @@ public class ResourceNotFoundException extends DomainException {
     }
 
     // ── Factory methods cho từng domain ──────────────────────────
+
+    public static ResourceNotFoundException of(String resourceName, Object id) {
+        return new ResourceNotFoundException(resourceName, id);
+    }
 
     public static ResourceNotFoundException user(Object id) {
         return new ResourceNotFoundException("User", id);
