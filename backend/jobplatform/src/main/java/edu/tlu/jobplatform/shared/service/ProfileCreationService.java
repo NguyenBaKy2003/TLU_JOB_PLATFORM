@@ -3,6 +3,11 @@ package edu.tlu.jobplatform.shared.service;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.candidate.domain.service.ProfileUrlService;
+import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.model.CompanySize;
+import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.company.domain.service.CompanySlugService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +26,9 @@ public class ProfileCreationService {
     private final CandidateProfileRepository candidateProfileRepository;
     private final ProfileUrlService profileUrlService;
 
+    private final CompanyRepository companyRepository;
+    private final CompanySlugService companySlugService;
+
     @Transactional(propagation = Propagation.REQUIRED)
     public void createProfileForUser(User user) {
         if (user == null || user.getId() == null) {
@@ -33,7 +41,7 @@ public class ProfileCreationService {
         try {
             switch (user.getRole()) {
                 case CANDIDATE -> createCandidateProfile(user);
-                case EMPLOYER -> log.info("Employer profile — Sprint 5, skipping for now");
+                case EMPLOYER -> createCompanyProfile(user);
                 case ADMIN, SUPER_ADMIN -> log.info("No profile needed for role={}", user.getRole());
                 default -> log.warn("Unknown role={} for user={}", user.getRole(), user.getId());
             }
@@ -81,6 +89,59 @@ public class ProfileCreationService {
         CandidateProfile saved = candidateProfileRepository.save(profile);
         log.info("CandidateProfile created: profileId={} userId={} profileUrl={}",
                 saved.getId(), user.getId(), saved.getProfileUrl());
+    }
+
+    // ── Company ───────────────────────────────────────────────────────────────
+
+    /**
+     * Tạo CompanyProfile mặc định (placeholder) khi Employer đăng ký.
+     *
+     * Thông tin thực (tên công ty, địa chỉ, …) sẽ được employer điền sau
+     * qua màn hình "Hoàn thiện hồ sơ công ty".
+     * Trạng thái ban đầu: UNVERIFIED — chưa được admin duyệt.
+     */
+    private void createCompanyProfile(User user) {
+        if (companyRepository.existsByOwnerId(user.getId())) {
+            log.info("CompanyProfile already exists for user={}", user.getId());
+            return;
+        }
+
+        // Dùng fullName của user làm tên tạm — employer sẽ cập nhật sau
+        String tempName = user.getFullName() != null && !user.getFullName().isBlank()
+                ? user.getFullName().trim()
+                : "company-" + user.getId().toString().substring(0, 8);
+
+        String slug = companySlugService.generateSlug(tempName);
+
+        CompanyProfile profile = CompanyProfile.builder()
+                .id(UUID.randomUUID())
+                .ownerId(user.getId())
+                .name(tempName)
+                .slug(slug)
+                .description("")
+                .website("")
+                .email(user.getEmail()) // dùng email đăng ký làm liên lạc mặc định
+                .phone("")
+                .address("")
+                .city("")
+                .country("VN")
+                .industry("")
+                .size(CompanySize.UNKNOWN)
+                .foundedYear(null)
+                .logoUrl("")
+                .coverImageUrl("")
+                .verificationStatus(VerificationStatus.UNVERIFIED)
+                .rejectionReason(null)
+                .verifiedAt(null)
+                .verifiedBy(null)
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        CompanyProfile saved = companyRepository.save(profile);
+        log.info("CompanyProfile created: profileId={} userId={} slug={}",
+                saved.getId(), user.getId(), saved.getSlug());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

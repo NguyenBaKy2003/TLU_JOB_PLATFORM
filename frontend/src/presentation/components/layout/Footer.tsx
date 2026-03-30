@@ -138,9 +138,9 @@ export function Footer() {
 
       {/* ── Bottom bar ────────────────────────────────────────────────────── */}
       <div className="border-t border-gray-100">
-        <div className="max-w-[308] mx-auto px-4 h-12 flex items-center justify-between">
+        <div className=" container mx-auto px-4 h-12 flex items-center justify-between">
           <p className="text-xs text-gray-400">
-            Job Copyright © {new Date().getFullYear()}
+            Joblin Copyright © {new Date().getFullYear()}
           </p>
 
           {/* Payment badges */}

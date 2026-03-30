@@ -1,8 +1,9 @@
 package edu.tlu.jobplatform.company.domain.repository;
 
-import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -1,14 +1,15 @@
 package edu.tlu.jobplatform.company.infrastructure.persistence.adapter;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import edu.tlu.jobplatform.company.domain.repository.CompanyReviewRepository;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyReviewJpaEntity;
 import edu.tlu.jobplatform.company.infrastructure.persistence.mapper.CompanyReviewMapper;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyReviewJpaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;

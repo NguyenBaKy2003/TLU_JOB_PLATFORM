@@ -37,7 +37,7 @@ export function EmployerLoginForm({ onSubmit, onGoogleLogin, loading = false, oa
   const busy = loading || oauthLoading;
 
   return (
-    <div className="w-full">
+    <div className="w-full  max-w-[400px] mx-auto">
       {/* Logo */}
       <div className="text-center mb-3">
         <Link href="/"><img src="/Logo.svg" alt="Joblin" className="h-16 w-36 mx-auto" /></Link>

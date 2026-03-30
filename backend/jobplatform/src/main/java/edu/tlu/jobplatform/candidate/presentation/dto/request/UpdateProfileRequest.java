@@ -21,6 +21,7 @@ public class UpdateProfileRequest {
     private Optional<String> summary = null;
     private Optional<String> phone = null;
     private Optional<String> location = null;
+    private Optional<String> postalCode = null;
     private Optional<LocalDate> dateOfBirth = null;
     private Optional<String> gender = null;
     private Optional<String> maritalStatus = null;
@@ -57,6 +58,11 @@ public class UpdateProfileRequest {
     @JsonSetter("location")
     public void setLocation(String v) {
         this.location = Optional.ofNullable(v);
+    }
+
+    @JsonSetter("postalCode")
+    public void setPostalCode(String v) {
+        this.postalCode = Optional.ofNullable(v);
     }
 
     @JsonSetter("dateOfBirth")

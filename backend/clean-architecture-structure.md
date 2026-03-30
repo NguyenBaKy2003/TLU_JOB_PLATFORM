@@ -412,6 +412,140 @@ src/main/java/edu/tlu/jobplatform/
 │       └── AdminAnalyticsController.java
 │
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+│  DOMAIN: MESSAGE  (Chat / Inbox)
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── message/
+│   ├── domain/
+│   │   ├── model/
+│   │   │   ├── Conversation.java           # Aggregate root
+│   │   │   │                               # {id, participantA, participantB,
+│   │   │   │                               #  jobPostId?, lastMessageAt, unreadCount}
+│   │   │   ├── Message.java                # Entity trong Conversation
+│   │   │   │                               # {id, conversationId, senderId,
+│   │   │   │                               #  content, type, readAt, createdAt}
+│   │   │   └── vo/
+│   │   │       ├── MessageType.java        # Enum: TEXT, FILE, SYSTEM
+│   │   │       └── ConversationStatus.java # Enum: ACTIVE, ARCHIVED, BLOCKED
+│   │   ├── repository/
+│   │   │   ├── ConversationRepository.java
+│   │   │   └── MessageRepository.java
+│   │   └── service/
+│   │       └── ConversationDomainService.java
+│   │           # canSendMessage() — kiểm tra block, trạng thái job
+│   │           # markAsRead(conversationId, userId)
+│   ├── application/
+│   │   └── usecase/
+│   │       ├── StartConversationUseCase.java
+│   │       │   # Employer mở conversation từ một job post
+│   │       │   # Candidate reply lại
+│   │       ├── SendMessageUseCase.java
+│   │       ├── GetConversationsUseCase.java  # Inbox list
+│   │       ├── GetMessagesUseCase.java       # Message thread
+│   │       └── MarkReadUseCase.java
+│   ├── infrastructure/
+│   │   ├── persistence/
+│   │   │   ├── entity/
+│   │   │   │   ├── ConversationJpaEntity.java
+│   │   │   │   └── MessageJpaEntity.java
+│   │   │   ├── repository/
+│   │   │   │   ├── ConversationJpaRepository.java
+│   │   │   │   └── MessageJpaRepository.java
+│   │   │   ├── adapter/
+│   │   │   │   ├── ConversationRepositoryAdapter.java
+│   │   │   │   └── MessageRepositoryAdapter.java
+│   │   │   └── mapper/
+│   │   │       └── MessageMapper.java
+│   │   └── event/
+│   │       └── MessageSentEventPublisher.java
+│   │           # Publish MessageSentEvent → WebSocket + Notification
+│   └── presentation/
+│       ├── MessageController.java          # REST: lấy inbox, thread, mark read
+│       └── dto/
+│           ├── request/
+│           │   ├── StartConversationRequest.java
+│           │   └── SendMessageRequest.java
+│           └── response/
+│               ├── ConversationResponse.java
+│               └── MessageResponse.java
+│
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+│  DOMAIN: WEBSOCKET  (Real-time delivery)
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── websocket/
+│   ├── domain/
+│   │   └── model/
+│   │       ├── WsSession.java              # Value object
+│   │       │                               # {sessionId, userId, connectedAt}
+│   │       └── WsPayload.java              # Value object
+│   │                                       # {type, data} — envelope chung
+│   ├── application/
+│   │   └── port/
+│   │       └── out/
+│   │           └── WsPushPort.java         # Interface gửi message realtime
+│   │               # pushToUser(userId, WsPayload)
+│   │               # pushToConversation(conversationId, WsPayload)
+│   ├── infrastructure/
+│   │   ├── config/
+│   │   │   └── WebSocketConfig.java
+│   │   │       # @EnableWebSocketMessageBroker
+│   │   │       # STOMP endpoint: /ws
+│   │   │       # Broker relay: /topic, /queue
+│   │   │       # App destination prefix: /app
+│   │   ├── handler/
+│   │   │   └── StompSessionHandler.java
+│   │   │       # Lưu sessionId ↔ userId vào Redis khi connect/disconnect
+│   │   ├── adapter/
+│   │   │   └── StompWsPushAdapter.java     # implements WsPushPort
+│   │   │       # Dùng SimpMessagingTemplate.convertAndSendToUser()
+│   │   └── event/
+│   │       └── MessageSentWsHandler.java
+│   │           # @EventListener MessageSentEvent
+│   │           # → wsPushPort.pushToConversation(...)
+│   │           # → wsPushPort.pushToUser(recipientId, unread badge)
+│   └── presentation/
+│       └── WsController.java               # @MessageMapping("/chat.send")
+│           # Nhận STOMP frame → gọi SendMessageUseCase
+│           # (REST + WS đều dùng cùng use case)
+│
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+│  DOMAIN: RATE LIMIT
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+└── ratelimit/
+    ├── domain/
+    │   ├── model/
+    │   │   └── RateLimitPolicy.java        # Value object
+    │   │       # {key, maxRequests, windowSeconds, scope}
+    │   │       # scope: IP | USER | API_KEY
+    │   └── service/
+    │       └── RateLimitDomainService.java
+    │           # isAllowed(key, policy) → boolean
+    │           # remainingRequests(key) → int
+    ├── application/
+    │   └── port/
+    │       └── out/
+    │           └── RateLimitStorePort.java # Interface → Redis
+    │               # increment(key, windowSeconds) → long (current count)
+    │               # ttl(key) → Duration
+    ├── infrastructure/
+    │   ├── config/
+    │   │   └── RateLimitConfig.java
+    │   │       # Khai báo policies dưới dạng @ConfigurationProperties
+    │   │       # rate-limit.policies.register-otp: {max:5, window:60}
+    │   │       # rate-limit.policies.send-message: {max:30, window:60}
+    │   │       # rate-limit.policies.job-search:   {max:100, window:60}
+    │   ├── adapter/
+    │   │   └── RedisRateLimitAdapter.java  # implements RateLimitStorePort
+    │   │       # Dùng Redis INCR + EXPIRE (sliding window hoặc fixed window)
+    │   └── filter/
+    │       └── RateLimitFilter.java        # OncePerRequestFilter
+    │           # Đọc policy từ @RateLimit annotation trên controller method
+    │           # Trả 429 Too Many Requests + Retry-After header khi vượt giới hạn
+    └── presentation/
+        └── annotation/
+            └── RateLimit.java              # Custom annotation
+                # @RateLimit(policy = "send-message", scope = USER)
+                # Dùng trên method trong MessageController, AuthController…
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 │  SHARED — Dùng chung toàn app
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 └── shared/
@@ -422,6 +556,8 @@ src/main/java/edu/tlu/jobplatform/
     │   ├── SpringAIConfig.java
     │   ├── AsyncConfig.java
     │   ├── OpenAPIConfig.java
+        ├── WebSocketConfig.java        # (delegate sang websocket/infrastructure/config)
+        └── RateLimitConfig.java        # (delegate sang ratelimit/infrastructure/config)
     │   └── FlywayConfig.java
     ├── exception/
     │   ├── GlobalExceptionHandler.java # @RestControllerAdvice
@@ -464,7 +600,13 @@ src/main/java/edu/tlu/jobplatform/
     │   └── AuditAspect.java            # @Aspect tự động log
     └── base/
         └── BaseJpaEntity.java          # id, createdAt, updatedAt
-
+    ├── message/
+│   ├── MessageSentEvent.java
+│   │   # {conversationId, senderId, recipientId, messageId, preview}
+│   └── ConversationStartedEvent.java
+└── websocket/
+    ├── WsConnectedEvent.java
+    └── WsDisconnectedEvent.java
 
 
         POST /api/applications
