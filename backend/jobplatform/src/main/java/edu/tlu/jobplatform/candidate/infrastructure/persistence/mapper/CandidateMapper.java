@@ -22,6 +22,7 @@ public class CandidateMapper {
                                 .summary(e.getSummary())
                                 .phone(e.getPhone())
                                 .location(e.getLocation())
+                                .postalCode(e.getPostalCode())
                                 .avatarUrl(e.getAvatarUrl())
                                 .dateOfBirth(e.getDateOfBirth())
                                 .gender(e.getGender())
@@ -65,6 +66,7 @@ public class CandidateMapper {
                                 .summary(p.getSummary())
                                 .phone(p.getPhone())
                                 .location(p.getLocation())
+                                .postalCode(p.getPostalCode())
                                 .avatarUrl(p.getAvatarUrl())
                                 .dateOfBirth(p.getDateOfBirth())
                                 .gender(p.getGender())
@@ -83,6 +85,7 @@ public class CandidateMapper {
                 e.setSummary(p.getSummary());
                 e.setPhone(p.getPhone());
                 e.setLocation(p.getLocation());
+                e.setPostalCode(p.getPostalCode());
                 e.setAvatarUrl(p.getAvatarUrl());
                 e.setDateOfBirth(p.getDateOfBirth());
                 e.setGender(p.getGender());

@@ -23,6 +23,7 @@ public class CandidateProfileResponse {
         private String summary;
         private String phone;
         private String location;
+        private String postalCode;
         private String avatarUrl;
         private LocalDate dateOfBirth;
         private String gender;
@@ -52,6 +53,7 @@ public class CandidateProfileResponse {
                                 .summary(p.getSummary())
                                 .phone(p.getPhone())
                                 .location(p.getLocation())
+                                .postalCode(p.getPostalCode())
                                 .avatarUrl(p.getAvatarUrl())
                                 .dateOfBirth(p.getDateOfBirth())
                                 .gender(p.getGender())

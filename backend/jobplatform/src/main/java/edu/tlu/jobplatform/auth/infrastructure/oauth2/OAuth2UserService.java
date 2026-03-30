@@ -1,6 +1,5 @@
 package edu.tlu.jobplatform.auth.infrastructure.oauth2;
 
-import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
@@ -11,7 +10,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
 

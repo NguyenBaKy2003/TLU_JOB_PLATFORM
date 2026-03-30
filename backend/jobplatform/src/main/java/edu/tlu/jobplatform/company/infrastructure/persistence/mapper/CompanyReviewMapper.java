@@ -1,8 +1,9 @@
 package edu.tlu.jobplatform.company.infrastructure.persistence.mapper;
 
+import org.springframework.stereotype.Component;
+
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyReviewJpaEntity;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CompanyReviewMapper {

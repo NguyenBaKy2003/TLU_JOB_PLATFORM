@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.company.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import lombok.Builder;
 import lombok.Getter;

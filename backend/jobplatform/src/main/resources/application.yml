@@ -179,3 +179,29 @@ logging:
     org.hibernate.type.descriptor.sql: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+rate-limit:
+  policies:
+    register-otp:
+      max: 5
+      window: 600
+      scope: IP
+    verify-email:
+      max: 10
+      window: 300
+      scope: IP
+    login:
+      max: 10
+      window: 60
+      scope: IP
+    send-message:
+      max: 30
+      window: 60
+      scope: USER
+    job-search:
+      max: 100
+      window: 60
+      scope: IP
+    create-job-post:
+      max: 10
+      window: 3600
+      scope: USER

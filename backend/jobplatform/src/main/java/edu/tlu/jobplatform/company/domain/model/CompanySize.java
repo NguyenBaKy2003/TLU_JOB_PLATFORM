@@ -1,11 +1,7 @@
 package edu.tlu.jobplatform.company.domain.model;
 
-/**
- * Quy mô nhân sự của công ty.
- * Dùng cho filter tìm kiếm và hiển thị trên UI.
- */
 public enum CompanySize {
-
+    UNKNOWN("null"),
     STARTUP("1 - 10"),
     SMALL("11 - 50"),
     MEDIUM("51 - 200"),

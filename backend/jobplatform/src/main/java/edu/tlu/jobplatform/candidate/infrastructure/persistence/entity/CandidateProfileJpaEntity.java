@@ -43,6 +43,9 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     @Column(length = 255)
     private String location;
 
+    @Column(length = 20)
+    private String postalCode;
+
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 

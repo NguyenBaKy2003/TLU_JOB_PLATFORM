@@ -33,6 +33,7 @@ public class CandidateProfile {
     private String summary;
     private String phone;
     private String location;
+    private String postalCode;
     private String avatarUrl;
     private LocalDate dateOfBirth;
     private String gender;
@@ -65,7 +66,7 @@ public class CandidateProfile {
     public void updateBasicInfo(
             String firstName, String lastName,
             String headline, String summary,
-            String phone, String location,
+            String phone, String location, String postalCode,
             LocalDate dateOfBirth, String gender, String maritalStatus,
             int expectedSalary, String currency) {
         this.firstName = firstName;
@@ -74,6 +75,7 @@ public class CandidateProfile {
         this.summary = summary;
         this.phone = phone;
         this.location = location;
+        this.postalCode = postalCode;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.maritalStatus = maritalStatus;
@@ -96,6 +98,7 @@ public class CandidateProfile {
             Optional<String> summary,
             Optional<String> phone,
             Optional<String> location,
+            Optional<String> postalCode,
             Optional<LocalDate> dateOfBirth,
             Optional<String> gender,
             Optional<String> maritalStatus,
@@ -114,6 +117,8 @@ public class CandidateProfile {
             this.phone = phone.orElse(null);
         if (location != null)
             this.location = location.orElse(null);
+        if (postalCode != null)
+            this.postalCode = postalCode.orElse(null);
         if (dateOfBirth != null)
             this.dateOfBirth = dateOfBirth.orElse(null);
         if (gender != null)
