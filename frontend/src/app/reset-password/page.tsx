@@ -11,7 +11,7 @@ export default function ResetPasswordPage() {
   const userId = searchParams.get("userId");
 
   return (
-    <AuthLayout imageSrc="/Frame1.png">
+    <AuthLayout imageSrc="/candidate.png">
       {token && userId
         ? <ResetPasswordForm token={token} userId={userId} />
         : <InvalidTokenState />

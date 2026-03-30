@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 interface AuthLayoutProps {
   /** Phần form bên trái — thay bằng Login/Register/OTP/... */
   children: ReactNode;
-  /** Ảnh bên phải, default Frame1.png */
+  /** Ảnh bên phải, default candidate.png */
   imageSrc?: string;
 }
 
@@ -16,7 +16,7 @@ interface AuthLayoutProps {
  *   <AuthLayout> <RegisterForm /> </AuthLayout>
  *   <AuthLayout> <OtpForm /> </AuthLayout>
  */
-export function AuthLayout({ children, imageSrc = "/Frame1.png" }: AuthLayoutProps) {
+export function AuthLayout({ children, imageSrc = "/candidate.png" }: AuthLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex w-full max-w-6xl min-h-[520px]">
