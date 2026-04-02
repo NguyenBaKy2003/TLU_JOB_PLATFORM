@@ -134,6 +134,7 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Sai credentials / Chưa xác thực email / Bị khóa")
         })
         @PostMapping("/login")
+        @RateLimit(policy = "login", scope = RateLimitPolicy.Scope.IP)
         @Loggable(action = "USER_LOGIN", resourceType = "User")
         public ResponseEntity<ApiResponse<TokenResponse>> login(
                         @Valid @RequestBody LoginRequest req) {

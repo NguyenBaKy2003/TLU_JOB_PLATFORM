@@ -63,10 +63,10 @@ export function CompanyProfileCard({ company }: Props) {
           {/* Meta grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { icon: <MapPin size={14} />,   label: "Địa điểm",       value: company.location         },
-              { icon: <Users size={14} />,    label: "Quy mô công ty", value: company.companySize.toLocaleString() },
-              { icon: <Mail size={14} />,     label: "Email",           value: company.email            },
-              { icon: <Phone size={14} />,    label: "Điện thoại",      value: company.phone            },
+              { icon: <MapPin size={14} />,   label: "Địa điểm",       value: company?.location         },
+              { icon: <Users size={14} />,    label: "Quy mô công ty", value: company?.companySize },
+              { icon: <Mail size={14} />,     label: "Email",           value: company?.email            },
+              { icon: <Phone size={14} />,    label: "Điện thoại",      value: company?.phone            },
             ].map(({ icon, label, value }) => (
               <div key={label} className="flex flex-col gap-0.5">
                 <span className="flex items-center gap-1 text-[10px] text-gray-400 uppercase tracking-wide">

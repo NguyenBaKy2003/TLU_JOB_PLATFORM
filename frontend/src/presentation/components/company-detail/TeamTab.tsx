@@ -31,7 +31,7 @@ export function TeamTab({ company }: { company: CompanyDetail }) {
     <div>
       <h2 className="text-lg font-bold text-gray-900 mb-6">Đội ngũ Nhân viên</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-        {company.employees.map(emp => (
+        {company.employees?.map(emp => (
           <div key={emp.id} className="flex flex-col items-center text-center gap-2">
             <EmployeeAvatar name={emp.name} />
             <div>
