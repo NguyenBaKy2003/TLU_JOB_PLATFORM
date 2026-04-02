@@ -157,6 +157,22 @@
 			<version>2.7.0</version>
 		</dependency>
 
+
+        <!-- pom.xml -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!--STOMP relay qua Redis -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+        </dependency>
+
         <!-- ── CODE GEN ──────────────────────────────────── -->
         <dependency>
             <groupId>org.projectlombok</groupId>

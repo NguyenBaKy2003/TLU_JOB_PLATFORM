@@ -205,3 +205,23 @@ rate-limit:
       max: 10
       window: 3600
       scope: USER
+payment:
+  vnpay:
+    enabled: true # VNPAY là gateway mặc định (@Primary)
+    tmn-code: KOLILHK4 # Mã website merchant (8 ký tự)
+    hash-secret: CBBQ3QE9U9FOJF7PS7RNK7YYGDMRYYN8 # Secret key để ký HMAC-SHA512
+    payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    version: "2.1.0"
+    command: pay
+    order-type: other
+    locale: vn
+    curr-code: VND
+
+  # momo:
+  #   enabled: false # Bật khi cần dùng MOMO song song
+  #   partner-code: YOUR_PARTNER_CODE
+  #   access-key: YOUR_ACCESS_KEY
+  #   secret-key: YOUR_SECRET_KEY
+  #   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+  #   notify-url: https://yourdomain.com/api/v1/payments/callback/momo
+  #   request-type: captureWallet

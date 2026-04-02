@@ -84,6 +84,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
                                                                                                  // signature riêng
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
+                                                .requestMatchers("/api/v1/subscriptions/**").permitAll()
+
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
 
                                                 .anyRequest().authenticated())

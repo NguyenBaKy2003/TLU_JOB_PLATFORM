@@ -16,14 +16,14 @@ function ReviewerAvatar({ name }: { name: string }) {
 
 export function OverviewTab({ company }: { company: CompanyDetail }) {
   const [votes, setVotes] = useState<Record<string, "up" | "down" | null>>(
-    Object.fromEntries(company.reviews.map(r => [r.id, null]))
+    Object?.(company.reviews?.map(r => [r.id, null]))
   );
 
   return (
     <div>
       <h2 className="text-lg font-bold text-gray-900 mb-6">Tổng Quan</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {company.reviews.map(review => (
+        {company.reviews?.map(review => (
           <div key={review.id}
             className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col gap-4 shadow-sm">
 
