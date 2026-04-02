@@ -32,7 +32,7 @@ export default function SignupPage() {
   }, [toast]);
 
   return (
-    <AuthLayout imageSrc="/Frame1.png">
+    <AuthLayout imageSrc="/candidate.png">
       
       <RegisterPage
         onGoogleLogin={handleGoogleLogin}

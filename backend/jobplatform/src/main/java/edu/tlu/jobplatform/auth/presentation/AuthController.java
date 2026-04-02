@@ -3,6 +3,8 @@ package edu.tlu.jobplatform.auth.presentation;
 import edu.tlu.jobplatform.auth.application.usecase.*;
 import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.presentation.dto.*;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
@@ -109,6 +111,7 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Email sai định dạng")
         })
         @PostMapping("/resend-otp")
+        @RateLimit(policy = "register-otp", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<Void>> resendOtp(
                         @Valid @RequestBody ResendOtpRequest req) {
 
@@ -131,6 +134,7 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Sai credentials / Chưa xác thực email / Bị khóa")
         })
         @PostMapping("/login")
+        @RateLimit(policy = "login", scope = RateLimitPolicy.Scope.IP)
         @Loggable(action = "USER_LOGIN", resourceType = "User")
         public ResponseEntity<ApiResponse<TokenResponse>> login(
                         @Valid @RequestBody LoginRequest req) {

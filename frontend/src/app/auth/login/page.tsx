@@ -53,7 +53,7 @@ export default function LoginPage() {
   }, [toast]); // ← toast không cần trong deps
 
   return (
-    <AuthLayout imageSrc="/Frame1.png">
+    <AuthLayout imageSrc="/candidate.png">
       <LoginForm
         onSubmit={handleSubmit}
         onGoogleLogin={handleGoogleLogin}

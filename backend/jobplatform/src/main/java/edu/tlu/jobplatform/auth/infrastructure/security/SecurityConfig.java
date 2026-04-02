@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.auth.infrastructure.security;
 
 import edu.tlu.jobplatform.auth.infrastructure.oauth2.OAuth2SuccessHandler;
 import edu.tlu.jobplatform.auth.infrastructure.oauth2.OAuth2UserService;
+import edu.tlu.jobplatform.ratelimit.infrastructure.filter.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,7 +44,8 @@ public class SecurityConfig {
         private final CorsConfigurationSource corsConfigurationSource;
 
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitFilter rateLimitFilter)
+                        throws Exception {
                 return http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -82,6 +84,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
                                                                                                  // signature riêng
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
+                                                .requestMatchers("/api/v1/subscriptions/**").permitAll()
+
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
 
                                                 .anyRequest().authenticated())
@@ -93,7 +97,8 @@ public class SecurityConfig {
                                                 .failureUrl("/api/auth/oauth2/failure"))
 
                                 // ── JWT Filter ─────────────────────────────────────────
-                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(jwtAuthFilter, rateLimitFilter.getClass())
                                 .build();
         }
 

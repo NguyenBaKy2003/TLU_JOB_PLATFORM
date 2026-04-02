@@ -69,10 +69,6 @@ public class CandidateProfileController {
                         @CurrentUser UUID userId,
                         @Valid @RequestBody UpdateProfileRequest req) {
 
-                // req.getXxx() trả về Optional<T>:
-                // null → field vắng mặt trong JSON → UseCase giữ nguyên
-                // Optional.empty() → field có mặt với null → UseCase xóa giá trị
-                // Optional.of(v) → field có mặt với giá trị → UseCase cập nhật
                 UpdateProfileUseCase.Command cmd = new UpdateProfileUseCase.Command(
                                 userId,
                                 req.getFirstName(),
@@ -81,6 +77,7 @@ public class CandidateProfileController {
                                 req.getSummary(),
                                 req.getPhone(),
                                 req.getLocation(),
+                                req.getPostalCode(),
                                 req.getDateOfBirth(),
                                 req.getGender(),
                                 req.getMaritalStatus(),
