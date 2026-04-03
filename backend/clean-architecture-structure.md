@@ -130,7 +130,7 @@ src/main/java/edu/tlu/jobplatform/
 │               └── CVResponse.java
 │
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-│  DOMAIN: COMPANY
+│  DOMAIN: EMPLOYER
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ├── company/
 │   ├── domain/

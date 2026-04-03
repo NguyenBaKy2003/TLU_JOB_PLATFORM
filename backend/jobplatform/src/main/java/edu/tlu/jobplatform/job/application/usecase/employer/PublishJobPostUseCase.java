@@ -7,6 +7,7 @@ import edu.tlu.jobplatform.job.domain.service.JobPostDomainService;
 import edu.tlu.jobplatform.job.infrastructure.event.JobEventPublisher;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,17 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 /**
- * UseCase: Employer publish tin tuyển dụng.
+ * UseCase: Publish bài đăng tuyển dụng.
  *
  * Flow:
- * 1. Load JobPost, kiểm tra ownership
- * 2. Check quota (throw nếu hết)
- * 3. Publish (domain service validate + transition)
- * 4. Nếu featured → check & consume featured quota
- * 5. Consume job post quota
- * 6. Save + publish event
+ * 1. Load bài đăng, kiểm tra ownership
+ * 2. Domain service validate nội dung đủ để publish
+ * 3. Kiểm tra quota còn không
+ * 4. Trừ quota
+ * 5. Chuyển status → PUBLISHED
+ * 6. Fire JobPublishedEvent → Search + AI index
  *
- * Quota bị trừ SAU KHI save thành công để đảm bảo consistency.
+ * Bước 4+5 trong cùng 1 transaction — nếu save thất bại, quota không bị trừ.
  */
 @Slf4j
 @Service
@@ -38,39 +39,29 @@ public class PublishJobPostUseCase {
     private final JobEventPublisher eventPublisher;
 
     @Transactional
-    public JobPost execute(UUID jobPostId, UUID companyId, boolean featured) {
+    public JobPost execute(UUID jobPostId) {
 
-        // 1. Load & verify ownership
         JobPost job = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
 
-        if (!job.isOwnedBy(companyId))
-            throw new BusinessRuleException("Bạn không có quyền thao tác với tin này.", "FORBIDDEN");
+        // Chỉ owner mới được publish
+        if (!SecurityUtils.isOwnerOrAdmin(job.getPostedBy()))
+            throw new BusinessRuleException("Bạn không có quyền publish bài đăng này.", "FORBIDDEN");
 
-        // 2. Check quota trước (sẽ throw QuotaExceededException nếu hết)
-        quotaService.checkJobPostQuota(companyId);
+        // Validate nội dung JD
+        domainService.validateForPublish(job);
 
-        if (featured)
-            quotaService.checkFeaturedJobQuota(companyId);
+        // Kiểm tra và trừ quota (throw QuotaExceededException nếu hết)
+        quotaService.consumeQuota(job.getCompanyId());
 
-        // 3. Publish (validate đủ điều kiện + state transition)
-        domainService.publish(job);
-
-        if (featured)
-            job.markFeatured();
-
-        // 4. Save
+        // Publish
+        job.publish();
         JobPost saved = jobPostRepository.save(job);
 
-        // 5. Consume quota SAU KHI save thành công
-        quotaService.consumeJobPostQuota(companyId);
-        if (featured)
-            quotaService.consumeFeaturedJobQuota(companyId);
-
-        // 6. Publish event → notification, search index...
+        // Fire event → Search index + AI embedding (async)
         eventPublisher.publishJobPublished(saved);
 
-        log.info("JobPost published: id={} company={} featured={}", saved.getId(), companyId, featured);
+        log.info("JobPost published: {} [company={}]", jobPostId, job.getCompanyId());
         return saved;
     }
 }

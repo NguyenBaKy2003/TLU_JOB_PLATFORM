@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class JobMapper {
@@ -22,17 +23,8 @@ public class JobMapper {
         if (e == null)
             return null;
 
-        Salary salary = e.isSalaryNegotiate()
-                ? Salary.negotiate()
-                : Salary.of(e.getSalaryMin(), e.getSalaryMax(), e.getSalaryCurrency());
-
-        WorkLocation workLocation = e.getWorkLocationType() == null ? null
-                : WorkLocation.builder()
-                        .type(e.getWorkLocationType())
-                        .city(e.getWorkLocationCity())
-                        .district(e.getWorkLocationDistrict())
-                        .address(e.getWorkLocationAddress())
-                        .build();
+        Salary salary = buildSalary(e);
+        WorkLocation loc = buildWorkLocation(e);
 
         List<JobPostSkill> skills = e.getSkills() == null ? new ArrayList<>()
                 : e.getSkills().stream().map(this::toSkillDomain).toList();
@@ -40,22 +32,26 @@ public class JobMapper {
         return JobPost.builder()
                 .id(e.getId())
                 .companyId(e.getCompanyId())
+                .postedBy(e.getPostedBy())
                 .title(e.getTitle())
+                .slug(e.getSlug())
                 .description(e.getDescription())
                 .requirements(e.getRequirements())
                 .benefits(e.getBenefits())
-                .categoryCode(e.getCategoryCode())
-                .level(e.getLevel())
                 .jobType(e.getJobType())
-                .headcount(e.getHeadcount())
+                .level(e.getLevel())
+                .category(e.getCategory())
                 .salary(salary)
-                .workLocation(workLocation)
-                .status(e.getStatus())
-                .featured(e.isFeatured())
-                .viewCount(e.getViewCount())
+                .workLocation(loc)
+                .experienceYears(e.getExperienceYears())
+                .vacancies(e.getVacancies())
                 .deadline(e.getDeadline())
                 .publishedAt(e.getPublishedAt())
                 .closedAt(e.getClosedAt())
+                .expiredAt(e.getExpiredAt())
+                .status(e.getStatus())
+                .viewCount(e.getViewCount())
+                .applicationCount(e.getApplicationCount())
                 .skills(skills)
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
@@ -63,75 +59,112 @@ public class JobMapper {
     }
 
     public JobPostJpaEntity toNewEntity(JobPost d) {
-        JobPostJpaEntity entity = JobPostJpaEntity.builder()
+        JobPostJpaEntity e = JobPostJpaEntity.builder()
                 .companyId(d.getCompanyId())
+                .postedBy(d.getPostedBy())
                 .title(d.getTitle())
+                .slug(d.getSlug())
                 .description(d.getDescription())
                 .requirements(d.getRequirements())
                 .benefits(d.getBenefits())
-                .categoryCode(d.getCategoryCode())
-                .level(d.getLevel())
                 .jobType(d.getJobType())
-                .headcount(d.getHeadcount())
-                .status(d.getStatus())
-                .featured(d.isFeatured())
-                .viewCount(d.getViewCount())
+                .level(d.getLevel())
+                .category(d.getCategory())
+                .experienceYears(d.getExperienceYears())
+                .vacancies(d.getVacancies())
                 .deadline(d.getDeadline())
                 .publishedAt(d.getPublishedAt())
                 .closedAt(d.getClosedAt())
+                .expiredAt(d.getExpiredAt())
+                .status(d.getStatus())
+                .viewCount(d.getViewCount())
+                .applicationCount(d.getApplicationCount())
                 .build();
 
-        applySalary(entity, d.getSalary());
-        applyWorkLocation(entity, d.getWorkLocation());
-        entity.setId(d.getId());
-        return entity;
+        applySalary(e, d.getSalary());
+        applyWorkLocation(e, d.getWorkLocation());
+        return e;
     }
 
     public void updateEntity(JobPostJpaEntity e, JobPost d) {
         e.setTitle(d.getTitle());
+        e.setSlug(d.getSlug());
         e.setDescription(d.getDescription());
         e.setRequirements(d.getRequirements());
         e.setBenefits(d.getBenefits());
-        e.setCategoryCode(d.getCategoryCode());
-        e.setLevel(d.getLevel());
         e.setJobType(d.getJobType());
-        e.setHeadcount(d.getHeadcount());
-        e.setStatus(d.getStatus());
-        e.setFeatured(d.isFeatured());
-        e.setViewCount(d.getViewCount());
+        e.setLevel(d.getLevel());
+        e.setCategory(d.getCategory());
+        e.setExperienceYears(d.getExperienceYears());
+        e.setVacancies(d.getVacancies());
         e.setDeadline(d.getDeadline());
         e.setPublishedAt(d.getPublishedAt());
         e.setClosedAt(d.getClosedAt());
+        e.setExpiredAt(d.getExpiredAt());
+        e.setStatus(d.getStatus());
+        e.setViewCount(d.getViewCount());
+        e.setApplicationCount(d.getApplicationCount());
         applySalary(e, d.getSalary());
         applyWorkLocation(e, d.getWorkLocation());
-
-        // Sync skills
-        e.getSkills().clear();
-        if (d.getSkills() != null) {
-            d.getSkills().stream()
-                    .map(s -> toSkillEntity(s, e))
-                    .forEach(e.getSkills()::add);
-        }
     }
 
-    // ── JobPostSkill ──────────────────────────────────────────
+    // ── Salary helpers ────────────────────────────────────────
+
+    private Salary buildSalary(JobPostJpaEntity e) {
+        if (Boolean.TRUE.equals(e.getSalaryNegotiable()))
+            return Salary.negotiable();
+        if (e.getSalaryMin() == null && e.getSalaryMax() == null)
+            return null;
+        return Salary.of(e.getSalaryMin(), e.getSalaryMax(), e.getSalaryCurrency());
+    }
+
+    private void applySalary(JobPostJpaEntity e, Salary s) {
+        if (s == null)
+            return;
+        e.setSalaryMin(s.getMin());
+        e.setSalaryMax(s.getMax());
+        e.setSalaryCurrency(s.getCurrency());
+        e.setSalaryNegotiable(s.isNegotiable());
+    }
+
+    // ── WorkLocation helpers ──────────────────────────────────
+
+    private WorkLocation buildWorkLocation(JobPostJpaEntity e) {
+        if (e.getWorkLocationType() == null)
+            return null;
+        return WorkLocation.builder()
+                .type(WorkLocation.LocationType.valueOf(e.getWorkLocationType()))
+                .city(e.getWorkLocationCity())
+                .address(e.getWorkLocationAddress())
+                .build();
+    }
+
+    private void applyWorkLocation(JobPostJpaEntity e, WorkLocation loc) {
+        if (loc == null)
+            return;
+        e.setWorkLocationType(loc.getType().name());
+        e.setWorkLocationCity(loc.getCity());
+        e.setWorkLocationAddress(loc.getAddress());
+    }
+
+    // ── Skill ─────────────────────────────────────────────────
 
     public JobPostSkill toSkillDomain(JobPostSkillJpaEntity e) {
         return JobPostSkill.builder()
                 .id(e.getId())
-                .jobPostId(e.getJobPost().getId())
+                .jobPostId(e.getJobPostId())
                 .skillName(e.getSkillName())
+                .level(e.getLevel())
                 .required(e.isRequired())
-                .yearsRequired(e.getYearsRequired())
                 .build();
     }
 
-    public JobPostSkillJpaEntity toSkillEntity(JobPostSkill d, JobPostJpaEntity jobEntity) {
+    public JobPostSkillJpaEntity toSkillEntity(JobPostSkill d, UUID jobPostId) {
         return JobPostSkillJpaEntity.builder()
-                .jobPost(jobEntity)
+                .jobPostId(jobPostId)
                 .skillName(d.getSkillName())
+                .level(d.getLevel())
                 .required(d.isRequired())
-                .yearsRequired(d.getYearsRequired())
                 .build();
     }
 
@@ -148,29 +181,9 @@ public class JobMapper {
 
     public SavedJobJpaEntity toSavedJobEntity(SavedJob d) {
         return SavedJobJpaEntity.builder()
-                .id(d.getId())
                 .candidateId(d.getCandidateId())
                 .jobPostId(d.getJobPostId())
+                .savedAt(d.getSavedAt())
                 .build();
-    }
-
-    // ── Private helpers ───────────────────────────────────────
-
-    private void applySalary(JobPostJpaEntity e, Salary s) {
-        if (s == null)
-            return;
-        e.setSalaryNegotiate(s.isNegotiate());
-        e.setSalaryMin(s.getMin());
-        e.setSalaryMax(s.getMax());
-        e.setSalaryCurrency(s.getCurrency());
-    }
-
-    private void applyWorkLocation(JobPostJpaEntity e, WorkLocation wl) {
-        if (wl == null)
-            return;
-        e.setWorkLocationType(wl.getType());
-        e.setWorkLocationCity(wl.getCity());
-        e.setWorkLocationDistrict(wl.getDistrict());
-        e.setWorkLocationAddress(wl.getAddress());
     }
 }

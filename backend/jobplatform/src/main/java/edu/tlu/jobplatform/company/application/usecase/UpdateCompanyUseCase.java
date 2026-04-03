@@ -48,6 +48,7 @@ public class UpdateCompanyUseCase {
                     "Hồ sơ công ty đang bị vô hiệu hoá.",
                     "COMPANY_INACTIVE");
         }
+        log.info("Company active = {}", company.isActive());
 
         // Cập nhật thông tin
         company.updateInfo(

@@ -1,100 +1,60 @@
 package edu.tlu.jobplatform.job.application.usecase.employer;
 
 import edu.tlu.jobplatform.job.domain.model.JobPost;
-import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * UseCase: Employer cập nhật tin tuyển dụng.
- *
- * Chỉ update được khi status là DRAFT, CLOSED hoặc EXPIRED.
- * PUBLISHED → phải close trước rồi mới update.
- */
+// ── UpdateJobPostUseCase ──────────────────────────────────────────
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UpdateJobPostUseCase {
+class UpdateJobPostUseCase {
 
-    private final JobPostRepository jobPostRepository;
+        private final JobPostRepository jobPostRepository;
 
-    @Transactional
-    public JobPost execute(UUID jobPostId, UUID companyId, Command cmd) {
+        @Transactional
+        public JobPost execute(UUID jobPostId, Command cmd) {
 
-        JobPost job = jobPostRepository.findById(jobPostId)
-                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
+                JobPost job = jobPostRepository.findById(jobPostId)
+                                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
 
-        if (!job.isOwnedBy(companyId))
-            throw new BusinessRuleException("Bạn không có quyền chỉnh sửa tin này.", "FORBIDDEN");
+                if (!SecurityUtils.isOwnerOrAdmin(job.getPostedBy()))
+                        throw new BusinessRuleException("Bạn không có quyền sửa bài đăng này.", "FORBIDDEN");
 
-        // Build salary
-        Salary salary = cmd.salaryNegotiate()
-                ? Salary.negotiate()
-                : Salary.of(cmd.salaryMin(), cmd.salaryMax(), cmd.currency());
+                job.updateContent(
+                                cmd.title() != null ? cmd.title() : job.getTitle(),
+                                cmd.slug() != null ? cmd.slug() : job.getSlug(),
+                                cmd.description() != null ? cmd.description() : job.getDescription(),
+                                cmd.requirements() != null ? cmd.requirements() : job.getRequirements(),
+                                cmd.benefits() != null ? cmd.benefits() : job.getBenefits(),
+                                cmd.jobType() != null ? cmd.jobType() : job.getJobType(),
+                                cmd.level() != null ? cmd.level() : job.getLevel(),
+                                cmd.category() != null ? cmd.category() : job.getCategory(),
+                                cmd.salary() != null ? cmd.salary() : job.getSalary(),
+                                cmd.workLocation() != null ? cmd.workLocation() : job.getWorkLocation(),
+                                cmd.experienceYears() != null ? cmd.experienceYears() : job.getExperienceYears(),
+                                cmd.vacancies() != null ? cmd.vacancies() : job.getVacancies(),
+                                cmd.deadline() != null ? cmd.deadline() : job.getDeadline());
 
-        // Build work location
-        WorkLocation workLocation = switch (cmd.workLocationType()) {
-            case "REMOTE" -> WorkLocation.remote();
-            case "HYBRID" -> WorkLocation.hybrid(cmd.city());
-            default -> WorkLocation.onsite(cmd.city(), cmd.address());
-        };
-
-        // Update aggregate (domain validates isEditable internally)
-        job.update(cmd.title(), cmd.description(), cmd.requirements(), cmd.benefits(),
-                cmd.categoryCode(), cmd.level(), cmd.jobType(), cmd.headcount(),
-                salary, workLocation, cmd.deadline());
-
-        // Update skills nếu được truyền vào
-        if (cmd.skills() != null) {
-            List<JobPostSkill> skills = cmd.skills().stream()
-                    .map(s -> JobPostSkill.builder()
-                            .id(UUID.randomUUID())
-                            .jobPostId(jobPostId)
-                            .skillName(s.skillName())
-                            .required(s.required())
-                            .yearsRequired(s.yearsRequired())
-                            .build())
-                    .toList();
-            job.updateSkills(skills);
+                return jobPostRepository.save(job);
         }
 
-        JobPost saved = jobPostRepository.save(job);
-        log.info("JobPost updated: id={}", jobPostId);
-        return saved;
-    }
-
-    public record Command(
-            String title,
-            String description,
-            String requirements,
-            String benefits,
-            String categoryCode,
-            String level,
-            String jobType,
-            int headcount,
-            boolean salaryNegotiate,
-            BigDecimal salaryMin,
-            BigDecimal salaryMax,
-            String currency,
-            String workLocationType,
-            String city,
-            String address,
-            LocalDateTime deadline,
-            List<SkillCommand> skills) {
-    }
-
-    public record SkillCommand(String skillName, boolean required, int yearsRequired) {
-    }
+        public record Command(
+                        String title, String slug, String description, String requirements,
+                        String benefits, String jobType, String level, String category,
+                        Salary salary, WorkLocation workLocation,
+                        Integer experienceYears, Integer vacancies, LocalDate deadline) {
+        }
 }

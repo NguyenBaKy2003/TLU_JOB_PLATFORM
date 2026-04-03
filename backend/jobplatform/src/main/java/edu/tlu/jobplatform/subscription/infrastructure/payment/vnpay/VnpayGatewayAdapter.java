@@ -53,13 +53,16 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
     @Override
     public String createPaymentUrl(String orderCode, BigDecimal amount,
             String description, String returnUrl) {
-        // VNPAY tính tiền theo đơn vị * 100 (không có dấu phẩy)
         long vnpAmount = amount.multiply(BigDecimal.valueOf(100)).longValue();
 
-        String createDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        String ipAddr = "127.0.0.1"; // Production: lấy IP thực từ request
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String createDate = formatter.format(cld.getTime());
 
-        Map<String, String> params = new TreeMap<>(); // TreeMap để sort key tự động
+        cld.add(Calendar.MINUTE, 15);
+        String expireDate = formatter.format(cld.getTime());
+
+        Map<String, String> params = new TreeMap<>();
         params.put("vnp_Version", config.getVersion());
         params.put("vnp_Command", config.getCommand());
         params.put("vnp_TmnCode", config.getTmnCode());
@@ -70,18 +73,18 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
         params.put("vnp_OrderType", config.getOrderType());
         params.put("vnp_Locale", config.getLocale());
         params.put("vnp_ReturnUrl", returnUrl);
-        params.put("vnp_IpAddr", ipAddr);
+        params.put("vnp_IpAddr", "127.0.0.1");
         params.put("vnp_CreateDate", createDate);
+        params.put("vnp_ExpireDate", expireDate);
 
-        String queryString = buildQueryString(params);
-        String signature = hmacSHA512(config.getHashSecret(), queryString);
+        // Bước 1: tính chữ ký — encode value, KHÔNG encode key
+        String hashData = buildHashData(params);
+        String signature = hmacSHA512(config.getHashSecret(), hashData);
 
-        return config.getPaymentUrl() + "?" + queryString + "&vnp_SecureHash=" + signature;
+        // Bước 2: build URL — encode cả key lẫn value
+        String queryUrl = buildQueryString(params);
+        return config.getPaymentUrl() + "?" + queryUrl + "&vnp_SecureHash=" + signature;
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // verifyCallback
-    // ─────────────────────────────────────────────────────────────
 
     @Override
     public boolean verifyCallback(Map<String, String> params) {
@@ -91,13 +94,12 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
             return false;
         }
 
-        // Loại bỏ các field hash trước khi tính lại
         Map<String, String> filtered = new TreeMap<>(params);
         filtered.remove("vnp_SecureHash");
         filtered.remove("vnp_SecureHashType");
 
-        String queryString = buildQueryString(filtered);
-        String expectedHash = hmacSHA512(config.getHashSecret(), queryString);
+        String hashData = buildHashData(filtered);
+        String expectedHash = hmacSHA512(config.getHashSecret(), hashData);
 
         boolean valid = expectedHash.equalsIgnoreCase(receivedHash);
         if (!valid) {
@@ -105,7 +107,6 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
         }
         return valid;
     }
-
     // ─────────────────────────────────────────────────────────────
     // isSuccess
     // ─────────────────────────────────────────────────────────────
@@ -126,44 +127,65 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
         return params.getOrDefault("vnp_TransactionNo", "UNKNOWN");
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
-
     /**
-     * Build query string từ map (đã sorted).
-     * Encode value theo UTF-8, không encode key.
+     * Dùng để tính chữ ký:
+     * - Key KHÔNG encode
+     * - Value CÓ encode (theo đúng VNPayUtil.getPaymentURL encodeKey=false)
      */
-    private String buildQueryString(Map<String, String> params) {
+    private String buildHashData(Map<String, String> params) {
+        List<String> fieldNames = new ArrayList<>(params.keySet());
+        Collections.sort(fieldNames);
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (sb.length() > 0)
-                sb.append('&');
-            sb.append(entry.getKey())
-                    .append('=')
-                    .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+        Iterator<String> itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String name = itr.next();
+            String value = params.get(name);
+            if (value != null && !value.isEmpty()) {
+                sb.append(name).append('=')
+                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+                if (itr.hasNext())
+                    sb.append('&');
+            }
         }
         return sb.toString();
     }
 
     /**
-     * Tính HMAC-SHA512 theo key và data.
-     * VNPAY dùng HMAC_SHA512 cho signature.
+     * Dùng để build URL:
+     * - Key CÓ encode
+     * - Value CÓ encode (theo VNPayUtil.getPaymentURL encodeKey=true)
      */
+    private String buildQueryString(Map<String, String> params) {
+        List<String> fieldNames = new ArrayList<>(params.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String name = itr.next();
+            String value = params.get(name);
+            if (value != null && !value.isEmpty()) {
+                sb.append(URLEncoder.encode(name, StandardCharsets.UTF_8))
+                        .append('=')
+                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+                if (itr.hasNext())
+                    sb.append('&');
+            }
+        }
+        return sb.toString();
+    }
+
     private String hmacSHA512(String key, String data) {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");
             SecretKeySpec secretKey = new SecretKeySpec(
                     key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
             mac.init(secretKey);
-            byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-
-            StringBuilder hex = new StringBuilder();
-            for (byte b : hash) {
-                hex.append(String.format("%02x", b));
+            byte[] result = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(2 * result.length);
+            for (byte b : result) {
+                hex.append(String.format("%02x", b & 0xff));
             }
             return hex.toString();
-
         } catch (Exception e) {
             throw new RuntimeException("Lỗi tính HMAC-SHA512", e);
         }

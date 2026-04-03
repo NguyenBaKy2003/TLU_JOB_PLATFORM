@@ -3,36 +3,37 @@ package edu.tlu.jobplatform.job.infrastructure.persistence.adapter;
 import edu.tlu.jobplatform.job.domain.model.SavedJob;
 import edu.tlu.jobplatform.job.domain.repository.SavedJobRepository;
 import edu.tlu.jobplatform.job.infrastructure.persistence.mapper.JobMapper;
-import edu.tlu.jobplatform.job.infrastructure.persistence.repository.SavedJobJpaRepo;
+import edu.tlu.jobplatform.job.infrastructure.persistence.repository.SavedJobJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+// ── SavedJobRepositoryAdapter ─────────────────────────────────────
+
 @Component
 @RequiredArgsConstructor
-public class SavedJobRepositoryAdapter implements SavedJobRepository {
+class SavedJobRepositoryAdapter implements SavedJobRepository {
 
-    private final SavedJobJpaRepo jpaRepo;
+    private final SavedJobJpaRepository jpaRepo;
     private final JobMapper mapper;
 
     @Override
-    public Optional<SavedJob> findByCandidateIdAndJobPostId(UUID candidateId, UUID jobPostId) {
-        return jpaRepo.findByCandidateIdAndJobPostId(candidateId, jobPostId)
-                .map(mapper::toSavedJobDomain);
+    public Optional<SavedJob> findByCandidateIdAndJobPostId(UUID cid, UUID jid) {
+        return jpaRepo.findByCandidateIdAndJobPostId(cid, jid).map(mapper::toSavedJobDomain);
     }
 
     @Override
-    public List<SavedJob> findByCandidateId(UUID candidateId) {
-        return jpaRepo.findByCandidateIdOrderBySavedAtDesc(candidateId)
-                .stream().map(mapper::toSavedJobDomain).toList();
+    public boolean existsByCandidateIdAndJobPostId(UUID cid, UUID jid) {
+        return jpaRepo.existsByCandidateIdAndJobPostId(cid, jid);
     }
 
     @Override
-    public boolean existsByCandidateIdAndJobPostId(UUID candidateId, UUID jobPostId) {
-        return jpaRepo.existsByCandidateIdAndJobPostId(candidateId, jobPostId);
+    public Page<SavedJob> findByCandidateId(UUID candidateId, Pageable p) {
+        return jpaRepo.findByCandidateId(candidateId, p).map(mapper::toSavedJobDomain);
     }
 
     @Override
@@ -41,7 +42,7 @@ public class SavedJobRepositoryAdapter implements SavedJobRepository {
     }
 
     @Override
-    public void deleteByCandidateIdAndJobPostId(UUID candidateId, UUID jobPostId) {
-        jpaRepo.deleteByCandidateIdAndJobPostId(candidateId, jobPostId);
+    public void deleteByCandidateIdAndJobPostId(UUID cid, UUID jid) {
+        jpaRepo.deleteByCandidateIdAndJobPostId(cid, jid);
     }
 }

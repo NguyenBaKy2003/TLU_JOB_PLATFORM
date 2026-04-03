@@ -3,43 +3,34 @@ package edu.tlu.jobplatform.job.application.port.out;
 import java.util.UUID;
 
 /**
- * Output Port: Kiểm tra và tiêu thụ quota từ Subscription domain.
+ * Output Port để kiểm tra và tiêu thụ quota đăng tin.
  *
- * Job domain KHÔNG phụ thuộc trực tiếp vào Subscription domain.
- * Dependency Inversion: UseCase gọi interface này,
- * infrastructure adapter sẽ thực sự gọi SubscriptionService.
+ * Job domain KHÔNG import subscription domain trực tiếp.
+ * Adapter SubscriptionQuotaAdapter implements interface này
+ * bằng cách gọi vào Subscription domain.
+ *
+ * Clean Architecture: domain A không phụ thuộc domain B.
  */
 public interface QuotaServicePort {
 
     /**
-     * Kiểm tra công ty còn quota đăng tin không.
+     * Kiểm tra công ty còn quota để đăng tin không.
+     * Không trừ quota.
+     */
+    boolean hasQuota(UUID companyId);
+
+    /**
+     * Trừ 1 quota đăng tin của công ty.
+     * Gọi ngay trước khi publish bài.
      * Throw QuotaExceededException nếu hết quota.
-     *
-     * @param companyId ID công ty
      */
-    void checkJobPostQuota(UUID companyId);
+    void consumeQuota(UUID companyId);
 
     /**
-     * Kiểm tra công ty còn quota tin nổi bật không.
-     * Throw QuotaExceededException nếu hết quota.
+     * Hoàn lại quota khi bài đăng bị xóa trước khi hết hạn.
+     * Tuỳ chính sách business — có thể không implement.
      */
-    void checkFeaturedJobQuota(UUID companyId);
-
-    /**
-     * Tiêu thụ 1 lượt đăng tin.
-     * Gọi SAU KHI tin đã được publish thành công.
-     */
-    void consumeJobPostQuota(UUID companyId);
-
-    /**
-     * Tiêu thụ 1 lượt tin nổi bật.
-     * Gọi SAU KHI tin được đánh dấu featured.
-     */
-    void consumeFeaturedJobQuota(UUID companyId);
-
-    /**
-     * Kiểm tra nhanh: công ty có subscription active không.
-     * Dùng để hiển thị UI hint (không throw exception).
-     */
-    boolean hasActiveSubscription(UUID companyId);
+    default void refundQuota(UUID companyId) {
+        // Default: không hoàn quota
+    }
 }

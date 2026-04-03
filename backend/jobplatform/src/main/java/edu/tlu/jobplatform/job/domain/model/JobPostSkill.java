@@ -6,10 +6,8 @@ import lombok.Getter;
 import java.util.UUID;
 
 /**
- * JobPostSkill — kỹ năng yêu cầu của một tin tuyển dụng.
- *
- * Thuộc về aggregate JobPost (không có vòng đời độc lập).
- * required = false → "ưu tiên có", không bắt buộc.
+ * Skill yêu cầu của bài đăng.
+ * Thuộc về JobPost aggregate — không có lifecycle riêng.
  */
 @Getter
 @Builder
@@ -17,7 +15,7 @@ public class JobPostSkill {
 
     private final UUID id;
     private final UUID jobPostId;
-    private final String skillName; // "Java", "Spring Boot", "AWS"
-    private final boolean required; // bắt buộc hay chỉ ưu tiên
-    private final int yearsRequired; // số năm kinh nghiệm tối thiểu (0 = không yêu cầu)
+    private final String skillName;
+    private final String level;
+    private final boolean required;
 }

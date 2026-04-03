@@ -6,12 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * SavedJob — ứng viên lưu tin tuyển dụng yêu thích.
- *
- * Simple entity, không có business logic phức tạp.
- * Constraint unique: (candidateId, jobPostId).
- */
+/** Ứng viên lưu bài đăng yêu thích */
 @Getter
 @Builder
 public class SavedJob {

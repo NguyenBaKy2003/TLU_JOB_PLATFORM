@@ -1,146 +1,131 @@
 package edu.tlu.jobplatform.job.presentation;
 
-import edu.tlu.jobplatform.job.application.usecase.employer.*;
+import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.PublishJobPostUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
-import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
+import edu.tlu.jobplatform.job.domain.model.vo.Salary;
+import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
+import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.presentation.dto.request.CreateJobPostRequest;
-import edu.tlu.jobplatform.job.presentation.dto.request.UpdateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
+import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
+import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
- * REST Controller: Employer quản lý tin tuyển dụng.
- *
- * Base path: /api/v1/jobs
- *
- * GET /my — Lấy danh sách tin của mình
- * POST / — Tạo tin mới (DRAFT)
- * PUT /{id} — Cập nhật tin
- * POST /{id}/publish — Publish tin (trừ quota)
- * POST /{id}/close — Đóng tin
- * DELETE /{id} — Xoá tin (soft delete)
+ * Employer endpoints:
+ * POST /api/v1/jobs — Tạo bài đăng (DRAFT)
+ * GET /api/v1/jobs/my — Danh sách bài của tôi
+ * GET /api/v1/jobs/{id} — Chi tiết bài đăng
+ * POST /api/v1/jobs/{id}/publish — Publish bài đăng
+ * POST /api/v1/jobs/{id}/close — Đóng bài đăng
+ * DELETE /api/v1/jobs/{id} — Xóa bài đăng
  */
 @RestController
-@RequestMapping("/api/v1/jobs")
 @RequiredArgsConstructor
-@Tag(name = "Job Posts (Employer)", description = "Employer quản lý tin tuyển dụng")
+@Tag(name = "Job Post", description = "Quản lý bài đăng tuyển dụng")
 public class JobPostController {
 
-    private final CreateJobPostUseCase createJobPostUseCase;
-    private final UpdateJobPostUseCase updateJobPostUseCase;
-    private final PublishJobPostUseCase publishJobPostUseCase;
-    private final CloseJobPostUseCase closeJobPostUseCase;
-    private final GetMyJobPostsUseCase getMyJobPostsUseCase;
+        private final CreateJobPostUseCase createUseCase;
+        private final PublishJobPostUseCase publishUseCase;
+        private final JobPostRepository jobPostRepository;
 
-    // ── GET /my ───────────────────────────────────────────────
+        @Operation(summary = "Tạo bài đăng tuyển dụng (DRAFT)")
+        @SecurityRequirement(name = "bearerAuth")
+        @PostMapping("/api/v1/jobs")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> create(
+                        @Valid @RequestBody CreateJobPostRequest req) {
 
-    @GetMapping("/my")
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Lấy danh sách tin tuyển dụng của công ty")
-    public ResponseEntity<ApiResponse<List<JobPostResponse>>> getMyJobs(
-            @AuthenticationPrincipal UUID companyId,
-            @RequestParam(required = false) JobStatus status) {
+                UUID companyId = resolveCompanyId(); // TODO: lấy từ CompanyRepository
+                UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
 
-        List<JobPostResponse> jobs = getMyJobPostsUseCase.execute(companyId, status)
-                .stream().map(JobPostResponse::from).toList();
+                Salary salary = req.isSalaryNegotiable()
+                                ? Salary.negotiable()
+                                : Salary.of(req.getSalaryMin(), req.getSalaryMax(), req.getSalaryCurrency());
 
-        return ResponseEntity.ok(ApiResponse.success(jobs));
-    }
+                WorkLocation location = buildWorkLocation(req);
 
-    // ── POST / ────────────────────────────────────────────────
+                JobPost job = createUseCase.execute(new CreateJobPostUseCase.Command(
+                                companyId, postedBy, req.getTitle(), req.getDescription(),
+                                req.getRequirements(), req.getBenefits(), req.getJobType(),
+                                req.getLevel(), req.getCategory(), salary, location,
+                                req.getExperienceYears(), req.getVacancies(), req.getDeadline()));
 
-    @PostMapping
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Tạo tin tuyển dụng mới (DRAFT)")
-    public ResponseEntity<ApiResponse<JobPostDetailResponse>> createJob(
-            @AuthenticationPrincipal UUID companyId,
-            @Valid @RequestBody CreateJobPostRequest request) {
-
-        CreateJobPostUseCase.Command cmd = new CreateJobPostUseCase.Command(
-                companyId, companyId,
-                request.title(), request.description(),
-                request.requirements(), request.benefits(),
-                request.categoryCode(), request.level(), request.jobType(),
-                request.headcount(),
-                request.salaryNegotiate(), request.salaryMin(),
-                request.salaryMax(), request.currency(),
-                request.workLocationType(), request.city(), request.address(),
-                request.deadline());
-
-        JobPost job = createJobPostUseCase.execute(cmd);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(JobPostDetailResponse.from(job)));
-    }
-
-    // ── PUT /{id} ─────────────────────────────────────────────
-
-    @PutMapping("/{jobPostId}")
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Cập nhật tin tuyển dụng")
-    public ResponseEntity<ApiResponse<JobPostDetailResponse>> updateJob(
-            @AuthenticationPrincipal UUID companyId,
-            @PathVariable UUID jobPostId,
-            @Valid @RequestBody UpdateJobPostRequest request) {
-
-        List<UpdateJobPostUseCase.SkillCommand> skills = null;
-        if (request.skills() != null) {
-            skills = request.skills().stream()
-                    .map(s -> new UpdateJobPostUseCase.SkillCommand(
-                            s.skillName(), s.required(), s.yearsRequired()))
-                    .toList();
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResponse.success(JobPostDetailResponse.from(job),
+                                                "Bài đăng đã được tạo ở trạng thái Nháp."));
         }
 
-        UpdateJobPostUseCase.Command cmd = new UpdateJobPostUseCase.Command(
-                request.title(), request.description(),
-                request.requirements(), request.benefits(),
-                request.categoryCode(), request.level(), request.jobType(),
-                request.headcount(),
-                request.salaryNegotiate(), request.salaryMin(),
-                request.salaryMax(), request.currency(),
-                request.workLocationType(), request.city(), request.address(),
-                request.deadline(), skills);
+        @Operation(summary = "Danh sách bài đăng của tôi")
+        @SecurityRequirement(name = "bearerAuth")
+        @GetMapping("/api/v1/jobs/my")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> getMyJobs(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
 
-        JobPost job = updateJobPostUseCase.execute(jobPostId, companyId, cmd);
-        return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job)));
-    }
+                UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
+                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+                var result = jobPostRepository.findByPostedBy(postedBy, pageable).map(JobPostResponse::from);
 
-    // ── POST /{id}/publish ────────────────────────────────────
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+        }
 
-    @PostMapping("/{jobPostId}/publish")
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Publish tin tuyển dụng (trừ quota)")
-    public ResponseEntity<ApiResponse<JobPostDetailResponse>> publishJob(
-            @AuthenticationPrincipal UUID companyId,
-            @PathVariable UUID jobPostId,
-            @RequestParam(defaultValue = "false") boolean featured) {
+        @Operation(summary = "Publish bài đăng")
+        @SecurityRequirement(name = "bearerAuth")
+        @PostMapping("/api/v1/jobs/{id}/publish")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> publish(@PathVariable UUID id) {
+                JobPost job = publishUseCase.execute(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success(JobPostDetailResponse.from(job),
+                                                "Bài đăng đã được publish thành công."));
+        }
 
-        JobPost job = publishJobPostUseCase.execute(jobPostId, companyId, featured);
-        return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job)));
-    }
+        @Operation(summary = "Đóng bài đăng")
+        @SecurityRequirement(name = "bearerAuth")
+        @PostMapping("/api/v1/jobs/{id}/close")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> close(@PathVariable UUID id) {
+                JobPost job = jobPostRepository.findById(id)
+                                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", id));
+                job.close();
+                jobPostRepository.save(job);
+                return ResponseEntity.ok(
+                                ApiResponse.success(JobPostDetailResponse.from(job), "Bài đăng đã được đóng."));
+        }
 
-    // ── POST /{id}/close ──────────────────────────────────────
+        // ── Helpers ───────────────────────────────────────────────
 
-    @PostMapping("/{jobPostId}/close")
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Đóng tin tuyển dụng")
-    public ResponseEntity<ApiResponse<JobPostDetailResponse>> closeJob(
-            @AuthenticationPrincipal UUID companyId,
-            @PathVariable UUID jobPostId) {
+        private UUID resolveCompanyId() {
+                // TODO Sprint 2: inject CompanyRepository, tìm bằng ownerId
+                // Tạm thời: dùng mock UUID
+                return UUID.randomUUID();
+        }
 
-        JobPost job = closeJobPostUseCase.execute(jobPostId, companyId);
-        return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job)));
-    }
+        private WorkLocation buildWorkLocation(CreateJobPostRequest req) {
+                if (req.getWorkLocationType() == null)
+                        return null;
+                return WorkLocation.builder()
+                                .type(WorkLocation.LocationType.valueOf(req.getWorkLocationType()))
+                                .city(req.getWorkLocationCity())
+                                .address(req.getWorkLocationAddress())
+                                .build();
+        }
 }
