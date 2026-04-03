@@ -20,7 +20,7 @@ import java.util.UUID;
  *
  * Endpoints:
  * GET /api/v1/subscriptions/plans — Public: Xem danh sách gói dịch vụ
- * POST /api/v1/subscriptions/purchase — COMPANY: Mua gói dịch vụ
+ * POST /api/v1/subscriptions/purchase — EMPLOYER: Mua gói dịch vụ
  */
 @RestController
 @RequestMapping("/api/v1/subscriptions")
@@ -45,7 +45,7 @@ public class SubscriptionController {
 
     /**
      * POST /api/v1/subscriptions/purchase
-     * Chỉ dành cho COMPANY role.
+     * Chỉ dành cho EMPLOYER role.
      * Tạo payment và trả về URL redirect đến cổng thanh toán.
      *
      * Request body:
@@ -63,11 +63,12 @@ public class SubscriptionController {
      * }
      */
     @PostMapping("/purchase")
-    @PreAuthorize("hasRole('COMPANY')")
-    @Operation(summary = "Mua gói dịch vụ", description = "Tạo đơn hàng và trả về URL thanh toán VNPAY/MOMO")
+    @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchasePlan(
-            @AuthenticationPrincipal UUID companyId,
+            @AuthenticationPrincipal String companyIdStr, // ← String, not UUID
             @RequestBody PurchaseRequest request) {
+
+        UUID companyId = UUID.fromString(companyIdStr); // ← parse here
 
         PurchasePlanUseCase.Command cmd = new PurchasePlanUseCase.Command(
                 companyId, request.planId(), request.yearly());

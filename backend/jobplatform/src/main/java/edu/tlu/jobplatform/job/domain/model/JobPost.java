@@ -7,154 +7,146 @@ import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Aggregate Root: Tin tuyển dụng.
+ * Aggregate Root của Job domain.
+ * Đây là bài đăng tuyển dụng — chứa toàn bộ thông tin JD.
  *
- * Vòng đời: DRAFT → PUBLISHED → CLOSED/EXPIRED → (có thể re-publish)
- *
- * Invariants:
- * - Chỉ PUBLISHED mới hiển thị cho ứng viên
- * - Publish phải có đủ thông tin bắt buộc (title, description, deadline)
- * - Deadline phải sau ngày publish
- * - Chỉ employer sở hữu mới được thay đổi
+ * Vòng đời: DRAFT → PUBLISHED → (CLOSED | EXPIRED) → PUBLISHED (gia hạn)
  */
 @Getter
 @Builder
 public class JobPost {
 
     private final UUID id;
-    private final UUID companyId; // employer sở hữu
-    private final UUID createdBy; // user tạo (HR account)
+    private final UUID companyId;
+    private final UUID postedBy; // employerId
 
-    // ── Thông tin cơ bản ──────────────────────────────────────
+    // ── Nội dung JD ───────────────────────────────────────────
     private String title;
-    private String description; // HTML/Markdown
-    private String requirements; // Yêu cầu ứng viên
-    private String benefits; // Quyền lợi
-    private String categoryCode; // "IT", "MARKETING", "FINANCE"...
-    private String level; // "INTERN", "JUNIOR", "SENIOR", "MANAGER"
-    private String jobType; // "FULL_TIME", "PART_TIME", "CONTRACT", "FREELANCE"
-    private int headcount; // Số lượng tuyển
+    private String slug;
+    private String description;
+    private String requirements;
+    private String benefits;
+    private String jobType; // FULL_TIME, PART_TIME, CONTRACT, INTERN
+    private String level; // INTERN, JUNIOR, MIDDLE, SENIOR, LEAD, MANAGER
+    private String category; // Ngành nghề
 
-    // ── Value Objects ─────────────────────────────────────────
+    // ── Điều kiện ─────────────────────────────────────────────
     private Salary salary;
     private WorkLocation workLocation;
+    private Integer experienceYears;
+    private Integer vacancies; // Số lượng tuyển
 
-    // ── Thời hạn ─────────────────────────────────────────────
-    private LocalDateTime deadline; // Hết hạn nộp hồ sơ
+    // ── Thời hạn ──────────────────────────────────────────────
+    private LocalDate deadline; // Hạn nộp CV
     private LocalDateTime publishedAt;
     private LocalDateTime closedAt;
+    private LocalDateTime expiredAt;
 
-    // ── Trạng thái ───────────────────────────────────────────
+    // ── Trạng thái ────────────────────────────────────────────
     private JobStatus status;
-    private boolean featured; // Tin nổi bật (tiêu tốn featured quota)
+    private int viewCount;
+    private int applicationCount;
 
-    // ── Skills ───────────────────────────────────────────────
+    // ── Skills ────────────────────────────────────────────────
     @Builder.Default
     private List<JobPostSkill> skills = new ArrayList<>();
 
-    // ── Metadata ─────────────────────────────────────────────
-    private int viewCount;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Rules ────────────────────────────────────────
-
-    public boolean isOwnedBy(UUID companyId) {
-        return this.companyId.equals(companyId);
-    }
-
-    public boolean isPublished() {
-        return status == JobStatus.PUBLISHED;
-    }
-
-    public boolean isActive() {
-        return status == JobStatus.PUBLISHED
-                && deadline != null
-                && LocalDateTime.now().isBefore(deadline);
-    }
-
-    public boolean isEditable() {
-        return status.isEditable();
-    }
-
-    // ── State Transitions ─────────────────────────────────────
+    // ── Business Methods ──────────────────────────────────────
 
     /**
-     * Chuyển sang PUBLISHED.
-     * Validate đủ điều kiện trước khi gọi.
+     * Publish bài đăng — chuyển từ DRAFT/CLOSED/EXPIRED → PUBLISHED.
+     * Quota đã được kiểm tra và trừ trước khi gọi method này.
      */
     public void publish() {
-        status.validateTransitionTo(JobStatus.PUBLISHED);
+        status.assertCanTransitionTo(JobStatus.PUBLISHED);
         this.status = JobStatus.PUBLISHED;
         this.publishedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** Đóng bài đăng thủ công */
     public void close() {
-        status.validateTransitionTo(JobStatus.CLOSED);
+        status.assertCanTransitionTo(JobStatus.CLOSED);
         this.status = JobStatus.CLOSED;
         this.closedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void expire() {
-        status.validateTransitionTo(JobStatus.EXPIRED);
+    /** Hệ thống tự động đánh dấu hết hạn */
+    public void markExpired() {
+        status.assertCanTransitionTo(JobStatus.EXPIRED);
         this.status = JobStatus.EXPIRED;
+        this.expiredAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** Soft delete */
     public void delete() {
-        status.validateTransitionTo(JobStatus.DELETED);
+        status.assertCanTransitionTo(JobStatus.DELETED);
         this.status = JobStatus.DELETED;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void markFeatured() {
-        this.featured = true;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // ── Update ────────────────────────────────────────────────
-
-    public void update(String title, String description, String requirements, String benefits,
-            String categoryCode, String level, String jobType, int headcount,
-            Salary salary, WorkLocation workLocation, LocalDateTime deadline) {
-        if (!isEditable())
+    /** Cập nhật nội dung — chỉ khi đang DRAFT/CLOSED/EXPIRED */
+    public void updateContent(String title, String slug, String description,
+            String requirements, String benefits,
+            String jobType, String level, String category,
+            Salary salary, WorkLocation workLocation,
+            Integer experienceYears, Integer vacancies,
+            LocalDate deadline) {
+        if (!status.isEditable())
             throw new BusinessRuleException(
-                    "Chỉ có thể chỉnh sửa tin ở trạng thái DRAFT, CLOSED hoặc EXPIRED.",
+                    "Chỉ có thể sửa bài đăng ở trạng thái DRAFT, CLOSED hoặc EXPIRED.",
                     "JOB_NOT_EDITABLE");
 
         this.title = title;
+        this.slug = slug;
         this.description = description;
         this.requirements = requirements;
         this.benefits = benefits;
-        this.categoryCode = categoryCode;
-        this.level = level;
         this.jobType = jobType;
-        this.headcount = headcount;
+        this.level = level;
+        this.category = category;
         this.salary = salary;
         this.workLocation = workLocation;
+        this.experienceYears = experienceYears;
+        this.vacancies = vacancies;
         this.deadline = deadline;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateSkills(List<JobPostSkill> newSkills) {
-        this.skills = new ArrayList<>(newSkills);
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public void incrementViewCount() {
+    /** Tăng view count */
+    public void incrementView() {
         this.viewCount++;
     }
 
-    public List<JobPostSkill> getSkills() {
-        return Collections.unmodifiableList(skills);
+    /** Tăng application count khi có CV mới */
+    public void incrementApplications() {
+        this.applicationCount++;
+    }
+
+    /** Kiểm tra bài đăng có thể nhận CV không */
+    public boolean isAcceptingApplications() {
+        return status == JobStatus.PUBLISHED
+                && (deadline == null || !LocalDate.now().isAfter(deadline));
+    }
+
+    /** Full text để AI tạo embedding */
+    public String toFullText() {
+        return String.join("\n\n",
+                "Vị trí: " + title,
+                "Mô tả: " + (description != null ? description : ""),
+                "Yêu cầu: " + (requirements != null ? requirements : ""),
+                "Quyền lợi: " + (benefits != null ? benefits : ""));
     }
 }

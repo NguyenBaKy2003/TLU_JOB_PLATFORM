@@ -208,8 +208,8 @@ rate-limit:
 payment:
   vnpay:
     enabled: true # VNPAY là gateway mặc định (@Primary)
-    tmn-code: KOLILHK4 # Mã website merchant (8 ký tự)
-    hash-secret: CBBQ3QE9U9FOJF7PS7RNK7YYGDMRYYN8 # Secret key để ký HMAC-SHA512
+    tmn-code: HWD96YOF # Mã website merchant (8 ký tự)
+    hash-secret: MBKVJANBKKQHM1QQAFWHIOXUSAPL4NN5 # Secret key để ký HMAC-SHA512
     payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
     version: "2.1.0"
     command: pay

@@ -1,74 +1,44 @@
 package edu.tlu.jobplatform.job.infrastructure.adapter;
 
 import edu.tlu.jobplatform.job.application.port.out.QuotaServicePort;
-import edu.tlu.jobplatform.subscription.application.usecase.CheckQuotaUseCase;
-import edu.tlu.jobplatform.subscription.application.usecase.ConsumeQuotaUseCase;
-import edu.tlu.jobplatform.subscription.application.usecase.ConsumeQuotaUseCase.QuotaType;
-import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
-import edu.tlu.jobplatform.shared.exception.QuotaExceededException;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 /**
- * Adapter: Kết nối Job domain → Subscription domain.
+ * Adapter kết nối Job domain với Subscription domain.
  *
- * Job domain không import trực tiếp subscription classes.
- * Chỉ adapter này biết về Subscription UseCase.
+ * Job domain không import gì từ subscription package.
+ * Adapter này là "cầu nối" duy nhất.
  *
- * Trong monolith: gọi trực tiếp UseCase.
- * Trong microservice: thay bằng HTTP client / Feign.
+ * Sprint 3: Inject SubscriptionService thật vào đây.
+ * Hiện tại: mock — luôn có quota (để dev/test không bị block).
  */
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class SubscriptionQuotaAdapter implements QuotaServicePort {
 
-    private final CheckQuotaUseCase checkQuotaUseCase;
-    private final ConsumeQuotaUseCase consumeQuotaUseCase;
+    // TODO Sprint 3: @Autowired CheckQuotaUseCase checkQuotaUseCase;
+    // TODO Sprint 3: @Autowired ConsumeQuotaUseCase consumeQuotaUseCase;
 
     @Override
-    public boolean hasActiveSubscription(UUID companyId) {
-        return checkQuotaUseCase.execute(companyId).hasActiveSubscription();
+    public boolean hasQuota(UUID companyId) {
+        log.debug("QuotaCheck (mock): companyId={} → true", companyId);
+        // TODO Sprint 3: return checkQuotaUseCase.execute(companyId);
+        return true; // Dev mode: luôn có quota
     }
 
     @Override
-    public void checkJobPostQuota(UUID companyId) {
-        CheckQuotaUseCase.Result result = checkQuotaUseCase.execute(companyId);
-
-        if (!result.hasActiveSubscription())
-            throw new BusinessRuleException(
-                    "Bạn cần mua gói dịch vụ để đăng tin tuyển dụng.",
-                    "NO_ACTIVE_SUBSCRIPTION");
-
-        if (!result.canPostJob())
-            throw new QuotaExceededException(
-                    "Bạn đã sử dụng hết lượt đăng tin trong gói " + result.planCode() + ".",
-                    "JOB_POST_QUOTA_EXCEEDED");
+    public void consumeQuota(UUID companyId) {
+        log.info("QuotaConsume (mock): companyId={}", companyId);
+        // TODO Sprint 3: consumeQuotaUseCase.execute(companyId);
+        // Nếu hết quota: throw new QuotaExceededException(...)
     }
 
     @Override
-    public void checkFeaturedJobQuota(UUID companyId) {
-        CheckQuotaUseCase.Result result = checkQuotaUseCase.execute(companyId);
-
-        if (!result.hasActiveSubscription())
-            throw new BusinessRuleException(
-                    "Bạn cần mua gói dịch vụ để đăng tin nổi bật.",
-                    "NO_ACTIVE_SUBSCRIPTION");
-
-        if (!result.canPostFeatured())
-            throw new QuotaExceededException(
-                    "Bạn đã sử dụng hết lượt tin nổi bật trong gói " + result.planCode() + ".",
-                    "FEATURED_JOB_QUOTA_EXCEEDED");
-    }
-
-    @Override
-    public void consumeJobPostQuota(UUID companyId) {
-        consumeQuotaUseCase.execute(companyId, QuotaType.JOB_POST);
-    }
-
-    @Override
-    public void consumeFeaturedJobQuota(UUID companyId) {
-        consumeQuotaUseCase.execute(companyId, QuotaType.FEATURED_JOB);
+    public void refundQuota(UUID companyId) {
+        log.info("QuotaRefund (mock): companyId={}", companyId);
+        // TODO Sprint 3: refundQuotaUseCase.execute(companyId);
     }
 }

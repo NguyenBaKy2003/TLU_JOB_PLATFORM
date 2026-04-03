@@ -12,16 +12,8 @@ export default function MessagesPage() {
   const activeConv = CONVERSATIONS.find(c => c.id === activeId) ?? null;
 
   return (
-    <DashboardLayout
-      activeHref="/messages"
-      topbarTitle="Tin Nhắn"
-      topbarSubtitle="Cập nhật hồ sơ để nhận được các gợi ý việc làm chính xác nhất."
-    >
-      {/*
-        Chiếm full height còn lại sau header.
-        DashboardLayout → main có overflow-y-auto + p-4/p-6
-        Dùng -m để cancel padding rồi tự manage.
-      */}
+
+
       <div className="flex h-[calc(100vh-65px)] -m-4 sm:-m-6 overflow-hidden rounded-xl border border-gray-100 shadow-sm">
 
         {/*
@@ -51,6 +43,5 @@ export default function MessagesPage() {
         </div>
 
       </div>
-    </DashboardLayout>
   );
 }

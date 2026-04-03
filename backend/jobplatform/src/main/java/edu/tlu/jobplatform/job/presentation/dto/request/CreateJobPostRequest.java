@@ -1,48 +1,67 @@
 package edu.tlu.jobplatform.job.presentation.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 
-// ── CreateJobPostRequest ──────────────────────────────────────
+@Data
+@Schema(description = "Tạo bài đăng tuyển dụng")
+public class CreateJobPostRequest {
 
-public record CreateJobPostRequest(
+        @NotBlank(message = "Tiêu đề không được để trống")
+        @Size(max = 300)
+        @Schema(example = "Senior Backend Developer (Java)")
+        private String title;
 
-        @NotBlank @Size(max = 255) String title,
+        @Size(min = 100, message = "Mô tả phải có ít nhất 100 ký tự")
+        private String description;
 
-        @NotBlank String description,
+        private String requirements;
+        private String benefits;
 
-        String requirements,
-        String benefits,
+        @Schema(example = "FULL_TIME", allowableValues = { "FULL_TIME", "PART_TIME", "CONTRACT", "INTERN" })
+        private String jobType;
 
-        @NotBlank String categoryCode,
+        @Schema(example = "SENIOR", allowableValues = { "INTERN", "JUNIOR", "MIDDLE", "SENIOR", "LEAD", "MANAGER" })
+        private String level;
 
-        @NotBlank String level, // INTERN | JUNIOR | SENIOR | MANAGER | DIRECTOR
+        @Schema(example = "Công nghệ thông tin")
+        private String category;
 
-        @NotBlank String jobType, // FULL_TIME | PART_TIME | CONTRACT | FREELANCE
+        // ── Salary ────────────────────────────────────────────────
+        @Schema(example = "20000000")
+        private BigDecimal salaryMin;
 
-        @Min(1) @Max(100) int headcount,
+        @Schema(example = "35000000")
+        private BigDecimal salaryMax;
 
-        // Salary
-        boolean salaryNegotiate,
-        @DecimalMin("0") BigDecimal salaryMin,
-        @DecimalMin("0") BigDecimal salaryMax,
-        String currency,
+        @Schema(example = "VND")
+        private String salaryCurrency;
 
-        // Work location
-        @NotBlank String workLocationType, // ONSITE | REMOTE | HYBRID
+        @Schema(example = "false", description = "true = Thoả thuận")
+        private boolean salaryNegotiable;
 
-        String city,
-        String address,
+        // ── WorkLocation ──────────────────────────────────────────
+        @Schema(example = "ONSITE", allowableValues = { "ONSITE", "REMOTE", "HYBRID" })
+        private String workLocationType;
 
-        LocalDateTime deadline,
+        @Schema(example = "Hà Nội")
+        private String workLocationCity;
 
-        List<SkillRequest> skills) {
-    public record SkillRequest(
-            @NotBlank String skillName,
-            boolean required,
-            @Min(0) int yearsRequired) {
-    }
+        private String workLocationAddress;
+
+        // ── Điều kiện ─────────────────────────────────────────────
+        @Min(0)
+        @Max(30)
+        private Integer experienceYears;
+
+        @Min(1)
+        private Integer vacancies;
+
+        @Future(message = "Hạn nộp CV phải là ngày trong tương lai")
+        @NotNull(message = "Vui lòng chọn hạn nộp CV")
+        private LocalDate deadline;
 }

@@ -1,6 +1,7 @@
+// src/app/auth/login/page.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter }              from "next/navigation";
 import { AuthLayout }             from "@/presentation/components/auth/AuthLayout";
 import { LoginForm }              from "@/presentation/components/auth/LoginForm";
@@ -13,31 +14,45 @@ const authService = new AuthService(new AuthRepository());
 
 export default function LoginPage() {
   const router               = useRouter();
-  const { setUserFromToken } = useAuth();
+  const { user, loading: authLoading, setUserFromToken } = useAuth();
   const toast                = useToast();
-
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // ── Email / Password ────────────────────────────────────────────────────────
+  // Nếu đã đăng nhập → redirect về đúng dashboard theo role
+  useEffect(() => {
+    if (authLoading || !user) return;
+    if (user.role === "EMPLOYER") {
+      router.replace("/employer/dashboard");
+    } else {
+      router.replace("/home");
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const token = await authService.login({ email, password });
+
+      // Chặn EMPLOYER đăng nhập nhầm trang
+      if (token.user.role === "EMPLOYER") {
+        toast.error(
+          "Sai trang đăng nhập",
+          "Tài khoản nhà tuyển dụng vui lòng đăng nhập tại trang dành riêng.",
+        );
+        router.push("/auth/employer/login");
+        return;
+      }
+
       setUserFromToken(token.user);
-      toast.success("Đăng nhập thành công!", "Chào mừng bạn quay trở lại JobPlatform!");
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn quay trở lại Joblin!");
       router.push("/home");
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Đăng nhập thất bại. Vui lòng thử lại.";
-      toast.error("Đăng nhập thất bại", message);
+      toast.error("Đăng nhập thất bại", err?.response?.data?.message ?? "Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
-  }, [router, setUserFromToken,toast]); // ← toast không cần trong deps
-
-  // ── Google OAuth ────────────────────────────────────────────────────────────
+  }, [router, setUserFromToken, toast]);
 
   const handleGoogleLogin = useCallback(async () => {
     setOauthLoading(true);
@@ -45,12 +60,10 @@ export default function LoginPage() {
       const url = await authService.getGoogleOAuthUrl();
       window.location.href = url;
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Không thể kết nối Google. Vui lòng thử lại.";
-      toast.error("Lỗi kết nối", message);
+      toast.error("Lỗi kết nối", err?.response?.data?.message ?? "Không thể kết nối Google.");
       setOauthLoading(false);
     }
-  }, [toast]); // ← toast không cần trong deps
+  }, [toast]);
 
   return (
     <AuthLayout imageSrc="/candidate.png">

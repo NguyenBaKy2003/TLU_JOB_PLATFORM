@@ -1,22 +1,34 @@
 "use client";
 
-import Link     from "next/link";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   User, Bell, MessageSquare, Settings,
   Activity, LogOut, HelpCircle, ChevronLeft,
-  Briefcase, X,
+  Briefcase, X, LayoutDashboard, FileText,
+  Building2, Users, BarChart2, PlusCircle,
 } from "lucide-react";
 import { useAuth } from "@/application/contexts/AuthContext";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-const MAIN_NAV = [
+const CANDIDATE_NAV = [
   { label: "Hồ sơ của tôi",     icon: <User size={18} />,          href: "/profile"       },
   { label: "Thông báo",          icon: <Bell size={18} />,          href: "/notifications", badge: 6 },
   { label: "Tin nhắn",           icon: <MessageSquare size={18} />, href: "/messages",      badge: 6 },
   { label: "Cài đặt tài khoản", icon: <Settings size={18} />,      href: "/settings"      },
   { label: "Hoạt động",          icon: <Activity size={18} />,      href: "/activity"      },
+];
+
+const EMPLOYER_NAV = [
+  { label: "Tổng quan",          icon: <LayoutDashboard size={18} />, href: "/employer/dashboard" },
+  { label: "Quản lý tin tuyển",  icon: <FileText size={18} />,        href: "/employer/jobs"      },
+  { label: "Ứng viên",           icon: <Users size={18} />,           href: "/employer/candidates" },
+  { label: "Thông báo",          icon: <Bell size={18} />,            href: "/employer/notifications", badge: 3 },
+  { label: "Tin nhắn",           icon: <MessageSquare size={18} />,   href: "/employer/messages",  badge: 2 },
+  { label: "Thống kê",           icon: <BarChart2 size={18} />,       href: "/employer/analytics" },
+  { label: "Công ty",            icon: <Building2 size={18} />,       href: "/employer/company"   },
+  { label: "Cài đặt",            icon: <Settings size={18} />,        href: "/employer/settings"  },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -31,10 +43,12 @@ interface Props {
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
 
+type NavItem = { label: string; icon: React.ReactNode; href: string; badge?: number };
+
 function NavLink({
   item, active, collapsed, onClick,
 }: {
-  item: typeof MAIN_NAV[0];
+  item: NavItem;
   active: boolean;
   collapsed: boolean;
   onClick?: () => void;
@@ -53,7 +67,7 @@ function NavLink({
       {!collapsed && (
         <>
           <span className="flex-1 truncate">{item.label}</span>
-          {"badge" in item && item.badge !== undefined && (
+          {item.badge !== undefined && (
             <span className="flex items-center justify-center min-w-[20px] h-5 px-1
               text-[10px] font-bold bg-red-500 text-white rounded-full">
               {item.badge}
@@ -76,13 +90,20 @@ function SidebarContent({
   onClose?:    () => void;
   isMobile:    boolean;
 }) {
-  const router       = useRouter();
-  const { logout }   = useAuth();
+  const router     = useRouter();
+  const { user, logout } = useAuth();
+
+  const isEmployer = user?.role === "EMPLOYER";
+  const navItems   = isEmployer ? EMPLOYER_NAV : CANDIDATE_NAV;
 
   const handleLogout = async () => {
     await logout();
     router.replace("/auth/login");
   };
+
+  // Logo href and brand label by role
+  const homeHref   = isEmployer ? "/employer/dashboard" : "/home";
+  const brandLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
 
   return (
     <aside className={`relative flex flex-col h-full bg-white border-r border-gray-100
@@ -90,16 +111,18 @@ function SidebarContent({
 
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-        <div className="flex items-center justify-center w-9 h-9 bg-blue-600 rounded-xl shrink-0">
+        <div className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0
+          ${isEmployer ? "bg-violet-600" : "bg-blue-600"}`}>
           <Briefcase size={18} className="text-white" />
         </div>
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate"><Link href="/home">Joblin</Link></p>
-            <p className="text-[11px] text-gray-400">Bảng điều khiển</p>
+            <p className="text-sm font-bold text-gray-900 truncate">
+              <Link href={homeHref}>Joblin</Link>
+            </p>
+            <p className="text-[11px] text-gray-400">{brandLabel}</p>
           </div>
         )}
-        {/* Close button on mobile */}
         {isMobile && (
           <button onClick={onClose} className="ml-auto p-1 text-gray-400 hover:text-gray-600 rounded-lg">
             <X size={18} />
@@ -122,6 +145,21 @@ function SidebarContent({
         </button>
       )}
 
+      {/* Employer: quick-action post job button */}
+      {isEmployer && (!collapsed || isMobile) && (
+        <div className="px-3 pt-4">
+          <Link
+            href="/employer/jobs/new"
+            onClick={isMobile ? onClose : undefined}
+            className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl
+              text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+          >
+            <PlusCircle size={16} />
+            Đăng tin tuyển dụng
+          </Link>
+        </div>
+      )}
+
       {/* Main nav */}
       <nav className="flex flex-col gap-0.5 px-2 pt-4 flex-1 overflow-y-auto">
         {(!collapsed || isMobile) && (
@@ -129,7 +167,7 @@ function SidebarContent({
             Menu
           </p>
         )}
-        {MAIN_NAV.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.href}
             item={item}
@@ -140,9 +178,9 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* Bottom: Logout + Help */}
+      {/* Bottom */}
       <div className="flex flex-col gap-0.5 px-2 pb-4 border-t border-gray-100 pt-3">
-        <Link href="/help"
+        <Link href={isEmployer ? "/employer/help" : "/help"}
           onClick={isMobile ? onClose : undefined}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
             text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
@@ -167,32 +205,17 @@ function SidebarContent({
 export default function Sidebar({ activeHref, collapsed, onToggle, mobileOpen, onMobileClose }: Props) {
   return (
     <>
-      {/* Desktop sidebar — sticky, always visible on md+ */}
       <div className="hidden md:flex h-screen sticky top-0">
-        <SidebarContent
-          activeHref={activeHref}
-          collapsed={collapsed}
-          onToggle={onToggle}
-          isMobile={false}
-        />
+        <SidebarContent activeHref={activeHref} collapsed={collapsed} onToggle={onToggle} isMobile={false} />
       </div>
 
-      {/* Mobile drawer + overlay */}
       {mobileOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={onMobileClose}
-          />
-          {/* Drawer */}
+          <div className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onMobileClose} />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 h-full">
             <SidebarContent
-              activeHref={activeHref}
-              collapsed={false}
-              onToggle={onToggle}
-              onClose={onMobileClose}
-              isMobile={true}
+              activeHref={activeHref} collapsed={false}
+              onToggle={onToggle} onClose={onMobileClose} isMobile={true}
             />
           </div>
         </>

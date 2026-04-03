@@ -196,8 +196,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <DashboardLayout activeHref="/profile" topbarTitle="Hồ Sơ Của Tôi"
-        topbarSubtitle="Cập nhật hồ sơ để nhận được các gợi ý việc làm chính xác nhất.">
+      
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 animate-pulse">
           <div className="flex-1 flex flex-col gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -210,7 +209,6 @@ export default function ProfilePage() {
             <div className="h-44 bg-gray-100 rounded-xl" />
           </div>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -218,7 +216,6 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <DashboardLayout activeHref="/profile" topbarTitle="Hồ Sơ Của Tôi">
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <p className="text-sm text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
           <button onClick={loadProfile}
@@ -226,22 +223,14 @@ export default function ProfilePage() {
             Thử lại
           </button>
         </div>
-      </DashboardLayout>
     );
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <DashboardLayout
-      activeHref="/profile"
-      topbarTitle="Hồ Sơ Của Tôi"
-      topbarSubtitle="Cập nhật hồ sơ để nhận được các gợi ý việc làm chính xác nhất."
-    >
-      {/*
-        Mobile:  1 column — sections stack vertically, sidebar cards at bottom
-        Desktop: 2 columns — left flex-1, right w-72 sticky
-      */}
+ 
+
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
         {/* ── Left: profile sections ─────────────────────────────────── */}
@@ -292,6 +281,5 @@ export default function ProfilePage() {
         </div>
 
       </div>
-    </DashboardLayout>
   );
 }

@@ -1,37 +1,54 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter }                  from "next/navigation";
-import { useAuth }                    from "@/application/contexts/AuthContext";
-import { Header }                     from "./Header";
-import Sidebar from "./Sidebar";
+import { useRouter } from "next/navigation";
+import { useAuth }   from "@/application/contexts/AuthContext";
+import { Header }    from "./Header";
+import Sidebar       from "./Sidebar";
 
 interface Props {
-  children:        React.ReactNode;
-  activeHref?:     string;
-  topbarTitle?:    string;
-  topbarSubtitle?: string;
+  children:         React.ReactNode;
+  activeHref?:      string;
+  topbarTitle?:     string;
+  topbarSubtitle?:  string;
+  /** Restrict page to a specific role. If omitted, any authenticated user can access. */
+  requiredRole?:    "CANDIDATE" | "EMPLOYER";
+  notificationCount?: number;
+  messageCount?:      number;
 }
 
-export function DashboardLayout({ children, activeHref, topbarTitle, topbarSubtitle }: Props) {
-  const router                      = useRouter();
-  const { user, loading }           = useAuth();
-  const [collapsed,   setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+export function DashboardLayout({
+  children, activeHref, topbarTitle, topbarSubtitle,
+  requiredRole, notificationCount = 0, messageCount = 0,
+}: Props) {
+  const router             = useRouter();
+  const { user, loading }  = useAuth();
+  const [collapsed,   setCollapsed]  = useState(false);
+  const [mobileOpen,  setMobileOpen] = useState(false);
 
-  // Close mobile drawer on resize to desktop
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false); };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Auth guard
   useEffect(() => {
-    if (!loading && user === null) router.replace("/auth/login");
-  }, [user, loading, router]);
+    if (loading) return;
 
-  if (loading || user === undefined) {
+    // Not logged in
+    if (!user) { router.replace("/auth/login"); return; }
+
+    // Wrong role
+    if (requiredRole && user.role !== requiredRole) {
+      const fallback =
+        user.role === "EMPLOYER" ? "/employer/dashboard"
+        : user.role === "ADMIN"  ? "/admin/dashboard"
+        : "/dashboard";
+      router.replace(fallback);
+    }
+  }, [user, loading, router, requiredRole]);
+
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <svg className="w-8 h-8 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
@@ -42,11 +59,11 @@ export function DashboardLayout({ children, activeHref, topbarTitle, topbarSubti
     );
   }
 
-  if (!user) return null;
+  // Guard: don't render until role check passes
+  if (requiredRole && user.role !== requiredRole) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-
       <Sidebar
         activeHref={activeHref}
         collapsed={collapsed}
@@ -55,21 +72,18 @@ export function DashboardLayout({ children, activeHref, topbarTitle, topbarSubti
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {/* Right: header + scrollable content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header
           title={topbarTitle}
           subtitle={topbarSubtitle}
-          notificationCount={6}
-          messageCount={6}
+          notificationCount={notificationCount}
+          messageCount={messageCount}
           onMenuToggle={() => setMobileOpen(v => !v)}
         />
-        {/* Scrollable page content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
         </main>
       </div>
-
     </div>
   );
 }

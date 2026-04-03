@@ -1,32 +1,30 @@
 package edu.tlu.jobplatform.job.application.usecase.employer;
 
-import edu.tlu.jobplatform.job.application.port.out.QuotaServicePort;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
-import edu.tlu.jobplatform.job.domain.service.JobPostDomainService;
+import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
+import edu.tlu.jobplatform.shared.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * UseCase: Employer tạo tin tuyển dụng mới (DRAFT).
+ * UseCase: Tạo bài đăng tuyển dụng (DRAFT).
  *
- * Flow:
- * 1. Kiểm tra company có subscription active không
- * 2. Validate nội dung cơ bản
- * 3. Tạo JobPost với status DRAFT
- * 4. KHÔNG tiêu quota — quota chỉ bị trừ khi PUBLISH
+ * Tạo bài ở trạng thái DRAFT trước — employer chỉnh sửa rồi mới publish.
+ * Quota chưa bị trừ ở bước này — chỉ trừ khi publish.
  *
- * Lý do tách Create và Publish:
- * Employer có thể tạo nhiều draft, chỉ trả tiền khi thực sự publish.
+ * BR-01: Công ty phải có subscription active (kiểm tra ở PublishJobPost)
+ * BR-02: Tiêu đề phải có
+ * BR-03: Slug tự động sinh từ tiêu đề
  */
 @Slf4j
 @Service
@@ -34,81 +32,66 @@ import java.util.UUID;
 public class CreateJobPostUseCase {
 
     private final JobPostRepository jobPostRepository;
-    private final JobPostDomainService domainService;
-    private final QuotaServicePort quotaService;
 
     @Transactional
     public JobPost execute(Command cmd) {
 
-        // 1. Kiểm tra có subscription không (chỉ warn, không block tạo draft)
-        if (!quotaService.hasActiveSubscription(cmd.companyId())) {
-            log.warn("Company {} tạo draft nhưng không có subscription active.", cmd.companyId());
-        }
+        if (cmd.title() == null || cmd.title().isBlank())
+            throw new BusinessRuleException("Tiêu đề bài đăng không được để trống.", "JOB_TITLE_REQUIRED");
 
-        // 2. Validate nội dung
-        domainService.validateForCreate(cmd.title(), cmd.description(), cmd.deadline());
+        String slug = generateUniqueSlug(cmd.title());
 
-        // 3. Build salary
-        Salary salary = cmd.salaryNegotiate()
-                ? Salary.negotiate()
-                : Salary.of(cmd.salaryMin(), cmd.salaryMax(), cmd.currency());
-
-        // 4. Build work location
-        WorkLocation workLocation = switch (cmd.workLocationType()) {
-            case "REMOTE" -> WorkLocation.remote();
-            case "HYBRID" -> WorkLocation.hybrid(cmd.city());
-            default -> WorkLocation.onsite(cmd.city(), cmd.address());
-        };
-
-        // 5. Tạo JobPost (DRAFT)
-        JobPost jobPost = JobPost.builder()
+        JobPost job = JobPost.builder()
                 .id(UUID.randomUUID())
                 .companyId(cmd.companyId())
-                .createdBy(cmd.createdBy())
-                .title(cmd.title())
+                .postedBy(cmd.postedBy())
+                .title(cmd.title().trim())
+                .slug(slug)
                 .description(cmd.description())
                 .requirements(cmd.requirements())
                 .benefits(cmd.benefits())
-                .categoryCode(cmd.categoryCode())
-                .level(cmd.level())
                 .jobType(cmd.jobType())
-                .headcount(cmd.headcount() > 0 ? cmd.headcount() : 1)
-                .salary(salary)
-                .workLocation(workLocation)
+                .level(cmd.level())
+                .category(cmd.category())
+                .salary(cmd.salary())
+                .workLocation(cmd.workLocation())
+                .experienceYears(cmd.experienceYears())
+                .vacancies(cmd.vacancies() != null ? cmd.vacancies() : 1)
                 .deadline(cmd.deadline())
                 .status(JobStatus.DRAFT)
-                .featured(false)
                 .viewCount(0)
+                .applicationCount(0)
                 .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
-        JobPost saved = jobPostRepository.save(jobPost);
-        log.info("JobPost created (DRAFT): id={} company={}", saved.getId(), cmd.companyId());
+        JobPost saved = jobPostRepository.save(job);
+        log.info("JobPost created (DRAFT): {} [company={}]", saved.getId(), cmd.companyId());
         return saved;
+    }
+
+    private String generateUniqueSlug(String title) {
+        String base = SlugUtils.slugify(title);
+        String slug = base;
+        int suffix = 1;
+        while (jobPostRepository.existsBySlug(slug))
+            slug = base + "-" + suffix++;
+        return slug;
     }
 
     public record Command(
             UUID companyId,
-            UUID createdBy,
+            UUID postedBy,
             String title,
             String description,
             String requirements,
             String benefits,
-            String categoryCode,
-            String level,
             String jobType,
-            int headcount,
-            // Salary
-            boolean salaryNegotiate,
-            BigDecimal salaryMin,
-            BigDecimal salaryMax,
-            String currency,
-            // Location
-            String workLocationType, // "ONSITE", "REMOTE", "HYBRID"
-            String city,
-            String address,
-            // Deadline
-            LocalDateTime deadline) {
+            String level,
+            String category,
+            Salary salary,
+            WorkLocation workLocation,
+            Integer experienceYears,
+            Integer vacancies,
+            LocalDate deadline) {
     }
 }

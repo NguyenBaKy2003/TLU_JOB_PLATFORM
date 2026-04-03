@@ -1,37 +1,28 @@
 package edu.tlu.jobplatform.job.presentation.dto.request;
 
-import jakarta.validation.constraints.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 
-// ── UpdateJobPostRequest ──────────────────────────────────────
-
-public record UpdateJobPostRequest(
-
-        @NotBlank @Size(max = 255) String title,
-
-        @NotBlank String description,
-
-        String requirements,
-        String benefits,
-        String categoryCode,
-        String level,
-        String jobType,
-
-        @Min(1) @Max(100) int headcount,
-
-        boolean salaryNegotiate,
-        BigDecimal salaryMin,
-        BigDecimal salaryMax,
-        String currency,
-
-        @NotBlank String workLocationType,
-
-        String city,
-        String address,
-        LocalDateTime deadline,
-
-        List<CreateJobPostRequest.SkillRequest> skills) {
+/** PATCH semantics — tất cả nullable */
+@Data
+public class UpdateJobPostRequest {
+        private String title;
+        private String description;
+        private String requirements;
+        private String benefits;
+        private String jobType;
+        private String level;
+        private String category;
+        private BigDecimal salaryMin;
+        private BigDecimal salaryMax;
+        private String salaryCurrency;
+        private Boolean salaryNegotiable;
+        private String workLocationType;
+        private String workLocationCity;
+        private String workLocationAddress;
+        private Integer experienceYears;
+        private Integer vacancies;
+        private LocalDate deadline;
 }

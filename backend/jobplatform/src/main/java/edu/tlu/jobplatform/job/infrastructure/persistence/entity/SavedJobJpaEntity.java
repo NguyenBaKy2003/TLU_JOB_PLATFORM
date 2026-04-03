@@ -1,35 +1,30 @@
 package edu.tlu.jobplatform.job.infrastructure.persistence.entity;
 
+import edu.tlu.jobplatform.shared.base.BaseJpaEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "saved_jobs", uniqueConstraints = @UniqueConstraint(name = "uk_saved_job", columnNames = { "candidate_id",
-        "job_post_id" }), indexes = {
+@Table(name = "saved_jobs", indexes = {
                 @Index(name = "idx_saved_candidate", columnList = "candidate_id"),
-                @Index(name = "idx_saved_job", columnList = "job_post_id")
-        })
+                @Index(name = "idx_saved_unique", columnList = "candidate_id, job_post_id", unique = true)
+})
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SavedJobJpaEntity {
+public class SavedJobJpaEntity extends BaseJpaEntity {
 
-    @Id
-    private UUID id;
+        @Column(name = "candidate_id", nullable = false)
+        private UUID candidateId;
 
-    @Column(name = "candidate_id", nullable = false)
-    private UUID candidateId;
+        @Column(name = "job_post_id", nullable = false)
+        private UUID jobPostId;
 
-    @Column(name = "job_post_id", nullable = false)
-    private UUID jobPostId;
-
-    @CreationTimestamp
-    @Column(name = "saved_at", nullable = false, updatable = false)
-    private LocalDateTime savedAt;
+        @Column(name = "saved_at", nullable = false)
+        private LocalDateTime savedAt;
 }
