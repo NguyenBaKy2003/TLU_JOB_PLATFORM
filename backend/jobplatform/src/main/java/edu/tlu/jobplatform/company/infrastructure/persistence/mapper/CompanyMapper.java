@@ -30,6 +30,7 @@ public class CompanyMapper {
                 .size(e.getSize())
                 .foundedYear(e.getFoundedYear())
                 .logoUrl(e.getLogoUrl())
+                .active(e.isActive())
                 .coverImageUrl(e.getCoverImageUrl())
                 .verificationStatus(e.getVerificationStatus())
                 .rejectionReason(e.getRejectionReason())

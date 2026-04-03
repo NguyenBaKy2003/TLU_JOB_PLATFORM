@@ -22,10 +22,10 @@ import java.util.List;
  * Filter kiểm tra JWT trên mọi HTTP request.
  *
  * Flow:
- *   1. Trích xuất token từ "Authorization: Bearer {token}"
- *   2. Validate JWT (signature + expiry)
- *   3. Kiểm tra jti không nằm trong blacklist (đã logout)
- *   4. Set Authentication vào SecurityContext
+ * 1. Trích xuất token từ "Authorization: Bearer {token}"
+ * 2. Validate JWT (signature + expiry)
+ * 3. Kiểm tra jti không nằm trong blacklist (đã logout)
+ * 4. Set Authentication vào SecurityContext
  *
  * Không bao giờ throw exception — nếu token invalid thì để
  * SecurityContext trống; Spring Security chặn endpoint protected sau đó.
@@ -36,12 +36,12 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final TokenStorePort   tokenStore;
+    private final TokenStorePort tokenStore;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest  req,
-                                    HttpServletResponse res,
-                                    FilterChain         chain)
+    protected void doFilterInternal(HttpServletRequest req,
+            HttpServletResponse res,
+            FilterChain chain)
             throws ServletException, IOException {
 
         String token = extractBearerToken(req);
@@ -61,13 +61,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private void authenticate(String token, HttpServletRequest req) {
         try {
             String userId = jwtTokenProvider.extractUserId(token).toString();
-            String role   = jwtTokenProvider.extractRole(token);
+            String role = jwtTokenProvider.extractRole(token);
 
-            // principal = userId string → SecurityUtils.getCurrentUserId() lấy bằng getName()
+            // principal = userId string → SecurityUtils.getCurrentUserId() lấy bằng
+            // getName()
             var auth = new UsernamePasswordAuthenticationToken(
-                userId, null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
+                    userId, null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role)));
             auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -91,8 +91,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String path = req.getRequestURI();
         return path.startsWith("/api/auth/")
-            || path.startsWith("/swagger-ui")
-            || path.startsWith("/api-docs")
-            || path.equals("/actuator/health");
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/api-docs")
+                || path.equals("/actuator/health");
     }
 }

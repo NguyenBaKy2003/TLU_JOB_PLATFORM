@@ -1,71 +1,107 @@
 package edu.tlu.jobplatform.job.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
+import lombok.Builder;
+import lombok.Getter;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-// ── JobPostDetailResponse (full detail) ──────────────────────
+/** Response đầy đủ cho trang chi tiết */
+@Getter
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class JobPostDetailResponse {
 
-public record JobPostDetailResponse(
-                UUID id,
-                UUID companyId,
-                String title,
-                String description,
-                String requirements,
-                String benefits,
-                String categoryCode,
-                String level,
-                String jobType,
-                int headcount,
-                // Salary
-                boolean salaryNegotiate,
-                BigDecimal salaryMin,
-                BigDecimal salaryMax,
-                String salaryCurrency,
-                String salaryDisplay,
-                // Location
-                String workLocationType,
-                String city,
-                String address,
-                String workLocationDisplay,
-                // Status
-                JobStatus status,
-                boolean featured,
-                int viewCount,
-                // Skills
-                List<SkillResponse> skills,
-                // Dates
-                LocalDateTime deadline,
-                LocalDateTime publishedAt,
-                LocalDateTime createdAt,
-                LocalDateTime updatedAt) {
-        public static JobPostDetailResponse from(JobPost job) {
-                List<SkillResponse> skills = job.getSkills().stream()
-                                .map(s -> new SkillResponse(s.getSkillName(), s.isRequired(), s.getYearsRequired()))
-                                .toList();
+        private final UUID id;
+        private final UUID companyId;
+        private final UUID postedBy;
+        private final String title;
+        private final String slug;
+        private final String description;
+        private final String requirements;
+        private final String benefits;
+        private final String jobType;
+        private final String level;
+        private final String category;
 
-                return new JobPostDetailResponse(
-                                job.getId(), job.getCompanyId(), job.getTitle(),
-                                job.getDescription(), job.getRequirements(), job.getBenefits(),
-                                job.getCategoryCode(), job.getLevel(), job.getJobType(), job.getHeadcount(),
-                                job.getSalary() != null && job.getSalary().isNegotiate(),
-                                job.getSalary() != null ? job.getSalary().getMin() : null,
-                                job.getSalary() != null ? job.getSalary().getMax() : null,
-                                job.getSalary() != null ? job.getSalary().getCurrency() : null,
-                                job.getSalary() != null ? job.getSalary().display() : null,
-                                job.getWorkLocation() != null ? job.getWorkLocation().getType().name() : null,
-                                job.getWorkLocation() != null ? job.getWorkLocation().getCity() : null,
-                                job.getWorkLocation() != null ? job.getWorkLocation().getAddress() : null,
-                                job.getWorkLocation() != null ? job.getWorkLocation().display() : null,
-                                job.getStatus(), job.isFeatured(), job.getViewCount(),
-                                skills,
-                                job.getDeadline(), job.getPublishedAt(), job.getCreatedAt(), job.getUpdatedAt());
+        // Salary
+        private final String salaryDisplay;
+        private final Boolean salaryNegotiable;
+
+        // WorkLocation
+        private final String workLocationType;
+        private final String workLocationCity;
+        private final String workLocationAddress;
+
+        private final Integer experienceYears;
+        private final Integer vacancies;
+        private final LocalDate deadline;
+        private final JobStatus status;
+        private final boolean acceptingApplications;
+
+        private final int viewCount;
+        private final int applicationCount;
+
+        private final List<SkillDto> skills;
+
+        private final LocalDateTime publishedAt;
+        private final LocalDateTime createdAt;
+
+        public static JobPostDetailResponse from(JobPost j) {
+                List<SkillDto> skills = j.getSkills() == null ? List.of()
+                                : j.getSkills().stream().map(SkillDto::from).toList();
+
+                return JobPostDetailResponse.builder()
+                                .id(j.getId())
+                                .companyId(j.getCompanyId())
+                                .postedBy(j.getPostedBy())
+                                .title(j.getTitle())
+                                .slug(j.getSlug())
+                                .description(j.getDescription())
+                                .requirements(j.getRequirements())
+                                .benefits(j.getBenefits())
+                                .jobType(j.getJobType())
+                                .level(j.getLevel())
+                                .category(j.getCategory())
+                                .salaryDisplay(j.getSalary() != null ? j.getSalary().display() : null)
+                                .salaryNegotiable(j.getSalary() != null ? j.getSalary().isNegotiable() : null)
+                                .workLocationType(j.getWorkLocation() != null ? j.getWorkLocation().getType().name()
+                                                : null)
+                                .workLocationCity(j.getWorkLocation() != null ? j.getWorkLocation().getCity() : null)
+                                .workLocationAddress(
+                                                j.getWorkLocation() != null ? j.getWorkLocation().getAddress() : null)
+                                .experienceYears(j.getExperienceYears())
+                                .vacancies(j.getVacancies())
+                                .deadline(j.getDeadline())
+                                .status(j.getStatus())
+                                .acceptingApplications(j.isAcceptingApplications())
+                                .viewCount(j.getViewCount())
+                                .applicationCount(j.getApplicationCount())
+                                .skills(skills)
+                                .publishedAt(j.getPublishedAt())
+                                .createdAt(j.getCreatedAt())
+                                .build();
         }
 
-        public record SkillResponse(String skillName, boolean required, int yearsRequired) {
+        @Getter
+        @Builder
+        public static class SkillDto {
+                private final String skillName;
+                private final String level;
+                private final boolean required;
+
+                public static SkillDto from(JobPostSkill s) {
+                        return SkillDto.builder()
+                                        .skillName(s.getSkillName())
+                                        .level(s.getLevel())
+                                        .required(s.isRequired())
+                                        .build();
+                }
         }
 }

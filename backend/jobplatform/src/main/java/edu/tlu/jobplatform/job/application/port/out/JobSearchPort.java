@@ -1,56 +1,34 @@
 package edu.tlu.jobplatform.job.application.port.out;
 
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.UUID;
 
 /**
- * Output Port: Tìm kiếm tin tuyển dụng.
+ * Output Port để tìm kiếm bài đăng.
  *
- * Abstraction cho phép swap giữa:
- * - PostgreSQL full-text search (simple, đủ dùng ban đầu)
- * - Elasticsearch (khi cần scale)
+ * Sprint 1-4: PostgresJobSearchAdapter — dùng LIKE query đơn giản
+ * Sprint 5: ElasticsearchJobSearchAdapter — full-text + vector search
  *
- * UseCase chỉ biết interface này — không biết implementation cụ thể.
+ * Đổi implementation không ảnh hưởng đến UseCase.
  */
+@Component
 public interface JobSearchPort {
 
     /**
-     * Tìm kiếm tin tuyển dụng theo các tiêu chí lọc.
-     *
-     * @param criteria Bộ lọc tìm kiếm
-     * @return Kết quả phân trang
+     * Tìm kiếm bài đăng với filter.
+     * 
+     * @param keyword   từ khoá tìm kiếm trong title/description
+     * @param city      lọc theo thành phố
+     * @param category  lọc theo ngành nghề
+     * @param jobType   FULL_TIME, PART_TIME, CONTRACT, INTERN
+     * @param level     JUNIOR, MIDDLE, SENIOR...
+     * @param companyId lọc theo công ty cụ thể (nullable)
      */
-    SearchResult search(SearchCriteria criteria);
-
-    // ── DTOs ──────────────────────────────────────────────────
-
-    record SearchCriteria(
-            String keyword, // Tìm trong title, description
-            String categoryCode,
-            String level, // "INTERN", "JUNIOR", "SENIOR"...
-            String jobType, // "FULL_TIME", "PART_TIME"...
-            String city, // Lọc theo thành phố
-            String workLocationType, // "REMOTE", "ONSITE", "HYBRID"
-            Long salaryMin,
-            Long salaryMax,
-            List<String> skills, // Lọc theo kỹ năng
-            boolean featuredOnly,
-            int page,
-            int size,
-            String sortBy // "relevance", "newest", "salary"
-    ) {
-        public static SearchCriteria defaults() {
-            return new SearchCriteria(null, null, null, null,
-                    null, null, null, null, List.of(),
-                    false, 0, 20, "newest");
-        }
-    }
-
-    record SearchResult(
-            List<JobPost> items,
-            long totalElements,
-            int totalPages,
-            int currentPage) {
-    }
+    Page<JobPost> search(String keyword, String city, String category,
+            String jobType, String level, UUID companyId,
+            Pageable pageable);
 }

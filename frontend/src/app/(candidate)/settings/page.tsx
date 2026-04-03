@@ -13,11 +13,7 @@ export default function AccountSettingsPage() {
   const { user } = useAuth();
 
   return (
-    <DashboardLayout
-      activeHref="/settings"
-      topbarTitle="Cài Đặt Tài Khoản"
-      topbarSubtitle="Cập nhật hồ sơ để nhận được các gợi ý việc làm chính xác nhất."
-    >
+
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
         {/* Left */}
@@ -38,6 +34,5 @@ export default function AccountSettingsPage() {
         </div>
 
       </div>
-    </DashboardLayout>
   );
 }

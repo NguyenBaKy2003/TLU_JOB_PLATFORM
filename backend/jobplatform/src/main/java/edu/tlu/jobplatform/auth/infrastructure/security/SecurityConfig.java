@@ -85,6 +85,7 @@ public class SecurityConfig {
                                                                                                  // signature riêng
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
                                                 .requestMatchers("/api/v1/subscriptions/**").permitAll()
+                                                .requestMatchers("/api/v1/jobs/**").permitAll()
 
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
 

@@ -17,8 +17,8 @@ import java.util.UUID;
  * REST Controller: Kiểm tra và tiêu thụ quota gói dịch vụ.
  *
  * Endpoints:
- * GET /api/v1/subscriptions/quota — COMPANY: Xem trạng thái quota hiện tại
- * POST /api/v1/subscriptions/quota/consume/{type} — INTERNAL/COMPANY: Tiêu thụ
+ * GET /api/v1/subscriptions/quota — EMPLOYER: Xem trạng thái quota hiện tại
+ * POST /api/v1/subscriptions/quota/consume/{type} — INTERNAL/EMPLOYER: Tiêu thụ
  * 1 đơn vị quota
  *
  * Lưu ý: /consume thường được gọi nội bộ từ Job domain sau khi đăng tin thành
@@ -51,7 +51,7 @@ public class QuotaController {
      * }
      */
     @GetMapping
-    @PreAuthorize("hasRole('COMPANY')")
+    @PreAuthorize("hasRole('EMPLOYER')")
     @Operation(summary = "Xem trạng thái quota", description = "Kiểm tra quota còn lại của công ty hiện tại")
     public ResponseEntity<ApiResponse<CheckQuotaUseCase.Result>> getQuotaStatus(
             @AuthenticationPrincipal UUID companyId) {
@@ -86,12 +86,12 @@ public class QuotaController {
      *
      * Endpoint này dành cho:
      * - Internal service-to-service call (Job domain → Subscription domain)
-     * - Hoặc COMPANY tự gọi nếu dùng monolith
+     * - Hoặc EMPLOYER tự gọi nếu dùng monolith
      *
      * Nếu không đủ quota → 422 Unprocessable Entity với error code quota tương ứng.
      */
     @PostMapping("/consume/{type}")
-    @PreAuthorize("hasRole('COMPANY') or hasRole('SERVICE')")
+    @PreAuthorize("hasRole('EMPLOYER') or hasRole('SERVICE')")
     @Operation(summary = "Tiêu thụ quota", description = "Trừ 1 đơn vị quota sau khi hành động thành công")
     public ResponseEntity<ApiResponse<Void>> consumeQuota(
             @AuthenticationPrincipal UUID companyId,

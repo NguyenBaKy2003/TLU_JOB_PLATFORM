@@ -32,59 +32,60 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PurchasePlanUseCase {
 
-    private final SubscriptionPlanRepository planRepository;
-    private final CompanySubscriptionRepository subscriptionRepository;
-    private final PaymentRepository paymentRepository;
-    private final SubscriptionDomainService domainService;
-    private final PaymentGatewayPort paymentGateway;
+        private final SubscriptionPlanRepository planRepository;
+        private final CompanySubscriptionRepository subscriptionRepository;
+        private final PaymentRepository paymentRepository;
+        private final SubscriptionDomainService domainService;
+        private final PaymentGatewayPort paymentGateway;
 
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+        @Value("${app.base-url:http://localhost:8080}")
+        private String baseUrl;
 
-    @Transactional
-    public Result execute(Command cmd) {
+        @Transactional
+        public Result execute(Command cmd) {
 
-        // 1. Validate plan
-        SubscriptionPlan plan = planRepository.findById(cmd.planId())
-                .orElseThrow(() -> ResourceNotFoundException.of("SubscriptionPlan", cmd.planId()));
+                // 1. Validate plan
+                SubscriptionPlan plan = planRepository.findById(cmd.planId())
+                                .orElseThrow(() -> ResourceNotFoundException.of("SubscriptionPlan", cmd.planId()));
 
-        if (!plan.isActive())
-            throw new BusinessRuleException("Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
+                if (!plan.isActive())
+                        throw new BusinessRuleException("Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
 
-        // 2. Tạo Payment (PENDING)
-        String orderCode = "JP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        Payment payment = Payment.builder()
-                .id(UUID.randomUUID())
-                .companyId(cmd.companyId())
-                .planCode(plan.getCode())
-                .amount(cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly())
-                .currency("VND")
-                .gateway(paymentGateway.getGatewayName())
-                .gatewayOrderCode(orderCode)
-                .status(PaymentStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-        paymentRepository.save(payment);
+                // 2. Tạo Payment (PENDING)
+                String orderCode = "JP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                Payment payment = Payment.builder()
+                                .id(UUID.randomUUID())
+                                .companyId(cmd.userId())
+                                .planCode(plan.getCode())
+                                .amount(cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly())
+                                .currency("VND")
+                                .gateway(paymentGateway.getGatewayName())
+                                .gatewayOrderCode(orderCode)
+                                .status(PaymentStatus.PENDING)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                paymentRepository.save(payment);
 
-        // 3. Tạo Subscription (PENDING) — subscriptionId nhúng vào orderCode
-        CompanySubscription subscription = domainService.createPending(
-                cmd.companyId(), plan, payment.getId());
-        subscriptionRepository.save(subscription);
+                // 3. Tạo Subscription (PENDING) — subscriptionId nhúng vào orderCode
+                CompanySubscription subscription = domainService.createPending(
+                                cmd.userId(), plan, payment.getId());
+                subscriptionRepository.save(subscription);
 
-        // 4. Tạo payment URL
-        String returnUrl = baseUrl + "/api/v1/payments/callback/" + paymentGateway.getGatewayName().toLowerCase();
-        String description = "Mua " + plan.getName() + " - " + cmd.companyId().toString().substring(0, 8);
-        String paymentUrl = paymentGateway.createPaymentUrl(
-                orderCode, payment.getAmount(), description, returnUrl);
+                // 4. Tạo payment URL
+                String returnUrl = baseUrl + "/api/v1/payments/callback/"
+                                + paymentGateway.getGatewayName().toLowerCase();
+                String description = "Mua " + plan.getName() + " - " + cmd.userId().toString().substring(0, 8);
+                String paymentUrl = paymentGateway.createPaymentUrl(
+                                orderCode, payment.getAmount(), description, returnUrl);
 
-        log.info("Payment initiated: company={} plan={} order={}", cmd.companyId(), plan.getCode(), orderCode);
+                log.info("Payment initiated: company={} plan={} order={}", cmd.userId(), plan.getCode(), orderCode);
 
-        return new Result(payment.getId(), subscription.getId(), paymentUrl, orderCode);
-    }
+                return new Result(payment.getId(), subscription.getId(), paymentUrl, orderCode);
+        }
 
-    public record Command(UUID companyId, UUID planId, boolean yearly) {
-    }
+        public record Command(UUID userId, UUID planId, boolean yearly) {
+        }
 
-    public record Result(UUID paymentId, UUID subscriptionId, String paymentUrl, String orderCode) {
-    }
+        public record Result(UUID paymentId, UUID subscriptionId, String paymentUrl, String orderCode) {
+        }
 }
