@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-// import { AuthProvider } from "@/usecase/contexts/AuthContext";
 import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
-// import { WebSocketProvider } from "@/usecase/contexts/WebSocketContext";
-export const dynamic = 'force-dynamic'
+
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,11 +30,9 @@ export default function RootLayout({
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <AuthProvider>
-          {/* <WebSocketProvider> */}
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          {/* </WebSocketProvider> */}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
