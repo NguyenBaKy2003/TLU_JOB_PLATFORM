@@ -3,7 +3,6 @@ package edu.tlu.jobplatform.subscription.infrastructure.persistence.repository;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionStatus;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.CompanySubscriptionJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -15,9 +14,8 @@ import java.util.UUID;
 public interface CompanySubscriptionJpaRepo
                 extends JpaRepository<CompanySubscriptionJpaEntity, UUID> {
 
-        @Query("SELECT s FROM CompanySubscriptionJpaEntity s " +
-                        "WHERE s.companyId = :companyId AND s.status = 'ACTIVE'")
-        Optional<CompanySubscriptionJpaEntity> findActiveByCompanyId(UUID companyId);
+        Optional<CompanySubscriptionJpaEntity> findByCompanyIdAndStatus(
+                        UUID companyId, SubscriptionStatus status);
 
         List<CompanySubscriptionJpaEntity> findByCompanyIdOrderByCreatedAtDesc(UUID companyId);
 

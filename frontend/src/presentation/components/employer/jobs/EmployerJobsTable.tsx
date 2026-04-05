@@ -48,8 +48,8 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
   if (jobs.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-2xl border n border-gray-100 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto min-h-screen">
         <table className="w-full min-w-[720px]">
           <thead>
             <tr className="border-b border-gray-50">
@@ -71,7 +71,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
                   {/* Job info */}
                   <td className="px-5 py-4">
                     <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600
-                      transition-colors truncate max-w-[200px]">
+                      transition-colors truncate max-w-[400px]">
                       {job.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400 flex-wrap">

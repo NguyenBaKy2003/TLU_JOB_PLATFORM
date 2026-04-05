@@ -87,7 +87,7 @@ public class SecurityConfig {
 
                                                 .requestMatchers("/api/v1/subscriptions/**").permitAll()
                                                 .requestMatchers("/api/v1/jobs/**").permitAll()
-                                                .requestMatchers("/api/v1/payments/callback**").permitAll()
+                                                .requestMatchers("/api/v1/payments/callback/**").permitAll()
 
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
 

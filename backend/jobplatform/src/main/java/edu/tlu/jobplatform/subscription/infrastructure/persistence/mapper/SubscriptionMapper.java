@@ -32,7 +32,7 @@ public class SubscriptionMapper {
     }
 
     public CompanySubscriptionJpaEntity toNewEntity(CompanySubscription d) {
-        return CompanySubscriptionJpaEntity.builder()
+        CompanySubscriptionJpaEntity entity = CompanySubscriptionJpaEntity.builder()
                 .companyId(d.getCompanyId())
                 .planId(d.getPlanId())
                 .planCode(d.getPlanCode())
@@ -49,6 +49,9 @@ public class SubscriptionMapper {
                 .analyticsAccess(d.isAnalyticsAccess())
                 .currentPaymentId(d.getCurrentPaymentId())
                 .build();
+        if (d.getId() != null)
+            entity.setId(d.getId());
+        return entity;
     }
 
     public void updateEntity(CompanySubscriptionJpaEntity e, CompanySubscription d) {
@@ -81,26 +84,6 @@ public class SubscriptionMapper {
                 .build();
     }
 
-    // ── Payment ───────────────────────────────────────────────
-
-    public Payment toPaymentDomain(PaymentJpaEntity e) {
-        return Payment.builder()
-                .id(e.getId())
-                .companyId(e.getCompanyId())
-                .subscriptionId(e.getSubscriptionId())
-                .planCode(e.getPlanCode())
-                .amount(e.getAmount())
-                .currency(e.getCurrency())
-                .gateway(e.getGateway())
-                .gatewayOrderCode(e.getGatewayOrderCode())
-                .status(e.getStatus())
-                .gatewayTransactionId(e.getGatewayTransactionId())
-                .failureReason(e.getFailureReason())
-                .completedAt(e.getCompletedAt())
-                .createdAt(e.getCreatedAt())
-                .build();
-    }
-
     public SubscriptionPlanJpaEntity toPlanEntity(SubscriptionPlan d) {
         if (d == null)
             return null;
@@ -121,8 +104,28 @@ public class SubscriptionMapper {
         return entity;
     }
 
+    // ── Payment ───────────────────────────────────────────────
+
+    public Payment toPaymentDomain(PaymentJpaEntity e) {
+        return Payment.builder()
+                .id(e.getId())
+                .companyId(e.getCompanyId())
+                .subscriptionId(e.getSubscriptionId())
+                .planCode(e.getPlanCode())
+                .amount(e.getAmount())
+                .currency(e.getCurrency())
+                .gateway(e.getGateway())
+                .gatewayOrderCode(e.getGatewayOrderCode())
+                .status(e.getStatus())
+                .gatewayTransactionId(e.getGatewayTransactionId())
+                .failureReason(e.getFailureReason())
+                .completedAt(e.getCompletedAt())
+                .createdAt(e.getCreatedAt())
+                .build();
+    }
+
     public PaymentJpaEntity toPaymentNewEntity(Payment d) {
-        return PaymentJpaEntity.builder()
+        PaymentJpaEntity entity = PaymentJpaEntity.builder()
                 .companyId(d.getCompanyId())
                 .subscriptionId(d.getSubscriptionId())
                 .planCode(d.getPlanCode())
@@ -135,6 +138,9 @@ public class SubscriptionMapper {
                 .failureReason(d.getFailureReason())
                 .completedAt(d.getCompletedAt())
                 .build();
+        if (d.getId() != null)
+            entity.setId(d.getId());
+        return entity;
     }
 
     public void updatePaymentEntity(PaymentJpaEntity e, Payment d) {

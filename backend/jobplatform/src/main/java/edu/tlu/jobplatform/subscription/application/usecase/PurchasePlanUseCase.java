@@ -37,26 +37,21 @@ public class PurchasePlanUseCase {
                                 .orElseThrow(() -> ResourceNotFoundException.of("SubscriptionPlan", cmd.planId()));
 
                 if (!plan.isActive())
-                        throw new BusinessRuleException("Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
-
-                // Guard: tránh tạo 2 đơn PENDING cùng lúc
-                paymentRepository.findPendingByCompanyId(cmd.userId()).ifPresent(p -> {
                         throw new BusinessRuleException(
-                                        "Bạn đang có đơn hàng chờ thanh toán: " + p.getGatewayOrderCode()
-                                                        + ". Vui lòng hoàn tất hoặc chờ đơn hết hạn.",
-                                        "PENDING_ORDER_EXISTS");
-                });
+                                        "Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
 
                 BigDecimal amount = cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly();
                 String orderCode = generateOrderCode();
-                // returnUrl raw — KHÔNG encode ở đây, adapter sẽ encode đúng 1 lần
-                String returnUrl = baseUrl + "/api/v1/payments/callback/vnpay/return";
-                String description = "Mua " + plan.getName() + " - "
-                                + cmd.userId().toString().substring(0, 8);
 
+                // 1. Tạo và lưu subscription PENDING — dùng id từ entity đã persist
+                CompanySubscription subscription = domainService.createPending(cmd.companyId(), plan, null);
+                CompanySubscription savedSubscription = subscriptionRepository.save(subscription);
+
+                // 2. Tạo Payment liên kết đúng subscriptionId đã persist
                 Payment payment = Payment.builder()
                                 .id(UUID.randomUUID())
-                                .companyId(cmd.userId())
+                                .companyId(cmd.companyId())
+                                .subscriptionId(savedSubscription.getId())
                                 .planCode(plan.getCode())
                                 .amount(amount)
                                 .currency("VND")
@@ -67,27 +62,25 @@ public class PurchasePlanUseCase {
                                 .build();
                 paymentRepository.save(payment);
 
-                CompanySubscription subscription = domainService.createPending(
-                                cmd.userId(), plan, payment.getId());
-                subscriptionRepository.save(subscription);
-
+                // 3. Tạo payment URL
+                String returnUrl = baseUrl + "/api/v1/payments/callback/vnpay/return";
+                String description = "Mua " + plan.getName() + " - "
+                                + cmd.companyId().toString().substring(0, 8);
                 String paymentUrl = paymentGateway.createPaymentUrl(
                                 orderCode, amount, description, returnUrl);
 
-                log.info("Payment initiated: company={} plan={} order={}",
-                                cmd.userId(), plan.getCode(), orderCode);
+                log.info("Payment initiated: company={} plan={} order={} subscription={}",
+                                cmd.companyId(), plan.getCode(), orderCode, savedSubscription.getId());
 
-                return new Result(payment.getId(), subscription.getId(), paymentUrl, orderCode);
+                return new Result(payment.getId(), savedSubscription.getId(), paymentUrl, orderCode);
         }
 
-        /** JP- + timestamp 8 ký tự + random 4 ký tự — tránh trùng */
         private String generateOrderCode() {
-                String ts = String.valueOf(System.currentTimeMillis()).substring(5, 13);
-                String uid = UUID.randomUUID().toString().replace("-", "").substring(0, 4).toUpperCase();
-                return "JP-" + ts + uid;
+                return "JP-" + UUID.randomUUID().toString()
+                                .replace("-", "").substring(0, 8).toUpperCase();
         }
 
-        public record Command(UUID userId, UUID planId, boolean yearly) {
+        public record Command(UUID companyId, UUID planId, boolean yearly) {
         }
 
         public record Result(UUID paymentId, UUID subscriptionId,
