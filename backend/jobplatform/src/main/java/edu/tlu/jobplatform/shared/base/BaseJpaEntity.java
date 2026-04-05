@@ -12,13 +12,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Base class cho tất cả JPA Entity — giữ nguyên như ban đầu.
- *
- * Không cần implement Persistable nữa vì JobPostRepositoryAdapter
- * dùng entityManager.persist() trực tiếp cho INSERT,
- * tránh hoàn toàn vấn đề Spring Data isNew() detection.
- */
 @Getter
 @Setter
 @MappedSuperclass
@@ -26,7 +19,6 @@ import java.util.UUID;
 public abstract class BaseJpaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
@@ -59,6 +51,8 @@ public abstract class BaseJpaEntity {
 
     @PrePersist
     protected void prePersist() {
+        if (this.id == null)
+            this.id = UUID.randomUUID();
         if (this.createdAt == null)
             this.createdAt = LocalDateTime.now();
         if (this.updatedAt == null)

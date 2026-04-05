@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-// ── RefundQuotaUseCase ────────────────────────────────────────────
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,9 +18,10 @@ public class RefundQuotaUseCase {
     @Transactional
     public void execute(UUID companyId) {
         subscriptionRepo.findActiveByCompanyId(companyId).ifPresent(sub -> {
-            sub.consumeJobPost(-1); // sẽ refund qua Quota.refund()
+            sub.refundJobPost(1);
             subscriptionRepo.save(sub);
-            log.info("Quota refunded: companyId={}", companyId);
+            log.info("Quota refunded: companyId={} remaining={}",
+                    companyId, sub.getJobPostQuota().remaining());
         });
     }
 }

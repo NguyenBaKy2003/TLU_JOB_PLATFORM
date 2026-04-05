@@ -1,5 +1,7 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import edu.tlu.jobplatform.subscription.application.usecase.CheckQuotaUseCase;
@@ -22,13 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Endpoints:
- * GET /api/v1/subscriptions/plans — Public: trang pricing
- * GET /api/v1/subscriptions/my — EMPLOYER: subscription hiện tại
- * GET /api/v1/subscriptions/my/quota — EMPLOYER: quota còn lại
- * POST /api/v1/subscriptions/purchase — EMPLOYER: mua gói → payment URL
- */
 @RestController
 @RequestMapping("/api/v1/subscriptions")
 @RequiredArgsConstructor
@@ -39,6 +34,7 @@ public class SubscriptionController {
     private final CompanySubscriptionRepository subscriptionRepository;
     private final PurchasePlanUseCase purchaseUseCase;
     private final CheckQuotaUseCase checkQuotaUseCase;
+    private final CompanyRepository companyRepository;
 
     @Operation(summary = "Danh sách gói dịch vụ (trang pricing)")
     @GetMapping("/plans")
@@ -51,12 +47,12 @@ public class SubscriptionController {
     @GetMapping("/my")
     @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<ApiResponse<?>> getMySubscription() {
-        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
-        Optional<CompanySubscription> optional = subscriptionRepository.findActiveByCompanyId(companyId);
+        UUID companyId = resolveCompanyId(); // fix: dùng companyId thay vì userId
+        Optional<CompanySubscription> optional = subscriptionRepository
+                .findActiveByCompanyId(companyId);
 
-        if (optional.isPresent()) {
+        if (optional.isPresent())
             return ResponseEntity.ok(ApiResponse.success(optional.get()));
-        }
 
         return ResponseEntity.ok(ApiResponse.success("Chưa có gói dịch vụ nào."));
     }
@@ -66,7 +62,7 @@ public class SubscriptionController {
     @GetMapping("/my/quota")
     @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<ApiResponse<CheckQuotaUseCase.Result>> getQuota() {
-        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+        UUID companyId = resolveCompanyId();
         return ResponseEntity.ok(ApiResponse.success(checkQuotaUseCase.execute(companyId)));
     }
 
@@ -77,12 +73,23 @@ public class SubscriptionController {
     public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchase(
             @Valid @RequestBody PurchaseRequest req) {
 
-        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+        UUID companyId = resolveCompanyId();
         PurchasePlanUseCase.Result result = purchaseUseCase.execute(
                 new PurchasePlanUseCase.Command(companyId, req.planId(), req.yearly()));
 
         return ResponseEntity.ok(ApiResponse.success(result,
                 "Đơn hàng đã được tạo. Vui lòng thanh toán tại URL được cung cấp."));
+    }
+
+    // ── Helper ────────────────────────────────────────────────
+
+    private UUID resolveCompanyId() {
+        UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
+        return companyRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Bạn chưa có hồ sơ công ty. Vui lòng tạo hồ sơ trước khi tiếp tục.",
+                        "COMPANY_PROFILE_NOT_FOUND"))
+                .getId();
     }
 
     public record PurchaseRequest(

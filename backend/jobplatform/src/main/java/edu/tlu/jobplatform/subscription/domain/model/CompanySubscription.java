@@ -13,13 +13,12 @@ public class CompanySubscription {
     private final UUID id;
     private final UUID companyId;
     private final UUID planId;
-    private final String planCode; // snapshot tại thời điểm mua
+    private final String planCode;
 
-    private final LocalDateTime startedAt;
+    private LocalDateTime startedAt;
     private LocalDateTime expiresAt;
     private SubscriptionStatus status;
 
-    // ── Quota snapshots ───────────────────────────────────────
     private Quota jobPostQuota;
     private Quota featuredJobQuota;
     private Quota cvViewQuota;
@@ -65,6 +64,7 @@ public class CompanySubscription {
 
     public void activate(UUID paymentId, LocalDateTime expiresAt) {
         this.status = SubscriptionStatus.ACTIVE;
+        this.startedAt = LocalDateTime.now(); // fix: set startedAt
         this.expiresAt = expiresAt;
         this.currentPaymentId = paymentId;
     }
@@ -85,6 +85,10 @@ public class CompanySubscription {
 
     public void consumeJobPost(int count) {
         this.jobPostQuota = jobPostQuota.consume(count);
+    }
+
+    public void refundJobPost(int count) {
+        this.jobPostQuota = jobPostQuota.refund(count);
     }
 
     public void consumeFeaturedJob(int n) {
