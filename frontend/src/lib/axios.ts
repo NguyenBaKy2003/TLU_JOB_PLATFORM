@@ -40,12 +40,12 @@ const refreshAccessToken = async (): Promise<string> => {
     throw new Error("No refresh token available")
   }
 
-  try {
-    const response = await axios.post(
+      try {
+        const response = await axios.post(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
-      { refreshToken },
+      null, 
       {
-        headers: { "Content-Type": "application/json" }
+        params: { refreshToken },
       }
     )
 

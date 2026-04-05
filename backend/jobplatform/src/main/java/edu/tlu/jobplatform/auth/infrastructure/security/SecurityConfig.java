@@ -80,7 +80,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
-
+                                                .requestMatchers("/api/v1/ws/**").permitAll()
                                                 .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
                                                                                                  // signature riêng
                                                 .requestMatchers("/api/v1/admin/**").permitAll()

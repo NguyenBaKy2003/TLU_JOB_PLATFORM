@@ -1,60 +1,111 @@
 // src/presentation/components/messages/ConversationItem.tsx
-import type { Conversation } from "./types";
+"use client";
+import { useEffect, useRef } from "react";
+import type { ConversationSummary } from "@/domain/models/Message";
 
-interface Props {
-  conv:     Conversation;
-  active:   boolean;
-  onClick:  () => void;
-}
-
-function CompanyAvatar({ name, size = 40 }: { name: string; size?: number }) {
-  const initials = name.slice(0, 2).toUpperCase();
-  const colors   = [
-    "from-red-400 to-red-600",   "from-blue-400 to-blue-600",
-    "from-green-400 to-green-600","from-purple-400 to-purple-600",
-    "from-orange-400 to-orange-600","from-teal-400 to-teal-600",
+function Avatar({ name, src }: { name: string; src?: string | null }) {
+  const COLORS = [
+    "from-red-400 to-red-600",     "from-blue-400 to-blue-600",
+    "from-green-400 to-green-600", "from-purple-400 to-purple-600",
+    "from-orange-400 to-orange-500","from-teal-400 to-teal-600",
   ];
-  const color = colors[name.charCodeAt(0) % colors.length];
+  const color = COLORS[(name?.charCodeAt(0) ?? 0) % COLORS.length];
+  if (src) return <img src={src} alt={name} className="w-full h-full object-cover" />;
   return (
-    <div className={`rounded-full bg-gradient-to-br ${color} flex items-center justify-center shrink-0 text-white font-bold`}
-      style={{ width: size, height: size, fontSize: size * 0.35 }}>
-      {initials}
+    <div className={`w-full h-full bg-gradient-to-br ${color}
+      flex items-center justify-center text-white font-bold text-sm`}>
+      {name?.slice(0, 2).toUpperCase()}
     </div>
   );
 }
 
-export function ConversationItem({ conv, active, onClick }: Props) {
+function timeAgo(iso: string | null): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1)  return "Vừa xong";
+  if (mins < 60) return `${mins} phút`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs} giờ`;
+  return `${Math.floor(hrs / 24)} ngày`;
+}
+
+interface Props {
+  conv:    ConversationSummary;
+  active:  boolean;
+  onClick: () => void;
+  /** Highlight nhấp nháy khi có tin nhắn mới real-time */
+  flash?:  boolean;
+}
+
+export function ConversationItem({ conv, active, onClick, flash }: Props) {
+  const itemRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll vào view khi conversation được đẩy lên đầu do tin mới
+  useEffect(() => {
+    if (flash && itemRef.current) {
+      itemRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [flash]);
+
+  const hasUnread = conv.unreadCount > 0;
+
   return (
     <button
+      ref={itemRef}
       onClick={onClick}
-      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors rounded-xl
-        ${active ? "bg-blue-50" : "hover:bg-gray-50"}`}
+      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-all rounded-xl
+        ${active  ? "bg-blue-50 ring-1 ring-blue-100" : "hover:bg-gray-50"}
+        ${flash   ? "animate-pulse-once bg-blue-50/60" : ""}
+      `}
     >
       {/* Avatar + online dot */}
       <div className="relative shrink-0 mt-0.5">
-        <CompanyAvatar name={conv.company} size={40} />
+        <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
+          <Avatar name={conv.otherParticipantName} src={conv.otherParticipantAvatar} />
+        </div>
         {conv.online && (
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full
-            border-2 border-white" />
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400
+            rounded-full border-2 border-white" />
         )}
       </div>
 
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2 mb-0.5">
-          <p className={`text-sm truncate ${active ? "font-semibold text-blue-600" : "font-medium text-gray-800"}`}>
-            {conv.company}
+          <p className={`text-sm truncate ${
+            active    ? "font-semibold text-blue-600"
+            : hasUnread ? "font-semibold text-gray-900"
+            : "font-medium text-gray-700"
+          }`}>
+            {conv.otherParticipantName}
           </p>
-          <span className="text-[11px] text-gray-400 shrink-0">{conv.time}</span>
+          <span className={`text-[11px] shrink-0 ${
+            hasUnread ? "text-blue-500 font-medium" : "text-gray-400"
+          }`}>
+            {timeAgo(conv.lastMessageAt)}
+          </span>
         </div>
-        <p className="text-xs text-gray-500 truncate">{conv.lastMessage}</p>
+
+        {conv.jobTitle && (
+          <p className="text-[11px] text-blue-500 font-medium truncate mb-0.5">
+            {conv.jobTitle}
+          </p>
+        )}
+
+        <p className={`text-xs truncate ${
+          hasUnread ? "text-gray-700 font-medium" : "text-gray-400"
+        }`}>
+          {conv.lastMessagePreview ?? "Bắt đầu cuộc trò chuyện"}
+        </p>
       </div>
 
       {/* Unread badge */}
-      {conv.unread > 0 && (
-        <span className="shrink-0 flex items-center justify-center min-w-[18px] h-[18px] px-1
-          text-[10px] font-bold bg-red-500 text-white rounded-full mt-1">
-          {conv.unread}
+      {hasUnread && (
+        <span className="shrink-0 flex items-center justify-center min-w-[18px] h-[18px]
+          px-1 text-[10px] font-bold bg-blue-500 text-white rounded-full mt-1
+          animate-bounce-once">
+          {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
         </span>
       )}
     </button>
