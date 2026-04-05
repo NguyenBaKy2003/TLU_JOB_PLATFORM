@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
+import { WebSocketProvider } from "@/application/contexts/WebSocketContext";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,9 @@ export default function RootLayout({
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <AuthProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <WebSocketProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </WebSocketProvider>
         </AuthProvider>
       </body>
     </html>

@@ -53,6 +53,33 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success(count));
     }
 
+    /** GET /api/v1/notifications/recent — lấy 10 thông báo gần nhất */
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> recent(
+            @AuthenticationPrincipal String userId) {
+
+        GetNotificationsUseCase.Result result = getNotifications.execute(UUID.fromString(userId), 0, 10);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                result.notifications().stream()
+                        .map(NotificationResponse::from)
+                        .toList()));
+    }
+
+    /** GET /api/v1/notifications/unread-count */
+    @GetMapping("/unread-count")
+    public ResponseEntity<ApiResponse<UnreadCountResult>> unreadCount(
+            @AuthenticationPrincipal String userId) {
+
+        GetNotificationsUseCase.Result result = getNotifications.execute(UUID.fromString(userId), 0, 1);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                new UnreadCountResult(result.unreadCount())));
+    }
+
+    public record UnreadCountResult(int unreadCount) {
+    }
+
     public record Result(List<NotificationResponse> notifications, int unreadCount) {
     }
 }
