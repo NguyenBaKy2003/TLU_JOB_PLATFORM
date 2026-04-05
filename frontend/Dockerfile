@@ -8,7 +8,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install  --only=production
+RUN npm install  --only=develop
 
 # ── Stage 2: Builder ──────────────────────────────────────────────
 FROM node:20-alpine AS builder
