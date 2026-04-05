@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.job.presentation;
 
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.PublishJobPostUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
@@ -46,6 +47,7 @@ public class JobPostController {
         private final CreateJobPostUseCase createUseCase;
         private final PublishJobPostUseCase publishUseCase;
         private final JobPostRepository jobPostRepository;
+        private final CompanyRepository companyRepository;
 
         @Operation(summary = "Tạo bài đăng tuyển dụng (DRAFT)")
         @SecurityRequirement(name = "bearerAuth")
@@ -54,7 +56,7 @@ public class JobPostController {
         public ResponseEntity<ApiResponse<JobPostDetailResponse>> create(
                         @Valid @RequestBody CreateJobPostRequest req) {
 
-                UUID companyId = resolveCompanyId(); // TODO: lấy từ CompanyRepository
+                UUID companyId = resolveCompanyId();
                 UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
 
                 Salary salary = req.isSalaryNegotiable()
@@ -125,11 +127,12 @@ public class JobPostController {
         }
 
         // ── Helpers ───────────────────────────────────────────────
-
         private UUID resolveCompanyId() {
-                // TODO Sprint 2: inject CompanyRepository, tìm bằng ownerId
-                // Tạm thời: dùng mock UUID
-                return UUID.randomUUID();
+                UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
+                return companyRepository.findByOwnerId(ownerId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Company not found for owner: " + ownerId))
+                                .getId();
         }
 
         private WorkLocation buildWorkLocation(CreateJobPostRequest req) {
