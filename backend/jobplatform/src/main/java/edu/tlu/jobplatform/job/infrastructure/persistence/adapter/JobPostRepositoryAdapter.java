@@ -73,10 +73,28 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
             if (existing.isPresent()) {
                 JobPostJpaEntity entity = existing.get();
                 mapper.updateEntity(entity, job);
+                // Sync skills: xóa cũ, thêm mới (orphanRemoval = true)
+                syncSkills(entity, job);
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
-        return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(job)));
+        // Tạo mới: build entity kèm skills
+        JobPostJpaEntity entity = mapper.toNewEntity(job);
+        syncSkills(entity, job);
+        return mapper.toDomain(jpaRepo.save(entity));
+    }
+
+    /**
+     * Đồng bộ danh sách skills giữa domain và JPA entity.
+     * jobPostId lấy từ domain model (đã set UUID trước khi save).
+     * orphanRemoval=true → JPA tự xóa skill cũ khi clear().
+     */
+    private void syncSkills(JobPostJpaEntity entity, JobPost job) {
+        entity.getSkills().clear();
+        if (job.getSkills() != null && !job.getSkills().isEmpty()) {
+            UUID jobPostId = job.getId(); // UUID đã được set trong UseCase
+            job.getSkills().forEach(skill -> entity.getSkills().add(mapper.toSkillEntity(skill, jobPostId)));
+        }
     }
 
     @Override

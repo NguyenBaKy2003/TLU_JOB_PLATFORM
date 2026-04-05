@@ -7,87 +7,104 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionMapper {
 
-    // ── SubscriptionPlan ──────────────────────────────────────
-
-    public SubscriptionPlan toPlanDomain(SubscriptionPlanJpaEntity e) {
-        if (e == null)
-            return null;
-        return SubscriptionPlan.builder()
-                .id(e.getId()).code(e.getCode()).name(e.getName())
-                .description(e.getDescription())
-                .priceMonthly(e.getPriceMonthly()).priceYearly(e.getPriceYearly())
-                .jobPostLimit(e.getJobPostLimit()).featuredJobLimit(e.getFeaturedJobLimit())
-                .cvViewLimit(e.getCvViewLimit())
-                .aiFeatures(e.isAiFeatures()).analyticsAccess(e.isAnalyticsAccess())
-                .durationDays(e.getDurationDays())
-                .active(Boolean.TRUE.equals(e.getIsActive()))
-                .build();
-    }
-
     // ── CompanySubscription ───────────────────────────────────
 
-    public CompanySubscription toSubDomain(CompanySubscriptionJpaEntity e) {
-        if (e == null)
-            return null;
+    public CompanySubscription toDomain(CompanySubscriptionJpaEntity e) {
         return CompanySubscription.builder()
-                .id(e.getId()).companyId(e.getCompanyId())
-                .planId(e.getPlanId()).planCode(e.getPlanCode())
+                .id(e.getId())
+                .companyId(e.getCompanyId())
+                .planId(e.getPlanId())
+                .planCode(e.getPlanCode())
+                .startedAt(e.getStartedAt())
+                .expiresAt(e.getExpiresAt())
                 .status(e.getStatus())
-                .startedAt(e.getStartedAt()).expiresAt(e.getExpiresAt())
-                .jobPostQuota(Quota.of(e.getJobPostLimit(), e.getJobPostUsed()))
-                .featuredJobQuota(Quota.of(e.getFeaturedJobLimit(), e.getFeaturedJobUsed()))
-                .cvViewQuota(Quota.of(e.getCvViewLimit(), e.getCvViewUsed()))
-                .aiFeatures(e.isAiFeatures()).analyticsAccess(e.isAnalyticsAccess())
+                .jobPostQuota(Quota.builder()
+                        .limit(e.getJobPostQuotaLimit()).used(e.getJobPostQuotaUsed()).build())
+                .featuredJobQuota(Quota.builder()
+                        .limit(e.getFeaturedJobQuotaLimit()).used(e.getFeaturedJobQuotaUsed()).build())
+                .cvViewQuota(Quota.builder()
+                        .limit(e.getCvViewQuotaLimit()).used(e.getCvViewQuotaUsed()).build())
+                .aiFeatures(e.isAiFeatures())
+                .analyticsAccess(e.isAnalyticsAccess())
                 .currentPaymentId(e.getCurrentPaymentId())
                 .createdAt(e.getCreatedAt())
                 .build();
     }
 
-    public CompanySubscriptionJpaEntity toSubNewEntity(CompanySubscription d) {
+    public CompanySubscriptionJpaEntity toNewEntity(CompanySubscription d) {
         return CompanySubscriptionJpaEntity.builder()
-                .companyId(d.getCompanyId()).planId(d.getPlanId()).planCode(d.getPlanCode())
+                .companyId(d.getCompanyId())
+                .planId(d.getPlanId())
+                .planCode(d.getPlanCode())
+                .startedAt(d.getStartedAt())
+                .expiresAt(d.getExpiresAt())
                 .status(d.getStatus())
-                .startedAt(d.getStartedAt()).expiresAt(d.getExpiresAt())
-                .jobPostLimit(d.getJobPostQuota().getLimit())
-                .jobPostUsed(d.getJobPostQuota().getUsed())
-                .featuredJobLimit(d.getFeaturedJobQuota().getLimit())
-                .featuredJobUsed(d.getFeaturedJobQuota().getUsed())
-                .cvViewLimit(d.getCvViewQuota().getLimit())
-                .cvViewUsed(d.getCvViewQuota().getUsed())
-                .aiFeatures(d.isAiFeatures()).analyticsAccess(d.isAnalyticsAccess())
+                .jobPostQuotaLimit(d.getJobPostQuota().getLimit())
+                .jobPostQuotaUsed(d.getJobPostQuota().getUsed())
+                .featuredJobQuotaLimit(d.getFeaturedJobQuota().getLimit())
+                .featuredJobQuotaUsed(d.getFeaturedJobQuota().getUsed())
+                .cvViewQuotaLimit(d.getCvViewQuota().getLimit())
+                .cvViewQuotaUsed(d.getCvViewQuota().getUsed())
+                .aiFeatures(d.isAiFeatures())
+                .analyticsAccess(d.isAnalyticsAccess())
                 .currentPaymentId(d.getCurrentPaymentId())
                 .build();
     }
 
-    public void updateSubEntity(CompanySubscriptionJpaEntity e, CompanySubscription d) {
+    public void updateEntity(CompanySubscriptionJpaEntity e, CompanySubscription d) {
         e.setStatus(d.getStatus());
+        e.setStartedAt(d.getStartedAt());
         e.setExpiresAt(d.getExpiresAt());
-        e.setJobPostUsed(d.getJobPostQuota().getUsed());
-        e.setFeaturedJobUsed(d.getFeaturedJobQuota().getUsed());
-        e.setCvViewUsed(d.getCvViewQuota().getUsed());
         e.setCurrentPaymentId(d.getCurrentPaymentId());
+        e.setJobPostQuotaUsed(d.getJobPostQuota().getUsed());
+        e.setFeaturedJobQuotaUsed(d.getFeaturedJobQuota().getUsed());
+        e.setCvViewQuotaUsed(d.getCvViewQuota().getUsed());
+    }
+
+    // ── SubscriptionPlan ──────────────────────────────────────
+
+    public SubscriptionPlan toPlanDomain(SubscriptionPlanJpaEntity e) {
+        return SubscriptionPlan.builder()
+                .id(e.getId())
+                .code(e.getCode())
+                .name(e.getName())
+                .description(e.getDescription())
+                .priceMonthly(e.getPriceMonthly())
+                .priceYearly(e.getPriceYearly())
+                .jobPostLimit(e.getJobPostLimit())
+                .featuredJobLimit(e.getFeaturedJobLimit())
+                .cvViewLimit(e.getCvViewLimit())
+                .aiFeatures(e.isAiFeatures())
+                .analyticsAccess(e.isAnalyticsAccess())
+                .durationDays(e.getDurationDays())
+                .active(e.isActive())
+                .build();
     }
 
     // ── Payment ───────────────────────────────────────────────
 
     public Payment toPaymentDomain(PaymentJpaEntity e) {
-        if (e == null)
-            return null;
         return Payment.builder()
-                .id(e.getId()).companyId(e.getCompanyId())
-                .subscriptionId(e.getSubscriptionId()).planCode(e.getPlanCode())
-                .amount(e.getAmount()).currency(e.getCurrency()).gateway(e.getGateway())
+                .id(e.getId())
+                .companyId(e.getCompanyId())
+                .subscriptionId(e.getSubscriptionId())
+                .planCode(e.getPlanCode())
+                .amount(e.getAmount())
+                .currency(e.getCurrency())
+                .gateway(e.getGateway())
                 .gatewayOrderCode(e.getGatewayOrderCode())
+                .status(e.getStatus())
                 .gatewayTransactionId(e.getGatewayTransactionId())
-                .status(e.getStatus()).failureReason(e.getFailureReason())
-                .completedAt(e.getCompletedAt()).createdAt(e.getCreatedAt())
+                .failureReason(e.getFailureReason())
+                .completedAt(e.getCompletedAt())
+                .createdAt(e.getCreatedAt())
                 .build();
     }
 
     public SubscriptionPlanJpaEntity toPlanEntity(SubscriptionPlan d) {
         if (d == null)
             return null;
-        return SubscriptionPlanJpaEntity.builder()
+        SubscriptionPlanJpaEntity entity = SubscriptionPlanJpaEntity.builder()
                 .code(d.getCode())
                 .name(d.getName())
                 .description(d.getDescription())
@@ -100,14 +117,23 @@ public class SubscriptionMapper {
                 .analyticsAccess(d.isAnalyticsAccess())
                 .durationDays(d.getDurationDays())
                 .build();
+        entity.setIsActive(d.isActive());
+        return entity;
     }
 
     public PaymentJpaEntity toPaymentNewEntity(Payment d) {
         return PaymentJpaEntity.builder()
-                .companyId(d.getCompanyId()).subscriptionId(d.getSubscriptionId())
-                .planCode(d.getPlanCode()).amount(d.getAmount()).currency(d.getCurrency())
-                .gateway(d.getGateway()).gatewayOrderCode(d.getGatewayOrderCode())
+                .companyId(d.getCompanyId())
+                .subscriptionId(d.getSubscriptionId())
+                .planCode(d.getPlanCode())
+                .amount(d.getAmount())
+                .currency(d.getCurrency())
+                .gateway(d.getGateway())
+                .gatewayOrderCode(d.getGatewayOrderCode())
+                .gatewayTransactionId(d.getGatewayTransactionId())
                 .status(d.getStatus())
+                .failureReason(d.getFailureReason())
+                .completedAt(d.getCompletedAt())
                 .build();
     }
 

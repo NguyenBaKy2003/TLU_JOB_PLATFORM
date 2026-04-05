@@ -9,18 +9,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CompanySubscriptionRepository {
+        Optional<CompanySubscription> findById(UUID id);
 
-    Optional<CompanySubscription> findById(UUID id);
+        Optional<CompanySubscription> findActiveByCompanyId(UUID companyId);
 
-    /** Subscription đang ACTIVE của công ty */
-    Optional<CompanySubscription> findActiveByCompanyId(UUID companyId);
+        List<CompanySubscription> findByCompanyId(UUID companyId);
 
-    /** Tất cả subscription của công ty (để xem lịch sử) */
-    List<CompanySubscription> findByCompanyId(UUID companyId);
+        /** Tìm ACTIVE subscription sắp hết hạn — scheduler dùng */
+        List<CompanySubscription> findByStatusAndExpiresAtBefore(
+                        SubscriptionStatus status, LocalDateTime threshold);
 
-    /** Tìm subscription sắp hết hạn — dùng bởi scheduler */
-    List<CompanySubscription> findByStatusAndExpiresAtBefore(
-            SubscriptionStatus status, LocalDateTime threshold);
-
-    CompanySubscription save(CompanySubscription subscription);
+        CompanySubscription save(CompanySubscription subscription);
 }

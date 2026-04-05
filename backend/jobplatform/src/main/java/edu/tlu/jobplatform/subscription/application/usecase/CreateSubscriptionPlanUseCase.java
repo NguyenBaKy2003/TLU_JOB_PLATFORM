@@ -61,7 +61,6 @@ public class CreateSubscriptionPlanUseCase {
 
         // 5. Tạo plan
         SubscriptionPlan plan = SubscriptionPlan.builder()
-                .id(UUID.randomUUID())
                 .code(cmd.code().toUpperCase().trim())
                 .name(cmd.name().trim())
                 .description(cmd.description())
@@ -73,7 +72,7 @@ public class CreateSubscriptionPlanUseCase {
                 .aiFeatures(cmd.aiFeatures())
                 .analyticsAccess(cmd.analyticsAccess())
                 .durationDays(cmd.durationDays())
-                .active(true) // mặc định active khi tạo mới
+                .active(true)
                 .build();
 
         SubscriptionPlan saved = planRepository.save(plan);

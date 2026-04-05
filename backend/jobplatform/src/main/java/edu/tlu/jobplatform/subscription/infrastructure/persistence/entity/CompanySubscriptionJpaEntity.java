@@ -23,45 +23,38 @@ public class CompanySubscriptionJpaEntity extends BaseJpaEntity {
 
     @Column(name = "company_id", nullable = false)
     private UUID companyId;
-
     @Column(name = "plan_id", nullable = false)
     private UUID planId;
-
-    @Column(name = "plan_code", nullable = false, length = 30)
+    @Column(name = "plan_code", length = 30)
     private String planCode;
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SubscriptionStatus status;
 
-    @Column(name = "started_at")
-    private LocalDateTime startedAt;
+    // ── Quota (3 loại, embedded) ──────────────────────────────
+    @Column(name = "job_post_quota_limit", nullable = false)
+    private int jobPostQuotaLimit;
+    @Column(name = "job_post_quota_used", nullable = false)
+    private int jobPostQuotaUsed;
 
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    @Column(name = "featured_job_quota_limit", nullable = false)
+    private int featuredJobQuotaLimit;
+    @Column(name = "featured_job_quota_used", nullable = false)
+    private int featuredJobQuotaUsed;
 
-    // ── Quota fields (flattened từ Value Objects) ─────────────
-    @Column(name = "job_post_limit", nullable = false)
-    private int jobPostLimit;
-
-    @Column(name = "job_post_used", nullable = false)
-    private int jobPostUsed;
-
-    @Column(name = "featured_job_limit", nullable = false)
-    private int featuredJobLimit;
-
-    @Column(name = "featured_job_used", nullable = false)
-    private int featuredJobUsed;
-
-    @Column(name = "cv_view_limit", nullable = false)
-    private int cvViewLimit;
-
-    @Column(name = "cv_view_used", nullable = false)
-    private int cvViewUsed;
+    @Column(name = "cv_view_quota_limit", nullable = false)
+    private int cvViewQuotaLimit;
+    @Column(name = "cv_view_quota_used", nullable = false)
+    private int cvViewQuotaUsed;
 
     @Column(name = "ai_features", nullable = false)
     private boolean aiFeatures;
-
     @Column(name = "analytics_access", nullable = false)
     private boolean analyticsAccess;
 

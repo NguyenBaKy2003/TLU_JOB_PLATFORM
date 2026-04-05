@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.job.presentation;
 import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.PublishJobPostUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -61,11 +63,22 @@ public class JobPostController {
 
                 WorkLocation location = buildWorkLocation(req);
 
+                // Map skills từ DTO → domain model
+                List<JobPostSkill> skills = req.getSkills() == null ? List.of()
+                                : req.getSkills().stream()
+                                                .map(s -> JobPostSkill.builder()
+                                                                .skillName(s.getSkillName())
+                                                                .level(s.getLevel())
+                                                                .required(s.isRequired())
+                                                                .build())
+                                                .toList();
+
                 JobPost job = createUseCase.execute(new CreateJobPostUseCase.Command(
                                 companyId, postedBy, req.getTitle(), req.getDescription(),
                                 req.getRequirements(), req.getBenefits(), req.getJobType(),
                                 req.getLevel(), req.getCategory(), salary, location,
-                                req.getExperienceYears(), req.getVacancies(), req.getDeadline()));
+                                req.getExperienceYears(), req.getVacancies(), req.getDeadline(),
+                                skills));
 
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(ApiResponse.success(JobPostDetailResponse.from(job),

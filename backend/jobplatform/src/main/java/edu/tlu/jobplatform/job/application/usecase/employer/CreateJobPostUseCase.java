@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.application.usecase.employer;
 
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -41,8 +44,23 @@ public class CreateJobPostUseCase {
 
         String slug = generateUniqueSlug(cmd.title());
 
+        // Gán jobPostId cho từng skill trước khi lưu
+        UUID jobId = UUID.randomUUID();
+        List<JobPostSkill> skills = new ArrayList<>();
+        if (cmd.skills() != null) {
+            for (JobPostSkill s : cmd.skills()) {
+                skills.add(JobPostSkill.builder()
+                        .id(UUID.randomUUID())
+                        .jobPostId(jobId)
+                        .skillName(s.getSkillName())
+                        .level(s.getLevel())
+                        .required(s.isRequired())
+                        .build());
+            }
+        }
+
         JobPost job = JobPost.builder()
-                .id(UUID.randomUUID())
+                .id(jobId)
                 .companyId(cmd.companyId())
                 .postedBy(cmd.postedBy())
                 .title(cmd.title().trim())
@@ -58,6 +76,7 @@ public class CreateJobPostUseCase {
                 .experienceYears(cmd.experienceYears())
                 .vacancies(cmd.vacancies() != null ? cmd.vacancies() : 1)
                 .deadline(cmd.deadline())
+                .skills(skills)
                 .status(JobStatus.DRAFT)
                 .viewCount(0)
                 .applicationCount(0)
@@ -92,6 +111,8 @@ public class CreateJobPostUseCase {
             WorkLocation workLocation,
             Integer experienceYears,
             Integer vacancies,
-            LocalDate deadline) {
+            LocalDate deadline,
+            List<JobPostSkill> skills // nullable — có thể không có skill khi tạo DRAFT
+    ) {
     }
 }
