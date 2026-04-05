@@ -11,6 +11,11 @@ import {
   Bookmark,
   FileText,
   Settings,
+  Building2,
+  LayoutDashboard,
+  Users,
+  PlusCircle,
+  BarChart2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -18,9 +23,7 @@ import { useAuth } from "@/application/contexts/AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface HeaderProps {
-  activePage?: "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
-}
+type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -31,19 +34,42 @@ const NAV_ITEMS = [
   { label: "Tạo CV", href: "/cv", key: "tao-cv" },
 ];
 
-const DROPDOWN_ITEMS = [
+const CANDIDATE_DROPDOWN = [
   { label: "Hồ sơ của tôi", href: "/profile", Icon: User },
   { label: "Việc đã lưu", href: "/saved-jobs", Icon: Bookmark },
   { label: "Đơn ứng tuyển", href: "/applications", Icon: FileText },
   { label: "Cài đặt", href: "/settings", Icon: Settings },
 ];
 
+const EMPLOYER_DROPDOWN = [
+  { label: "Dashboard", href: "/employer/dashboard", Icon: LayoutDashboard },
+  { label: "Quản lý tin tuyển dụng", href: "/employer/jobs", Icon: FileText },
+  { label: "Ứng viên", href: "/employer/candidates", Icon: Users },
+  { label: "Đăng tin mới", href: "/employer/jobs/new", Icon: PlusCircle },
+  { label: "Thống kê", href: "/employer/analytics", Icon: BarChart2 },
+  { label: "Hồ sơ công ty", href: "/employer/profile", Icon: Building2 },
+  { label: "Cài đặt", href: "/employer/settings", Icon: Settings },
+];
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+function resolveActivePage(pathname: string): ActivePage {
+  if (pathname === "/") return "trang-chu";
+  if (pathname.startsWith("/jobs")) return "tim-viec";
+  if (pathname.startsWith("/companies")) return "cong-ty";
+  if (pathname.startsWith("/cv")) return "tao-cv";
+  return "trang-chu";
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function Header({ activePage = "trang-chu" }: HeaderProps) {
+export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
+
+  const activePage = resolveActivePage(pathname);
+  const isEmployer = user?.role === "EMPLOYER";
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -65,10 +91,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
   // ── Close dropdowns on outside click ──────────────────────────────────────
   useEffect(() => {
     const fn = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      )
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
         setDropdownOpen(false);
       if (searchRef.current && !searchRef.current.contains(e.target as Node))
         setSearchOpen(false);
@@ -87,16 +110,16 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
     setMobileOpen(false);
   }, [pathname]);
 
-  // ── Logout handler ─────────────────────────────────────────────────────────
+  // ── Logout ─────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     setDropdownOpen(false);
     await logout();
     router.push("/auth/login");
   };
 
-  // ── Avatar initials fallback ───────────────────────────────────────────────
+  // ── Avatar initials ────────────────────────────────────────────────────────
   const initials = user?.fullName
-    ? user?.fullName
+    ? user.fullName
         .trim()
         .split(" ")
         .slice(-2)
@@ -105,9 +128,21 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
         .toUpperCase()
     : "U";
 
+  // ── Role-based styles & data ───────────────────────────────────────────────
+  const dropdownItems = isEmployer ? EMPLOYER_DROPDOWN : CANDIDATE_DROPDOWN;
+  const roleLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
+  const avatarGradient = isEmployer
+    ? "from-violet-500 to-indigo-600"
+    : "from-blue-500 to-cyan-500";
+  const ringColor = isEmployer ? "ring-violet-100" : "ring-blue-100";
+  const badgeClass = isEmployer
+    ? "bg-violet-100 text-violet-700"
+    : "bg-blue-100 text-blue-700";
+
   return (
     <>
-      <div className="h-[68px]" />
+      {/* Spacer — khớp chiều cao header */}
+      <div className="h-[80px]" />
 
       <header
         className={`
@@ -116,14 +151,14 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
           ${scrolled ? "shadow-md" : "shadow-sm"}
         `}
       >
-        <div className="max-w-[1232px] mx-auto px-4 py-5  h-[80px] flex items-center gap-6">
+        <div className="max-w-[1232px] mx-auto px-4 h-[80px] flex items-center gap-6">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <img src="/Logo.svg" alt="JobPlatform" className="h-10 w-auto" />
           </Link>
 
           {/* Nav — desktop */}
-          <nav className="hidden md:flex justify-evenly items-start flex-1">
+          <nav className="hidden md:flex justify-evenly items-center flex-1">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
@@ -159,17 +194,12 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
 
               {searchOpen && (
                 <div className="absolute right-0 top-[calc(100%+8px)] w-72 bg-white border border-gray-200 rounded-xl shadow-lg p-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
-                  <Search
-                    size={16}
-                    className="text-gray-400 flex-shrink-0 ml-1"
-                  />
+                  <Search size={16} className="text-gray-400 flex-shrink-0 ml-1" />
                   <input
                     ref={searchInput}
                     value={searchVal}
                     onChange={(e) => setSearchVal(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Escape" && setSearchOpen(false)
-                    }
+                    onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
                     placeholder="Tìm kiếm việc làm..."
                     className="flex-1 text-sm text-gray-700 placeholder-gray-400 bg-transparent outline-none py-1.5"
                   />
@@ -177,7 +207,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
               )}
             </div>
 
-            {/* Bell — chỉ hiện khi đã đăng nhập */}
+            {/* Bell */}
             {isAuthenticated && (
               <button className="relative w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                 <Bell size={18} />
@@ -190,13 +220,20 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
             {/* ── Logged in ───────────────────────────────────────────────── */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
-                {/* Nhà tuyển dụng link — chỉ cho CANDIDATE */}
-                {user?.role === "CANDIDATE" && (
+                {/* Switch role link */}
+                {!isEmployer ? (
                   <Link
                     href="/employer"
                     className="hidden lg:block text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
                   >
                     Nhà tuyển dụng
+                  </Link>
+                ) : (
+                  <Link
+                    href="/"
+                    className="hidden lg:block text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
+                  >
+                    Tìm việc làm
                   </Link>
                 )}
 
@@ -206,48 +243,59 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
                     onClick={() => setDropdownOpen((v) => !v)}
                     className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    {user?.avatarUrl ? (
+                    {user.avatarUrl ? (
                       <img
-                        src={user?.avatarUrl}
-                        alt={user?.fullName}
-                        className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-100"
+                        src={user.avatarUrl}
+                        alt={user.fullName}
+                        className={`w-8 h-8 rounded-full object-cover ring-2 ${ringColor}`}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-[12px] font-bold ring-2 ring-blue-100">
+                      <div
+                        className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white text-[12px] font-bold ring-2 ${ringColor}`}
+                      >
                         {initials}
                       </div>
                     )}
                     <ChevronDown
                       size={14}
-                      className={`text-gray-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                      className={`text-gray-400 transition-transform duration-200 ${
+                        dropdownOpen ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
 
-                  {/* Dropdown menu */}
+                  {/* Dropdown */}
                   {dropdownOpen && (
-                    <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-                      {/* User info */}
+                    <div className="absolute right-0 top-[calc(100%+8px)] w-60 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                      {/* User info header */}
                       <div className="px-4 py-3 border-b border-gray-50">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {user?.fullName}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {user?.role === "CANDIDATE"
-                            ? "Ứng viên"
-                            : "Nhà tuyển dụng"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {user.fullName}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}
+                          >
+                            {roleLabel}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Menu items */}
                       <div className="p-1.5">
-                        {DROPDOWN_ITEMS.map(({ label, href, Icon }) => (
+                        {dropdownItems.map(({ label, href, Icon }) => (
                           <Link
                             key={href}
                             href={href}
                             onClick={() => setDropdownOpen(false)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                           >
-                            <Icon size={15} className="text-gray-400" />
+                            <Icon size={15} className="text-gray-400 shrink-0" />
                             {label}
                           </Link>
                         ))}
@@ -277,7 +325,7 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="text-sm font-semibold text-white px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-sm shadow-blue-200 flex items-center gap-1.5"
+                  className="text-sm font-semibold text-white px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-sm shadow-blue-200"
                 >
                   Đăng ký
                 </Link>
@@ -347,9 +395,20 @@ export function Header({ activePage = "trang-chu" }: HeaderProps) {
               </div>
             )}
 
-            {/* Mobile — logged in: show logout */}
-            {isAuthenticated && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
+            {/* Mobile — logged in */}
+            {isAuthenticated && user && (
+              <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+                {dropdownItems.map(({ label, href, Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50"
+                  >
+                    <Icon size={15} className="text-gray-400" />
+                    {label}
+                  </Link>
+                ))}
+                <div className="h-px bg-gray-100 my-1" />
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 w-full px-3 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors"

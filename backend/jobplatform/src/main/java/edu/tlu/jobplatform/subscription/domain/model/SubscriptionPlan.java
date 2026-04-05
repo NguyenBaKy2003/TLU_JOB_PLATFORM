@@ -9,14 +9,11 @@ import java.util.UUID;
 /**
  * Value Object: Định nghĩa gói dịch vụ (plan).
  *
- * SubscriptionPlan là "template" bất biến — không thay đổi theo thời gian.
- * CompanySubscription là "instance" — gắn với 1 công ty cụ thể.
- *
- * 4 gói theo thiết kế:
- * STARTER — 500K/tháng, 5 tin tuyển dụng
+ * 4 gói:
+ * STARTER — 500K/tháng, 5 tin
  * BUSINESS — 1.5M/tháng, 20 tin
  * ENTERPRISE — 4M/tháng, 100 tin
- * CUSTOM — liên hệ, không giới hạn
+ * CUSTOM — liên hệ, unlimited
  */
 @Getter
 @Builder
@@ -24,24 +21,17 @@ public class SubscriptionPlan {
 
     private final UUID id;
     private final String code; // "STARTER", "BUSINESS"...
-    private final String name; // "Gói Starter"
+    private final String name;
     private final String description;
-
-    // ── Giá ───────────────────────────────────────────────────
-    private final BigDecimal priceMonthly; // VND
-    private final BigDecimal priceYearly; // VND (discount ~20%)
-
-    // ── Quota ─────────────────────────────────────────────────
-    private final int jobPostLimit; // Số tin tuyển dụng/tháng (-1 = unlimited)
-    private final int featuredJobLimit; // Số tin nổi bật/tháng
-    private final int cvViewLimit; // Số hồ sơ ứng viên được xem/tháng
-    private final boolean aiFeatures; // Có AI scoring, JD optimizer không
-    private final boolean analyticsAccess; // Có báo cáo analytics không
+    private final BigDecimal priceMonthly;
+    private final BigDecimal priceYearly; // discount ~20%
+    private final int jobPostLimit; // -1 = unlimited
+    private final int featuredJobLimit;
+    private final int cvViewLimit; // -1 = unlimited
+    private final boolean aiFeatures;
+    private final boolean analyticsAccess;
     private final int durationDays; // 30 hoặc 365
-
-    private final boolean active; // Admin có thể deactivate plan cũ
-
-    // ── Business Rules ────────────────────────────────────────
+    private final boolean active;
 
     public boolean isUnlimitedJobs() {
         return jobPostLimit < 0;
@@ -51,7 +41,6 @@ public class SubscriptionPlan {
         return cvViewLimit < 0;
     }
 
-    /** Yearly price thường rẻ hơn 12 tháng monthly */
     public BigDecimal getYearlySavings() {
         if (priceYearly == null || priceMonthly == null)
             return BigDecimal.ZERO;

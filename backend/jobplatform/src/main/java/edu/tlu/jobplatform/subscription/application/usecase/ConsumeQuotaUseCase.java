@@ -16,34 +16,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConsumeQuotaUseCase {
 
-    private final CompanySubscriptionRepository subscriptionRepository;
-    private final QuotaDomainService quotaService;
+    private final CompanySubscriptionRepository subscriptionRepo;
+    private final QuotaDomainService quotaDomainService;
 
     @Transactional
-    public void execute(UUID companyId, QuotaType type) {
-
-        CompanySubscription sub = subscriptionRepository
+    public void execute(UUID companyId) {
+        CompanySubscription sub = subscriptionRepo
                 .findActiveByCompanyId(companyId)
                 .orElseThrow(() -> new BusinessRuleException(
-                        "Không có gói dịch vụ active.", "NO_ACTIVE_SUBSCRIPTION"));
+                        "Công ty chưa có gói dịch vụ. Vui lòng mua gói để đăng bài.",
+                        "NO_ACTIVE_SUBSCRIPTION"));
 
-        switch (type) {
-            case JOB_POST -> {
-                quotaService.checkJobPostQuota(sub);
-                quotaService.consumeJobPost(sub);
-            }
-            case FEATURED_JOB -> {
-                quotaService.checkFeaturedJobQuota(sub);
-                sub.consumeFeaturedJob(1);
-            }
-            case CV_VIEW -> quotaService.consumeCvView(sub);
-        }
+        quotaDomainService.checkJobPostQuota(sub); // throw nếu hết
+        quotaDomainService.consumeJobPost(sub);
+        subscriptionRepo.save(sub);
 
-        subscriptionRepository.save(sub);
-        log.debug("Quota consumed: company={} type={}", companyId, type);
-    }
-
-    public enum QuotaType {
-        JOB_POST, FEATURED_JOB, CV_VIEW
+        log.info("Quota consumed: companyId={} remaining={}",
+                companyId, sub.getJobPostQuota().remaining());
     }
 }

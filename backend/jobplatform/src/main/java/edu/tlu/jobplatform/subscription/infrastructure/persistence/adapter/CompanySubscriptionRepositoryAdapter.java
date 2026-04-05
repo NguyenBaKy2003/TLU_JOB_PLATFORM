@@ -12,9 +12,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-// ── CompanySubscription Adapter ───────────────────────────────
+// ── CompanySubscriptionRepositoryAdapter ──────────────────────────
 
 @Component
 @RequiredArgsConstructor
@@ -25,35 +24,37 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
 
     @Override
     public Optional<CompanySubscription> findById(UUID id) {
-        return jpaRepo.findById(id).map(mapper::toSubDomain);
+        return jpaRepo.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public Optional<CompanySubscription> findActiveByCompanyId(UUID companyId) {
-        return jpaRepo.findActiveByCompanyId(companyId).map(mapper::toSubDomain);
+        return jpaRepo.findActiveByCompanyId(companyId).map(mapper::toDomain);
     }
 
     @Override
     public List<CompanySubscription> findByCompanyId(UUID companyId) {
         return jpaRepo.findByCompanyIdOrderByCreatedAtDesc(companyId)
-                .stream().map(mapper::toSubDomain).collect(Collectors.toList());
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public List<CompanySubscription> findByStatusAndExpiresAtBefore(
             SubscriptionStatus status, LocalDateTime threshold) {
         return jpaRepo.findByStatusAndExpiresAtBefore(status, threshold)
-                .stream().map(mapper::toSubDomain).collect(Collectors.toList());
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public CompanySubscription save(CompanySubscription sub) {
-        CompanySubscriptionJpaEntity entity = jpaRepo.findById(sub.getId())
-                .map(e -> {
-                    mapper.updateSubEntity(e, sub);
-                    return e;
-                })
-                .orElseGet(() -> mapper.toSubNewEntity(sub));
-        return mapper.toSubDomain(jpaRepo.save(entity));
+        if (sub.getId() != null) {
+            Optional<CompanySubscriptionJpaEntity> existing = jpaRepo.findById(sub.getId());
+            if (existing.isPresent()) {
+                CompanySubscriptionJpaEntity e = existing.get();
+                mapper.updateEntity(e, sub);
+                return mapper.toDomain(jpaRepo.save(e));
+            }
+        }
+        return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(sub)));
     }
 }

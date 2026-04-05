@@ -57,8 +57,8 @@ public class UserMapper {
         entity.setAvatarUrl(u.getAvatarUrl());
         entity.setRole(u.getRole());
         entity.setVerified(u.isVerified());
-        entity.setAuthProvider(u.getAuthProvider()); // ← thêm
-        entity.setAuthProviderId(u.getAuthProviderId()); // ← thêm
+        entity.setAuthProvider(u.getAuthProvider());
+        entity.setAuthProviderId(u.getAuthProviderId());
         entity.setLastLoginAt(u.getLastLoginAt());
         entity.setIsActive(u.isActive());
     }

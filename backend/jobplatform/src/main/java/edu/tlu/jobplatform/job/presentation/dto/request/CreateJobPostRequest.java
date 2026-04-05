@@ -1,11 +1,13 @@
 package edu.tlu.jobplatform.job.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Schema(description = "Tạo bài đăng tuyển dụng")
@@ -64,4 +66,24 @@ public class CreateJobPostRequest {
         @Future(message = "Hạn nộp CV phải là ngày trong tương lai")
         @NotNull(message = "Vui lòng chọn hạn nộp CV")
         private LocalDate deadline;
+
+        // ── Skills ────────────────────────────────────────────────
+        @Valid
+        @Schema(description = "Danh sách kỹ năng yêu cầu")
+        private List<SkillRequest> skills;
+
+        @Data
+        public static class SkillRequest {
+
+                @NotBlank(message = "Tên skill không được để trống")
+                @Size(max = 100)
+                @Schema(example = "Java")
+                private String skillName;
+
+                @Schema(example = "Nâng cao", allowableValues = { "Cơ bản", "Trung cấp", "Nâng cao" })
+                private String level;
+
+                @Schema(example = "true", description = "true = bắt buộc, false = không bắt buộc")
+                private boolean required = true;
+        }
 }

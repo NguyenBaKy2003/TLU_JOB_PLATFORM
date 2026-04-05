@@ -1,26 +1,33 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
-import edu.tlu.jobplatform.subscription.application.usecase.GetAvailablePlansUseCase;
-import edu.tlu.jobplatform.subscription.application.usecase.PurchasePlanUseCase;
-import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import edu.tlu.jobplatform.subscription.application.usecase.CheckQuotaUseCase;
+import edu.tlu.jobplatform.subscription.application.usecase.PurchasePlanUseCase;
+import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
+import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
+import edu.tlu.jobplatform.subscription.domain.repository.CompanySubscriptionRepository;
+import edu.tlu.jobplatform.subscription.domain.repository.SubscriptionPlanRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * REST Controller: Quản lý subscription — mua gói, xem danh sách gói.
- *
  * Endpoints:
- * GET /api/v1/subscriptions/plans — Public: Xem danh sách gói dịch vụ
- * POST /api/v1/subscriptions/purchase — EMPLOYER: Mua gói dịch vụ
+ * GET /api/v1/subscriptions/plans — Public: trang pricing
+ * GET /api/v1/subscriptions/my — EMPLOYER: subscription hiện tại
+ * GET /api/v1/subscriptions/my/quota — EMPLOYER: quota còn lại
+ * POST /api/v1/subscriptions/purchase — EMPLOYER: mua gói → payment URL
  */
 @RestController
 @RequestMapping("/api/v1/subscriptions")
@@ -28,55 +35,58 @@ import java.util.UUID;
 @Tag(name = "Subscription", description = "Quản lý gói dịch vụ tuyển dụng")
 public class SubscriptionController {
 
-    private final GetAvailablePlansUseCase getAvailablePlansUseCase;
-    private final PurchasePlanUseCase purchasePlanUseCase;
+    private final SubscriptionPlanRepository planRepository;
+    private final CompanySubscriptionRepository subscriptionRepository;
+    private final PurchasePlanUseCase purchaseUseCase;
+    private final CheckQuotaUseCase checkQuotaUseCase;
 
-    /**
-     * GET /api/v1/subscriptions/plans
-     * Public — không cần auth.
-     * Trả về tất cả gói dịch vụ đang active để hiển thị trang pricing.
-     */
+    @Operation(summary = "Danh sách gói dịch vụ (trang pricing)")
     @GetMapping("/plans")
-    @Operation(summary = "Lấy danh sách gói dịch vụ", description = "Public endpoint — hiển thị trang pricing")
-    public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> getAvailablePlans() {
-        List<SubscriptionPlan> plans = getAvailablePlansUseCase.execute();
-        return ResponseEntity.ok(ApiResponse.success(plans));
+    public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> getPlans() {
+        return ResponseEntity.ok(ApiResponse.success(planRepository.findAllActive()));
     }
 
-    /**
-     * POST /api/v1/subscriptions/purchase
-     * Chỉ dành cho EMPLOYER role.
-     * Tạo payment và trả về URL redirect đến cổng thanh toán.
-     *
-     * Request body:
-     * {
-     * "planId": "uuid",
-     * "yearly": false
-     * }
-     *
-     * Response:
-     * {
-     * "paymentId": "uuid",
-     * "subscriptionId": "uuid",
-     * "paymentUrl": "https://sandbox.vnpayment.vn/...",
-     * "orderCode": "JP-A1B2C3D4"
-     * }
-     */
+    @Operation(summary = "Subscription hiện tại của công ty")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<ApiResponse<?>> getMySubscription() {
+        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+        Optional<CompanySubscription> optional = subscriptionRepository.findActiveByCompanyId(companyId);
+
+        if (optional.isPresent()) {
+            return ResponseEntity.ok(ApiResponse.success(optional.get()));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success("Chưa có gói dịch vụ nào."));
+    }
+
+    @Operation(summary = "Thông tin quota còn lại")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/my/quota")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<ApiResponse<CheckQuotaUseCase.Result>> getQuota() {
+        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+        return ResponseEntity.ok(ApiResponse.success(checkQuotaUseCase.execute(companyId)));
+    }
+
+    @Operation(summary = "Mua gói dịch vụ → nhận payment URL")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchasePlan(
-            @AuthenticationPrincipal String companyIdStr, // ← String, not UUID
-            @RequestBody PurchaseRequest request) {
+    public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchase(
+            @Valid @RequestBody PurchaseRequest req) {
 
-        UUID companyId = UUID.fromString(companyIdStr); // ← parse here
+        UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+        PurchasePlanUseCase.Result result = purchaseUseCase.execute(
+                new PurchasePlanUseCase.Command(companyId, req.planId(), req.yearly()));
 
-        PurchasePlanUseCase.Command cmd = new PurchasePlanUseCase.Command(
-                companyId, request.planId(), request.yearly());
-
-        PurchasePlanUseCase.Result result = purchasePlanUseCase.execute(cmd);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(result,
+                "Đơn hàng đã được tạo. Vui lòng thanh toán tại URL được cung cấp."));
     }
 
-    public record PurchaseRequest(UUID planId, boolean yearly) {
+    public record PurchaseRequest(
+            @NotNull(message = "Vui lòng chọn gói dịch vụ") UUID planId,
+            boolean yearly) {
     }
 }
