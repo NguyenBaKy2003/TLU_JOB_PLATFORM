@@ -7,9 +7,9 @@ import {
   Activity, LogOut, HelpCircle, ChevronLeft,
   Briefcase, X, LayoutDashboard, FileText,
   Building2, Users, BarChart2, PlusCircle,
+  Banknote,
 } from "lucide-react";
 import { useAuth }      from "@/application/contexts/AuthContext";
-import { useWebSocket } from "@/application/contexts/WebSocketContext";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
@@ -30,6 +30,7 @@ const EMPLOYER_NAV = [
   { label: "Tin nhắn",          icon: <MessageSquare size={18} />,   href: "/employer/messages",       badgeKey: null           },
   { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",      badgeKey: null           },
   { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/company",        badgeKey: null           },
+  { label: "Gói đăng ký",           icon: <Banknote size={18} />,       href: "/employer/subscription",        badgeKey: null           },
   { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",       badgeKey: null           },
 ];
 

@@ -8,7 +8,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install  --only=develop
+RUN npm install  --only=production
 
 # ── Stage 2: Builder ──────────────────────────────────────────────
 FROM node:20-alpine AS builder
@@ -16,7 +16,9 @@ WORKDIR /app
 
 
 ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_WS_URL                         
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL    
 COPY package.json package-lock.json* ./
 RUN npm install
 

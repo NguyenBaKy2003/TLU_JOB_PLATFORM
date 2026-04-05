@@ -230,7 +230,7 @@ export function Header() {
                   </Link>
                 ) : (
                   <Link
-                    href="/"
+                    href="/jobs"
                     className="hidden lg:block text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
                   >
                     Tìm việc làm

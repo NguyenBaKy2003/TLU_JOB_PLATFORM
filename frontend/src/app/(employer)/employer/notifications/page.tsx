@@ -137,7 +137,7 @@ export default function NotificationsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="container mx-auto">
+    <div className=" mx-auto">
 
       {/* Page header */}
       <div className="mb-6">

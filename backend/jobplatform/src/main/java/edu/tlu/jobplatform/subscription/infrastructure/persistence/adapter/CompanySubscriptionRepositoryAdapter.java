@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-// ── CompanySubscriptionRepositoryAdapter ──────────────────────────
-
 @Component
 @RequiredArgsConstructor
 public class CompanySubscriptionRepositoryAdapter implements CompanySubscriptionRepository {
@@ -29,7 +27,9 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
 
     @Override
     public Optional<CompanySubscription> findActiveByCompanyId(UUID companyId) {
-        return jpaRepo.findActiveByCompanyId(companyId).map(mapper::toDomain);
+        // fix: truyền enum thay vì dùng JPQL string literal
+        return jpaRepo.findByCompanyIdAndStatus(companyId, SubscriptionStatus.ACTIVE)
+                .map(mapper::toDomain);
     }
 
     @Override

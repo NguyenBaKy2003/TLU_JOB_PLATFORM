@@ -173,7 +173,7 @@ management:
       enabled: true
 logging:
   level:
-    com.jobplatform: DEBUG
+    edu.tlu.jobplatform.subscription: DEBUG
     org.springframework.security: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
@@ -209,7 +209,7 @@ payment:
   vnpay:
     enabled: true
     tmn-code: HWD96YOF
-    hash-secret: MBKVJANBKKQHM1QQAFWHIOXUSAPL4NN5
+    hash-secret: 0RN7MDXREQFKXEVID1EE0MQRJLD5JX50
     payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
     version: "2.1.0"
     command: pay
