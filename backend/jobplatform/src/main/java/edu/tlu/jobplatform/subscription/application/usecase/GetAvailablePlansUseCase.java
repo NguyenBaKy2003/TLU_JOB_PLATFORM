@@ -4,7 +4,6 @@ import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import edu.tlu.jobplatform.subscription.domain.repository.SubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,10 +15,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetAvailablePlansUseCase {
 
-    private final SubscriptionPlanRepository planRepository;
+    private final SubscriptionPlanRepository planRepo;
 
-    @Transactional(readOnly = true)
     public List<SubscriptionPlan> execute() {
-        return planRepository.findAllActive();
+        return planRepo.findAllActive();
     }
 }

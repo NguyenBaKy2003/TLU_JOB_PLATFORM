@@ -1,17 +1,15 @@
 package edu.tlu.jobplatform.subscription.infrastructure.persistence.adapter;
 
-import edu.tlu.jobplatform.subscription.domain.model.*;
-import edu.tlu.jobplatform.subscription.domain.repository.*;
-import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.*;
+import edu.tlu.jobplatform.subscription.domain.model.Payment;
+import edu.tlu.jobplatform.subscription.domain.repository.PaymentRepository;
+import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.PaymentJpaEntity;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.mapper.SubscriptionMapper;
-import edu.tlu.jobplatform.subscription.infrastructure.persistence.repository.*;
+import edu.tlu.jobplatform.subscription.infrastructure.persistence.repository.PaymentJpaRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
-
-// ── Payment Adapter ───────────────────────────────────────────
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +21,11 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     @Override
     public Optional<Payment> findById(UUID id) {
         return jpaRepo.findById(id).map(mapper::toPaymentDomain);
+    }
+
+    @Override
+    public Optional<Payment> findPendingByCompanyId(UUID companyId) {
+        return jpaRepo.findPendingByCompanyId(companyId).map(mapper::toPaymentDomain);
     }
 
     @Override

@@ -11,4 +11,6 @@ public interface PaymentRepository {
     Optional<Payment> findByGatewayOrderCode(String orderCode);
 
     Payment save(Payment payment);
+
+    Optional<Payment> findPendingByCompanyId(UUID companyId);
 }
