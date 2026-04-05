@@ -8,50 +8,59 @@ import {
   Briefcase, X, LayoutDashboard, FileText,
   Building2, Users, BarChart2, PlusCircle,
 } from "lucide-react";
-import { useAuth } from "@/application/contexts/AuthContext";
+import { useAuth }      from "@/application/contexts/AuthContext";
+import { useWebSocket } from "@/application/contexts/WebSocketContext";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
+// badge sẽ được inject từ context — không hardcode ở đây
 const CANDIDATE_NAV = [
-  { label: "Hồ sơ của tôi",     icon: <User size={18} />,          href: "/profile"       },
-  { label: "Thông báo",          icon: <Bell size={18} />,          href: "/notifications", badge: 6 },
-  { label: "Tin nhắn",           icon: <MessageSquare size={18} />, href: "/messages",      badge: 6 },
-  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,      href: "/settings"      },
-  { label: "Hoạt động",          icon: <Activity size={18} />,      href: "/activity"      },
+  { label: "Hồ sơ của tôi",     icon: <User size={18} />,          href: "/profile",        badgeKey: null              },
+  { label: "Thông báo",          icon: <Bell size={18} />,          href: "/notifications",  badgeKey: "notification"    },
+  { label: "Tin nhắn",           icon: <MessageSquare size={18} />, href: "/messages",       badgeKey: null              },
+  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,      href: "/settings",       badgeKey: null              },
+  { label: "Hoạt động",          icon: <Activity size={18} />,      href: "/activity",       badgeKey: null              },
 ];
 
 const EMPLOYER_NAV = [
-  { label: "Tổng quan",          icon: <LayoutDashboard size={18} />, href: "/employer/dashboard" },
-  { label: "Quản lý tin tuyển",  icon: <FileText size={18} />,        href: "/employer/jobs"      },
-  { label: "Ứng viên",           icon: <Users size={18} />,           href: "/employer/candidates" },
-  { label: "Thông báo",          icon: <Bell size={18} />,            href: "/employer/notifications", badge: 3 },
-  { label: "Tin nhắn",           icon: <MessageSquare size={18} />,   href: "/employer/messages",  badge: 2 },
-  { label: "Thống kê",           icon: <BarChart2 size={18} />,       href: "/employer/analytics" },
-  { label: "Công ty",            icon: <Building2 size={18} />,       href: "/employer/company"   },
-  { label: "Cài đặt",            icon: <Settings size={18} />,        href: "/employer/settings"  },
+  { label: "Tổng quan",         icon: <LayoutDashboard size={18} />, href: "/employer/dashboard",      badgeKey: null           },
+  { label: "Quản lý tin tuyển", icon: <FileText size={18} />,        href: "/employer/jobs",           badgeKey: null           },
+  { label: "Ứng viên",          icon: <Users size={18} />,           href: "/employer/candidates",     badgeKey: null           },
+  { label: "Thông báo",         icon: <Bell size={18} />,            href: "/employer/notifications",  badgeKey: "notification" },
+  { label: "Tin nhắn",          icon: <MessageSquare size={18} />,   href: "/employer/messages",       badgeKey: null           },
+  { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",      badgeKey: null           },
+  { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/company",        badgeKey: null           },
+  { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",       badgeKey: null           },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
-  activeHref?:    string;
-  collapsed:      boolean;
-  onToggle:       () => void;
-  mobileOpen:     boolean;
-  onMobileClose:  () => void;
+  activeHref?:       string;
+  collapsed:         boolean;
+  onToggle:          () => void;
+  mobileOpen:        boolean;
+  onMobileClose:     () => void;
+  notificationCount: number; // ✅ từ WebSocketContext
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
 
-type NavItem = { label: string; icon: React.ReactNode; href: string; badge?: number };
+type NavItem = {
+  label:    string;
+  icon:     React.ReactNode;
+  href:     string;
+  badgeKey: "notification" | null;
+};
 
 function NavLink({
-  item, active, collapsed, onClick,
+  item, active, collapsed, onClick, badge,
 }: {
-  item: NavItem;
-  active: boolean;
+  item:      NavItem;
+  active:    boolean;
   collapsed: boolean;
-  onClick?: () => void;
+  onClick?:  () => void;
+  badge?:    number;
 }) {
   return (
     <Link
@@ -63,14 +72,20 @@ function NavLink({
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
         }`}
     >
-      <span className="shrink-0">{item.icon}</span>
+      <span className="shrink-0 relative">
+        {item.icon}
+        {/* Collapsed mode: dot indicator */}
+        {collapsed && badge && badge > 0 && (
+          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+        )}
+      </span>
       {!collapsed && (
         <>
           <span className="flex-1 truncate">{item.label}</span>
-          {item.badge !== undefined && (
+          {badge !== undefined && badge > 0 && (
             <span className="flex items-center justify-center min-w-[20px] h-5 px-1
               text-[10px] font-bold bg-red-500 text-white rounded-full">
-              {item.badge}
+              {badge > 99 ? "99+" : badge}
             </span>
           )}
         </>
@@ -82,15 +97,16 @@ function NavLink({
 // ─── Sidebar content ──────────────────────────────────────────────────────────
 
 function SidebarContent({
-  activeHref, collapsed, onToggle, onClose, isMobile,
+  activeHref, collapsed, onToggle, onClose, isMobile, notificationCount,
 }: {
-  activeHref?: string;
-  collapsed:   boolean;
-  onToggle:    () => void;
-  onClose?:    () => void;
-  isMobile:    boolean;
+  activeHref?:       string;
+  collapsed:         boolean;
+  onToggle:          () => void;
+  onClose?:          () => void;
+  isMobile:          boolean;
+  notificationCount: number;
 }) {
-  const router     = useRouter();
+  const router           = useRouter();
   const { user, logout } = useAuth();
 
   const isEmployer = user?.role === "EMPLOYER";
@@ -101,9 +117,14 @@ function SidebarContent({
     router.replace("/auth/login");
   };
 
-  // Logo href and brand label by role
   const homeHref   = isEmployer ? "/employer/dashboard" : "/home";
   const brandLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
+
+  // Badge resolver
+  const getBadge = (key: NavItem["badgeKey"]): number | undefined => {
+    if (key === "notification") return notificationCount || undefined;
+    return undefined;
+  };
 
   return (
     <aside className={`relative flex flex-col h-full bg-white border-r border-gray-100
@@ -145,7 +166,7 @@ function SidebarContent({
         </button>
       )}
 
-      {/* Employer: quick-action post job button */}
+      {/* Employer: post job CTA */}
       {isEmployer && (!collapsed || isMobile) && (
         <div className="px-3 pt-4">
           <Link
@@ -167,23 +188,26 @@ function SidebarContent({
             Menu
           </p>
         )}
-        {navItems.map((item) => (
+        {navItems.map(item => (
           <NavLink
             key={item.href}
             item={item}
             active={activeHref === item.href}
             collapsed={collapsed && !isMobile}
             onClick={isMobile ? onClose : undefined}
+            badge={getBadge(item.badgeKey)}
           />
         ))}
       </nav>
 
       {/* Bottom */}
       <div className="flex flex-col gap-0.5 px-2 pb-4 border-t border-gray-100 pt-3">
-        <Link href={isEmployer ? "/employer/help" : "/help"}
+        <Link
+          href={isEmployer ? "/employer/help" : "/help"}
           onClick={isMobile ? onClose : undefined}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
-            text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+            text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+        >
           <HelpCircle size={18} className="shrink-0" />
           {(!collapsed || isMobile) && <span>Trợ giúp</span>}
         </Link>
@@ -202,20 +226,35 @@ function SidebarContent({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export default function Sidebar({ activeHref, collapsed, onToggle, mobileOpen, onMobileClose }: Props) {
+export default function Sidebar({
+  activeHref, collapsed, onToggle, mobileOpen, onMobileClose, notificationCount,
+}: Props) {
   return (
     <>
       <div className="hidden md:flex h-screen sticky top-0">
-        <SidebarContent activeHref={activeHref} collapsed={collapsed} onToggle={onToggle} isMobile={false} />
+        <SidebarContent
+          activeHref={activeHref}
+          collapsed={collapsed}
+          onToggle={onToggle}
+          isMobile={false}
+          notificationCount={notificationCount}
+        />
       </div>
 
       {mobileOpen && (
         <>
-          <div className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onMobileClose} />
+          <div
+            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={onMobileClose}
+          />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 h-full">
             <SidebarContent
-              activeHref={activeHref} collapsed={false}
-              onToggle={onToggle} onClose={onMobileClose} isMobile={true}
+              activeHref={activeHref}
+              collapsed={false}
+              onToggle={onToggle}
+              onClose={onMobileClose}
+              isMobile={true}
+              notificationCount={notificationCount}
             />
           </div>
         </>
