@@ -28,6 +28,11 @@ public class SubscriptionPlanRepositoryAdapter implements SubscriptionPlanReposi
     }
 
     @Override
+    public List<SubscriptionPlan> findAll() {
+        return jpaRepo.findAll().stream().map(mapper::toPlanDomain).toList();
+    }
+
+    @Override
     public Optional<SubscriptionPlan> findById(UUID id) {
         return jpaRepo.findById(id).map(mapper::toPlanDomain);
     }
