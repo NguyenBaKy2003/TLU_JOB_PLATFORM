@@ -12,7 +12,7 @@ interface Props {
   activeHref?:     string;
   topbarTitle?:    string;
   topbarSubtitle?: string;
-  requiredRole?:   "CANDIDATE" | "EMPLOYER";
+  requiredRole?:   "CANDIDATE" | "EMPLOYER"|"ADMIN";
 }
 
 export function DashboardLayout({

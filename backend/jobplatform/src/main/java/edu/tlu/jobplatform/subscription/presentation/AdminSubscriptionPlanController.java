@@ -1,11 +1,11 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
 import edu.tlu.jobplatform.subscription.application.usecase.CreateSubscriptionPlanUseCase;
-import edu.tlu.jobplatform.subscription.application.usecase.GetAvailablePlansUseCase;
 import edu.tlu.jobplatform.subscription.application.usecase.UpdateSubscriptionPlanUseCase;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import edu.tlu.jobplatform.subscription.presentation.dto.request.CreatePlanRequest;
 import edu.tlu.jobplatform.subscription.presentation.dto.request.UpdatePlanRequest;
+import edu.tlu.jobplatform.job.application.usecase.admin.GetAllPlansUseCase;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,12 +25,16 @@ import java.util.UUID;
  * Base path: /api/v1/admin/subscription-plans
  *
  * Endpoints:
- * GET / — Lấy tất cả plan (kể cả inactive)
+ * GET / — Tất cả plan (kể cả inactive)
  * POST / — Tạo plan mới
- * PATCH /{planId} — Cập nhật plan (partial update)
- * DELETE /{planId}/deactivate — Deactivate plan (soft delete)
+ * PATCH /{planId} — Cập nhật plan (partial update), dùng cho cả toggle active
  *
  * Tất cả endpoint yêu cầu role ADMIN.
+ *
+ * FIX: Removed the separate /deactivate endpoint — toggling active/inactive is
+ * done via PATCH /{planId} with { "active": false } or { "active": true }.
+ * The frontend sends only the `active` field when toggling, so no separate
+ * endpoint is needed and the API surface stays consistent.
  */
 @RestController
 @RequestMapping("/api/v1/admin/subscription-plans")
@@ -39,7 +43,10 @@ import java.util.UUID;
 @Tag(name = "Admin - Subscription Plans", description = "Quản lý gói dịch vụ (chỉ Admin)")
 public class AdminSubscriptionPlanController {
 
-        private final GetAvailablePlansUseCase getAvailablePlansUseCase;
+        // FIX: use GetAllPlansUseCase (returns active + inactive) instead of
+        // GetAvailablePlansUseCase (returns only active — meant for the public pricing
+        // page)
+        private final GetAllPlansUseCase getAllPlansUseCase;
         private final CreateSubscriptionPlanUseCase createPlanUseCase;
         private final UpdateSubscriptionPlanUseCase updatePlanUseCase;
 
@@ -48,13 +55,15 @@ public class AdminSubscriptionPlanController {
         // ─────────────────────────────────────────────────────────────
 
         /**
-         * Lấy tất cả plan đang active.
-         * (Nếu cần cả inactive thì mở rộng repository thêm findAll)
+         * Lấy TẤT CẢ plan, bao gồm các plan đã bị tắt (active = false).
+         *
+         * FIX: endpoint cũ dùng GetAvailablePlansUseCase chỉ trả về active plans,
+         * nên admin không thể thấy / bật lại các plan đã tắt.
          */
         @GetMapping
-        @Operation(summary = "Lấy danh sách tất cả gói dịch vụ")
+        @Operation(summary = "Lấy danh sách tất cả gói dịch vụ (kể cả inactive)")
         public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> getAllPlans() {
-                return ResponseEntity.ok(ApiResponse.success(getAvailablePlansUseCase.execute()));
+                return ResponseEntity.ok(ApiResponse.success(getAllPlansUseCase.execute()));
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -107,17 +116,20 @@ public class AdminSubscriptionPlanController {
         // ─────────────────────────────────────────────────────────────
 
         /**
-         * Cập nhật một phần thông tin gói dịch vụ (PATCH).
+         * Cập nhật một phần thông tin gói dịch vụ (PATCH / partial update).
          * Chỉ cần gửi các field muốn thay đổi.
          *
-         * Ví dụ chỉ đổi giá:
-         * { "priceMonthly": 1800000, "priceYearly": 17000000 }
+         * Toggle active ON: { "active": true }
+         * Toggle active OFF: { "active": false }
+         * Đổi giá: { "priceMonthly": 1800000, "priceYearly": 17000000 }
          *
-         * Ví dụ deactivate:
-         * { "active": false }
+         * FIX: Removed the separate DELETE /{planId}/deactivate endpoint.
+         * Deactivating is simply PATCH with { "active": false }, which is already
+         * supported here. Having two paths for the same operation was confusing
+         * and caused the frontend to call a non-existent /toggle endpoint.
          */
         @PatchMapping("/{planId}")
-        @Operation(summary = "Cập nhật gói dịch vụ (partial update)")
+        @Operation(summary = "Cập nhật gói dịch vụ (partial update). Dùng { \"active\": false } để deactivate.")
         public ResponseEntity<ApiResponse<SubscriptionPlan>> updatePlan(
                         @PathVariable UUID planId,
                         @RequestBody UpdatePlanRequest request) {
@@ -138,31 +150,4 @@ public class AdminSubscriptionPlanController {
                 SubscriptionPlan updated = updatePlanUseCase.execute(planId, cmd);
                 return ResponseEntity.ok(ApiResponse.success(updated));
         }
-
-        // ─────────────────────────────────────────────────────────────
-        // DELETE /api/v1/admin/subscription-plans/{planId}/deactivate
-        // ─────────────────────────────────────────────────────────────
-
-        /**
-         * Deactivate gói dịch vụ (soft delete).
-         * Plan sẽ không hiển thị trên trang pricing nữa,
-         * nhưng các subscription đang active vẫn giữ nguyên.
-         *
-         * Không dùng DELETE thực sự vì cần giữ lại dữ liệu lịch sử.
-         */
-        @DeleteMapping("/{planId}/deactivate")
-        @Operation(summary = "Deactivate gói dịch vụ (soft delete)")
-        public ResponseEntity<ApiResponse<SubscriptionPlan>> deactivatePlan(
-                        @PathVariable UUID planId) {
-
-                UpdateSubscriptionPlanUseCase.Command cmd = new UpdateSubscriptionPlanUseCase.Command(
-                                null, null, null, null,
-                                null, null, null, null, null, null,
-                                false // chỉ set active = false
-                );
-
-                SubscriptionPlan updated = updatePlanUseCase.execute(planId, cmd);
-                return ResponseEntity.ok(ApiResponse.success(updated));
-        }
-
 }

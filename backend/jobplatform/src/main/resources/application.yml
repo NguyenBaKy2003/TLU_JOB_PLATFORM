@@ -225,3 +225,9 @@ payment:
   #   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
   #   notify-url: https://yourdomain.com/api/v1/payments/callback/momo
   #   request-type: captureWallet
+spring.ai:
+  openai:
+    api-key: ${OPENAI_API_KEY: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}
+    chat.options:
+      model: gpt-4o-mini
+      temperature: 0.3
