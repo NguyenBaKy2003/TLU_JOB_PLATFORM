@@ -26,10 +26,11 @@
 		<tag/>
 		<url/>
 	</scm>
-    <properties>
-        <java.version>21</java.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
-    </properties>
+      <properties>
+    <java.version>21</java.version>
+    <spring-ai.version>1.0.1</spring-ai.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
+  </properties>
 	 <dependencies>
      <!-- Mail -->
      	<dependency>
@@ -58,12 +59,12 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
-        <dependency>
+        <!-- <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
-        </dependency>
+        </dependency> -->
 
         <!-- ── SECURITY ──────────────────────────────────── -->
         <dependency>
@@ -76,23 +77,23 @@
         </dependency>
 
         <!-- JJWT 0.12.x — phải đủ cả 3 artifact -->
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-api</artifactId>
-    <version>0.12.6</version>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-impl</artifactId>
-    <version>0.12.6</version>
-    <scope>runtime</scope>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-jackson</artifactId>
-    <version>0.12.6</version>
-    <scope>runtime</scope>
-</dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- S3 -->
         <dependency>
@@ -156,8 +157,6 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.7.0</version>
 		</dependency>
-
-
         <!-- pom.xml -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -209,7 +208,24 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+
+	     <dependency>
+	         <groupId>org.springframework.ai</groupId>
+	         <artifactId>spring-ai-starter-model-openai</artifactId>
+	     </dependency>
     </dependencies>
+
+    <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 	<build>
     <plugins>
@@ -227,5 +243,14 @@
         </plugin>
     </plugins>
 </build>
+<repositories>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>https://repo.spring.io/milestone</url>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
+ 
 
 </project>

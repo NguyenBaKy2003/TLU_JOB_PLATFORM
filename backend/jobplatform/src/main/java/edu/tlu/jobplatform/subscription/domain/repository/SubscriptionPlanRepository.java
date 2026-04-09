@@ -14,4 +14,6 @@ public interface SubscriptionPlanRepository {
     Optional<SubscriptionPlan> findByCode(String code);
 
     SubscriptionPlan save(SubscriptionPlan plan);
+
+    List<SubscriptionPlan> findAll();
 }
