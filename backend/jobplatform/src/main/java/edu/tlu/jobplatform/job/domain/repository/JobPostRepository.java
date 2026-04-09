@@ -27,8 +27,11 @@ public interface JobPostRepository {
     /** Bài đăng đang PUBLISHED — public listing */
     Page<JobPost> findPublished(Pageable pageable);
 
-    /** Tìm bài đăng PUBLISHED sắp hết hạn — để scheduler xử lý */
-    List<JobPost> findPublishedExpiredBefore(LocalDate date);
+    /**
+     * Tìm bài đăng theo status có deadline trước ngày chỉ định.
+     * Dùng bởi JobExpiryScheduler.
+     */
+    List<JobPost> findByStatusAndDeadlineBefore(JobStatus status, LocalDate date);
 
     /** Tìm bài đăng theo status — Admin */
     Page<JobPost> findByStatus(JobStatus status, Pageable pageable);
