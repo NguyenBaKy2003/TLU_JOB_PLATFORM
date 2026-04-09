@@ -195,7 +195,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
 
   return (
     <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
-      border-b border-gray-100 sticky top-0 z-20 shrink-0">
+      border-b border-gray-100 sticky top-0 z-0 shrink-0">
 
       {/* Left */}
       <div className="flex items-center gap-3 min-w-0">

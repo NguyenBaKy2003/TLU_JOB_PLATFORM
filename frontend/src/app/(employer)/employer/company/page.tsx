@@ -123,8 +123,7 @@ export default function CompanyProfilePage() {
 
   if (loading) {
     return (
-      <DashboardLayout guard="EMPLOYER_ONLY" activeHref="/employer/company"
-        topbarTitle="Hồ Sơ Công Ty">
+
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 animate-pulse">
           <div className="flex-1 flex flex-col gap-4">
             <div className="h-48 bg-gray-100 rounded-2xl" />
@@ -136,7 +135,6 @@ export default function CompanyProfilePage() {
             <div className="h-36 bg-gray-100 rounded-2xl" />
           </div>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -144,8 +142,7 @@ export default function CompanyProfilePage() {
 
   if (error || !profile) {
     return (
-      <DashboardLayout guard="EMPLOYER_ONLY" activeHref="/employer/company"
-        topbarTitle="Hồ Sơ Công Ty">
+
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <p className="text-sm text-red-500">{error ?? "Không thể tải hồ sơ công ty"}</p>
           <button onClick={loadProfile}
@@ -153,7 +150,6 @@ export default function CompanyProfilePage() {
             Thử lại
           </button>
         </div>
-      </DashboardLayout>
     );
   }
 

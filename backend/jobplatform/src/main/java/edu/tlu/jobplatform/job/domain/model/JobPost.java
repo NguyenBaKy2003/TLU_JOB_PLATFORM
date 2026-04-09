@@ -149,4 +149,9 @@ public class JobPost {
                 "Yêu cầu: " + (requirements != null ? requirements : ""),
                 "Quyền lợi: " + (benefits != null ? benefits : ""));
     }
+
+    public void transitionTo(JobStatus target) {
+        this.status.assertCanTransitionTo(target);
+        this.status = target;
+    }
 }

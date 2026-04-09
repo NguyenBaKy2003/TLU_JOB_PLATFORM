@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-// ── JobPostRepositoryAdapter ──────────────────────────────────────
-
 @Component
 @RequiredArgsConstructor
 public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPort {
@@ -57,8 +55,11 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
     }
 
     @Override
-    public List<JobPost> findPublishedExpiredBefore(LocalDate date) {
-        return jpaRepo.findPublishedExpiredBefore(date).stream().map(mapper::toDomain).toList();
+    public List<JobPost> findByStatusAndDeadlineBefore(JobStatus status, LocalDate date) {
+        return jpaRepo.findByStatusAndDeadlineBefore(status, date)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override
@@ -73,12 +74,10 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
             if (existing.isPresent()) {
                 JobPostJpaEntity entity = existing.get();
                 mapper.updateEntity(entity, job);
-                // Sync skills: xóa cũ, thêm mới (orphanRemoval = true)
                 syncSkills(entity, job);
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
-        // Tạo mới: build entity kèm skills
         JobPostJpaEntity entity = mapper.toNewEntity(job);
         syncSkills(entity, job);
         return mapper.toDomain(jpaRepo.save(entity));
@@ -86,13 +85,12 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
 
     /**
      * Đồng bộ danh sách skills giữa domain và JPA entity.
-     * jobPostId lấy từ domain model (đã set UUID trước khi save).
      * orphanRemoval=true → JPA tự xóa skill cũ khi clear().
      */
     private void syncSkills(JobPostJpaEntity entity, JobPost job) {
         entity.getSkills().clear();
         if (job.getSkills() != null && !job.getSkills().isEmpty()) {
-            UUID jobPostId = job.getId(); // UUID đã được set trong UseCase
+            UUID jobPostId = job.getId();
             job.getSkills().forEach(skill -> entity.getSkills().add(mapper.toSkillEntity(skill, jobPostId)));
         }
     }
@@ -104,16 +102,8 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
 
     @Override
     public Page<JobPost> search(String keyword, String city, String category,
-            String jobType, String level, UUID companyId,
-            Pageable pageable) {
-
-        return jpaRepo.search(
-                keyword,
-                city,
-                category,
-                jobType,
-                level,
-                companyId,
-                pageable).map(mapper::toDomain);
+            String jobType, String level, UUID companyId, Pageable pageable) {
+        return jpaRepo.search(keyword, city, category, jobType, level, companyId, pageable)
+                .map(mapper::toDomain);
     }
 }

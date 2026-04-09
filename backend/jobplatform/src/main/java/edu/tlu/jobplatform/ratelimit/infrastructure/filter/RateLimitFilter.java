@@ -1,8 +1,10 @@
 package edu.tlu.jobplatform.ratelimit.infrastructure.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.domain.service.RateLimitDomainService;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
+import edu.tlu.jobplatform.shared.response.ApiResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,14 +26,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final RequestMappingHandlerMapping handlerMapping;
     private final RateLimitDomainService rateLimitService;
     private final Map<String, RateLimitPolicy> rateLimitPolicies;
+    private final ObjectMapper objectMapper;
 
     public RateLimitFilter(
             RequestMappingHandlerMapping handlerMapping,
             RateLimitDomainService rateLimitService,
-            Map<String, RateLimitPolicy> rateLimitPolicies) {
+            Map<String, RateLimitPolicy> rateLimitPolicies,
+            ObjectMapper objectMapper) {
         this.handlerMapping = handlerMapping;
         this.rateLimitService = rateLimitService;
         this.rateLimitPolicies = rateLimitPolicies;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -109,14 +114,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private void rejectRequest(HttpServletResponse response, String policyName,
             String key, RateLimitDomainService.Result result) throws IOException {
-        long retryAfter = result.retryAfter().getSeconds();
+
+        long retryAfter = Math.max(1, result.retryAfter().toSeconds());
+
         response.setHeader("Retry-After", String.valueOf(retryAfter));
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
-        response.getWriter().write("""
-                {"success":false,"code":"RATE_LIMIT_EXCEEDED",\
-                "message":"Quá nhiều yêu cầu. Vui lòng thử lại sau %d giây."}
-                """.formatted(retryAfter));
-        log.warn("Rate limit exceeded: policy={} key={} count={}", policyName, key, result.currentCount());
+
+        ApiResponse<?> body = ApiResponse.error(
+                "Quá nhiều yêu cầu. Vui lòng thử lại sau %d giây.".formatted(retryAfter),
+                "RATE_LIMIT_EXCEEDED");
+
+        response.getWriter().write(objectMapper.writeValueAsString(body));
+
+        log.warn("Rate limit exceeded: policy={} key={} count={} retryAfter={}s",
+                policyName, key, result.currentCount(), retryAfter);
     }
 }

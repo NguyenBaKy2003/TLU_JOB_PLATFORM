@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.domain.service;
 
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class JobPostDomainService {
      * BR-02: Phải có mô tả (ít nhất 100 ký tự)
      * BR-03: Phải có deadline và deadline phải trong tương lai
      * BR-04: Phải có địa điểm làm việc
+     * BR-05: Phải có thông tin lương
      */
     public void validateForPublish(JobPost job) {
 
@@ -31,7 +33,7 @@ public class JobPostDomainService {
         if (job.getDeadline() == null)
             throw new BusinessRuleException("Vui lòng chọn hạn nộp CV.", "JOB_DEADLINE_REQUIRED");
 
-        if (job.getDeadline().isBefore(LocalDate.now()))
+        if (!job.getDeadline().isAfter(LocalDate.now()))
             throw new BusinessRuleException("Hạn nộp CV phải là ngày trong tương lai.", "JOB_DEADLINE_PAST");
 
         if (job.getWorkLocation() == null)
@@ -42,12 +44,24 @@ public class JobPostDomainService {
     }
 
     /**
+     * Chuyển trạng thái job sang EXPIRED.
+     * BR-06: Chỉ PUBLISHED job mới có thể expire.
+     */
+    public void expire(JobPost job) {
+        if (job.getStatus() != JobStatus.PUBLISHED) {
+            throw new BusinessRuleException(
+                    "Chỉ bài đăng đang PUBLISHED mới có thể chuyển sang EXPIRED.",
+                    "JOB_INVALID_STATUS_TRANSITION");
+        }
+        job.transitionTo(JobStatus.EXPIRED);
+    }
+
+    /**
      * Kiểm tra bài đăng có bị hết hạn không.
-     * Dùng bởi SubscriptionExpiryScheduler.
      */
     public boolean isExpired(JobPost job) {
         if (job.getDeadline() == null)
             return false;
-        return LocalDate.now().isAfter(job.getDeadline());
+        return !LocalDate.now().isBefore(job.getDeadline());
     }
 }
