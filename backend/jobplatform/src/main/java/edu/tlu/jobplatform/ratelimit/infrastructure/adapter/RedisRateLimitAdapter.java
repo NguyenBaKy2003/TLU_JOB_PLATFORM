@@ -18,14 +18,6 @@ public class RedisRateLimitAdapter implements RateLimitStorePort {
 
     private final StringRedisTemplate redis;
 
-    /**
-     * Fixed window counter:
-     * 1. INCR key → tăng counter, tạo nếu chưa có
-     * 2. Nếu count == 1 → EXPIRE key windowSeconds (set TTL lần đầu)
-     *
-     * Atomic đủ dùng cho single-node Redis.
-     * Scale-out: dùng Redis Lua script hoặc chuyển sang sliding window.
-     */
     @Override
     public long increment(String key, int windowSeconds) {
         String redisKey = KEY_PREFIX + key;
@@ -33,7 +25,6 @@ public class RedisRateLimitAdapter implements RateLimitStorePort {
         if (count == null)
             count = 1L;
 
-        // Chỉ set TTL lần đầu tiên (count == 1) để tránh reset window
         if (count == 1) {
             redis.expire(redisKey, windowSeconds, TimeUnit.SECONDS);
         }
@@ -43,8 +34,8 @@ public class RedisRateLimitAdapter implements RateLimitStorePort {
     @Override
     public Duration ttl(String key) {
         Long seconds = redis.getExpire(KEY_PREFIX + key, TimeUnit.SECONDS);
-        if (seconds == null || seconds < 0)
-            return Duration.ZERO;
+        if (seconds == null || seconds <= 0)
+            return Duration.ofSeconds(1);
         return Duration.ofSeconds(seconds);
     }
 }

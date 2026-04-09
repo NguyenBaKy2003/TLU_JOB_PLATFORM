@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.ratelimit.infrastructure.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.domain.service.RateLimitDomainService;
 import edu.tlu.jobplatform.ratelimit.infrastructure.filter.RateLimitFilter;
@@ -36,8 +37,9 @@ public class RateLimitConfig {
     public RateLimitFilter rateLimitFilter(
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
             RateLimitDomainService rateLimitService,
-            Map<String, RateLimitPolicy> rateLimitPolicies) {
-        return new RateLimitFilter(handlerMapping, rateLimitService, rateLimitPolicies);
+            Map<String, RateLimitPolicy> rateLimitPolicies,
+            ObjectMapper objectMapper) {
+        return new RateLimitFilter(handlerMapping, rateLimitService, rateLimitPolicies, objectMapper);
     }
 
     @Data

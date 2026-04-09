@@ -48,4 +48,5 @@ public enum JobStatus {
     public boolean isEditable() {
         return this == DRAFT || this == CLOSED || this == EXPIRED;
     }
+
 }
