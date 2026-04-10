@@ -1,6 +1,6 @@
 // src/application/services/CompanyService.ts
 
-import type { ICompanyRepository }     from "@/domain/repositories/ICompanyRepository";
+import type { ICompanyRepository } from "@/domain/repositories/ICompanyRepository";
 import type {
   CompanyProfile,
   CompanyReview,
@@ -49,14 +49,20 @@ export class CompanyService {
     return this.repo.update(id, payload);
   }
 
-  /** Upload logo công ty */
-  uploadLogo(id: string, file: File): Promise<CompanyProfile> {
-    return this.repo.uploadLogo(id, file);
+  /**
+   * Upload logo công ty.
+   * Backend xác định công ty qua JWT token — không cần truyền id.
+   */
+  uploadLogo(file: File): Promise<CompanyProfile> {
+    return this.repo.uploadLogo(file);
   }
 
-  /** Upload ảnh bìa */
-  uploadCover(id: string, file: File): Promise<CompanyProfile> {
-    return this.repo.uploadCover(id, file);
+  /**
+   * Upload ảnh bìa công ty.
+   * Backend xác định công ty qua JWT token — không cần truyền id.
+   */
+  uploadCover(file: File): Promise<CompanyProfile> {
+    return this.repo.uploadCover(file);
   }
 
   // ── Reviews ───────────────────────────────────────────────────────────────

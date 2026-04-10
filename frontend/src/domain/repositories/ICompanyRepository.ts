@@ -34,11 +34,17 @@ export interface ICompanyRepository {
   /** Cập nhật hồ sơ công ty (PATCH — chỉ gửi fields thay đổi) */
   update(id: string, payload: UpdateCompanyPayload): Promise<CompanyProfile>;
 
-  /** Upload logo */
-  uploadLogo(id: string, file: File): Promise<CompanyProfile>;
+  /**
+   * Upload logo công ty.
+   * Backend xác định công ty qua JWT token — không cần truyền id.
+   */
+  uploadLogo(file: File): Promise<CompanyProfile>;
 
-  /** Upload cover image */
-  uploadCover(id: string, file: File): Promise<CompanyProfile>;
+  /**
+   * Upload ảnh bìa công ty.
+   * Backend xác định công ty qua JWT token — không cần truyền id.
+   */
+  uploadCover(file: File): Promise<CompanyProfile>;
 
   // ── Reviews ───────────────────────────────────────────────────────────────
 
