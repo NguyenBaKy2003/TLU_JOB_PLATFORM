@@ -7,6 +7,10 @@ import {
   FormInput, SubmitButton,
 } from "@/presentation/components/common/auth-ui";
 import { useToast }          from "@/presentation/components/ui/toast";
+import { CompanyService }    from "@/application/services/CompanyService";
+import { CompanyRepository } from "@/infrastructure/repositories/CompanyRepository";
+
+const service = new CompanyService(new CompanyRepository());
 
 const MAX_DESC = 512;
 
@@ -44,25 +48,49 @@ export function CompanyDetailsStep({ onComplete, onSkip }: Props) {
 
   const validate = () => {
     const e: typeof errors = {};
-    if (!form.companyName.trim())  e.companyName  = "Vui lòng nhập tên công ty";
-    if (!form.description.trim())  e.description  = "Vui lòng nhập mô tả công ty";
+    if (!form.companyName.trim()) e.companyName = "Vui lòng nhập tên công ty";
+    if (!form.description.trim()) e.description = "Vui lòng nhập mô tả công ty";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      // TODO: call service.createCompanyProfile(form)
-      await new Promise(r => setTimeout(r, 600)); // simulate
-      onComplete(form);
-    } catch (err: any) {
-      toast.error("Lỗi", err?.response?.data?.message ?? "Vui lòng thử lại.");
-    } finally { setLoading(false); }
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validate()) return;
 
+  setLoading(true);
+
+  try {
+    const company = await service.getMyCompany();
+
+    const updatePromise = service
+      .updateCompany(company.id, {
+        name: form.companyName,
+        industry: form.industry || undefined,
+        description: form.description,
+      })
+      .catch((err: any) => {
+        toast.error("Lỗi cập nhật", err?.response?.data?.message ?? "Không thể cập nhật công ty");
+        throw err; 
+      });
+
+    const logoPromise = form.logo
+      ? service.uploadLogo(form.logo).catch((err: any) => {
+          toast.error("Logo lỗi", err?.response?.data?.message ?? "Upload logo thất bại");
+        })
+      : Promise.resolve();
+
+    await Promise.all([updatePromise, logoPromise]);
+
+    toast.success("Thành công", "Cập nhật công ty thành công");
+    onComplete(form);
+
+  } catch (err: any) {
+    toast.error("Lỗi", err?.response?.data?.message ?? "Vui lòng thử lại.");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="w-full">
       <div className="text-center mb-3">
