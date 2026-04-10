@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.company.presentation;
 
 import edu.tlu.jobplatform.company.application.usecase.CreateCompanyUseCase;
+import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyCoverUseCase;
+import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyLogoUseCase;
 import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyUseCase;
 import edu.tlu.jobplatform.company.application.usecase.VerifyCompanyUseCase;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
@@ -12,6 +14,7 @@ import edu.tlu.jobplatform.company.presentation.dto.UpdateCompanyRequest;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.CurrentUser;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,7 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 import java.util.UUID;
 
 /**
@@ -49,6 +53,9 @@ public class CompanyController {
         private final UpdateCompanyUseCase updateUseCase;
         private final VerifyCompanyUseCase verifyUseCase;
         private final CompanyRepository companyRepository;
+
+        private final UpdateCompanyLogoUseCase updateLogoUseCase;
+        private final UpdateCompanyCoverUseCase updateCoverUseCase;
 
         // ── Public endpoints ──────────────────────────────────────
 
@@ -129,6 +136,30 @@ public class CompanyController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success(CompanyResponse.from(company), "Cập nhật thành công."));
+        }
+
+        @Operation(summary = "Cập nhật logo công ty")
+        @PatchMapping(value = "/api/v1/companies/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<CompanyResponse>> updateLogo(
+                        @CurrentUser UUID userId,
+                        @RequestPart("file") MultipartFile file) {
+
+                CompanyProfile company = updateLogoUseCase.execute(userId, file);
+                return ResponseEntity.ok(
+                                ApiResponse.success(CompanyResponse.from(company), "Logo đã được cập nhật."));
+        }
+
+        @Operation(summary = "Cập nhật ảnh bìa công ty")
+        @PatchMapping(value = "/api/v1/companies/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<CompanyResponse>> updateCover(
+                        @CurrentUser UUID userId,
+                        @RequestPart("file") MultipartFile file) {
+
+                CompanyProfile company = updateCoverUseCase.execute(userId, file);
+                return ResponseEntity.ok(
+                                ApiResponse.success(CompanyResponse.from(company), "Ảnh bìa đã được cập nhật."));
         }
 
         // ── Admin endpoints ───────────────────────────────────────

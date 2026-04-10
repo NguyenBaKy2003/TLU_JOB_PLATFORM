@@ -1,7 +1,6 @@
 // src/app/employer/company/page.tsx
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { DashboardLayout }                from "@/presentation/components/layout/profile/DashboardLayout";
 import { CompanyService }                from "@/application/services/CompanyService";
 import { CompanyRepository }             from "@/infrastructure/repositories/CompanyRepository";
 import type { CompanyProfile, UpdateCompanyPayload } from "@/domain/models/Company";
@@ -88,10 +87,9 @@ export default function CompanyProfilePage() {
   // ── Logo / Cover ───────────────────────────────────────────────────────────
 
   const uploadLogo = useCallback(async (file: File) => {
-    if (!profile) return;
     startSaving("logo"); clearError("logo");
     try {
-      const updated = await service.uploadLogo(profile.id, file);
+      const updated = await service.uploadLogo(file);
       setProfile(updated);
       toast.success("Đã cập nhật", "Logo công ty đã được thay đổi.");
     } catch (e) {
@@ -101,13 +99,12 @@ export default function CompanyProfilePage() {
     } finally {
       stopSaving("logo");
     }
-  }, [profile, toast]);
+  }, [toast]);
 
   const uploadCover = useCallback(async (file: File) => {
-    if (!profile) return;
     startSaving("cover"); clearError("cover");
     try {
-      const updated = await service.uploadCover(profile.id, file);
+      const updated = await service.uploadCover(file);
       setProfile(updated);
       toast.success("Đã cập nhật", "Ảnh bìa công ty đã được thay đổi.");
     } catch (e) {
@@ -117,13 +114,12 @@ export default function CompanyProfilePage() {
     } finally {
       stopSaving("cover");
     }
-  }, [profile, toast]);
+  }, [toast]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 animate-pulse">
           <div className="flex-1 flex flex-col gap-4">
             <div className="h-48 bg-gray-100 rounded-2xl" />
@@ -142,7 +138,6 @@ export default function CompanyProfilePage() {
 
   if (error || !profile) {
     return (
-
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <p className="text-sm text-red-500">{error ?? "Không thể tải hồ sơ công ty"}</p>
           <button onClick={loadProfile}
@@ -156,7 +151,6 @@ export default function CompanyProfilePage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
         {/* ── Left: edit sections ────────────────────────────────── */}
