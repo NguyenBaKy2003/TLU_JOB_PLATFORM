@@ -1,14 +1,18 @@
 package edu.tlu.jobplatform.job.presentation;
 
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.job.application.usecase.employer.CloseJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.DeleteJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.PublishJobPostUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.UpdateJobPostUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.presentation.dto.request.CreateJobPostRequest;
+import edu.tlu.jobplatform.job.presentation.dto.request.UpdateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
@@ -48,6 +52,9 @@ public class JobPostController {
         private final PublishJobPostUseCase publishUseCase;
         private final JobPostRepository jobPostRepository;
         private final CompanyRepository companyRepository;
+        private final CloseJobPostUseCase closeUseCase;
+        private final DeleteJobPostUseCase deleteUseCase;
+        private final UpdateJobPostUseCase updateUseCase;
 
         @Operation(summary = "Tạo bài đăng tuyển dụng (DRAFT)")
         @SecurityRequirement(name = "bearerAuth")
@@ -113,17 +120,72 @@ public class JobPostController {
                                                 "Bài đăng đã được publish thành công."));
         }
 
+        @Operation(summary = "Cập nhật bài đăng")
+        @SecurityRequirement(name = "bearerAuth")
+        @PatchMapping("/api/v1/jobs/{id}")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> update(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody UpdateJobPostRequest req) {
+
+                // Build Salary
+                Salary salary = null;
+                if (req.getSalaryNegotiable() != null || req.getSalaryMin() != null || req.getSalaryMax() != null) {
+                        salary = Boolean.TRUE.equals(req.getSalaryNegotiable())
+                                        ? Salary.negotiable()
+                                        : Salary.of(req.getSalaryMin(), req.getSalaryMax(), req.getSalaryCurrency());
+                }
+
+                // Build WorkLocation
+                WorkLocation location = null;
+                if (req.getWorkLocationType() != null) {
+                        location = WorkLocation.builder()
+                                        .type(WorkLocation.LocationType.valueOf(req.getWorkLocationType()))
+                                        .city(req.getWorkLocationCity())
+                                        .address(req.getWorkLocationAddress())
+                                        .build();
+                }
+
+                // Build Skills
+                List<JobPostSkill> skills = null;
+                if (req.getSkills() != null) {
+                        skills = req.getSkills().stream()
+                                        .map(s -> JobPostSkill.builder()
+                                                        .skillName(s.getSkillName())
+                                                        .level(s.getLevel())
+                                                        .required(s.isRequired())
+                                                        .build())
+                                        .toList();
+                }
+
+                JobPost job = updateUseCase.execute(id, new UpdateJobPostUseCase.Command(
+                                req.getTitle(), null, // slug không cho update trực tiếp
+                                req.getDescription(), req.getRequirements(), req.getBenefits(),
+                                req.getJobType(), req.getLevel(), req.getCategory(),
+                                salary, location,
+                                req.getExperienceYears(), req.getVacancies(), req.getDeadline(),
+                                skills));
+
+                return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job), "Cập nhật thành công."));
+        }
+
         @Operation(summary = "Đóng bài đăng")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs/{id}/close")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<JobPostDetailResponse>> close(@PathVariable UUID id) {
-                JobPost job = jobPostRepository.findById(id)
-                                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", id));
-                job.close();
-                jobPostRepository.save(job);
+                JobPost job = closeUseCase.execute(id);
                 return ResponseEntity.ok(
                                 ApiResponse.success(JobPostDetailResponse.from(job), "Bài đăng đã được đóng."));
+        }
+
+        @Operation(summary = "Xóa bài đăng (soft delete)")
+        @SecurityRequirement(name = "bearerAuth")
+        @DeleteMapping("/api/v1/jobs/{id}")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+                deleteUseCase.execute(id);
+                return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã được xóa."));
         }
 
         // ── Helpers ───────────────────────────────────────────────

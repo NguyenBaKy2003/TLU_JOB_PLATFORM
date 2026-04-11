@@ -13,7 +13,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class GetJobDetailUseCase {
+public class GetJobDetailUseCase {
 
     private final JobPostRepository jobPostRepository;
 

@@ -225,9 +225,10 @@ export default function JobDetailPage() {
             {job.description && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <Section title="Mô tả công việc">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {job.description}
-                  </p>
+                  <div
+                    className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: job.description }}
+                  />
                 </Section>
               </div>
             )}
@@ -236,9 +237,10 @@ export default function JobDetailPage() {
             {job.requirements && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <Section title="Yêu cầu ứng viên">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {job.requirements}
-                  </p>
+                  <div
+        className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: job.requirements }}
+      />
                 </Section>
               </div>
             )}
@@ -270,14 +272,14 @@ export default function JobDetailPage() {
                 </Section>
               </div>
             )}
-
             {/* Benefits */}
             {job.benefits && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <Section title="Phúc lợi">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {job.benefits}
-                  </p>
+                  <div
+                    className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: job.benefits }}
+                  />
                 </Section>
               </div>
             )}

@@ -123,6 +123,7 @@
     @apply bg-background text-foreground;
   }
 }
+
 @layer components {
   .container {
     @apply w-full mx-auto px-5;
@@ -131,7 +132,7 @@
 
   @media (min-width: 640px) {
     .container {
-      @apply px-6;  
+      @apply px-6;
       max-width: 640px;
     }
   }
@@ -150,4 +151,82 @@
       max-width: 1280px;
     }
   }
+}
+
+/* ── Tiptap Rich Editor ───────────────────────────────────────────────────── */
+/* Đặt ngoài @layer để có specificity cao hơn Tailwind preflight              */
+
+.tiptap {
+  outline: none;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.tiptap p {
+  margin: 0.125rem 0;
+}
+
+.tiptap h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.25rem;
+  color: #111827;
+}
+
+.tiptap h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0.375rem 0 0.125rem;
+  color: #111827;
+}
+
+/* ✅ Fix: !important để override Tailwind preflight (ul { list-style: none }) */
+.tiptap ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap ol {
+  list-style-type: decimal !important;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap li {
+  display: list-item !important;
+  margin: 0.125rem 0;
+}
+
+/* Tiptap bọc text trong li bằng <p> — reset margin để không tạo khoảng thừa */
+.tiptap li p {
+  margin: 0;
+}
+
+.tiptap blockquote {
+  border-left: 2px solid #93c5fd;
+  padding-left: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0.25rem 0;
+}
+
+/* ✅ Fix: hr đang hiện nhiều đường do Tailwind preflight + p trống xung quanh */
+.tiptap hr {
+  display: block;
+  border: none !important;
+  border-top: 1.5px solid #d1d5db !important;
+  margin: 0.75rem 0;
+  height: 0;
+  background: none;
+}
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #d1d5db;
+  float: left;
+  pointer-events: none;
+  height: 0;
 }

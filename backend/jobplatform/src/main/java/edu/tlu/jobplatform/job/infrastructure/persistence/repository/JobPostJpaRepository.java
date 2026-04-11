@@ -21,6 +21,12 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
 
      boolean existsBySlug(String slug);
 
+     @Query("SELECT j FROM JobPostJpaEntity j LEFT JOIN FETCH j.skills WHERE j.id = :id")
+     Optional<JobPostJpaEntity> findByIdWithSkills(@Param("id") UUID id);
+
+     @Query("SELECT j FROM JobPostJpaEntity j LEFT JOIN FETCH j.skills WHERE j.slug = :slug")
+     Optional<JobPostJpaEntity> findBySlugWithSkills(@Param("slug") String slug);
+
      Page<JobPostJpaEntity> findByCompanyId(UUID companyId, Pageable pageable);
 
      Page<JobPostJpaEntity> findByPostedBy(UUID postedBy, Pageable pageable);

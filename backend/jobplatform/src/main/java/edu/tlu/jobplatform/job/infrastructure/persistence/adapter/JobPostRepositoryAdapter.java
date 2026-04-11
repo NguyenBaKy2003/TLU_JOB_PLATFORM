@@ -5,6 +5,7 @@ import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.infrastructure.persistence.entity.JobPostJpaEntity;
+import edu.tlu.jobplatform.job.infrastructure.persistence.entity.JobPostSkillJpaEntity;
 import edu.tlu.jobplatform.job.infrastructure.persistence.mapper.JobMapper;
 import edu.tlu.jobplatform.job.infrastructure.persistence.repository.JobPostJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +27,12 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
 
     @Override
     public Optional<JobPost> findById(UUID id) {
-        return jpaRepo.findById(id).map(mapper::toDomain);
+        return jpaRepo.findByIdWithSkills(id).map(mapper::toDomain);
     }
 
     @Override
     public Optional<JobPost> findBySlug(String slug) {
-        return jpaRepo.findBySlug(slug).map(mapper::toDomain);
+        return jpaRepo.findBySlugWithSkills(slug).map(mapper::toDomain);
     }
 
     @Override
@@ -78,6 +79,7 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
+        // Nhánh tạo mới — id đã được set trong toNewEntity
         JobPostJpaEntity entity = mapper.toNewEntity(job);
         syncSkills(entity, job);
         return mapper.toDomain(jpaRepo.save(entity));
@@ -91,7 +93,13 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
         entity.getSkills().clear();
         if (job.getSkills() != null && !job.getSkills().isEmpty()) {
             UUID jobPostId = job.getId();
-            job.getSkills().forEach(skill -> entity.getSkills().add(mapper.toSkillEntity(skill, jobPostId)));
+            job.getSkills().forEach(skill -> {
+                JobPostSkillJpaEntity skillEntity = mapper.toSkillEntity(skill, jobPostId);
+                if (skillEntity.getId() == null) {
+                    skillEntity.setId(UUID.randomUUID());
+                }
+                entity.getSkills().add(skillEntity);
+            });
         }
     }
 

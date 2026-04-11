@@ -81,6 +81,8 @@ public class JobMapper {
                 .applicationCount(d.getApplicationCount())
                 .build();
 
+        e.setId(d.getId());
+
         applySalary(e, d.getSalary());
         applyWorkLocation(e, d.getWorkLocation());
         return e;
@@ -161,6 +163,7 @@ public class JobMapper {
 
     public JobPostSkillJpaEntity toSkillEntity(JobPostSkill d, UUID jobPostId) {
         return JobPostSkillJpaEntity.builder()
+                .id(d.getId())
                 .jobPostId(jobPostId)
                 .skillName(d.getSkillName())
                 .level(d.getLevel())

@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-class SearchJobsUseCase {
+public class SearchJobsUseCase {
 
     private final JobSearchPort jobSearchPort;
 
