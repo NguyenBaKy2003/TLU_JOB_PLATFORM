@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.application.usecase.employer;
 
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
@@ -13,14 +14,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
-
-// ── UpdateJobPostUseCase ──────────────────────────────────────────
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class UpdateJobPostUseCase {
+public class UpdateJobPostUseCase {
 
         private final JobPostRepository jobPostRepository;
 
@@ -32,6 +32,18 @@ class UpdateJobPostUseCase {
 
                 if (!SecurityUtils.isOwnerOrAdmin(job.getPostedBy()))
                         throw new BusinessRuleException("Bạn không có quyền sửa bài đăng này.", "FORBIDDEN");
+
+                List<JobPostSkill> skills = null;
+                if (cmd.skills() != null) {
+                        skills = cmd.skills().stream()
+                                        .map(s -> JobPostSkill.builder()
+                                                        .jobPostId(jobPostId)
+                                                        .skillName(s.getSkillName())
+                                                        .level(s.getLevel())
+                                                        .required(s.isRequired())
+                                                        .build())
+                                        .toList();
+                }
 
                 job.updateContent(
                                 cmd.title() != null ? cmd.title() : job.getTitle(),
@@ -46,15 +58,28 @@ class UpdateJobPostUseCase {
                                 cmd.workLocation() != null ? cmd.workLocation() : job.getWorkLocation(),
                                 cmd.experienceYears() != null ? cmd.experienceYears() : job.getExperienceYears(),
                                 cmd.vacancies() != null ? cmd.vacancies() : job.getVacancies(),
-                                cmd.deadline() != null ? cmd.deadline() : job.getDeadline());
+                                cmd.deadline() != null ? cmd.deadline() : job.getDeadline(),
+                                skills);
 
-                return jobPostRepository.save(job);
+                JobPost saved = jobPostRepository.save(job);
+                log.info("JobPost updated: {} [postedBy={}]", jobPostId, job.getPostedBy());
+                return saved;
         }
 
         public record Command(
-                        String title, String slug, String description, String requirements,
-                        String benefits, String jobType, String level, String category,
-                        Salary salary, WorkLocation workLocation,
-                        Integer experienceYears, Integer vacancies, LocalDate deadline) {
+                        String title,
+                        String slug,
+                        String description,
+                        String requirements,
+                        String benefits,
+                        String jobType,
+                        String level,
+                        String category,
+                        Salary salary,
+                        WorkLocation workLocation,
+                        Integer experienceYears,
+                        Integer vacancies,
+                        LocalDate deadline,
+                        List<JobPostSkill> skills) {
         }
 }

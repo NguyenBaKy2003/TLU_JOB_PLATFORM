@@ -103,7 +103,8 @@ public class JobPost {
             String jobType, String level, String category,
             Salary salary, WorkLocation workLocation,
             Integer experienceYears, Integer vacancies,
-            LocalDate deadline) {
+            LocalDate deadline, List<JobPostSkill> skills) {
+
         if (!status.isEditable())
             throw new BusinessRuleException(
                     "Chỉ có thể sửa bài đăng ở trạng thái DRAFT, CLOSED hoặc EXPIRED.",
@@ -122,6 +123,8 @@ public class JobPost {
         this.experienceYears = experienceYears;
         this.vacancies = vacancies;
         this.deadline = deadline;
+        if (skills != null)
+            this.skills = new ArrayList<>(skills);
         this.updatedAt = LocalDateTime.now();
     }
 
