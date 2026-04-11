@@ -19,16 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * UseCase: Tạo bài đăng tuyển dụng (DRAFT).
- *
- * Tạo bài ở trạng thái DRAFT trước — employer chỉnh sửa rồi mới publish.
- * Quota chưa bị trừ ở bước này — chỉ trừ khi publish.
- *
- * BR-01: Công ty phải có subscription active (kiểm tra ở PublishJobPost)
- * BR-02: Tiêu đề phải có
- * BR-03: Slug tự động sinh từ tiêu đề
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,14 +33,12 @@ public class CreateJobPostUseCase {
             throw new BusinessRuleException("Tiêu đề bài đăng không được để trống.", "JOB_TITLE_REQUIRED");
 
         String slug = generateUniqueSlug(cmd.title());
-
-        // Gán jobPostId cho từng skill trước khi lưu
         UUID jobId = UUID.randomUUID();
+
         List<JobPostSkill> skills = new ArrayList<>();
         if (cmd.skills() != null) {
             for (JobPostSkill s : cmd.skills()) {
                 skills.add(JobPostSkill.builder()
-                        .id(UUID.randomUUID())
                         .jobPostId(jobId)
                         .skillName(s.getSkillName())
                         .level(s.getLevel())
@@ -112,7 +100,6 @@ public class CreateJobPostUseCase {
             Integer experienceYears,
             Integer vacancies,
             LocalDate deadline,
-            List<JobPostSkill> skills // nullable — có thể không có skill khi tạo DRAFT
-    ) {
+            List<JobPostSkill> skills) {
     }
 }

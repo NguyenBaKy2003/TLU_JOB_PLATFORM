@@ -14,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JobPostSkillJpaEntity extends BaseJpaEntity {
-
+    @Id
+    private UUID id;
     @Column(name = "job_post_id", nullable = false)
     private UUID jobPostId;
 

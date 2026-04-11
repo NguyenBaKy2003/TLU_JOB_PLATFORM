@@ -1,82 +1,82 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-
+@import "tailwindcss";
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+    --radius: 0.625rem;
+  /* Updated colors for healthcare theme - blue primary, green accent */
+  --background: oklch(0.98 0.01 240);
+  --foreground: oklch(0.15 0.02 240);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.45 0.15 240);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.5 0.12 140);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.92 0.01 240);
+  --muted-foreground: oklch(0.5 0.02 240);
+  --accent: oklch(0.45 0.15 240);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0.01 240);
+  --input: oklch(0.96 0.01 240);
+  --ring: oklch(0.45 0.15 240);
+ --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.98 0.01 240);
+  --sidebar-foreground: oklch(0.15 0.02 240);
+  --sidebar-primary: oklch(0.45 0.15 240);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.55 0.18 140);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.92 0.01 240);
+  --sidebar-ring: oklch(0.45 0.15 240);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.12 0.01 240);
+  --foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.18 0.01 240);
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.18 0.01 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.65 0.15 240);
+  --primary-foreground: oklch(0.12 0.01 240);
+  --secondary: oklch(0.65 0.12 140);
+  --secondary-foreground: oklch(0.12 0.01 240);
+  --muted: oklch(0.3 0.01 240);
+  --muted-foreground: oklch(0.7 0.02 240);
+  --accent: oklch(0.7 0.18 140);
+  --accent-foreground: oklch(0.12 0.01 240);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --border: oklch(0.3 0.01 240);
+  --input: oklch(0.25 0.01 240);
+  --ring: oklch(0.65 0.15 240);
+  --chart-1: oklch(0.65 0.15 240);
+  --chart-2: oklch(0.7 0.18 140);
+  --chart-3: oklch(0.75 0.12 200);
+  --chart-4: oklch(0.7 0.15 280);
+  --chart-5: oklch(0.8 0.1 160);
+  --sidebar: oklch(0.15 0.01 240);
+  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar-primary: oklch(0.65 0.15 240);
+  --sidebar-primary-foreground: oklch(0.12 0.01 240);
+  --sidebar-accent: oklch(0.7 0.18 140);
+  --sidebar-accent-foreground: oklch(0.12 0.01 240);
+  --sidebar-border: oklch(0.3 0.01 240);
+  --sidebar-ring: oklch(0.65 0.15 240);
 }
 
 @theme inline {
   --font-sans: "Inter", "Inter Fallback";
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -122,4 +122,111 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+  .container {
+    @apply w-full mx-auto px-5;
+    max-width: 100% !important;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      @apply px-6;
+      max-width: 640px;
+    }
+  }
+  @media (min-width: 768px) {
+    .container {
+      max-width: 768px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1024px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+}
+
+/* ── Tiptap Rich Editor ───────────────────────────────────────────────────── */
+/* Đặt ngoài @layer để có specificity cao hơn Tailwind preflight              */
+
+.tiptap {
+  outline: none;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.tiptap p {
+  margin: 0.125rem 0;
+}
+
+.tiptap h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.25rem;
+  color: #111827;
+}
+
+.tiptap h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0.375rem 0 0.125rem;
+  color: #111827;
+}
+
+/* ✅ Fix: !important để override Tailwind preflight (ul { list-style: none }) */
+.tiptap ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap ol {
+  list-style-type: decimal !important;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap li {
+  display: list-item !important;
+  margin: 0.125rem 0;
+}
+
+/* Tiptap bọc text trong li bằng <p> — reset margin để không tạo khoảng thừa */
+.tiptap li p {
+  margin: 0;
+}
+
+.tiptap blockquote {
+  border-left: 2px solid #93c5fd;
+  padding-left: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0.25rem 0;
+}
+
+/* ✅ Fix: hr đang hiện nhiều đường do Tailwind preflight + p trống xung quanh */
+.tiptap hr {
+  display: block;
+  border: none !important;
+  border-top: 1.5px solid #d1d5db !important;
+  margin: 0.75rem 0;
+  height: 0;
+  background: none;
+}
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #d1d5db;
+  float: left;
+  pointer-events: none;
+  height: 0;
 }

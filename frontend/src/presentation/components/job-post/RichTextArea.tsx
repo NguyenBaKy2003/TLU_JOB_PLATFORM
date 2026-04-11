@@ -67,26 +67,26 @@ export function RichTextArea({
 }: RichTextAreaProps) {
 
   const editor = useEditor({
-     immediatelyRender: false,
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading:      { levels: [2, 3] },
+        bulletList:   { keepMarks: true, keepAttributes: false },
+        orderedList:  { keepMarks: true, keepAttributes: false },
       }),
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
         placeholder: placeholder ?? "Nhập nội dung...",
       }),
-      ...(maxLength
-        ? [CharacterCount.configure({ limit: maxLength })]
-        : [CharacterCount]
-      ),
+      // ✅ Fix: luôn dùng .configure() tránh CharacterCount class conflict
+      CharacterCount.configure(maxLength ? { limit: maxLength } : {}),
     ],
     content: value,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: {
-        class: "outline-none px-3 py-2.5 text-sm text-gray-800",
+        // ✅ Fix: không set class ở đây — để globals.css quản lý .tiptap styles
         style: `min-height: ${rows * 1.625}rem`,
       },
     },
@@ -204,27 +204,7 @@ export function RichTextArea({
         </div>
 
         {/* ── Editor content ── */}
-        <EditorContent
-          editor={editor}
-          className="
-            [&_.tiptap]:outline-none [&_.tiptap]:px-3 [&_.tiptap]:py-2.5
-            [&_.tiptap]:text-sm [&_.tiptap]:text-gray-800
-            [&_.tiptap_h2]:text-base [&_.tiptap_h2]:font-bold [&_.tiptap_h2]:mt-2 [&_.tiptap_h2]:mb-1
-            [&_.tiptap_h3]:text-sm [&_.tiptap_h3]:font-semibold [&_.tiptap_h3]:mt-1.5 [&_.tiptap_h3]:mb-0.5
-            [&_.tiptap_blockquote]:border-l-2 [&_.tiptap_blockquote]:border-blue-300
-            [&_.tiptap_blockquote]:pl-3 [&_.tiptap_blockquote]:text-gray-500
-            [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-1
-            [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ul]:my-1
-            [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_ol]:my-1
-            [&_.tiptap_li]:my-0.5
-            [&_.tiptap_hr]:border-gray-200 [&_.tiptap_hr]:my-2
-            [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
-            [&_.tiptap_p.is-editor-empty:first-child::before]:text-gray-300
-            [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
-            [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
-            [&_.tiptap_p.is-editor-empty:first-child::before]:h-0
-          "
-        />
+        <EditorContent editor={editor} />
 
         {/* ── Footer: char count ── */}
         {(minLength || maxLength) && (
