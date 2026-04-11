@@ -1,10 +1,14 @@
 package edu.tlu.jobplatform.ai.infrastructure.openai;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -15,9 +19,15 @@ import java.time.Duration;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PdfTextExtractor {
 
     private static final int MAX_CHARS = 8000;
+
+    private final S3Presigner s3Presigner; // inject bean từ S3Config
+
+    @Value("${aws.s3.bucket}")
+    private String bucket;
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -25,55 +35,66 @@ public class PdfTextExtractor {
             .build();
 
     public String extractFromUrl(String pdfUrl) {
-        if (pdfUrl == null || pdfUrl.isBlank()) {
+        if (pdfUrl == null || pdfUrl.isBlank())
             return "";
-        }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(pdfUrl))
-                    .timeout(Duration.ofSeconds(20))
-                    .header("User-Agent", "Mozilla/5.0")
-                    .GET()
-                    .build();
-
-            HttpResponse<InputStream> response = HTTP.send(request, HttpResponse.BodyHandlers.ofInputStream());
-
-            if (response.statusCode() != 200) {
-                log.warn("Failed to download PDF: url={}, status={}", pdfUrl, response.statusCode());
-                return "";
-            }
-
-            try (InputStream inputStream = response.body()) {
-                PDDocument document = Loader.loadPDF(inputStream.readAllBytes());
-
-                if (document.isEncrypted()) {
-                    log.warn("PDF is encrypted: url={}", pdfUrl);
-                    return "";
-                }
-
-                PDFTextStripper stripper = new PDFTextStripper();
-                stripper.setSortByPosition(true);
-
-                String text = stripper.getText(document);
-
-                if (text == null || text.isBlank()) {
-                    return "";
-                }
-
-                text = text.trim();
-
-                // Giới hạn độ dài
-                if (text.length() > MAX_CHARS) {
-                    text = text.substring(0, MAX_CHARS) + "...[truncated]";
-                }
-
-                return text;
-            }
-
+            // Đổi S3 URL → presigned URL
+            String downloadUrl = toPresignedUrl(pdfUrl);
+            return downloadAndExtract(downloadUrl);
         } catch (Exception e) {
             log.error("PDF extraction failed: url={}", pdfUrl, e);
             return "";
+        }
+    }
+
+    private String toPresignedUrl(String s3Url) {
+        String path = URI.create(s3Url).getPath();
+        String key = path.startsWith("/") ? path.substring(1) : path;
+        log.info("S3 key extracted: '{}'", key); // ✅ thêm dòng này
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))
+                .getObjectRequest(r -> r.bucket(bucket).key(key))
+                .build();
+
+        String presignedUrl = s3Presigner.presignGetObject(presignRequest).url().toString();
+        log.info("Presigned URL: {}", presignedUrl.substring(0, 80) + "..."); // ✅ thêm dòng này
+        return presignedUrl;
+    }
+
+    private String downloadAndExtract(String url) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(20))
+                .GET().build();
+
+        HttpResponse<InputStream> response = HTTP.send(
+                request, HttpResponse.BodyHandlers.ofInputStream());
+
+        log.info("PDF download status: {}", response.statusCode()); // ✅ thêm
+
+        if (response.statusCode() != 200) {
+            log.warn("Failed to download PDF: status={}", response.statusCode());
+            return "";
+        }
+
+        try (InputStream is = response.body()) {
+            byte[] bytes = is.readAllBytes();
+            log.info("PDF bytes downloaded: {}", bytes.length); // ✅ thêm
+
+            PDDocument doc = Loader.loadPDF(bytes);
+            if (doc.isEncrypted()) {
+                log.warn("PDF is encrypted");
+                return "";
+            }
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            String text = stripper.getText(doc).trim();
+            log.info("PDF text extracted: {} chars", text.length()); // ✅ thêm
+            return text.length() > MAX_CHARS
+                    ? text.substring(0, MAX_CHARS) + "...[truncated]"
+                    : text;
         }
     }
 }
