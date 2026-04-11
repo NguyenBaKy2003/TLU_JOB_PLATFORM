@@ -90,6 +90,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/payments/callback/**").permitAll()
 
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
+                                                .requestMatchers("/api/v1/applications/**").permitAll()
 
                                                 .anyRequest().authenticated())
 
