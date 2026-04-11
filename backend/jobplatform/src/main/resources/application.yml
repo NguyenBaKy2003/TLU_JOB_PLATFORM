@@ -227,7 +227,8 @@ payment:
   #   request-type: captureWallet
 spring.ai:
   openai:
-    api-key: ${OPENAI_API_KEY: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}
-    chat.options:
-      model: gpt-4o-mini
-      temperature: 0.3
+    api-key: ${GROQ_API_KEY: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}
+    base-url: https://api.groq.com/openai
+    chat:
+      options:
+        model: llama-3.3-70b-versatile
