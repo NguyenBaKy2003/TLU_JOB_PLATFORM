@@ -27,10 +27,12 @@ public interface CompanyRepository {
 
     boolean existsByName(String name);
 
-    /** Danh sách công ty theo trạng thái xác thực — Admin dùng */
+    long countAll(); // thêm
+
+    long countByVerificationStatus(VerificationStatus status); // thêm
+
     Page<CompanyProfile> findByVerificationStatus(VerificationStatus status, Pageable pageable);
 
-    /** Danh sách công ty đã xác thực — Public */
     Page<CompanyProfile> findVerifiedCompanies(Pageable pageable);
 
     CompanyProfile save(CompanyProfile company);

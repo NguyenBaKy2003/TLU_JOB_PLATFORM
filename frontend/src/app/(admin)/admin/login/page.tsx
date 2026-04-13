@@ -1,16 +1,15 @@
-// src/app/(admin)/admin/login/page.tsx
 "use client";
 import { useState, useCallback, useEffect } from "react";
-import { useRouter }                         from "next/navigation";
-import { Shield, Eye, EyeOff, AlertCircle }  from "lucide-react";
-import { AuthService }                       from "@/application/services/AuthService";
-import { AuthRepository }                    from "@/infrastructure/repositories/AuthRepository";
-import { useAuth }                           from "@/application/contexts/AuthContext";
-import { extractErrorMessage }               from "@/lib/extractErrorMessage";
+import { useRouter }                        from "next/navigation";
+import { Shield, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { AuthService }                      from "@/application/services/AuthService";
+import { AuthRepository }                   from "@/infrastructure/repositories/AuthRepository";
+import { useAdminAuth }                     from "@/application/contexts/AdminAuthContext";
+import { extractErrorMessage }              from "@/lib/extractErrorMessage";
 
 const authService = new AuthService(new AuthRepository());
 
-// ── FormInput (inline — tái sử dụng pattern từ auth-ui) ──────────────────────
+// ── FormInput ──────────────────────────────────────────────────────────────────
 
 function FormInput({
   label, error, rightElement, ...props
@@ -43,11 +42,25 @@ function FormInput({
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Spinner ────────────────────────────────────────────────────────────────────
+
+function FullPageSpinner() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <svg className="w-8 h-8 animate-spin text-red-500" viewBox="0 0 24 24" fill="none">
+        <circle className="opacity-25" cx="12" cy="12" r="10"
+          stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+      </svg>
+    </div>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function AdminLoginPage() {
-  const router               = useRouter();
-  const { user, loading, setUserFromToken } = useAuth();
+  const router                                         = useRouter();
+  const { adminUser, adminLoading, setAdminFromToken } = useAdminAuth();
 
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -56,12 +69,14 @@ export default function AdminLoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [busy,     setBusy]     = useState(false);
 
-  // Nếu đã login là ADMIN → về dashboard
+  // ✅ Đợi load xong (adminUser !== undefined) rồi mới redirect
   useEffect(() => {
-    if (!loading && user?.role === "ADMIN") {
+    if (adminLoading)              return; // đang verify token → chờ
+    if (adminUser === undefined)   return; // chưa khởi tạo → chờ
+    if (adminUser?.role === "ADMIN") {
       router.replace("/admin/dashboard");
     }
-  }, [user, loading, router]);
+  }, [adminUser, adminLoading, router]);
 
   const validate = () => {
     const e: typeof errors = {};
@@ -78,35 +93,32 @@ export default function AdminLoginPage() {
 
     setBusy(true);
     try {
-      const token = await authService.login({ email, password });
+      // loginAdmin — KHÔNG lưu vào accessToken/refreshToken thường
+      // → tokenChanged event không fire
+      // → AuthContext candidate/employer không bị trigger
+      // → không redirect về /auth/login
+      const token = await authService.loginAdmin({ email, password });
 
-      // Chặn nếu không phải ADMIN
       if (token.user.role !== "ADMIN") {
         setApiError("Tài khoản này không có quyền truy cập trang quản trị.");
         return;
       }
 
-      setUserFromToken(token.user);
+      // Lưu đúng vào adminAccessToken / adminRefreshToken
+      setAdminFromToken(token.user, token.accessToken, token.refreshToken);
+
       router.replace("/admin/dashboard");
     } catch (e) {
       setApiError(extractErrorMessage(e, "Email hoặc mật khẩu không đúng."));
     } finally {
       setBusy(false);
     }
-  }, [email, password, router, setUserFromToken]);
+  }, [email, password, router, setAdminFromToken]);
 
-  // Đang kiểm tra auth → spinner
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <svg className="w-8 h-8 animate-spin text-red-500" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-        </svg>
-      </div>
-    );
-  }
+  // ✅ Spinner khi đang verify token hoặc chưa khởi tạo
+  if (adminLoading || adminUser === undefined) return <FullPageSpinner />;
 
+  // adminUser === null → chưa login → hiện form
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
@@ -124,7 +136,6 @@ export default function AdminLoginPage() {
         {/* Form card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
 
-          {/* API error */}
           {apiError && (
             <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-100
               rounded-xl mb-5 text-sm text-red-700">
@@ -175,7 +186,8 @@ export default function AdminLoginPage() {
                 disabled:opacity-60 disabled:cursor-not-allowed transition-colors
                 shadow-sm shadow-red-200">
               {busy && (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white
+                  rounded-full animate-spin" />
               )}
               {busy ? "Đang xác thực..." : "Đăng nhập"}
             </button>
@@ -183,10 +195,12 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Security note */}
-        <p className="text-center text-[11px] text-gray-400 mt-4 flex items-center justify-center gap-1.5">
+        <p className="text-center text-[11px] text-gray-400 mt-4
+          flex items-center justify-center gap-1.5">
           <Shield size={11} className="text-gray-400" />
           Khu vực chỉ dành cho quản trị viên được ủy quyền
         </p>
+
       </div>
     </div>
   );

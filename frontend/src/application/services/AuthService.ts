@@ -180,4 +180,24 @@ export class AuthService {
     assertValidEmail(email);
     return this.authRepository.resendVerificationEmail(email);
   }
+
+  /**
+ * Refresh admin access token dùng adminRefreshToken.
+ * Trả về { accessToken, refreshToken } mới để caller lưu vào admin storage.
+ */
+async refreshAdminToken(refreshToken: string): Promise<{
+  accessToken:  string;
+  refreshToken: string;
+}> {
+  // Gọi cùng endpoint /auth/refresh nhưng không tự lưu vào localStorage
+  // (để AdminAuthContext tự quyết định lưu vào adminToken keys)
+  return this.authRepository.refreshToken(refreshToken);
+}
+
+async loginAdmin(credentials: UserCredentials): Promise<AuthResult> {
+  if (!credentials.email || !credentials.password) {
+    throw new Error("Email và mật khẩu không được để trống");
+  }
+  return this.authRepository.loginAdmin(credentials);
+}
 }

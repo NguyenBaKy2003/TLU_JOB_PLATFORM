@@ -13,7 +13,8 @@ export function CompanyCard({ company }: { company: Company }) {
       className="flex items-start gap-4 p-5 bg-white border border-gray-100 rounded-2xl
         hover:border-blue-200 hover:shadow-md transition-all group"
     >
-      <CompanyAvatar name={company.name} size={56} />
+      <CompanyAvatar   name={company.name}
+      logoUrl={company.logoUrl} size={56} />
 
       <div className="flex-1 min-w-0">
         {/* Row 1: name + rating */}

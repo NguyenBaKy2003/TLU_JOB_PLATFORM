@@ -7,7 +7,6 @@ import edu.tlu.jobplatform.user.infrastructure.persistence.entity.UserJpaEntity;
 import edu.tlu.jobplatform.user.infrastructure.persistence.mapper.UserMapper;
 import edu.tlu.jobplatform.user.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -15,16 +14,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Adapter kết nối domain UserRepository (interface) với Spring Data JPA.
- *
- * Domain UseCase chỉ biết UserRepository interface.
- * Adapter này là implementation thực tế — inject JPA repository bên trong.
- *
- * Nếu muốn đổi sang MongoDB:
- * → Viết MongoUserRepositoryAdapter implements UserRepository
- * → Thay @Primary → UseCase không cần sửa 1 dòng nào
- */
 @Component
 @RequiredArgsConstructor
 public class UserRepositoryAdapter implements UserRepository {
@@ -50,7 +39,6 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public User save(User user) {
         if (user.getId() != null) {
-            // UPDATE: load entity cũ, merge, save
             Optional<UserJpaEntity> existing = jpaRepo.findById(user.getId());
             if (existing.isPresent()) {
                 UserJpaEntity entity = existing.get();
@@ -58,9 +46,7 @@ public class UserRepositoryAdapter implements UserRepository {
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
-        // INSERT: tạo entity mới
-        UserJpaEntity newEntity = mapper.toNewEntity(user);
-        return mapper.toDomain(jpaRepo.save(newEntity));
+        return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(user)));
     }
 
     @Override
@@ -69,9 +55,28 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public long countAll() {
+        return jpaRepo.count();
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        return jpaRepo.findAll(pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<User> findByRole(UserRole role, Pageable pageable) {
+        return jpaRepo.findByRole(role, pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<User> searchByKeyword(String keyword, Pageable pageable) {
+        return jpaRepo.searchByKeyword(keyword, pageable).map(mapper::toDomain);
+    }
+
+    @Override
     public Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable) {
         String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
-        return jpaRepo.searchUsers(kw, role, active, pageable)
-                .map(mapper::toDomain);
+        return jpaRepo.searchUsers(kw, role, active, pageable).map(mapper::toDomain);
     }
 }

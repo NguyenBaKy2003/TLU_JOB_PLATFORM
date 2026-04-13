@@ -84,4 +84,8 @@ export interface IAuthRepository {
 
   /** POST /api/auth/resend-verification — gửi lại OTP xác thực email */
   resendVerificationEmail(email: string): Promise<void>;
+
+
+   /** POST /api/auth/login — dành riêng cho admin, KHÔNG lưu token vào localStorage thường */
+  loginAdmin(credentials: UserCredentials): Promise<AuthResult>;
 }

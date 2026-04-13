@@ -20,6 +20,14 @@ public interface UserRepository {
 
     void deleteById(UUID id);
 
-    // ── Admin search ──────────────────────────────────────────────
+    long countAll();
+
+    Page<User> findAll(Pageable pageable);
+
+    Page<User> findByRole(UserRole role, Pageable pageable);
+
+    Page<User> searchByKeyword(String keyword, Pageable pageable);
+
+    // giữ lại method cũ nếu có chỗ khác dùng
     Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable);
 }

@@ -15,21 +15,30 @@ import java.util.UUID;
 @Repository
 public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
 
-    Optional<UserJpaEntity> findByEmail(String email);
+        Optional<UserJpaEntity> findByEmail(String email);
 
-    boolean existsByEmail(String email);
+        boolean existsByEmail(String email);
 
-    @Query("""
-            SELECT u FROM UserJpaEntity u
-            WHERE (:keyword IS NULL
-                   OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
-                   OR LOWER(u.email)    LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
-              AND (:role     IS NULL OR u.role     = :role)
-              AND (:isActive IS NULL OR u.isActive = :isActive)
-            """)
-    Page<UserJpaEntity> searchUsers(
-            @Param("keyword") String keyword,
-            @Param("role") UserRole role,
-            @Param("isActive") Boolean isActive,
-            Pageable pageable);
+        Page<UserJpaEntity> findByRole(UserRole role, Pageable pageable);
+
+        @Query("""
+                        SELECT u FROM UserJpaEntity u
+                        WHERE LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                           OR LOWER(u.email)    LIKE LOWER(CONCAT('%', :keyword, '%'))
+                        """)
+        Page<UserJpaEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+        @Query("""
+                        SELECT u FROM UserJpaEntity u
+                        WHERE (:keyword IS NULL
+                               OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
+                               OR LOWER(u.email)    LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
+                          AND (:role     IS NULL OR u.role     = :role)
+                          AND (:isActive IS NULL OR u.isActive = :isActive)
+                        """)
+        Page<UserJpaEntity> searchUsers(
+                        @Param("keyword") String keyword,
+                        @Param("role") UserRole role,
+                        @Param("isActive") Boolean isActive,
+                        Pageable pageable);
 }

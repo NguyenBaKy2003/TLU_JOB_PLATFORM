@@ -15,6 +15,8 @@ public class CompanySubscription {
     private final UUID planId;
     private final String planCode;
 
+    private final boolean yearly; // ✅ thêm mới
+
     private LocalDateTime startedAt;
     private LocalDateTime expiresAt;
     private SubscriptionStatus status;
@@ -37,9 +39,8 @@ public class CompanySubscription {
     }
 
     public boolean isExpired() {
-        return status == SubscriptionStatus.ACTIVE
-                && expiresAt != null
-                && LocalDateTime.now().isAfter(expiresAt);
+        return status == SubscriptionStatus.EXPIRED
+                || (expiresAt != null && LocalDateTime.now().isAfter(expiresAt));
     }
 
     public long daysRemaining() {
@@ -64,7 +65,7 @@ public class CompanySubscription {
 
     public void activate(UUID paymentId, LocalDateTime expiresAt) {
         this.status = SubscriptionStatus.ACTIVE;
-        this.startedAt = LocalDateTime.now(); // fix: set startedAt
+        this.startedAt = LocalDateTime.now();
         this.expiresAt = expiresAt;
         this.currentPaymentId = paymentId;
     }

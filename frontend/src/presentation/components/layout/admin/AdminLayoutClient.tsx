@@ -1,8 +1,9 @@
 // src/presentation/components/layout/admin/AdminLayoutClient.tsx
+// Cập nhật dùng useAdminAuth thay vì useAuth
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter }                  from "next/navigation";
-import { useAuth }                    from "@/application/contexts/AuthContext";
+import { useAdminAuth }               from "@/application/contexts/AdminAuthContext";
 import { useWebSocket }               from "@/application/contexts/WebSocketContext";
 import AdminSidebar                   from "./AdminSidebar";
 import { AdminHeader }                from "./AdminHeader";
@@ -17,34 +18,35 @@ interface Props {
 export default function AdminLayoutClient({
   children, activeHref, topbarTitle, topbarSubtitle,
 }: Props) {
-  const router            = useRouter();
-  const { user, loading } = useAuth();
-  const { unreadCount }   = useWebSocket();
+  const router                        = useRouter();
+  const { adminUser, adminLoading, adminLogout } = useAdminAuth();
+  const { unreadCount }               = useWebSocket();
 
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close drawer on resize
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false); };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ── Auth + role guard ─────────────────────────────────────────────────────
+  // ── Admin auth guard ──────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) { router.replace("/auth/login"); return; }
-    if (user.role !== "ADMIN") {
-      const fallback = user.role === "EMPLOYER" ? "/employer/dashboard" : "/profile";
-      router.replace(fallback);
+    if (adminLoading) return;
+    if (!adminUser) {
+      router.replace("/admin/login");
+      return;
     }
-  }, [user, loading, router]);
+    if (adminUser.role !== "ADMIN") {
+      router.replace("/admin/login");
+    }
+  }, [adminUser, adminLoading, router]);
 
   // ── Loading spinner ───────────────────────────────────────────────────────
 
-  if (loading || !user) {
+  if (adminLoading || !adminUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <svg className="w-8 h-8 animate-spin text-red-500" viewBox="0 0 24 24" fill="none">
@@ -55,10 +57,7 @@ export default function AdminLayoutClient({
     );
   }
 
-  // Đang redirect — không render để tránh flash
-  if (user.role !== "ADMIN") return null;
-
-  // ─────────────────────────────────────────────────────────────────────────
+  if (adminUser.role !== "ADMIN") return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -69,12 +68,16 @@ export default function AdminLayoutClient({
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
         notificationCount={unreadCount}
+        // Truyền adminLogout để sidebar dùng đúng logout function
+        onLogout={adminLogout}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <AdminHeader
           title={topbarTitle}
           subtitle={topbarSubtitle}
           onMenuToggle={() => setMobileOpen(v => !v)}
+          adminUser={adminUser}
+          onLogout={adminLogout}
         />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
