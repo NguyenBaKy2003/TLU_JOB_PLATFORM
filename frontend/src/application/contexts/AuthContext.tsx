@@ -192,6 +192,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone:       null,
         active:      true,
         lastLoginAt: null,
+         // ── fields bắt buộc còn lại — sẽ được ghi đè bởi refreshAdminUser ──
+      status:              "ACTIVE",
+      oauthProvider:       "LOCAL",
+      createdAt:           "",
+      updatedAt:           "",
+      accountLocked:       false,
+      accountLockedUntil:  null,
+      minutesUntilUnlock:  0,
+      failedLoginAttempts: 0,
       });
 
       // Bắt đầu schedule refresh ngay sau khi login

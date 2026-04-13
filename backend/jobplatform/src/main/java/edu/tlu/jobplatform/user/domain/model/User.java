@@ -31,6 +31,8 @@ public class User {
     private String authProvider;
     private String authProviderId;
     private LocalDateTime lastLoginAt;
+    private int failedLoginAttempts;
+    private LocalDateTime lockedUntil;
     private final LocalDateTime createdAt;
 
     // ── Business Rules ────────────────────────────────────────────
@@ -67,10 +69,41 @@ public class User {
     }
 
     /**
-     * Ghi nhận đăng nhập thành công.
+     * Reset counter sau khi login thành công.
      */
     public void recordLogin() {
         this.lastLoginAt = LocalDateTime.now();
+        this.failedLoginAttempts = 0;
+        this.lockedUntil = null;
+    }
+
+    /**
+     * Kiểm tra tài khoản có đang bị tạm khóa không.
+     * Tự gỡ ban nếu đã qua 30 phút.
+     */
+    public boolean isTemporarilyLocked() {
+        if (lockedUntil == null)
+            return false;
+        if (LocalDateTime.now().isAfter(lockedUntil)) {
+            // Tự gỡ ban
+            this.lockedUntil = null;
+            this.failedLoginAttempts = 0;
+            return false;
+        }
+        return true;
+    }
+
+    public void changeRole(UserRole newRole) {
+        this.role = newRole;
+    }
+
+    /**
+     * Còn bao nhiêu phút bị khóa (để trả về client).
+     */
+    public long minutesUntilUnlock() {
+        if (lockedUntil == null)
+            return 0;
+        return java.time.Duration.between(LocalDateTime.now(), lockedUntil).toMinutes() + 1;
     }
 
     /**
@@ -85,6 +118,24 @@ public class User {
      */
     public void deactivate() {
         this.active = false;
+    }
+
+    // ── Activate ──────────────────────────────────────────────────────
+    public void activate() {
+        this.active = true;
+    }
+
+    // ── Failed login tracking ─────────────────────────────────────────
+
+    /**
+     * Ghi nhận login thất bại.
+     * Sau 5 lần → lock 30 phút.
+     */
+    public void recordFailedLogin() {
+        this.failedLoginAttempts++;
+        if (this.failedLoginAttempts >= 5) {
+            this.lockedUntil = LocalDateTime.now().plusMinutes(30);
+        }
     }
 
     /**

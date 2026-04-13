@@ -12,7 +12,8 @@ interface JWTPayload {
 
 const ACCESS_TOKEN_KEY = "accessToken"
 const REFRESH_TOKEN_KEY = "refreshToken"
-
+const ADMIN_ACCESS=  "adminAccessToken"
+const  ADMIN_REFRESH= "adminRefreshToken"
 // ==================== Token Storage ====================
 
 export const setAccessToken = (token: string): void => {
@@ -35,6 +36,15 @@ export const getAccessToken = (): string | null => {
   return null
 }
 
+export function getAdminAccessToken():  string | null { return localStorage.getItem(ADMIN_ACCESS);  }
+export function getAdminRefreshToken(): string | null { return localStorage.getItem(ADMIN_REFRESH); }
+ 
+export function setAdminAccessToken(t: string):  void { localStorage.setItem(ADMIN_ACCESS,  t); }
+export function setAdminRefreshToken(t: string): void { localStorage.setItem(ADMIN_REFRESH, t); }
+export function clearAdminTokens(): void {
+  localStorage.removeItem(ADMIN_ACCESS);
+  localStorage.removeItem(ADMIN_REFRESH);
+}
 export const getRefreshToken = (): string | null => {
   if (typeof window !== "undefined") {
     return localStorage.getItem(REFRESH_TOKEN_KEY)

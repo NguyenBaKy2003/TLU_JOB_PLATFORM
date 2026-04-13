@@ -7,15 +7,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * JPA Entity map với bảng "users" trong PostgreSQL.
- *
- * Tách biệt khỏi domain User:
- * - Entity này biết về DB (@Column, indexes, JPA lifecycle)
- * - Domain User không biết DB tồn tại
- *
- * UserMapper chuyển đổi giữa hai: UserJpaEntity ↔ User (domain)
- */
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_users_email", columnList = "email", unique = true),
@@ -25,9 +16,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserJpaEntity extends BaseJpaEntity {
 
     @Column(nullable = false, unique = true, length = 255)
@@ -47,14 +36,20 @@ public class UserJpaEntity extends BaseJpaEntity {
     private UserRole role;
 
     @Column(name = "auth_provider", length = 50)
-    private String authProvider; // ← thêm
+    private String authProvider;
 
     @Column(name = "auth_provider_id", length = 255)
-    private String authProviderId; // ← thêm
+    private String authProviderId;
 
     @Column(name = "is_verified", nullable = false)
     private boolean verified;
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
+
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
 }

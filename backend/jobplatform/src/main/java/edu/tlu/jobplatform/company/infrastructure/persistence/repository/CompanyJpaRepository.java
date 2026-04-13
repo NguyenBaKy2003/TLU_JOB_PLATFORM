@@ -1,12 +1,11 @@
 package edu.tlu.jobplatform.company.infrastructure.persistence.repository;
 
+import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
+import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
-import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaEntity;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +22,8 @@ public interface CompanyJpaRepository extends JpaRepository<CompanyJpaEntity, UU
     boolean existsBySlug(String slug);
 
     boolean existsByName(String name);
+
+    long countByVerificationStatus(VerificationStatus status);
 
     Page<CompanyJpaEntity> findByVerificationStatus(VerificationStatus status, Pageable pageable);
 

@@ -33,10 +33,10 @@ export interface CompanyDetail {
   id:          string;
   name:        string;
   website:     string;
-  logo?:       string;
+  logoUrl?:       string;
   coverImage?: string;
-  location:    string;
-  companySize: number;
+  address:    string;
+  sizeLabel: number;
   email:       string;
   phone:       string;
   following:   boolean;

@@ -1,48 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   User, Bell, MessageSquare, Settings,
   Activity, LogOut, HelpCircle, ChevronLeft,
   Briefcase, X, LayoutDashboard, FileText,
   Building2, Users, BarChart2, PlusCircle,
-  Banknote,
+  Banknote, ClipboardList, BookmarkCheck,
 } from "lucide-react";
-import { useAuth }      from "@/application/contexts/AuthContext";
+import { useAuth } from "@/application/contexts/AuthContext";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-// badge sẽ được inject từ context — không hardcode ở đây
 const CANDIDATE_NAV = [
-  { label: "Hồ sơ của tôi",     icon: <User size={18} />,          href: "/profile",        badgeKey: null              },
-  { label: "Thông báo",          icon: <Bell size={18} />,          href: "/notifications",  badgeKey: "notification"    },
-  { label: "Tin nhắn",           icon: <MessageSquare size={18} />, href: "/messages",       badgeKey: null              },
-  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,      href: "/settings",       badgeKey: null              },
-  { label: "Hoạt động",          icon: <Activity size={18} />,      href: "/activity",       badgeKey: null              },
+  { label: "Hồ sơ của tôi",     icon: <User size={18} />,             href: "/profile",           badgeKey: null           },
+  { label: "Đơn ứng tuyển",     icon: <ClipboardList size={18} />,    href: "/applications",      badgeKey: null           },
+  { label: "Việc đã lưu",       icon: <BookmarkCheck size={18} />,    href: "/saved-jobs",         badgeKey: null           },
+  { label: "Thông báo",          icon: <Bell size={18} />,             href: "/notifications",     badgeKey: "notification" },
+  { label: "Tin nhắn",           icon: <MessageSquare size={18} />,    href: "/messages",          badgeKey: null           },
+  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/settings",          badgeKey: null           },
+  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/activity",          badgeKey: null           },
 ];
 
 const EMPLOYER_NAV = [
-  { label: "Tổng quan",         icon: <LayoutDashboard size={18} />, href: "/employer/dashboard",      badgeKey: null           },
-  { label: "Quản lý tin tuyển", icon: <FileText size={18} />,        href: "/employer/jobs",           badgeKey: null           },
-  { label: "Ứng viên",          icon: <Users size={18} />,           href: "/employer/candidates",     badgeKey: null           },
-  { label: "Thông báo",         icon: <Bell size={18} />,            href: "/employer/notifications",  badgeKey: "notification" },
-  { label: "Tin nhắn",          icon: <MessageSquare size={18} />,   href: "/employer/messages",       badgeKey: null           },
-  { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",      badgeKey: null           },
-  { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/company",        badgeKey: null           },
-  { label: "Gói đăng ký",           icon: <Banknote size={18} />,       href: "/employer/subscription",        badgeKey: null           },
-  { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",       badgeKey: null           },
+  { label: "Tổng quan",         icon: <LayoutDashboard size={18} />, href: "/employer/dashboard",     badgeKey: null           },
+  { label: "Quản lý tin tuyển", icon: <FileText size={18} />,        href: "/employer/jobs",          badgeKey: null           },
+  { label: "Ứng viên",          icon: <Users size={18} />,           href: "/employer/candidates",    badgeKey: null           },
+  { label: "Thông báo",         icon: <Bell size={18} />,            href: "/employer/notifications", badgeKey: "notification" },
+  { label: "Tin nhắn",          icon: <MessageSquare size={18} />,   href: "/employer/messages",      badgeKey: null           },
+  { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",     badgeKey: null           },
+  { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/company",       badgeKey: null           },
+  { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
+  { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
-  activeHref?:       string;
   collapsed:         boolean;
   onToggle:          () => void;
   mobileOpen:        boolean;
   onMobileClose:     () => void;
-  notificationCount: number; // ✅ từ WebSocketContext
+  notificationCount: number;
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
@@ -75,7 +75,6 @@ function NavLink({
     >
       <span className="shrink-0 relative">
         {item.icon}
-        {/* Collapsed mode: dot indicator */}
         {collapsed && badge && badge > 0 && (
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
         )}
@@ -98,9 +97,8 @@ function NavLink({
 // ─── Sidebar content ──────────────────────────────────────────────────────────
 
 function SidebarContent({
-  activeHref, collapsed, onToggle, onClose, isMobile, notificationCount,
+  collapsed, onToggle, onClose, isMobile, notificationCount,
 }: {
-  activeHref?:       string;
   collapsed:         boolean;
   onToggle:          () => void;
   onClose?:          () => void;
@@ -108,6 +106,7 @@ function SidebarContent({
   notificationCount: number;
 }) {
   const router           = useRouter();
+  const pathname         = usePathname();           // ✅ active tự động theo URL
   const { user, logout } = useAuth();
 
   const isEmployer = user?.role === "EMPLOYER";
@@ -121,11 +120,14 @@ function SidebarContent({
   const homeHref   = isEmployer ? "/employer/dashboard" : "/home";
   const brandLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
 
-  // Badge resolver
   const getBadge = (key: NavItem["badgeKey"]): number | undefined => {
     if (key === "notification") return notificationCount || undefined;
     return undefined;
   };
+
+  // So sánh chính xác hoặc theo prefix để hỗ trợ sub-routes
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
 
   return (
     <aside className={`relative flex flex-col h-full bg-white border-r border-gray-100
@@ -193,7 +195,7 @@ function SidebarContent({
           <NavLink
             key={item.href}
             item={item}
-            active={activeHref === item.href}
+            active={isActive(item.href)}             // ✅ dùng isActive thay vì so sánh prop
             collapsed={collapsed && !isMobile}
             onClick={isMobile ? onClose : undefined}
             badge={getBadge(item.badgeKey)}
@@ -228,13 +230,12 @@ function SidebarContent({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export default function Sidebar({
-  activeHref, collapsed, onToggle, mobileOpen, onMobileClose, notificationCount,
+  collapsed, onToggle, mobileOpen, onMobileClose, notificationCount,
 }: Props) {
   return (
     <>
       <div className="hidden md:flex h-screen sticky top-0">
         <SidebarContent
-          activeHref={activeHref}
           collapsed={collapsed}
           onToggle={onToggle}
           isMobile={false}
@@ -250,7 +251,6 @@ export default function Sidebar({
           />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 h-full">
             <SidebarContent
-              activeHref={activeHref}
               collapsed={false}
               onToggle={onToggle}
               onClose={onMobileClose}

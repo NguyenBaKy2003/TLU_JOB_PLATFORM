@@ -101,9 +101,9 @@ export default function CompanyDetailPage({
 
       {/* Cover banner */}
       <div className="relative h-44 sm:h-56 bg-gradient-to-r from-slate-700 via-slate-600 to-blue-700 overflow-hidden">
-        {company.coverUrl && (
+        {company.coverImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={company.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={company.coverImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "32px 32px" }}

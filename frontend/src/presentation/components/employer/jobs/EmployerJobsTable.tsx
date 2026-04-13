@@ -10,17 +10,6 @@ import { JOB_TYPE_LABELS } from "@/domain/models/Job";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatSalary(job: JobPost): string {
-  const { salary } = job;
-  if (!salary || salary.negotiable) return "Thoả thuận";
-  const fmt = (n: number) => n >= 1_000_000
-    ? `${(n / 1_000_000).toFixed(0)}tr`
-    : n.toLocaleString();
-  const cur = salary.currency !== "VND" ? ` ${salary.currency}` : "";
-  if (salary.min && salary.max) return `${fmt(salary.min)} - ${fmt(salary.max)}${cur}`;
-  if (salary.min) return `Từ ${fmt(salary.min)}${cur}`;
-  return "—";
-}
 
 function daysLeft(deadline: string): number {
   const diff = new Date(deadline).getTime() - Date.now();
@@ -97,7 +86,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
                       className="flex items-center gap-1.5 text-sm text-gray-700
                         hover:text-blue-600 transition-colors w-fit">
                       <Users size={13} className="text-gray-400" />
-                      <span className="font-semibold">0</span>
+                      <span className="font-semibold">{job?.applicationCount}</span>
                       <span className="text-gray-400 text-xs">lượt</span>
                     </Link>
                   </td>
@@ -105,7 +94,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
                   {/* Salary */}
                   <td className="px-5 py-4">
                     <span className="text-sm font-semibold text-blue-600">
-                      {formatSalary(job)}
+                      {job?.salaryDisplay}
                     </span>
                   </td>
 

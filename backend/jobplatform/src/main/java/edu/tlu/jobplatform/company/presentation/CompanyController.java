@@ -39,10 +39,6 @@ import java.util.UUID;
  * POST /api/v1/companies — Tạo hồ sơ công ty (EMPLOYER)
  * PATCH /api/v1/companies/{id} — Cập nhật (EMPLOYER/ADMIN)
  * GET /api/v1/companies/my — Hồ sơ của tôi (EMPLOYER)
- * POST /api/v1/admin/companies/{id}/verify — Admin duyệt
- * POST /api/v1/admin/companies/{id}/reject — Admin từ chối
- * POST /api/v1/admin/companies/{id}/suspend — Admin khoá
- * GET /api/v1/admin/companies — Danh sách theo status (ADMIN)
  */
 @RestController
 @RequiredArgsConstructor
@@ -162,53 +158,4 @@ public class CompanyController {
                                 ApiResponse.success(CompanyResponse.from(company), "Ảnh bìa đã được cập nhật."));
         }
 
-        // ── Admin endpoints ───────────────────────────────────────
-
-        @Operation(summary = "[ADMIN] Danh sách công ty theo trạng thái")
-        @SecurityRequirement(name = "bearerAuth")
-        @GetMapping("/api/v1/admin/companies")
-        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-        public ResponseEntity<ApiResponse<PageResponse<CompanyResponse>>> adminList(
-                        @RequestParam(defaultValue = "UNVERIFIED") VerificationStatus status,
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "20") int size) {
-
-                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-                var result = companyRepository.findByVerificationStatus(status, pageable)
-                                .map(CompanyResponse::from);
-
-                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
-        }
-
-        @Operation(summary = "[ADMIN] Duyệt xác thực công ty")
-        @SecurityRequirement(name = "bearerAuth")
-        @PostMapping("/api/v1/admin/companies/{id}/verify")
-        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-        public ResponseEntity<ApiResponse<CompanyResponse>> verify(@PathVariable UUID id) {
-                CompanyProfile company = verifyUseCase.approve(id);
-                return ResponseEntity.ok(
-                                ApiResponse.success(CompanyResponse.from(company), "Công ty đã được xác thực."));
-        }
-
-        @Operation(summary = "[ADMIN] Từ chối xác thực")
-        @SecurityRequirement(name = "bearerAuth")
-        @PostMapping("/api/v1/admin/companies/{id}/reject")
-        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-        public ResponseEntity<ApiResponse<CompanyResponse>> reject(
-                        @PathVariable UUID id,
-                        @RequestParam String reason) {
-                CompanyProfile company = verifyUseCase.reject(id, reason);
-                return ResponseEntity.ok(
-                                ApiResponse.success(CompanyResponse.from(company), "Đã từ chối xác thực."));
-        }
-
-        @Operation(summary = "[ADMIN] Khoá công ty")
-        @SecurityRequirement(name = "bearerAuth")
-        @PostMapping("/api/v1/admin/companies/{id}/suspend")
-        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-        public ResponseEntity<ApiResponse<CompanyResponse>> suspend(@PathVariable UUID id) {
-                CompanyProfile company = verifyUseCase.suspend(id);
-                return ResponseEntity.ok(
-                                ApiResponse.success(CompanyResponse.from(company), "Công ty đã bị khoá."));
-        }
 }

@@ -1,16 +1,15 @@
 package edu.tlu.jobplatform.company.infrastructure.persistence.adapter;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaEntity;
 import edu.tlu.jobplatform.company.infrastructure.persistence.mapper.CompanyMapper;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,8 +21,6 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     private final CompanyJpaRepository jpaRepo;
     private final CompanyMapper mapper;
 
-    // ── Find ─────────────────────────────────────────
-
     @Override
     public Optional<CompanyProfile> findById(UUID id) {
         return jpaRepo.findById(id).map(mapper::toDomain);
@@ -31,17 +28,13 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
 
     @Override
     public Optional<CompanyProfile> findByOwnerId(UUID ownerId) {
-        return jpaRepo.findByOwnerId(ownerId)
-                .map(mapper::toDomain);
+        return jpaRepo.findByOwnerId(ownerId).map(mapper::toDomain);
     }
 
     @Override
     public Optional<CompanyProfile> findBySlug(String slug) {
-        return jpaRepo.findBySlug(slug)
-                .map(mapper::toDomain);
+        return jpaRepo.findBySlug(slug).map(mapper::toDomain);
     }
-
-    // ── Exists ───────────────────────────────────────
 
     @Override
     public boolean existsByOwnerId(UUID ownerId) {
@@ -58,27 +51,29 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
         return jpaRepo.existsByName(name);
     }
 
-    // ── Query ───────────────────────────────────────
+    @Override
+    public long countAll() {
+        return jpaRepo.count();
+    }
+
+    @Override
+    public long countByVerificationStatus(VerificationStatus status) {
+        return jpaRepo.countByVerificationStatus(status);
+    }
 
     @Override
     public Page<CompanyProfile> findByVerificationStatus(VerificationStatus status, Pageable pageable) {
-        return jpaRepo.findByVerificationStatus(status, pageable)
-                .map(mapper::toDomain);
+        return jpaRepo.findByVerificationStatus(status, pageable).map(mapper::toDomain);
     }
 
     @Override
     public Page<CompanyProfile> findVerifiedCompanies(Pageable pageable) {
         return jpaRepo.findByVerificationStatusAndIsActiveTrue(
-                VerificationStatus.VERIFIED, pageable)
-                .map(mapper::toDomain);
+                VerificationStatus.VERIFIED, pageable).map(mapper::toDomain);
     }
-
-    // ── Save ────────────────────────────────────────
 
     @Override
     public CompanyProfile save(CompanyProfile company) {
-
-        // Update
         if (company.getId() != null) {
             Optional<CompanyJpaEntity> existing = jpaRepo.findById(company.getId());
             if (existing.isPresent()) {
@@ -87,9 +82,6 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
-
-        // Create new
-        CompanyJpaEntity newEntity = mapper.toNewEntity(company);
-        return mapper.toDomain(jpaRepo.save(newEntity));
+        return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(company)));
     }
 }
