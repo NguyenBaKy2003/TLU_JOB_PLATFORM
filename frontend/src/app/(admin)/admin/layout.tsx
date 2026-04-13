@@ -1,5 +1,5 @@
-import AdminLayoutClient from "@/presentation/components/layout/admin/AdminLayoutClient";
+import { AdminAuthProvider } from "@/application/contexts/AdminAuthContext";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminLayoutClient>{children}</AdminLayoutClient>;
+  return <AdminAuthProvider>{children}</AdminAuthProvider>;
 }

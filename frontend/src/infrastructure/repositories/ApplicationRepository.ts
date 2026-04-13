@@ -1,3 +1,4 @@
+// src/infrastructure/repositories/ApplicationRepository.ts
 import type {
   Application,
   ApplicationWithJob,
@@ -7,11 +8,12 @@ import type {
   ScheduleInterviewRequest,
   UpdateStatusRequest,
   PageResponse,
+  ApplicationStatus,
 } from "@/domain/models/Application";
 import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import api from "@/lib/axios";
 
-const BASE     = "/applications";
+const BASE      = "/applications";
 const JOBS_BASE = "/jobs";
 
 export class ApplicationRepository implements IApplicationRepository {
@@ -59,30 +61,33 @@ export class ApplicationRepository implements IApplicationRepository {
     return res.data.data;
   }
 
-  // GET /api/v1/jobs/{jobPostId}/my-application → trả về null nếu chưa nộp
-        async checkApplied(jobPostId: string): Promise<boolean> {
-        try {
-            const res = await api.get<{ data: boolean }>(
-            `${JOBS_BASE}/${jobPostId}/my-application`
-            );
-
-            return res.data.data; 
-        } catch {
-            return false;
-        }
-        }
+  // GET /api/v1/jobs/{jobPostId}/my-application
+  async checkApplied(jobPostId: string): Promise<boolean> {
+    try {
+      const res = await api.get<{ data: boolean }>(
+        `${JOBS_BASE}/${jobPostId}/my-application`,
+      );
+      return res.data.data;
+    } catch {
+      return false;
+    }
+  }
 
   // ── Employer ─────────────────────────────────────────────────
 
-  // GET /api/v1/applications/job/{jobPostId}
+  // ✅ Fix: đúng endpoint GET /api/v1/jobs/{jobPostId}/applications
   async getByJobPost(
     jobPostId: string,
     page = 0,
     size = 20,
+    status?: ApplicationStatus | "ALL",
   ): Promise<PageResponse<ApplicationWithCandidate>> {
+    const params: Record<string, unknown> = { page, size };
+    if (status && status !== "ALL") params.status = status;
+
     const res = await api.get<{ data: PageResponse<ApplicationWithCandidate> }>(
-      `${BASE}/job/${jobPostId}`,
-      { params: { page, size } },
+      `${JOBS_BASE}/${jobPostId}/applications`, // ✅ sửa từ /applications/job/{id}
+      { params },
     );
     return res.data.data;
   }

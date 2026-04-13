@@ -40,7 +40,6 @@ public class LoginUseCase {
     @Transactional
     public AuthToken execute(Command cmd) {
 
-        // BR-01: dùng message chung để tránh user enumeration attack
         User user = userRepository
                 .findByEmail(cmd.email().toLowerCase().trim())
                 .orElseThrow(() -> new BusinessRuleException(
@@ -49,15 +48,38 @@ public class LoginUseCase {
         // BR-03: OAuth2-only
         if (user.isOAuth2Only()) {
             throw new BusinessRuleException(
-                    "Tài khoản này đăng nhập bằng Google/FaceBook. Vui lòng dùng nút đăng nhập xã hội.",
+                    "Tài khoản này đăng nhập bằng Google/Facebook. Vui lòng dùng nút đăng nhập xã hội.",
                     "USE_OAUTH2");
         }
 
-        // BR-02: verify password — cùng message với BR-01
-        if (!passwordEncoder.matches(cmd.password(), user.getPasswordHash())) {
-            log.warn("Failed login attempt: {}", cmd.email());
+        // BR-06: tạm khóa do sai quá 5 lần
+        if (user.isTemporarilyLocked()) {
+            userRepository.save(user); // lưu lại nếu vừa tự gỡ ban
             throw new BusinessRuleException(
-                    "Email hoặc mật khẩu không đúng.", "INVALID_CREDENTIALS");
+                    "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. "
+                            + "Vui lòng thử lại sau %d phút.".formatted(user.minutesUntilUnlock()),
+                    "ACCOUNT_TEMPORARILY_LOCKED");
+        }
+
+        // BR-02: verify password
+        if (!passwordEncoder.matches(cmd.password(), user.getPasswordHash())) {
+            user.recordFailedLogin();
+            userRepository.save(user);
+
+            // Thông báo còn bao nhiêu lần nếu gần đến ngưỡng
+            int remaining = 5 - user.getFailedLoginAttempts();
+            if (remaining > 0) {
+                log.warn("Failed login: {} — {} attempts left", cmd.email(), remaining);
+                throw new BusinessRuleException(
+                        "Email hoặc mật khẩu không đúng. Còn %d lần thử trước khi bị khóa."
+                                .formatted(remaining),
+                        "INVALID_CREDENTIALS");
+            } else {
+                log.warn("Account locked: {}", cmd.email());
+                throw new BusinessRuleException(
+                        "Tài khoản bị tạm khóa 30 phút do đăng nhập sai quá nhiều lần.",
+                        "ACCOUNT_TEMPORARILY_LOCKED");
+            }
         }
 
         // BR-04: email phải verified
@@ -67,7 +89,7 @@ public class LoginUseCase {
                     "EMAIL_NOT_VERIFIED");
         }
 
-        // BR-05: account phải active
+        // BR-05: account phải active (bị admin khóa vĩnh viễn)
         if (!user.isActive()) {
             throw new BusinessRuleException(
                     "Tài khoản đã bị khóa. Vui lòng liên hệ: support@jobplatform.vn",
@@ -79,10 +101,9 @@ public class LoginUseCase {
         String accessToken = jwtTokenProvider.generateAccessToken(user, tokenId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user, tokenId);
 
-        // Lưu refresh token vào Redis
         tokenStore.save(user.getId(), tokenId, refreshToken, REFRESH_TTL);
 
-        // Ghi nhận thời điểm login
+        // Reset failed attempts sau login thành công
         user.recordLogin();
         userRepository.save(user);
 

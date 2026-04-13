@@ -19,17 +19,26 @@ public class SubscriptionDomainService {
     /**
      * Tạo subscription mới ở trạng thái PENDING.
      * Quota được snapshot từ plan tại thời điểm mua.
+     *
+     * @param yearly true = gói năm, false = gói tháng — lưu lại để
+     *               tính đúng expiresAt khi activate sau callback.
      */
-    public CompanySubscription createPending(UUID companyId, SubscriptionPlan plan, UUID paymentId) {
+    public CompanySubscription createPending(UUID companyId,
+            SubscriptionPlan plan,
+            UUID paymentId,
+            boolean yearly) {
         return CompanySubscription.builder()
                 .id(UUID.randomUUID())
                 .companyId(companyId)
                 .planId(plan.getId())
                 .planCode(plan.getCode())
+                .yearly(yearly) // ✅ lưu lại để dùng khi activate
                 .status(SubscriptionStatus.PENDING)
                 .jobPostQuota(Quota.of(plan.getJobPostLimit()))
                 .featuredJobQuota(Quota.of(plan.getFeaturedJobLimit()))
-                .cvViewQuota(plan.isUnlimitedCvView() ? Quota.unlimited() : Quota.of(plan.getCvViewLimit()))
+                .cvViewQuota(plan.isUnlimitedCvView()
+                        ? Quota.unlimited()
+                        : Quota.of(plan.getCvViewLimit()))
                 .aiFeatures(plan.isAiFeatures())
                 .analyticsAccess(plan.isAnalyticsAccess())
                 .currentPaymentId(paymentId)
@@ -40,15 +49,21 @@ public class SubscriptionDomainService {
     /**
      * Kích hoạt subscription sau khi thanh toán thành công.
      *
-     * Nếu có subscription đang ACTIVE khác → cộng thêm ngày còn lại (carry-over).
-     * Ví dụ: còn 5 ngày → endDate mới = now + 30 + 5 = 35 ngày.
+     * expiresAt được tính tại thời điểm này (không phải lúc tạo PENDING)
+     * vì user có thể thanh toán vài ngày sau khi tạo đơn.
+     *
+     * Nếu có subscription đang ACTIVE → cộng thêm ngày còn lại (carry-over).
+     * Ví dụ: còn 5 ngày + gói tháng mới = 35 ngày.
      */
     public void activate(CompanySubscription subscription,
             SubscriptionPlan plan,
             Payment payment,
             CompanySubscription existingActive) {
 
-        LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(plan.getDurationDays());
+        // ✅ Tính đúng thời hạn theo yearly flag đã lưu trong subscription
+        LocalDateTime newExpiresAt = subscription.isYearly()
+                ? LocalDateTime.now().plusYears(1)
+                : LocalDateTime.now().plusMonths(1);
 
         // Carry-over: cộng thêm ngày còn lại của subscription cũ
         if (existingActive != null && existingActive.isActive()) {
@@ -56,10 +71,9 @@ public class SubscriptionDomainService {
             if (carryOverDays > 0) {
                 newExpiresAt = newExpiresAt.plusDays(carryOverDays);
             }
-            existingActive.expire(); // Expire subscription cũ
+            existingActive.expire();
         }
 
-        // Reset quota theo plan mới
         subscription.activate(payment.getId(), newExpiresAt);
     }
 }

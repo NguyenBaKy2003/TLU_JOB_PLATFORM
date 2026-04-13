@@ -15,6 +15,7 @@ public class SubscriptionMapper {
                 .companyId(e.getCompanyId())
                 .planId(e.getPlanId())
                 .planCode(e.getPlanCode())
+                .yearly(e.isYearly()) // ✅ thêm mới
                 .startedAt(e.getStartedAt())
                 .expiresAt(e.getExpiresAt())
                 .status(e.getStatus())
@@ -36,6 +37,7 @@ public class SubscriptionMapper {
                 .companyId(d.getCompanyId())
                 .planId(d.getPlanId())
                 .planCode(d.getPlanCode())
+                .yearly(d.isYearly()) // ✅ thêm mới
                 .startedAt(d.getStartedAt())
                 .expiresAt(d.getExpiresAt())
                 .status(d.getStatus())
@@ -53,6 +55,8 @@ public class SubscriptionMapper {
             entity.setId(d.getId());
         return entity;
     }
+
+    // updateEntity không cần sửa — yearly là immutable, không thay đổi sau khi tạo
 
     public void updateEntity(CompanySubscriptionJpaEntity e, CompanySubscription d) {
         e.setStatus(d.getStatus());

@@ -28,6 +28,10 @@ public class CompanySubscriptionJpaEntity extends BaseJpaEntity {
     @Column(name = "plan_code", length = 30)
     private String planCode;
 
+    @Column(name = "yearly", nullable = false)
+    private boolean yearly; // ✅ thêm mới — cần migration: ALTER TABLE ADD COLUMN yearly BOOLEAN NOT NULL
+                            // DEFAULT FALSE
+
     @Column(name = "started_at")
     private LocalDateTime startedAt;
     @Column(name = "expires_at")

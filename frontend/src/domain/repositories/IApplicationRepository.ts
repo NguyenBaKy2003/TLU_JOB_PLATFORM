@@ -7,6 +7,7 @@ import type {
   ScheduleInterviewRequest,
   UpdateStatusRequest,
   PageResponse,
+  ApplicationStatus,
 } from "@/domain/models/Application";
 
 export interface IApplicationRepository {
@@ -30,13 +31,13 @@ export interface IApplicationRepository {
 
   // ── Employer ─────────────────────────────────────────────────
 
-  /** Danh sách đơn theo bài đăng */
-  getByJobPost(
-    jobPostId: string,
-    page?: number,
-    size?: number,
-  ): Promise<PageResponse<ApplicationWithCandidate>>;
-
+// IApplicationRepository — cập nhật signature
+getByJobPost(
+  jobPostId: string,
+  page?: number,
+  size?: number,
+  status?: ApplicationStatus,
+): Promise<PageResponse<ApplicationWithCandidate>>;
   /** Cập nhật trạng thái đơn */
   updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application>;
 

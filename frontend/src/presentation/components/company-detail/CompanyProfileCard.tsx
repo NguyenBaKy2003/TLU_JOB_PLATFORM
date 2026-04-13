@@ -19,7 +19,8 @@ export function CompanyProfileCard({ company }: Props) {
 
         {/* Logo */}
         <div className="w-20 h-20 rounded-2xl border-2 border-gray-100 overflow-hidden shrink-0 bg-white flex items-center justify-center shadow-sm">
-          <CompanyAvatar name={company.name} size={72} className="rounded-xl" />
+          <CompanyAvatar   name={company.name}
+      logoUrl={company.logoUrl}size={72} className="rounded-xl" />
         </div>
 
         {/* Info */}
@@ -61,10 +62,10 @@ export function CompanyProfileCard({ company }: Props) {
           </div>
 
           {/* Meta grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 truncate gap-3">
             {[
-              { icon: <MapPin size={14} />,   label: "Địa điểm",       value: company?.location         },
-              { icon: <Users size={14} />,    label: "Quy mô công ty", value: company?.companySize },
+              { icon: <MapPin size={14} />,   label: "Địa điểm",       value: company?.address         },
+              { icon: <Users size={14} />,    label: "Quy mô công ty", value: company?.sizeLabel },
               { icon: <Mail size={14} />,     label: "Email",           value: company?.email            },
               { icon: <Phone size={14} />,    label: "Điện thoại",      value: company?.phone            },
             ].map(({ icon, label, value }) => (

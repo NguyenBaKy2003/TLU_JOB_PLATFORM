@@ -43,8 +43,9 @@ public class PurchasePlanUseCase {
                 BigDecimal amount = cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly();
                 String orderCode = generateOrderCode();
 
-                // 1. Tạo và lưu subscription PENDING — dùng id từ entity đã persist
-                CompanySubscription subscription = domainService.createPending(cmd.companyId(), plan, null);
+                // 1. Tạo và lưu subscription PENDING — truyền yearly để activate dùng sau
+                CompanySubscription subscription = domainService.createPending(
+                                cmd.companyId(), plan, null, cmd.yearly()); // ✅ truyền yearly
                 CompanySubscription savedSubscription = subscriptionRepository.save(subscription);
 
                 // 2. Tạo Payment liên kết đúng subscriptionId đã persist
@@ -69,8 +70,8 @@ public class PurchasePlanUseCase {
                 String paymentUrl = paymentGateway.createPaymentUrl(
                                 orderCode, amount, description, returnUrl);
 
-                log.info("Payment initiated: company={} plan={} order={} subscription={}",
-                                cmd.companyId(), plan.getCode(), orderCode, savedSubscription.getId());
+                log.info("Payment initiated: company={} plan={} order={} subscription={} yearly={}",
+                                cmd.companyId(), plan.getCode(), orderCode, savedSubscription.getId(), cmd.yearly());
 
                 return new Result(payment.getId(), savedSubscription.getId(), paymentUrl, orderCode);
         }

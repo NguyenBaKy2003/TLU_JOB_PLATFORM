@@ -53,8 +53,10 @@ export class ApplicationService {
     jobPostId: string,
     page = 0,
     size = 20,
+    status?: ApplicationStatus | "ALL",
   ): Promise<PageResponse<ApplicationWithCandidate>> {
-    return this.repo.getByJobPost(jobPostId, page, size);
+    const statusParam = (!status || status === "ALL") ? undefined : status;
+    return this.repo.getByJobPost(jobPostId, page, size, statusParam);
   }
 
   /** Cập nhật trạng thái */

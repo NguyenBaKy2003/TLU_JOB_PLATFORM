@@ -4,13 +4,6 @@ import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.infrastructure.persistence.entity.UserJpaEntity;
 import org.springframework.stereotype.Component;
 
-/**
- * Chuyển đổi giữa UserJpaEntity (infrastructure) và User (domain).
- *
- * Dùng manual mapping thay vì MapStruct vì:
- * - Domain User dùng @Builder với nhiều field final
- * - Rõ ràng hơn, dễ debug khi có vấn đề mapping
- */
 @Component
 public class UserMapper {
 
@@ -25,41 +18,48 @@ public class UserMapper {
                 .fullName(e.getFullName())
                 .avatarUrl(e.getAvatarUrl())
                 .role(e.getRole())
-                .authProvider(e.getAuthProvider()) // ← thêm
-                .authProviderId(e.getAuthProviderId()) // ← thêm
-                .active(Boolean.TRUE.equals(e.getIsActive()))
+                .authProvider(e.getAuthProvider())
+                .authProviderId(e.getAuthProviderId())
+                .active(e.isActive()) // từ BaseJpaEntity
                 .verified(e.isVerified())
+                .failedLoginAttempts(e.getFailedLoginAttempts())
+                .lockedUntil(e.getLockedUntil())
                 .lastLoginAt(e.getLastLoginAt())
                 .createdAt(e.getCreatedAt())
                 .build();
     }
 
-    /** Domain Model → JPA Entity (dùng cho INSERT mới — id do DB sinh) */
+    /** Domain → Entity mới (INSERT) */
     public UserJpaEntity toNewEntity(User u) {
-        return UserJpaEntity.builder()
-                .email(u.getEmail())
-                .passwordHash(u.getPasswordHash())
-                .fullName(u.getFullName())
-                .avatarUrl(u.getAvatarUrl())
-                .role(u.getRole())
-                .authProvider(u.getAuthProvider()) // ← thêm
-                .authProviderId(u.getAuthProviderId()) // ← thêm
-                .verified(u.isVerified())
-                .lastLoginAt(u.getLastLoginAt())
-                .build();
+        UserJpaEntity e = new UserJpaEntity();
+        e.setEmail(u.getEmail());
+        e.setPasswordHash(u.getPasswordHash());
+        e.setFullName(u.getFullName());
+        e.setAvatarUrl(u.getAvatarUrl());
+        e.setRole(u.getRole());
+        e.setAuthProvider(u.getAuthProvider());
+        e.setAuthProviderId(u.getAuthProviderId());
+        e.setIsActive(u.isActive()); // từ BaseJpaEntity
+        e.setVerified(u.isVerified());
+        e.setFailedLoginAttempts(u.getFailedLoginAttempts());
+        e.setLockedUntil(u.getLockedUntil());
+        e.setLastLoginAt(u.getLastLoginAt());
+        return e;
     }
 
-    /** Cập nhật entity hiện có từ domain model (dùng cho UPDATE) */
-    public void updateEntity(UserJpaEntity entity, User u) {
-        entity.setEmail(u.getEmail());
-        entity.setPasswordHash(u.getPasswordHash());
-        entity.setFullName(u.getFullName());
-        entity.setAvatarUrl(u.getAvatarUrl());
-        entity.setRole(u.getRole());
-        entity.setVerified(u.isVerified());
-        entity.setAuthProvider(u.getAuthProvider());
-        entity.setAuthProviderId(u.getAuthProviderId());
-        entity.setLastLoginAt(u.getLastLoginAt());
-        entity.setIsActive(u.isActive());
+    /** Domain → Entity hiện có (UPDATE) */
+    public void updateEntity(UserJpaEntity e, User u) {
+        e.setEmail(u.getEmail());
+        e.setPasswordHash(u.getPasswordHash());
+        e.setFullName(u.getFullName());
+        e.setAvatarUrl(u.getAvatarUrl());
+        e.setRole(u.getRole());
+        e.setAuthProvider(u.getAuthProvider());
+        e.setAuthProviderId(u.getAuthProviderId());
+        e.setIsActive(u.isActive()); // từ BaseJpaEntity
+        e.setVerified(u.isVerified());
+        e.setFailedLoginAttempts(u.getFailedLoginAttempts());
+        e.setLockedUntil(u.getLockedUntil());
+        e.setLastLoginAt(u.getLastLoginAt());
     }
 }

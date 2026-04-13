@@ -57,6 +57,13 @@ export class AuthRepository implements IAuthRepository {
     return token;
   }
 
+  async loginAdmin(credentials: UserCredentials): Promise<AuthResult> {
+  const res = await api.post("/auth/login", credentials, {
+  });
+  const token = res.data.data as AuthToken;
+  return token;
+}
+
   async loginWithOAuth(data: OAuthUserData): Promise<AuthResult> {
     // Token đã được Spring Security xử lý, frontend nhận qua redirect/callback
     const res = await api.post(`/auth/oauth2/callback`, data);
