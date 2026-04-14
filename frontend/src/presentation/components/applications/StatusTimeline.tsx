@@ -10,7 +10,10 @@ function formatDateTime(iso: string) {
   });
 }
 
-interface Props { logs: ApplicationStatusLog[]; loading?: boolean }
+interface Props {
+  logs:     ApplicationStatusLog[];
+  loading?: boolean;
+}
 
 export function StatusTimeline({ logs, loading }: Props) {
   if (loading) {
@@ -29,32 +32,47 @@ export function StatusTimeline({ logs, loading }: Props) {
     );
   }
 
-  if (!logs.length) return (
-    <p className="text-xs text-gray-400 italic">Chưa có lịch sử trạng thái</p>
+  if (!logs.length) {
+    return <p className="text-xs text-gray-400 italic">Chưa có lịch sử trạng thái</p>;
+  }
+
+  // Mốc mới nhất lên đầu — backend trả theo thứ tự tăng dần của changedAt
+  const sorted = [...logs].sort(
+    (a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime(),
   );
 
   return (
     <div className="relative">
-      {/* Vertical line */}
       <div className="absolute left-1 top-2 bottom-2 w-px bg-gray-100" />
       <div className="flex flex-col gap-4">
-        {logs.map((log, i) => (
-          <div key={log.id} className="flex gap-3 relative">
-            <div className={`w-2.5 h-2.5 rounded-full border-2 mt-1.5 shrink-0 z-10
-              ${i === 0 ? "border-blue-500 bg-blue-500" : "border-gray-300 bg-white"}`} />
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold ${i === 0 ? "text-gray-900" : "text-gray-600"}`}>
-                {APPLICATION_STATUS_LABELS[log.status]}
-              </p>
-              {log.note && (
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{log.note}</p>
-              )}
-              <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
-                <Clock size={10} /> {formatDateTime(log.changedAt)}
-              </p>
+        {sorted.map((log, i) => {
+          const isLatest = i === 0; // sau khi sort, index 0 = mới nhất
+          return (
+            <div key={i} className="flex gap-3 relative">
+              <div className={`w-2.5 h-2.5 rounded-full border-2 mt-1.5 shrink-0 z-10 ${
+                isLatest
+                  ? "border-blue-500 bg-blue-500"
+                  : "border-gray-300 bg-white"
+              }`} />
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold ${
+                  isLatest ? "text-gray-900" : "text-gray-500"
+                }`}>
+                  {log.fromStatus
+                    ? `${APPLICATION_STATUS_LABELS[log.fromStatus]} → ${APPLICATION_STATUS_LABELS[log.toStatus]}`
+                    : APPLICATION_STATUS_LABELS[log.toStatus]
+                  }
+                </p>
+                {log.note && (
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{log.note}</p>
+                )}
+                <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                  <Clock size={10} /> {formatDateTime(log.changedAt)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

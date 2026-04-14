@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter }      from "next/navigation";
 import { useAuth }        from "@/application/contexts/AuthContext";
 import { useWebSocket }   from "@/application/contexts/WebSocketContext";
@@ -12,7 +12,7 @@ interface Props {
   activeHref?:     string;
   topbarTitle?:    string;
   topbarSubtitle?: string;
-  requiredRole?:   "CANDIDATE" | "EMPLOYER"|"ADMIN";
+  requiredRole?:   "CANDIDATE" | "EMPLOYER" | "ADMIN";
 }
 
 export function DashboardLayout({
@@ -20,28 +20,46 @@ export function DashboardLayout({
 }: Props) {
   const router            = useRouter();
   const { user, loading } = useAuth();
-  const { unreadCount }   = useWebSocket(); // ✅ notification count thực
+  const { unreadCount }   = useWebSocket();
 
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Dùng ref để chỉ redirect đúng 1 lần, tránh loop vô tận
+  const redirected = useRef(false);
+
+  // Reset khi user thay đổi (vd: logout rồi login lại)
+  useEffect(() => {
+    redirected.current = false;
+  }, [user]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (redirected.current) return;
+
+    if (!user) {
+      redirected.current = true;
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (requiredRole && user.role !== requiredRole) {
+      redirected.current = true;
+      const fallback =
+        user.role === "EMPLOYER" ? "/employer/dashboard"
+        : user.role === "ADMIN"  ? "/admin/dashboard"
+        : "/candidate/profile";
+      router.replace(fallback);
+    }
+  // Không đưa router vào deps — object không stable, sẽ gây loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading, requiredRole]);
 
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false); };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) { router.replace("/auth/login"); return; }
-    if (requiredRole && user.role !== requiredRole) {
-      const fallback =
-        user.role === "EMPLOYER" ? "/employer/dashboard"
-        : user.role === "ADMIN"  ? "/admin/dashboard"
-        : "/dashboard";
-      router.replace(fallback);
-    }
-  }, [user, loading, router, requiredRole]);
 
   if (loading || !user) {
     return (
@@ -64,14 +82,14 @@ export function DashboardLayout({
         onToggle={() => setCollapsed(v => !v)}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
-        notificationCount={unreadCount} // ✅ truyền xuống Sidebar
+        notificationCount={unreadCount}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header
           title={topbarTitle}
           subtitle={topbarSubtitle}
-          notificationCount={unreadCount} // ✅ truyền xuống Header
+          notificationCount={unreadCount}
           onMenuToggle={() => setMobileOpen(v => !v)}
         />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">

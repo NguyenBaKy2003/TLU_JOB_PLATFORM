@@ -24,7 +24,6 @@ public class AdminActionNotificationHandler {
         public void onCompanyVerified(CompanyVerifiedEvent event) {
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getOwnerId(),
-                                event.getCompanyEmail(),
                                 NotificationType.COMPANY_VERIFIED,
                                 "Công ty đã được xác thực",
                                 "Công ty %s đã được xác thực. Bạn có thể bắt đầu đăng tin tuyển dụng."
@@ -37,7 +36,6 @@ public class AdminActionNotificationHandler {
         public void onCompanyRejected(CompanyRejectedEvent event) {
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getOwnerId(),
-                                event.getCompanyEmail(),
                                 NotificationType.COMPANY_REJECTED,
                                 "Yêu cầu xác thực bị từ chối",
                                 "Công ty %s chưa được xác thực. Lý do: %s"
@@ -50,7 +48,6 @@ public class AdminActionNotificationHandler {
         public void onJobPostApproved(JobPostApprovedEvent event) {
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getEmployerId(),
-                                event.getEmployerEmail(),
                                 NotificationType.JOB_POST_APPROVED,
                                 "Tin tuyển dụng đã được duyệt",
                                 "Bài đăng \"%s\" đã được phê duyệt và hiển thị công khai."
@@ -63,7 +60,6 @@ public class AdminActionNotificationHandler {
         public void onJobPostRejected(JobPostRejectedEvent event) {
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getEmployerId(),
-                                event.getEmployerEmail(),
                                 NotificationType.JOB_POST_REJECTED,
                                 "Tin tuyển dụng bị từ chối",
                                 "Bài đăng \"%s\" chưa được duyệt. Lý do: %s"

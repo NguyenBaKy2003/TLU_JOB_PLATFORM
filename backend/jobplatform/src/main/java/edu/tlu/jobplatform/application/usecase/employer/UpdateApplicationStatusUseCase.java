@@ -5,6 +5,8 @@ import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.domain.service.ApplicationDomainService;
 import edu.tlu.jobplatform.application.infrastructure.event.ApplicationDomainEventPublisher;
+import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -23,6 +25,7 @@ public class UpdateApplicationStatusUseCase {
     private final ApplicationRepository applicationRepo;
     private final ApplicationDomainService domainService;
     private final ApplicationDomainEventPublisher eventPublisher;
+    private final CompanyRepository companyRepository; // inject thêm
 
     @Transactional
     public Application execute(UUID applicationId, ApplicationStatus newStatus, String note) {
@@ -30,7 +33,13 @@ public class UpdateApplicationStatusUseCase {
         Application app = applicationRepo.findById(applicationId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Application", applicationId));
 
-        if (!SecurityUtils.isOwnerOrAdmin(app.getCompanyId()))
+        // Lấy ownerId của company → so sánh với userId đang đăng nhập
+        // (giống pattern UpdateCompanyUseCase)
+        UUID companyOwnerId = companyRepository.findById(app.getCompanyId())
+                .map(CompanyProfile::getOwnerId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Company", app.getCompanyId()));
+
+        if (!SecurityUtils.isOwnerOrAdmin(companyOwnerId))
             throw new BusinessRuleException("Bạn không có quyền cập nhật đơn này.", "FORBIDDEN");
 
         if (newStatus == ApplicationStatus.WITHDRAWN)

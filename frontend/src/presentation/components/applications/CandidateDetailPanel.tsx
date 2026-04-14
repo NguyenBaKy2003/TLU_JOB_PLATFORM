@@ -1,7 +1,7 @@
 // src/presentation/components/applications/CandidateDetailPanel.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { Mail, Phone, FileText, Calendar, Clock, Zap } from "lucide-react";
+import { Mail, Phone, FileText, Calendar, Clock, Zap, Star } from "lucide-react";
 import { CandidateAvatar } from "./CandidateAvatar";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import { StatusDropdown } from "./StatusDropdown";
@@ -10,7 +10,7 @@ import { ApplicationService } from "@/application/services/ApplicationService";
 import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository";
 import type {
   ApplicationWithCandidate,
-  ApplicationStatusLog,
+  ApplicationDetail,
   ApplicationStatus,
 } from "@/domain/models/Application";
 
@@ -21,80 +21,83 @@ export function CandidateDetailPanel({
   onStatusChange,
   onScheduleInterview,
 }: {
-  app: ApplicationWithCandidate;
-  onStatusChange: (s: ApplicationStatus, note?: string) => void;
+  app:                ApplicationWithCandidate;
+  onStatusChange:     (s: ApplicationStatus, note?: string) => void;
   onScheduleInterview: () => void;
 }) {
-  const [logs, setLogs] = useState<ApplicationStatusLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [detail,   setDetail]   = useState<ApplicationDetail | null>(null);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(false);
 
   useEffect(() => {
+    setDetail(null);
     setLoading(true);
+    setError(false);
+
     service
-      .getStatusLogs(app.id)
-      .then(setLogs)
-      .catch(() => {})
+      .getEmployerDetail(app.id)
+      .then(setDetail)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [app.id]);
 
-  const canSchedule = service.canScheduleInterview(app);
+  // Dùng detail nếu đã load, fallback về app từ list
+  const current   = detail ?? app;
+  const candidate = detail?.candidate;
+  const name      = candidate?.fullName  ?? app.candidateName;
+  const avatar    = candidate?.avatarUrl ?? app.candidateAvatar;
+  const email     = candidate?.email     ?? app.candidateEmail;
+  const phone     = candidate?.phone     ?? app.candidatePhone;
+  const canSchedule = service.canScheduleInterview(current);
 
   return (
-    <div className="flex flex-col gap-5 h-full overflow-y-auto">
+    <div className="flex flex-col gap-4 h-full overflow-y-auto pb-4">
 
-      {/* Candidate header */}
+      {/* ── Candidate header ───────────────────────────────────── */}
       <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
-        <CandidateAvatar name={app.candidateName} src={app.candidateAvatar} size="lg" />
+        <CandidateAvatar name={name} src={avatar} size="lg" />
         <div className="flex-1 min-w-0">
-          <p className="text-base font-bold text-gray-900 truncate">{app.candidateName}</p>
+          <p className="text-base font-bold text-gray-900 truncate">{name}</p>
           <div className="flex flex-col gap-0.5 mt-0.5">
-            <a
-              href={`mailto:${app.candidateEmail}`}
-              className="text-xs text-blue-600 hover:underline flex items-center gap-1 truncate"
-            >
-              <Mail size={11} /> {app.candidateEmail}
-            </a>
-            {app.candidatePhone && (
-              <a
-                href={`tel:${app.candidatePhone}`}
-                className="text-xs text-gray-500 flex items-center gap-1"
-              >
-                <Phone size={11} /> {app.candidatePhone}
+            {email && (
+              <a href={`mailto:${email}`}
+                className="text-xs text-blue-600 hover:underline flex items-center gap-1 truncate">
+                <Mail size={11} /> {email}
+              </a>
+            )}
+            {phone && (
+              <a href={`tel:${phone}`}
+                className="text-xs text-gray-500 flex items-center gap-1">
+                <Phone size={11} /> {phone}
               </a>
             )}
           </div>
         </div>
       </div>
 
-      {/* Status + actions */}
+      {/* ── Status + actions ───────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <ApplicationStatusBadge status={app.status} />
-          <StatusDropdown current={app.status} onChange={onStatusChange} />
+          <ApplicationStatusBadge status={current.status} />
+          <StatusDropdown current={current.status} onChange={onStatusChange} />
         </div>
         <div className="flex flex-col gap-2">
-          <a
-            href={app.cvUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <a href={current.cvUrl} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl text-xs
-              font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-          >
+              font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
             <FileText size={13} /> Xem CV
           </a>
           {canSchedule && (
-            <button
-              onClick={onScheduleInterview}
+            <button onClick={onScheduleInterview}
               className="flex items-center gap-2 px-3 py-2 bg-purple-50 rounded-xl text-xs
-                font-medium text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200"
-            >
+                font-medium text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
               <Calendar size={13} /> Lên lịch phỏng vấn
             </button>
           )}
         </div>
       </div>
 
-      {/* Application info */}
+      {/* ── Application info ───────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Thông tin đơn
@@ -103,74 +106,143 @@ export function CandidateDetailPanel({
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Ngày nộp</span>
             <span className="font-medium text-gray-800">
-              {new Date(app.appliedAt).toLocaleDateString("vi-VN")}
+              {new Date(current.appliedAt).toLocaleDateString("vi-VN")}
             </span>
           </div>
-          {app.expectedSalary && (
+          {current.expectedSalary != null && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Lương mong muốn</span>
               <span className="font-medium text-blue-600">
-                {app.expectedSalary.toLocaleString()} VND
-              </span>
-            </div>
-          )}
-          {app.aiScore != null && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 flex items-center gap-1">
-                <Zap size={12} /> Điểm AI
-              </span>
-              <span
-                className={`font-bold ${
-                  app.aiScore >= 80
-                    ? "text-green-600"
-                    : app.aiScore >= 60
-                    ? "text-yellow-600"
-                    : "text-red-500"
-                }`}
-              >
-                {app.aiScore}/100
+                {Number(current.expectedSalary).toLocaleString()} VND
               </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Cover letter */}
-      {app.coverLetter && (
+      {/* ── AI Score ───────────────────────────────────────────── */}
+      {detail?.aiScore && (
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <Zap size={12} /> Đánh giá AI
+          </p>
+
+          {/* Overall score */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-600">{detail.aiScore.label}</span>
+            <span className={`text-2xl font-bold ${
+              detail.aiScore.score >= 80 ? "text-green-600"
+              : detail.aiScore.score >= 60 ? "text-yellow-600"
+              : "text-red-500"
+            }`}>
+              {detail.aiScore.score}<span className="text-sm font-normal text-gray-400">/100</span>
+            </span>
+          </div>
+
+          {/* Sub-scores */}
+          <div className="flex flex-col gap-2 mb-3">
+            {[
+              { label: "Kỹ năng",      score: detail.aiScore.skillMatchScore },
+              { label: "Kinh nghiệm",  score: detail.aiScore.experienceScore },
+              { label: "Học vấn",      score: detail.aiScore.educationScore  },
+            ].map(({ label, score }) => (
+              <div key={label} className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 w-20 shrink-0">{label}</span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      score >= 80 ? "bg-green-500" : score >= 60 ? "bg-yellow-500" : "bg-red-400"
+                    }`}
+                    style={{ width: `${score}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-700 w-8 text-right">{score}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Summary */}
+          {detail.aiScore.summary && (
+            <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 rounded-xl p-3">
+              {detail.aiScore.summary}
+            </p>
+          )}
+
+          {/* Strengths */}
+          {detail.aiScore.strengths && detail.aiScore.strengths.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold text-green-700 mb-1.5 flex items-center gap-1">
+                <Star size={10} /> Điểm mạnh
+              </p>
+              <ul className="flex flex-col gap-1">
+                {detail.aiScore.strengths.map((s, i) => (
+                  <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                    <span className="text-green-500 mt-0.5">·</span> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Gaps */}
+          {detail.aiScore.gaps && detail.aiScore.gaps.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold text-orange-600 mb-1.5">Cần cải thiện</p>
+              <ul className="flex flex-col gap-1">
+                {detail.aiScore.gaps.map((g, i) => (
+                  <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                    <span className="text-orange-400 mt-0.5">·</span> {g}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Cover letter ───────────────────────────────────────── */}
+      {current.coverLetter && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
             Thư xin việc
           </p>
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-            {app.coverLetter}
+            {current.coverLetter}
           </p>
         </div>
       )}
 
-      {/* Interview info */}
-      {app.scheduledAt && (
+      {/* ── Interview info ─────────────────────────────────────── */}
+      {current.scheduledAt && (
         <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4">
           <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
             <Clock size={12} /> Lịch phỏng vấn
           </p>
           <p className="text-sm font-semibold text-gray-900">
-            {new Date(app.scheduledAt).toLocaleString("vi-VN")}
+            {new Date(current.scheduledAt).toLocaleString("vi-VN")}
           </p>
-          {app.interviewLocation && (
-            <p className="text-xs text-gray-600 mt-0.5">{app.interviewLocation}</p>
+          {current.interviewLocation && (
+            <p className="text-xs text-gray-600 mt-0.5">{current.interviewLocation}</p>
           )}
-          {app.interviewNote && (
-            <p className="text-xs text-gray-500 mt-1 italic">{app.interviewNote}</p>
+          {current.interviewNote && (
+            <p className="text-xs text-gray-500 mt-1 italic">{current.interviewNote}</p>
           )}
         </div>
       )}
 
-      {/* Timeline */}
+      {/* ── Status timeline ────────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Lịch sử trạng thái
         </p>
-        <StatusTimeline logs={logs} loading={loading} />
+        {/* statusHistory có sẵn trong response — không cần gọi /logs */}
+        <StatusTimeline
+          logs={detail?.statusHistory ?? []}
+          loading={loading}
+        />
+        {error && (
+          <p className="text-xs text-red-400 italic">Không thể tải lịch sử trạng thái.</p>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
-// src/application/services/NotificationService.ts
-import type { NotificationItem, NotificationResult } from "@/domain/models/Notification"
+import type {
+  NotificationItem, NotificationResult,
+  NotificationTab, 
+} from "@/domain/models/Notification"
+import { typeToTab } from "@/domain/models/Notification"
 import type { NotificationRepository } from "@/infrastructure/repositories/NotificationRepository"
 
 export class NotificationService {
@@ -17,12 +20,8 @@ export class NotificationService {
     return this.repo.markAllRead()
   }
 
-  /** Filter theo type tab */
-  filterByTab(
-    items: NotificationItem[],
-    tab: "ALL" | "MESSAGE" | "NEW_JOB" | "APPLY_RESULT",
-  ): NotificationItem[] {
+  filterByTab(items: NotificationItem[], tab: NotificationTab): NotificationItem[] {
     if (tab === "ALL") return items
-    return items.filter(n => n.type === tab)
+    return items.filter(n => typeToTab(n.type) === tab)
   }
 }

@@ -28,6 +28,11 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return jpaRepo.existsById(id);
+    }
+
+    @Override
     public boolean existsByJobPostIdAndCandidateId(UUID jid, UUID cid) {
         return jpaRepo.existsByJobPostIdAndCandidateId(jid, cid);
     }

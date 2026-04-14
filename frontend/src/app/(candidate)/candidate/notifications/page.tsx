@@ -34,7 +34,7 @@ function NotifSkeleton() {
   )
 }
 
-export default function EmployerNotificationsPage() {
+export default function CandidateNotificationsPage() {
   const [items,    setItems]    = useState<NotificationItem[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
@@ -50,10 +50,9 @@ export default function EmployerNotificationsPage() {
     subscribeToNotificationDeleted,
   } = useWebSocket()
 
-  // ✅ Dùng ref để tránh load 2 lần ở StrictMode
   const hasLoaded = useRef(false)
 
-  // ─── Load danh sách từ API ──────────────────────────────────────────────────
+  // ─── Load từ API ─────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -61,9 +60,7 @@ export default function EmployerNotificationsPage() {
       setItems(res.notifications)
     } catch (e) {
       setError(extractErrorMessage(e, "Không thể tải thông báo"))
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }, [])
 
   useEffect(() => {
@@ -72,31 +69,28 @@ export default function EmployerNotificationsPage() {
     load()
   }, [load])
 
-  // ─── WS: Notification mới ───────────────────────────────────────────────────
-  // ✅ Dùng event-based subscription — không bị lệch do snapshot array giới hạn 10 items
+  // ─── WS: Notification mới ────────────────────────────────────────────────────
+  // ✅ Event-based — không bị miss do snapshot array bị giới hạn 10 items
   useEffect(() => {
     return subscribeToNewNotification((newNotif) => {
       setItems(prev => {
         if (prev.some(n => n.notificationId === newNotif.notificationId)) return prev
-        // ✅ Cast sang NotificationItem (WS trả về cùng shape)
         return [newNotif as unknown as NotificationItem, ...prev]
       })
     })
   }, [subscribeToNewNotification])
 
-  // ─── WS: All-read (đọc từ tab/thiết bị khác) ────────────────────────────────
-  // ✅ Đồng bộ trạng thái isRead khi server broadcast all-read
+  // ─── WS: All-read (đồng bộ từ tab/thiết bị khác) ────────────────────────────
   useEffect(() => {
     return subscribeToAllRead(() => {
       setItems(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })))
     })
   }, [subscribeToAllRead])
 
-  // ─── WS: Notification bị xóa ────────────────────────────────────────────────
+  // ─── WS: Notification bị xóa ─────────────────────────────────────────────────
   useEffect(() => {
     return subscribeToNotificationDeleted((deletedId) => {
       setItems(prev => prev.filter(n => n.notificationId !== deletedId))
-      // Bỏ khỏi selected nếu đang được chọn
       setSelected(prev => {
         if (!prev.has(deletedId)) return prev
         const next = new Set(prev)
@@ -106,7 +100,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [subscribeToNotificationDeleted])
 
-  // ─── Actions ────────────────────────────────────────────────────────────────
+  // ─── Actions ─────────────────────────────────────────────────────────────────
   const markOneRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n =>
       n.notificationId === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
@@ -135,7 +129,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [])
 
-  // ─── Derived state ───────────────────────────────────────────────────────────
+  // ─── Derived state ────────────────────────────────────────────────────────────
   const filtered = service.filterByTab(
     items.map(n => ({ ...n, isStarred: starred.has(n.notificationId) })),
     tab,
@@ -154,7 +148,7 @@ export default function EmployerNotificationsPage() {
   const tabCount = (key: NotificationTab) =>
     key === "ALL" ? items.length : items.filter(n => typeToTab(n.type) === key).length
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="mx-auto">
       <div className="mb-6">
@@ -197,13 +191,9 @@ export default function EmployerNotificationsPage() {
             <input
               type="checkbox"
               checked={selected.size > 0 && selected.size === filtered.length}
-              onChange={e =>
-                setSelected(
-                  e.target.checked
-                    ? new Set(filtered.map(n => n.notificationId))
-                    : new Set()
-                )
-              }
+              onChange={e => setSelected(
+                e.target.checked ? new Set(filtered.map(n => n.notificationId)) : new Set()
+              )}
               className="w-4 h-4 rounded border-gray-300 text-blue-600
                 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
             />
@@ -211,8 +201,7 @@ export default function EmployerNotificationsPage() {
             {/* Tabs */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {TABS.map(t => (
-                <button
-                  key={t.key}
+                <button key={t.key}
                   onClick={() => { setTab(t.key); setSelected(new Set()) }}
                   className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-colors border
                     ${tab === t.key

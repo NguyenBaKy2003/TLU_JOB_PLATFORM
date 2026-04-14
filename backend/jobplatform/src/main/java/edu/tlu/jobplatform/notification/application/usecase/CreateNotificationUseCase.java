@@ -15,7 +15,7 @@ import java.util.UUID;
 
 /**
  * Internal use case — chỉ được gọi bởi event handlers.
- * Tạo notification → lưu DB → publish event để WS/email handler xử lý.
+ * Tạo notification → lưu DB → publish event để WS handler xử lý.
  */
 @Slf4j
 @Service
@@ -24,13 +24,12 @@ public class CreateNotificationUseCase {
 
         private final NotificationRepository repository;
         private final ApplicationEventPublisher eventPublisher;
-
         private final NotificationDomainService notificationDomainService;
 
         @Transactional
         public void execute(Command cmd) {
                 Notification notification = notificationDomainService.create(
-                                cmd.userId(), cmd.recipientEmail(),
+                                cmd.userId(),
                                 cmd.type(), cmd.title(), cmd.body(), cmd.link());
 
                 Notification saved = repository.save(notification);
@@ -38,8 +37,6 @@ public class CreateNotificationUseCase {
                 eventPublisher.publishEvent(new NotificationCreatedEvent(
                                 saved.getId(),
                                 saved.getUserId(),
-                                saved.getRecipientEmail(),
-                                saved.isEmailRequired(),
                                 saved.getType().name(),
                                 saved.getTitle(),
                                 saved.getBody(),
@@ -51,7 +48,6 @@ public class CreateNotificationUseCase {
 
         public record Command(
                         UUID userId,
-                        String recipientEmail,
                         NotificationType type,
                         String title,
                         String body,
