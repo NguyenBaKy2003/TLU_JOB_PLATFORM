@@ -47,7 +47,6 @@ public class CandidateApplicationController {
         private final ApplicationStatusLogRepository logRepo;
 
         @Operation(summary = "Nộp đơn ứng tuyển")
-        @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs/{jobPostId}/apply")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<ApplicationResponse>> submit(
@@ -66,7 +65,6 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Danh sách đơn ứng tuyển của tôi")
-        @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/applications/my")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getMyApplications(
@@ -82,7 +80,6 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Chi tiết đơn ứng tuyển")
-        @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/applications/{id}")
         @PreAuthorize("isAuthenticated()")
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getDetail(@PathVariable UUID id) {
@@ -103,7 +100,6 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Rút đơn ứng tuyển")
-        @SecurityRequirement(name = "bearerAuth")
         @DeleteMapping("/api/v1/applications/{id}/withdraw")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<ApplicationResponse>> withdraw(@PathVariable UUID id) {
@@ -113,7 +109,6 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Kiểm tra đã nộp đơn vào bài đăng này chưa")
-        @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/jobs/{jobPostId}/my-application")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<Boolean>> checkApplied(

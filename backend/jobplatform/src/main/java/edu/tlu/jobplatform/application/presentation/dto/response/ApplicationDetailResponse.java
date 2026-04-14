@@ -26,27 +26,42 @@ public class ApplicationDetailResponse {
     private final ApplicationStatus status;
     private final String rejectionReason;
 
-    // Interview info
+    // ── Candidate info (populated từ UserRepository) ──────────
+    private final CandidateInfo candidate;
+
+    // ── Interview ─────────────────────────────────────────────
     private final LocalDateTime interviewScheduledAt;
     private final String interviewLocation;
     private final String interviewNote;
 
-    // AI Score
+    // ── AI Score ──────────────────────────────────────────────
     private final boolean aiScoreCalculated;
     private final AIScoreDto aiScore;
 
+    // ── Metadata ──────────────────────────────────────────────
     private final LocalDateTime appliedAt;
     private final LocalDateTime updatedAt;
-
-    // Status change history
     private final List<StatusLogDto> statusHistory;
 
+    // ─────────────────────────────────────────────────────────
+    // Factory methods
+    // ─────────────────────────────────────────────────────────
+
+    /** Không có candidate info (dùng khi candidate tự xem đơn của mình) */
     public static ApplicationDetailResponse from(Application a) {
-        return from(a, List.of());
+        return from(a, List.of(), null);
     }
 
+    /** Có status logs (dùng khi candidate xem lịch sử) */
     public static ApplicationDetailResponse from(Application a,
             List<ApplicationStatusLog> logs) {
+        return from(a, logs, null);
+    }
+
+    /** Đầy đủ: có logs + candidate info (dùng cho employer / admin) */
+    public static ApplicationDetailResponse from(Application a,
+            List<ApplicationStatusLog> logs,
+            CandidateInfo candidateInfo) {
         AIScoreDto scoreDto = null;
         if (a.getAiScore() != null) {
             var s = a.getAiScore();
@@ -71,12 +86,36 @@ public class ApplicationDetailResponse {
                 .cvUrl(a.getCvUrl()).coverLetter(a.getCoverLetter())
                 .expectedSalary(a.getExpectedSalary()).status(a.getStatus())
                 .rejectionReason(a.getRejectionReason())
+                .candidate(candidateInfo)
                 .interviewScheduledAt(a.getInterviewScheduledAt())
                 .interviewLocation(a.getInterviewLocation())
                 .interviewNote(a.getInterviewNote())
                 .aiScoreCalculated(a.isAiScoreCalculated()).aiScore(scoreDto)
                 .appliedAt(a.getAppliedAt()).updatedAt(a.getUpdatedAt())
                 .statusHistory(history).build();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Nested DTOs
+    // ─────────────────────────────────────────────────────────
+
+    /** Thông tin ứng viên — resolve từ UserRepository */
+    @Getter
+    @Builder
+    public static class CandidateInfo {
+        private final UUID id;
+        private final String fullName;
+        private final String email;
+        private final String phone;
+        private final String avatarUrl;
+
+        public static CandidateInfo of(UUID id, String fullName,
+                String email, String phone,
+                String avatarUrl) {
+            return CandidateInfo.builder()
+                    .id(id).fullName(fullName).email(email)
+                    .phone(phone).avatarUrl(avatarUrl).build();
+        }
     }
 
     @Getter

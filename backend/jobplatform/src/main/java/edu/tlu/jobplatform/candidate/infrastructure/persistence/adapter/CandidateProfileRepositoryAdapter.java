@@ -8,6 +8,8 @@ import edu.tlu.jobplatform.candidate.infrastructure.persistence.repository.Candi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,5 +64,13 @@ public class CandidateProfileRepositoryAdapter implements CandidateProfileReposi
         @Override
         public void deleteById(UUID id) {
                 jpaRepo.deleteById(id);
+        }
+
+        @Override
+        public List<CandidateProfile> findAllByUserId(Collection<UUID> userIds) {
+                return jpaRepo.findAllByUserIdIn(userIds)
+                                .stream()
+                                .map(mapper::toDomain)
+                                .toList();
         }
 }

@@ -12,6 +12,8 @@ public interface ApplicationRepository {
 
     Optional<Application> findById(UUID id);
 
+    boolean existsById(UUID id);
+
     /** Kiểm tra ứng viên đã nộp vào bài đăng này chưa */
     boolean existsByJobPostIdAndCandidateId(UUID jobPostId, UUID candidateId);
 

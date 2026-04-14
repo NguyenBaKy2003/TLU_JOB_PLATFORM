@@ -4,9 +4,7 @@ import edu.tlu.jobplatform.company.application.usecase.CreateCompanyUseCase;
 import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyCoverUseCase;
 import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyLogoUseCase;
 import edu.tlu.jobplatform.company.application.usecase.UpdateCompanyUseCase;
-import edu.tlu.jobplatform.company.application.usecase.VerifyCompanyUseCase;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
-import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.company.presentation.dto.CompanyResponse;
 import edu.tlu.jobplatform.company.presentation.dto.CreateCompanyRequest;
@@ -47,7 +45,6 @@ public class CompanyController {
 
         private final CreateCompanyUseCase createUseCase;
         private final UpdateCompanyUseCase updateUseCase;
-        private final VerifyCompanyUseCase verifyUseCase;
         private final CompanyRepository companyRepository;
 
         private final UpdateCompanyLogoUseCase updateLogoUseCase;

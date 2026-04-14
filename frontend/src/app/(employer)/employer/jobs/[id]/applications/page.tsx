@@ -20,19 +20,21 @@ import { Pagination } from "@/presentation/components/common/Pagination";
 
 const service = new ApplicationService(new ApplicationRepository());
 
+// Tabs khớp với backend ApplicationStatus enum
 const STATUS_FILTER_TABS: { value: ApplicationStatus | "ALL"; label: string }[] = [
-  { value: "ALL",                 label: "Tất cả"       },
-  { value: "PENDING",             label: "Chờ duyệt"    },
-  { value: "REVIEWING",           label: "Đang xem xét" },
-  { value: "INTERVIEW_SCHEDULED", label: "Phỏng vấn"    },
-  { value: "OFFERED",             label: "Offer"        },
-  { value: "REJECTED",            label: "Từ chối"      },
+  { value: "ALL",                 label: "Tất cả"        },
+  { value: "SUBMITTED",           label: "Đã nộp"        },
+  { value: "REVIEWING",           label: "Đang xem xét"  },
+  { value: "SHORTLISTED",         label: "Rút gọn"       },
+  { value: "INTERVIEW_SCHEDULED", label: "Phỏng vấn"     },
+  { value: "OFFERED",             label: "Offer"         },
+  { value: "REJECTED",            label: "Từ chối"       },
 ];
 
 export default function EmployerApplicationsPage() {
   const { id } = useParams<{ id: string }>();
-  const router    = useRouter();
-  const toast     = useToast();
+  const router = useRouter();
+  const toast  = useToast();
 
   const [apps,         setApps]         = useState<ApplicationWithCandidate[]>([]);
   const [totalPages,   setTotalPages]   = useState(1);
@@ -44,9 +46,8 @@ export default function EmployerApplicationsPage() {
   const [selectedId,   setSelectedId]   = useState<string | null>(null);
   const [showSchedule, setShowSchedule] = useState(false);
 
-  // Dùng ref để tránh stale closure trong useEffect
-  const activeTabRef = useRef(activeTab);
-  activeTabRef.current = activeTab;
+  // Key để force-remount CandidateDetailPanel sau khi status thay đổi
+  const [detailKey, setDetailKey] = useState(0);
 
   const load = useCallback(
     async (pg: number, tab: ApplicationStatus | "ALL") => {
@@ -69,6 +70,7 @@ export default function EmployerApplicationsPage() {
   // Load lần đầu
   useEffect(() => {
     load(0, "ALL");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Reload khi đổi tab
@@ -76,14 +78,14 @@ export default function EmployerApplicationsPage() {
     setPage(0);
     setSelectedId(null);
     load(0, activeTab);
-  }, [activeTab]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter client-side chỉ cho search (tab đã filter từ server)
   const filtered = apps.filter(
     (a) =>
       !search ||
-      a.candidateName.toLowerCase().includes(search.toLowerCase()) ||
-      a.candidateEmail.toLowerCase().includes(search.toLowerCase()),
+      (a.candidate?.fullName ?? a.candidateName).toLowerCase().includes(search.toLowerCase()) ||
+      (a.candidate?.email    ?? a.candidateEmail).toLowerCase().includes(search.toLowerCase()),
   );
 
   const selectedApp = apps.find((a) => a.id === selectedId) ?? null;
@@ -93,9 +95,15 @@ export default function EmployerApplicationsPage() {
       if (!selectedId) return;
       try {
         const updated = await service.updateStatus(selectedId, status, note);
+
+        // Cập nhật list local
         setApps((prev) =>
           prev.map((a) => (a.id === selectedId ? { ...a, ...updated } : a)),
         );
+
+        // Force-reload CandidateDetailPanel để fetch lại detail mới (statusHistory, v.v.)
+        setDetailKey((k) => k + 1);
+
         toast.success(
           "Đã cập nhật",
           `Trạng thái đã chuyển sang: ${APPLICATION_STATUS_LABELS[status]}`,
@@ -112,10 +120,15 @@ export default function EmployerApplicationsPage() {
       if (!selectedId) return;
       try {
         const updated = await service.scheduleInterview(selectedId, req);
+
         setApps((prev) =>
           prev.map((a) => (a.id === selectedId ? { ...a, ...updated } : a)),
         );
+
+        // Reload detail để cập nhật lịch phỏng vấn mới
+        setDetailKey((k) => k + 1);
         setShowSchedule(false);
+
         toast.success("Đã lên lịch", "Lịch phỏng vấn đã được gửi đến ứng viên.");
       } catch (e) {
         toast.error("Lỗi", extractErrorMessage(e));
@@ -153,7 +166,6 @@ export default function EmployerApplicationsPage() {
               }`}
             >
               {tab.label}
-              {/* Tab active hiện totalInTab từ server, tab khác không hiện vì không có data */}
               {activeTab === tab.value && totalInTab > 0 && (
                 <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600">
                   {totalInTab}
@@ -237,6 +249,7 @@ export default function EmployerApplicationsPage() {
         <div className="flex-1 min-w-0 overflow-y-auto">
           {selectedApp ? (
             <CandidateDetailPanel
+              key={`${selectedApp.id}-${detailKey}`}
               app={selectedApp}
               onStatusChange={handleStatusChange}
               onScheduleInterview={() => setShowSchedule(true)}
@@ -254,7 +267,7 @@ export default function EmployerApplicationsPage() {
       {/* Schedule interview modal */}
       {showSchedule && selectedApp && (
         <ScheduleInterviewModal
-          candidateName={selectedApp.candidateName}
+          candidateName={selectedApp.candidate?.fullName ?? selectedApp.candidateName}
           onConfirm={handleScheduleInterview}
           onCancel={() => setShowSchedule(false)}
         />
