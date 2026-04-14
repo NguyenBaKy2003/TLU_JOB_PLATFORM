@@ -3,7 +3,6 @@
 import {
   useState, useEffect, useCallback, useRef, useMemo,
 } from "react";
-import { DashboardLayout }       from "@/presentation/components/layout/profile/DashboardLayout";
 import { CandidateService }      from "@/application/services/CandidateService";
 import { CandidateRepository }   from "@/infrastructure/repositories/CandidateRepository";
 import ProfileHero               from "@/presentation/components/profile/ProfileHero";

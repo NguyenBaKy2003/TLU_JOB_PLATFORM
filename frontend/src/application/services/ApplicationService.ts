@@ -1,12 +1,12 @@
+// src/application/services/ApplicationService.ts
 import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import type {
   Application,
   ApplicationWithJob,
   ApplicationWithCandidate,
-  ApplicationStatusLog,
+  ApplicationDetail,
   SubmitApplicationRequest,
   ScheduleInterviewRequest,
-  UpdateStatusRequest,
   PageResponse,
   ApplicationStatus,
 } from "@/domain/models/Application";
@@ -17,38 +17,30 @@ export class ApplicationService {
 
   // ── Candidate ────────────────────────────────────────────────
 
-  /** Nộp đơn ứng tuyển */
   async submit(req: SubmitApplicationRequest): Promise<Application> {
     if (!req.jobPostId) throw new Error("Thiếu thông tin bài đăng.");
     if (!req.cvUrl)     throw new Error("Vui lòng chọn file CV.");
     return this.repo.submit(req);
   }
 
-  /** Rút đơn */
   async withdraw(applicationId: string): Promise<Application> {
     return this.repo.withdraw(applicationId);
   }
 
-  /** Danh sách đơn của ứng viên */
-  async getMyApplications(
-    page = 0,
-    size = 10,
-  ): Promise<PageResponse<ApplicationWithJob>> {
+  async getMyApplications(page = 0, size = 10): Promise<PageResponse<ApplicationWithJob>> {
     return this.repo.getMyApplications(page, size);
   }
 
-  /** Chi tiết đơn */
   async getById(applicationId: string): Promise<Application> {
     return this.repo.getById(applicationId);
   }
 
-  /** Kiểm tra đã ứng tuyển vào job chưa */
-    async checkApplied(jobPostId: string): Promise<boolean> {
+  async checkApplied(jobPostId: string): Promise<boolean> {
     return this.repo.checkApplied(jobPostId);
-    }
+  }
+
   // ── Employer ─────────────────────────────────────────────────
 
-  /** Danh sách đơn theo bài đăng */
   async getByJobPost(
     jobPostId: string,
     page = 0,
@@ -59,17 +51,22 @@ export class ApplicationService {
     return this.repo.getByJobPost(jobPostId, page, size, statusParam);
   }
 
-  /** Cập nhật trạng thái */
+  /**
+   * Gọi GET /employer/applications/{id}.
+   * Response đã có candidate + aiScore + statusHistory — không cần /logs.
+   */
+  async getEmployerDetail(applicationId: string): Promise<ApplicationDetail> {
+    return this.repo.getEmployerDetail(applicationId);
+  }
+
   async updateStatus(
     applicationId: string,
     status: ApplicationStatus,
     note?: string,
   ): Promise<Application> {
-    const req: UpdateStatusRequest = { status, note };
-    return this.repo.updateStatus(applicationId, req);
+    return this.repo.updateStatus(applicationId, { status, note });
   }
 
-  /** Lên lịch phỏng vấn — tự động set status INTERVIEW_SCHEDULED */
   async scheduleInterview(
     applicationId: string,
     req: ScheduleInterviewRequest,
@@ -79,23 +76,17 @@ export class ApplicationService {
     return this.repo.scheduleInterview(applicationId, req);
   }
 
-  // ── Shared ───────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────
 
-  /** Lịch sử trạng thái */
-  async getStatusLogs(applicationId: string): Promise<ApplicationStatusLog[]> {
-    return this.repo.getStatusLogs(applicationId);
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────
-
-  /** Ứng viên còn có thể rút đơn không */
   canWithdraw(app: Application): boolean {
-    const terminal: ApplicationStatus[] = ["ACCEPTED", "REJECTED", "WITHDRAWN"];
+    const terminal: ApplicationStatus[] = [
+      "ACCEPTED", "REJECTED", "WITHDRAWN", "HIRED", "CANCELLED",
+    ];
     return !terminal.includes(app.status);
   }
 
-  /** Employer có thể lên lịch phỏng vấn không */
+  /** Theo backend TRANSITIONS: SHORTLISTED → INTERVIEW_SCHEDULED */
   canScheduleInterview(app: Application): boolean {
-    return app.status === "REVIEWING" || app.status === "PENDING";
+    return app.status === "SHORTLISTED";
   }
 }

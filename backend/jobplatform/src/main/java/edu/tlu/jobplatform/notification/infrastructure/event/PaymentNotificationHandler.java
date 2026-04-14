@@ -22,7 +22,6 @@ public class PaymentNotificationHandler {
         public void onSubscriptionActivated(SubscriptionActivatedEvent event) {
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getCompanyId(),
-                                event.getCompanyEmail(),
                                 NotificationType.PAYMENT_SUCCESS,
                                 "Thanh toán thành công",
                                 "Gói %s đã được kích hoạt. Hiệu lực đến %s."
@@ -33,10 +32,8 @@ public class PaymentNotificationHandler {
         @Async("taskExecutor")
         @EventListener
         public void onSubscriptionExpired(SubscriptionExpiredEvent event) {
-                // recipientEmail = null vì event không có → DB vẫn lưu, WS vẫn push
                 createNotification.execute(new CreateNotificationUseCase.Command(
                                 event.getCompanyId(),
-                                null,
                                 NotificationType.SUBSCRIPTION_EXPIRED,
                                 "Gói đăng ký đã hết hạn",
                                 "Gói %s đã hết hạn. Vui lòng gia hạn để tiếp tục đăng tin."

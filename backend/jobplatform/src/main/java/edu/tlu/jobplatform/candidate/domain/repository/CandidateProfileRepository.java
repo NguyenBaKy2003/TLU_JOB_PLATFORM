@@ -2,6 +2,8 @@ package edu.tlu.jobplatform.candidate.domain.repository;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +22,6 @@ public interface CandidateProfileRepository {
     boolean existsByProfileUrl(String profileUrl);
 
     Optional<CandidateProfile> findByProfileUrl(String profileUrl);
+
+    List<CandidateProfile> findAllByUserId(Collection<UUID> userIds);
 }

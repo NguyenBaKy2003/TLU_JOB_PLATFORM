@@ -1,16 +1,16 @@
-// src/presentation/components/notifications/NotificationItem.tsx
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Star, Mail } from "lucide-react"
 import { NotificationBadge } from "./NotificationBadge"
-import type { NotificationItem as TNotif } from "@/domain/models/Notification"
+import type { NotificationItem } from "@/domain/models/Notification"
 
 interface Props {
-  notif:       TNotif
-  selected:    boolean
-  onToggle:    (id: string) => void
-  onMarkRead:  (id: string) => void
-  onToggleStar:(id: string) => void
+  notif:        NotificationItem
+  selected:     boolean
+  onToggle:     (id: string) => void
+  onMarkRead:   (id: string) => void
+  onToggleStar: (id: string) => void
 }
 
 function timeAgo(iso: string): string {
@@ -27,6 +27,12 @@ function timeAgo(iso: string): string {
 
 export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggleStar }: Props) {
   const [hovered, setHovered] = useState(false)
+  const router = useRouter()
+
+  const handleClick = () => {
+    if (!notif.isRead) onMarkRead(notif.notificationId)
+    if (notif.link)   router.push(notif.link)
+  }
 
   return (
     <div
@@ -34,16 +40,17 @@ export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggl
       onMouseLeave={() => setHovered(false)}
       className={`group flex items-start gap-3 px-5 py-4 border-b border-gray-50
         transition-colors cursor-pointer
-        ${notif.isRead ? "bg-white hover:bg-gray-50/70" : "bg-blue-50/40 hover:bg-blue-50/70"}
-        ${selected ? "bg-blue-50" : ""}
-      `}
+        ${selected      ? "bg-blue-50"
+          : notif.isRead ? "bg-white hover:bg-gray-50/70"
+          :                "bg-blue-50/40 hover:bg-blue-50/70"}`}
     >
       {/* Checkbox */}
-      <div className="shrink-0 mt-0.5 flex items-center">
+      <div className="shrink-0 mt-0.5">
         <input
           type="checkbox"
           checked={selected}
           onChange={() => onToggle(notif.notificationId)}
+          onClick={e => e.stopPropagation()}
           className="w-4 h-4 rounded border-gray-300 text-blue-600
             focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
         />
@@ -51,20 +58,22 @@ export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggl
 
       {/* Unread dot */}
       <div className="shrink-0 mt-2">
-        <div className={`w-2 h-2 rounded-full transition-colors
-          ${notif.isRead ? "bg-transparent" : "bg-blue-500"}`} />
+        <div className={`w-2 h-2 rounded-full ${notif.isRead ? "bg-transparent" : "bg-blue-500"}`} />
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0" onClick={() => !notif.isRead && onMarkRead(notif.notificationId)}>
-        <p className={`text-sm leading-relaxed mb-1.5
-          ${notif.isRead ? "text-gray-600" : "text-gray-800 font-medium"}`}>
-          {notif.message}
+      <div className="flex-1 min-w-0" onClick={handleClick}>
+        <p className={`text-sm leading-snug mb-0.5
+          ${notif.isRead ? "text-gray-600" : "text-gray-900 font-semibold"}`}>
+          {notif.title}
+        </p>
+        <p className="text-xs text-gray-500 leading-relaxed mb-1.5 line-clamp-2">
+          {notif.body}
         </p>
         <NotificationBadge type={notif.type} />
       </div>
 
-      {/* Right: actions + time */}
+      {/* Time + actions */}
       <div className="shrink-0 flex flex-col items-end gap-1.5 ml-2">
         <span className="text-[11px] text-gray-400 whitespace-nowrap">
           {timeAgo(notif.createdAt)}
@@ -75,9 +84,7 @@ export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggl
           <button
             onClick={e => { e.stopPropagation(); onToggleStar(notif.notificationId) }}
             className={`p-1 rounded transition-colors
-              ${notif.isStarred
-                ? "text-yellow-400 hover:text-yellow-500"
-                : "text-gray-300 hover:text-yellow-400"}`}
+              ${notif.isStarred ? "text-yellow-400 hover:text-yellow-500" : "text-gray-300 hover:text-yellow-400"}`}
             title="Đánh dấu quan trọng"
           >
             <Star size={14} fill={notif.isStarred ? "currentColor" : "none"} />

@@ -14,13 +14,13 @@ import { useAuth } from "@/application/contexts/AuthContext";
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
 const CANDIDATE_NAV = [
-  { label: "Hồ sơ của tôi",     icon: <User size={18} />,             href: "/profile",           badgeKey: null           },
-  { label: "Đơn ứng tuyển",     icon: <ClipboardList size={18} />,    href: "/applications",      badgeKey: null           },
-  { label: "Việc đã lưu",       icon: <BookmarkCheck size={18} />,    href: "/saved-jobs",         badgeKey: null           },
-  { label: "Thông báo",          icon: <Bell size={18} />,             href: "/notifications",     badgeKey: "notification" },
-  { label: "Tin nhắn",           icon: <MessageSquare size={18} />,    href: "/messages",          badgeKey: null           },
-  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/settings",          badgeKey: null           },
-  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/activity",          badgeKey: null           },
+  { label: "Hồ sơ của tôi",     icon: <User size={18} />,             href: "/candidate/profile",           badgeKey: null           },
+  { label: "Đơn ứng tuyển",     icon: <ClipboardList size={18} />,    href: "/candidate/applications",      badgeKey: null           },
+  { label: "Việc đã lưu",       icon: <BookmarkCheck size={18} />,    href: "/candidate/saved-jobs",         badgeKey: null           },
+  { label: "Thông báo",          icon: <Bell size={18} />,             href: "/candidate/notifications",     badgeKey: "notification" },
+  { label: "Tin nhắn",           icon: <MessageSquare size={18} />,    href: "/candidate/messages",          badgeKey: null           },
+  { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/candidate/settings",          badgeKey: null           },
+  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/candidate/activity",          badgeKey: null           },
 ];
 
 const EMPLOYER_NAV = [
@@ -38,11 +38,12 @@ const EMPLOYER_NAV = [
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
-  collapsed:         boolean;
-  onToggle:          () => void;
-  mobileOpen:        boolean;
-  onMobileClose:     () => void;
-  notificationCount: number;
+  collapsed:          boolean;
+  onToggle:           () => void;
+  mobileOpen:         boolean;
+  onMobileClose:      () => void;
+  notificationCount:  number;
+  activeHref?:        string;   // ← thêm (optional, fallback về usePathname)
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
@@ -97,16 +98,17 @@ function NavLink({
 // ─── Sidebar content ──────────────────────────────────────────────────────────
 
 function SidebarContent({
-  collapsed, onToggle, onClose, isMobile, notificationCount,
+  collapsed, onToggle, onClose, isMobile, notificationCount, activeHref,
 }: {
-  collapsed:         boolean;
-  onToggle:          () => void;
-  onClose?:          () => void;
-  isMobile:          boolean;
-  notificationCount: number;
+  collapsed:          boolean;
+  onToggle:           () => void;
+  onClose?:           () => void;
+  isMobile:           boolean;
+  notificationCount:  number;
+  activeHref?:        string;
 }) {
   const router           = useRouter();
-  const pathname         = usePathname();           // ✅ active tự động theo URL
+  const pathname         = usePathname();
   const { user, logout } = useAuth();
 
   const isEmployer = user?.role === "EMPLOYER";
@@ -125,9 +127,11 @@ function SidebarContent({
     return undefined;
   };
 
-  // So sánh chính xác hoặc theo prefix để hỗ trợ sub-routes
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+  // Ưu tiên activeHref prop, fallback về pathname từ URL
+  const isActive = (href: string) => {
+    const current = activeHref ?? pathname;
+    return current === href || (href !== "/" && current.startsWith(href + "/"));
+  };
 
   return (
     <aside className={`relative flex flex-col h-full bg-white border-r border-gray-100
@@ -195,7 +199,7 @@ function SidebarContent({
           <NavLink
             key={item.href}
             item={item}
-            active={isActive(item.href)}             // ✅ dùng isActive thay vì so sánh prop
+            active={isActive(item.href)}
             collapsed={collapsed && !isMobile}
             onClick={isMobile ? onClose : undefined}
             badge={getBadge(item.badgeKey)}
@@ -230,7 +234,7 @@ function SidebarContent({
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export default function Sidebar({
-  collapsed, onToggle, mobileOpen, onMobileClose, notificationCount,
+  collapsed, onToggle, mobileOpen, onMobileClose, notificationCount, activeHref,
 }: Props) {
   return (
     <>
@@ -240,6 +244,7 @@ export default function Sidebar({
           onToggle={onToggle}
           isMobile={false}
           notificationCount={notificationCount}
+          activeHref={activeHref}
         />
       </div>
 
@@ -256,6 +261,7 @@ export default function Sidebar({
               onClose={onMobileClose}
               isMobile={true}
               notificationCount={notificationCount}
+              activeHref={activeHref}
             />
           </div>
         </>

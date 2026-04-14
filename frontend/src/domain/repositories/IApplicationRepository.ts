@@ -1,8 +1,9 @@
+// src/domain/repositories/IApplicationRepository.ts
 import type {
   Application,
   ApplicationWithJob,
   ApplicationWithCandidate,
-  ApplicationStatusLog,
+  ApplicationDetail,
   SubmitApplicationRequest,
   ScheduleInterviewRequest,
   UpdateStatusRequest,
@@ -14,38 +15,27 @@ export interface IApplicationRepository {
 
   // ── Candidate ────────────────────────────────────────────────
 
-  /** Nộp đơn ứng tuyển */
   submit(req: SubmitApplicationRequest): Promise<Application>;
-
-  /** Rút đơn */
   withdraw(applicationId: string): Promise<Application>;
-
-  /** Danh sách đơn của ứng viên hiện tại */
   getMyApplications(page?: number, size?: number): Promise<PageResponse<ApplicationWithJob>>;
-
-  /** Chi tiết đơn theo id */
   getById(applicationId: string): Promise<Application>;
-
-  /** Kiểm tra đã ứng tuyển vào job chưa */
   checkApplied(jobPostId: string): Promise<boolean>;
 
   // ── Employer ─────────────────────────────────────────────────
 
-// IApplicationRepository — cập nhật signature
-getByJobPost(
-  jobPostId: string,
-  page?: number,
-  size?: number,
-  status?: ApplicationStatus,
-): Promise<PageResponse<ApplicationWithCandidate>>;
-  /** Cập nhật trạng thái đơn */
+  getByJobPost(
+    jobPostId: string,
+    page?: number,
+    size?: number,
+    status?: ApplicationStatus,
+  ): Promise<PageResponse<ApplicationWithCandidate>>;
+
+  /**
+   * GET /api/v1/employer/applications/{id}
+   * Trả về ApplicationDetail — có candidate, aiScore, statusHistory.
+   */
+  getEmployerDetail(applicationId: string): Promise<ApplicationDetail>;
+
   updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application>;
-
-  /** Lên lịch phỏng vấn */
   scheduleInterview(applicationId: string, req: ScheduleInterviewRequest): Promise<Application>;
-
-  // ── Shared ───────────────────────────────────────────────────
-
-  /** Lịch sử thay đổi trạng thái */
-  getStatusLogs(applicationId: string): Promise<ApplicationStatusLog[]>;
 }

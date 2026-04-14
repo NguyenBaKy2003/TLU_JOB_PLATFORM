@@ -9,40 +9,44 @@ export function CandidateRow({
   active,
   onClick,
 }: {
-  app: ApplicationWithCandidate;
-  active: boolean;
+  app:     ApplicationWithCandidate;
+  active:  boolean;
   onClick: () => void;
 }) {
+  // Ưu tiên nested candidate (nếu backend populate), fallback flat fields
+  const name   = app.candidate?.fullName  ?? app.candidateName;
+  const avatar = app.candidate?.avatarUrl ?? app.candidateAvatar;
+  const email  = app.candidate?.email     ?? app.candidateEmail;
+  const score  = app.aiScore?.score;
+
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-start gap-3 p-4 text-left transition-all rounded-xl
-        ${active
+      className={`w-full flex items-start gap-3 p-4 text-left transition-all rounded-xl ${
+        active
           ? "bg-blue-50 border border-blue-200"
           : "border border-transparent hover:bg-gray-50"
-        }`}
+      }`}
     >
-      <CandidateAvatar name={app.candidateName} src={app.candidateAvatar} size="sm" />
+      <CandidateAvatar name={name} src={avatar} size="sm" />
+
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-semibold text-gray-900 truncate">{app.candidateName}</p>
+          <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
           <ApplicationStatusBadge status={app.status} />
         </div>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{app.candidateEmail}</p>
+
+        <p className="text-xs text-gray-400 truncate mt-0.5">{email}</p>
+
         <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
           <Clock size={10} />
           {new Date(app.appliedAt).toLocaleDateString("vi-VN")}
-          {app.aiScore != null && (
-            <span
-              className={`flex items-center gap-0.5 font-semibold ml-auto ${
-                app.aiScore >= 80
-                  ? "text-green-600"
-                  : app.aiScore >= 60
-                  ? "text-yellow-600"
-                  : "text-red-400"
-              }`}
-            >
-              <Zap size={10} /> {app.aiScore}
+
+          {score != null && (
+            <span className={`flex items-center gap-0.5 font-semibold ml-auto ${
+              score >= 80 ? "text-green-600" : score >= 60 ? "text-yellow-600" : "text-red-400"
+            }`}>
+              <Zap size={10} /> {score}
             </span>
           )}
         </div>

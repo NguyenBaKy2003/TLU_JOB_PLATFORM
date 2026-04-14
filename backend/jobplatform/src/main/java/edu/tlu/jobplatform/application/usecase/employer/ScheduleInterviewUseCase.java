@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 
 @Slf4j
 @Service
@@ -24,6 +26,7 @@ public class ScheduleInterviewUseCase {
     private final ApplicationRepository applicationRepo;
     private final ApplicationDomainService domainService;
     private final ApplicationDomainEventPublisher eventPublisher;
+    private final CompanyRepository companyRepository; // inject thêm
 
     @Transactional
     public Application execute(UUID applicationId, Command cmd) {
@@ -31,7 +34,12 @@ public class ScheduleInterviewUseCase {
         Application app = applicationRepo.findById(applicationId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Application", applicationId));
 
-        if (!SecurityUtils.isOwnerOrAdmin(app.getCompanyId()))
+        // Fix: lấy ownerId từ company → so sánh với userId đang đăng nhập
+        UUID companyOwnerId = companyRepository.findById(app.getCompanyId())
+                .map(CompanyProfile::getOwnerId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Company", app.getCompanyId()));
+
+        if (!SecurityUtils.isOwnerOrAdmin(companyOwnerId))
             throw new BusinessRuleException("Bạn không có quyền thực hiện hành động này.", "FORBIDDEN");
 
         domainService.validateInterviewSchedule(cmd.scheduledAt());
@@ -42,7 +50,8 @@ public class ScheduleInterviewUseCase {
 
         UUID changedBy = SecurityUtils.getCurrentUserIdOrThrow();
         domainService.logStatusChange(saved, prevStatus,
-                "Lịch phỏng vấn: " + cmd.scheduledAt(), changedBy);
+                cmd.note(),
+                changedBy);
         eventPublisher.publishInterviewScheduled(saved);
 
         log.info("Interview scheduled: applicationId={} at={}", applicationId, cmd.scheduledAt());
