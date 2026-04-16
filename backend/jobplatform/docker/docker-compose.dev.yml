@@ -1,11 +1,12 @@
 # docker-compose.dev.yml — Dev EC2
-# Chạy: docker compose -f docker-compose.dev.yml up -d
+# Chạy: docker compose -f docker-compose.dev.yml --env-file .env up -d
 #
 # Tất cả services trên 1 EC2 instance (t3.medium đủ dùng cho dev)
 # Volumes được mount vào /opt/jobplatform/data/ để data tồn tại qua restart
 #
 # Lưu ý: Image được pull từ GHCR bởi CI/CD pipeline.
 #         EC2 phải đã đăng nhập GHCR trước: docker login ghcr.io
+
 networks:
   jobplatform-net:
     driver: bridge
@@ -46,8 +47,9 @@ services:
       retries: 5
     expose:
       - "5432"
+    # Chỉ mở port ra ngoài khi cần debug — xóa dòng này ở production
     ports:
-      - "5432:5432" 
+      - "5432:5432"
 
   # ── Redis ─────────────────────────────────────────────────────
   redis:
@@ -74,7 +76,6 @@ services:
 
   # ── Spring Boot Backend ───────────────────────────────────────
   backend:
-    # [FIX 2] Pull image từ GHCR thay vì dùng local image.
     # IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${IMAGE_NAME:-jobplatform-backend}:${IMAGE_TAG:-latest-dev}
     container_name: jobplatform-backend-dev
@@ -86,11 +87,11 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE:     dev
-      # Database — trỏ vào container postgres (không phải localhost)
+      # Database
       SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/jobplatform_dev
       SPRING_DATASOURCE_USERNAME: jobplatform_dev
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      # Redis — trỏ vào container redis
+      # Redis
       SPRING_DATA_REDIS_HOST:     redis
       SPRING_DATA_REDIS_PORT:     6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -104,9 +105,9 @@ services:
       SPRING_MAIL_USERNAME:       ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD:       ${SPRING_MAIL_PASSWORD}
       # OAuth2
-      OAUTH_GOOGLE_CLIENT_ID:     ${OAUTH_GOOGLE_CLIENT_ID}
-      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET}
-      OAUTH_FACEBOOK_CLIENT_ID:   ${OAUTH_FACEBOOK_CLIENT_ID}
+      OAUTH_GOOGLE_CLIENT_ID:       ${OAUTH_GOOGLE_CLIENT_ID}
+      OAUTH_GOOGLE_CLIENT_SECRET:   ${OAUTH_GOOGLE_CLIENT_SECRET}
+      OAUTH_FACEBOOK_CLIENT_ID:     ${OAUTH_FACEBOOK_CLIENT_ID}
       OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET}
       # Tắt Elasticsearch health check — không có ES trên dev EC2
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
@@ -114,7 +115,7 @@ services:
         org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchClientAutoConfiguration,
         org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration,
         org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
-      # JVM
+      # JVM — nguồn duy nhất, không định nghĩa lại trong Dockerfile
       JAVA_OPTS: >-
         -XX:+UseContainerSupport
         -XX:MaxRAMPercentage=70.0
@@ -126,7 +127,7 @@ services:
     networks:
       - jobplatform-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -134,20 +135,20 @@ services:
 
   # ── Next.js Frontend ──────────────────────────────────────────
   frontend:
-    # [FIX 3] Pull image từ GHCR — đồng bộ cách deploy với backend.
-    # Khi chưa có CI/CD pipeline cho frontend, giữ tag cố định hoặc build tay rồi push lên GHCR.
+    # FRONTEND_IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${FRONTEND_IMAGE_NAME:-jobplatform-frontend}:${FRONTEND_IMAGE_TAG:-latest-dev}
     container_name: jobplatform-frontend-dev
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://${EC2_IP:-15.135.233.82}/api/v1
+      NEXT_PUBLIC_API_URL: http://${EC2_IP}/api/v1
     expose:
       - "3000"
     networks:
       - jobplatform-net
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode >= 400 ? 1 : 0)).on('error', () => process.exit(1))\""]
+      # >= 500 để khớp với CI/CD health check script (404 vẫn chấp nhận được lúc startup)
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode >= 500 ? 1 : 0)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -159,8 +160,10 @@ services:
     container_name: jobplatform-nginx-dev
     restart: unless-stopped
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     ports:
       - "80:80"
     volumes:
