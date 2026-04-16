@@ -1,3 +1,4 @@
+// src/domain/repositories/IAuthRepository.ts
 import {
   AuthResult,
   AuthToken,
@@ -21,71 +22,61 @@ import {
  * - Domain/UseCase chỉ phụ thuộc vào interface này.
  * - AuthRepository (infrastructure) implement cụ thể bằng HTTP/axios.
  * - Dễ mock trong unit test.
+ *
+ * Quy tắc: mỗi method chỉ biết token của chính nó.
+ * User logout → chỉ dùng accessToken.
+ * Admin logout → AdminAuthContext tự gọi endpoint với adminAccessToken.
  */
 export interface IAuthRepository {
   // ── Registration & Login ─────────────────────────────────────────────────
 
-  /** POST /api/auth/register — trả về thông tin đăng ký, chưa có token */
+  /** POST /auth/register */
   signup(data: SignupData): Promise<RegisterResult>;
 
-  /** POST /api/auth/login — trả về user + token */
+  /** POST /auth/login */
   login(credentials: UserCredentials): Promise<AuthResult>;
 
-  /** Đăng nhập qua OAuth2 (Google/Facebook) — trả về user + token */
+  /** OAuth2 callback */
   loginWithOAuth(data: OAuthUserData): Promise<AuthResult>;
 
   // ── Token Management ─────────────────────────────────────────────────────
 
-  /** POST /api/auth/refresh — làm mới access token bằng refresh token */
+  /** POST /auth/refresh */
   refreshToken(refreshToken: string): Promise<AuthToken>;
 
-  // ── Logout ───────────────────────────────────────────────────────────────
+  // ── Logout (user only) ────────────────────────────────────────────────────
 
-  /** POST /api/auth/logout — đăng xuất thiết bị hiện tại */
+  /** POST /auth/logout — đăng xuất thiết bị hiện tại, chỉ dùng user token */
   logout(accessToken: string): Promise<void>;
 
-  /** POST /api/auth/logout-all — đăng xuất tất cả thiết bị */
+  /** POST /auth/logout-all — đăng xuất tất cả thiết bị, chỉ dùng user token */
   logoutAll(accessToken: string): Promise<void>;
 
   // ── Profile ───────────────────────────────────────────────────────────────
 
-  /** GET /api/users/me — lấy thông tin user hiện tại */
+  /** GET /users/me */
   getCurrentUser(): Promise<User | null>;
 
-  /** PUT /api/users/:id — cập nhật profile */
+  /** PUT /users/:id */
   updateProfile(userId: string, updates: UpdateProfileData): Promise<User>;
 
   // ── OAuth2 URL ────────────────────────────────────────────────────────────
 
-  /** GET /api/auth/oauth2/url/google */
   getGoogleOAuthUrl(): Promise<string>;
-
-  /** GET /api/auth/oauth2/url/facebook */
   getFacebookOAuthUrl(): Promise<string>;
 
-  // ── Password Reset (quên mật khẩu) ───────────────────────────────────────
+  // ── Password Reset ────────────────────────────────────────────────────────
 
-  /** Gửi email reset password */
   requestPasswordReset(data: PasswordResetRequest): Promise<void>;
-
-  /** Xác nhận code + đặt lại mật khẩu */
   verifyPasswordReset(data: PasswordResetVerify): Promise<void>;
 
-  // ── Password Change (đã đăng nhập) ───────────────────────────────────────
+  // ── Password Change ───────────────────────────────────────────────────────
 
-  /** Yêu cầu thay đổi mật khẩu (gửi OTP) */
   requestPasswordChange(data: PasswordChangeRequest): Promise<void>;
-
-  /** Xác nhận OTP + đổi mật khẩu */
   verifyPasswordChange(data: PasswordChangeVerify): Promise<void>;
 
-  /** POST /api/auth/verify-email — xác thực email sau đăng ký */
+  // ── Email Verification ────────────────────────────────────────────────────
+
   verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse>;
-
-  /** POST /api/auth/resend-verification — gửi lại OTP xác thực email */
   resendVerificationEmail(email: string): Promise<void>;
-
-
-   /** POST /api/auth/login — dành riêng cho admin, KHÔNG lưu token vào localStorage thường */
-  loginAdmin(credentials: UserCredentials): Promise<AuthResult>;
 }

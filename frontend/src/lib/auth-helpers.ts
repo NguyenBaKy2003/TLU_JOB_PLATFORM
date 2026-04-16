@@ -1,89 +1,97 @@
 // lib/auth-helpers.ts
-// Token storage and validation helpers
-
-import { jwtDecode } from "jwt-decode"
+import { jwtDecode } from "jwt-decode";
 
 interface JWTPayload {
-  sub: string
-  role: string
-  exp: number
-  iat: number
+  sub: string;
+  role: string;
+  exp: number;
+  iat: number;
 }
 
-const ACCESS_TOKEN_KEY = "accessToken"
-const REFRESH_TOKEN_KEY = "refreshToken"
-const ADMIN_ACCESS=  "adminAccessToken"
-const  ADMIN_REFRESH= "adminRefreshToken"
-// ==================== Token Storage ====================
+// ─── Keys ─────────────────────────────────────────────────────────────────────
 
-export const setAccessToken = (token: string): void => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token)
-    window.dispatchEvent(new Event("tokenChanged"))
-  }
-}
+const ACCESS_TOKEN_KEY  = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+const ADMIN_ACCESS_KEY  = "adminAccessToken";
+const ADMIN_REFRESH_KEY = "adminRefreshToken";
 
-export const setRefreshToken = (token: string): void => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(REFRESH_TOKEN_KEY, token)
-  }
-}
+// ─── User tokens ──────────────────────────────────────────────────────────────
 
 export const getAccessToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
-  }
-  return null
-}
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+};
 
-export function getAdminAccessToken():  string | null { return localStorage.getItem(ADMIN_ACCESS);  }
-export function getAdminRefreshToken(): string | null { return localStorage.getItem(ADMIN_REFRESH); }
- 
-export function setAdminAccessToken(t: string):  void { localStorage.setItem(ADMIN_ACCESS,  t); }
-export function setAdminRefreshToken(t: string): void { localStorage.setItem(ADMIN_REFRESH, t); }
-export function clearAdminTokens(): void {
-  localStorage.removeItem(ADMIN_ACCESS);
-  localStorage.removeItem(ADMIN_REFRESH);
-}
 export const getRefreshToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
-  }
-  return null
-}
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+};
+
+export const setAccessToken = (token: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  window.dispatchEvent(new Event("tokenChanged"));
+};
+
+export const setRefreshToken = (token: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(REFRESH_TOKEN_KEY, token);
+};
 
 export const clearTokens = (): void => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    window.dispatchEvent(new Event("tokenChanged"))
-  }
-}
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  window.dispatchEvent(new Event("tokenChanged"));
+};
 
-// ==================== Token Validation ====================
+// ─── Admin tokens ─────────────────────────────────────────────────────────────
+
+export const getAdminAccessToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ADMIN_ACCESS_KEY);
+};
+
+export const getAdminRefreshToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ADMIN_REFRESH_KEY);
+};
+
+export const setAdminAccessToken = (token: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ADMIN_ACCESS_KEY, token);
+};
+
+export const setAdminRefreshToken = (token: string): void => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ADMIN_REFRESH_KEY, token);
+};
+
+export const clearAdminTokens = (): void => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ADMIN_ACCESS_KEY);
+  localStorage.removeItem(ADMIN_REFRESH_KEY);
+};
+
+// ─── Token validation ─────────────────────────────────────────────────────────
 
 export const isTokenExpired = (token: string): boolean => {
   try {
-    const decoded = jwtDecode<JWTPayload>(token)
-    const exp = decoded.exp * 1000
-    return Date.now() >= exp
+    const decoded = jwtDecode<JWTPayload>(token);
+    return Date.now() >= decoded.exp * 1000;
   } catch {
-    return true
+    return true;
   }
-}
+};
 
 export const shouldRefreshToken = (token: string): boolean => {
   try {
-    const decoded = jwtDecode<JWTPayload>(token)
-    const exp = decoded.exp * 1000
-    const timeUntilExpiry = exp - Date.now()
-    // Refresh if token expires in less than 5 minutes
-    return timeUntilExpiry < 5 * 60 * 1000
+    const decoded = jwtDecode<JWTPayload>(token);
+    const timeUntilExpiry = decoded.exp * 1000 - Date.now();
+    return timeUntilExpiry < 5 * 60 * 1000; // < 5 phút
   } catch {
-    return false
+    return false;
   }
-}
+};
 
-// ==================== Type Export ====================
-
-export type { JWTPayload }
+export type { JWTPayload };

@@ -1,14 +1,14 @@
-// src/presentation/components/layout/admin/AdminSidebar.tsx
 "use client";
-import Link           from "next/link";
-import { useRouter }  from "next/navigation";
+// src/presentation/components/layout/admin/AdminSidebar.tsx
+
+import Link          from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, Briefcase,
   Banknote, BarChart2, Settings, LogOut,
   HelpCircle, ChevronLeft, Shield, X,
   Bell, FileText, CreditCard,
 } from "lucide-react";
-import { useAuth }    from "@/application/contexts/AuthContext";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
@@ -16,22 +16,22 @@ const ADMIN_NAV = [
   {
     section: "Tổng quan",
     items: [
-      { label: "Dashboard",     icon: <LayoutDashboard size={18} />, href: "/admin/dashboard"     },
+      { label: "Dashboard",      icon: <LayoutDashboard size={18} />, href: "/admin/dashboard"     },
     ],
   },
   {
     section: "Quản lý",
     items: [
-      { label: "Người dùng",    icon: <Users size={18} />,           href: "/admin/users"         },
-      { label: "Công ty",       icon: <Building2 size={18} />,       href: "/admin/companies"     },
-      { label: "Tin tuyển dụng",icon: <Briefcase size={18} />,       href: "/admin/jobs"          },
-      { label: "Ứng tuyển",     icon: <FileText size={18} />,        href: "/admin/applications"  },
+      { label: "Người dùng",     icon: <Users size={18} />,           href: "/admin/users"         },
+      { label: "Công ty",        icon: <Building2 size={18} />,       href: "/admin/companies"     },
+      { label: "Tin tuyển dụng", icon: <Briefcase size={18} />,       href: "/admin/jobs"          },
+      { label: "Ứng tuyển",      icon: <FileText size={18} />,        href: "/admin/applications"  },
     ],
   },
   {
     section: "Subscription",
     items: [
-      { label: "Gói dịch vụ",  icon: <Banknote size={18} />,        href: "/admin/subscription"  },
+      { label: "Gói dịch vụ",   icon: <Banknote size={18} />,        href: "/admin/subscription"  },
       { label: "Thanh toán",    icon: <CreditCard size={18} />,      href: "/admin/payments"      },
     ],
   },
@@ -48,12 +48,13 @@ const ADMIN_NAV = [
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
-  activeHref?:      string;
-  collapsed:        boolean;
-  onToggle:         () => void;
-  mobileOpen:       boolean;
-  onMobileClose:    () => void;
-  notificationCount?:number;
+  activeHref?:        string;
+  collapsed:          boolean;
+  onToggle:           () => void;
+  mobileOpen:         boolean;
+  onMobileClose:      () => void;
+  notificationCount?: number;
+  onLogout:           () => Promise<void>; // từ AdminAuthContext qua AdminLayoutClient
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
@@ -97,20 +98,22 @@ function NavLink({ label, icon, href, active, collapsed, badge, onClick }: {
 
 // ─── SidebarContent ───────────────────────────────────────────────────────────
 
-function SidebarContent({ activeHref, collapsed, onToggle, onClose, isMobile, notificationCount }: {
-  activeHref?:       string;
-  collapsed:         boolean;
-  onToggle:          () => void;
-  onClose?:          () => void;
-  isMobile:          boolean;
+function SidebarContent({
+  activeHref, collapsed, onToggle, onClose, isMobile, notificationCount, onLogout,
+}: {
+  activeHref?:        string;
+  collapsed:          boolean;
+  onToggle:           () => void;
+  onClose?:           () => void;
+  isMobile:           boolean;
   notificationCount?: number;
+  onLogout:           () => Promise<void>;
 }) {
-  const router       = useRouter();
-  const { logout }   = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
-    await logout();
-    router.replace("/auth/login");
+    await onLogout(); // gọi adminLogout — chỉ clear adminAccessToken + adminRefreshToken
+    router.replace("/admin/login");
   };
 
   return (
@@ -156,7 +159,9 @@ function SidebarContent({ activeHref, collapsed, onToggle, onClose, isMobile, no
                 {group.section}
               </p>
             )}
-            {collapsed && !isMobile && <div className="py-1 border-t border-gray-100 my-1" />}
+            {collapsed && !isMobile && (
+              <div className="py-1 border-t border-gray-100 my-1" />
+            )}
             {group.items.map(item => (
               <NavLink
                 key={item.href}
@@ -194,21 +199,38 @@ function SidebarContent({ activeHref, collapsed, onToggle, onClose, isMobile, no
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export default function AdminSidebar({ activeHref, collapsed, onToggle, mobileOpen, onMobileClose, notificationCount }: Props) {
+export default function AdminSidebar({
+  activeHref, collapsed, onToggle, mobileOpen, onMobileClose, notificationCount, onLogout,
+}: Props) {
   return (
     <>
+      {/* Desktop */}
       <div className="hidden md:flex h-screen sticky top-0">
-        <SidebarContent activeHref={activeHref} collapsed={collapsed}
-          onToggle={onToggle} isMobile={false} notificationCount={notificationCount} />
+        <SidebarContent
+          activeHref={activeHref}
+          collapsed={collapsed}
+          onToggle={onToggle}
+          isMobile={false}
+          notificationCount={notificationCount}
+          onLogout={onLogout}
+        />
       </div>
+
+      {/* Mobile */}
       {mobileOpen && (
         <>
           <div className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
             onClick={onMobileClose} />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 h-full">
-            <SidebarContent activeHref={activeHref} collapsed={false}
-              onToggle={onToggle} onClose={onMobileClose} isMobile={true}
-              notificationCount={notificationCount} />
+            <SidebarContent
+              activeHref={activeHref}
+              collapsed={false}
+              onToggle={onToggle}
+              onClose={onMobileClose}
+              isMobile={true}
+              notificationCount={notificationCount}
+              onLogout={onLogout}
+            />
           </div>
         </>
       )}
