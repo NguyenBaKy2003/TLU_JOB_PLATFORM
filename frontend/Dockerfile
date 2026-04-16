@@ -16,7 +16,7 @@ ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 # Cài dependencies trước (tận dụng Docker layer cache)
 # Dùng npm ci thay vì npm install: nhanh hơn, đảm bảo đúng lockfile
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 # Copy source và build
 COPY . .
