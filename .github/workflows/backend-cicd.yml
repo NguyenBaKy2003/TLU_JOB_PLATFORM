@@ -21,7 +21,7 @@ env:
 
 # ════════════════════════════════════════════════════════════════
 jobs:
-  # ── Job 1: Build ────────────────────────────────────────────────
+  # ── Job 1: Build & Test ─────────────────────────────────────────
   ci:
     name: Build (skip tests)
     runs-on: ubuntu-latest
@@ -61,6 +61,8 @@ jobs:
       image-tag: ${{ steps.meta.outputs.tag }}
       full-image: ${{ steps.meta.outputs.full_image }}
       image-name: ${{ steps.meta.outputs.image_name }}
+      rolling: ${{ steps.meta.outputs.rolling }}
+      buildcache: ${{ steps.meta.outputs.buildcache }}
 
     permissions:
       contents: read
@@ -76,16 +78,16 @@ jobs:
           BRANCH="${GITHUB_REF_NAME}"
           PREFIX=$([ "$BRANCH" = "main" ] && echo "prod" || echo "dev")
           TAG="${PREFIX}-${SHORT_SHA}"
-          # GHCR bắt buộc lowercase
+          # GHCR yêu cầu lowercase
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_NAME="ghcr.io/${OWNER}/jobplatform-backend"
           FULL_IMAGE="${IMAGE_NAME}:${TAG}"
           ROLLING_TAG=$([ "$BRANCH" = "main" ] && echo "latest-prod" || echo "latest-dev")
-          echo "tag=${TAG}"                     >> $GITHUB_OUTPUT
-          echo "full_image=${FULL_IMAGE}"       >> $GITHUB_OUTPUT
-          echo "image_name=${IMAGE_NAME}"       >> $GITHUB_OUTPUT
-          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}" >> $GITHUB_OUTPUT
-          echo "buildcache=${IMAGE_NAME}:buildcache"  >> $GITHUB_OUTPUT
+          echo "tag=${TAG}"                              >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}"                >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}"                >> $GITHUB_OUTPUT
+          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}"    >> $GITHUB_OUTPUT
+          echo "buildcache=${IMAGE_NAME}:buildcache"     >> $GITHUB_OUTPUT
           echo "Image: ${FULL_IMAGE}"
 
       - name: Log in to GHCR
@@ -155,6 +157,14 @@ jobs:
             echo "▶ Log in to GHCR..."
             echo "${{ secrets.GHCR_PAT }}" \
               | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            echo "▶ Xóa các image backend cũ (giữ lại tag hiện tại & latest-dev)..."
+            docker images --format '{{.Repository}}:{{.Tag}}' \
+              | grep 'jobplatform-backend' \
+              | grep -v '${{ needs.build-image.outputs.image-tag }}' \
+              | grep -v 'latest-dev' \
+              | grep -v 'buildcache' \
+              | xargs -r docker rmi --force || true
 
             echo "▶ Pull image: ${{ needs.build-image.outputs.full-image }}..."
             docker pull ${{ needs.build-image.outputs.full-image }}
