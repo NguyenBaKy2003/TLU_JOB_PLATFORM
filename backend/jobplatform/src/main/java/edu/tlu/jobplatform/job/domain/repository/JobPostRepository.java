@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,25 +19,19 @@ public interface JobPostRepository {
 
     boolean existsBySlug(String slug);
 
-    /** Danh sách bài đăng của công ty */
     Page<JobPost> findByCompanyId(UUID companyId, Pageable pageable);
 
-    /** Danh sách bài đăng của employer */
     Page<JobPost> findByPostedBy(UUID postedBy, Pageable pageable);
 
-    /** Bài đăng đang PUBLISHED — public listing */
     Page<JobPost> findPublished(Pageable pageable);
 
-    /**
-     * Tìm bài đăng theo status có deadline trước ngày chỉ định.
-     * Dùng bởi JobExpiryScheduler.
-     */
     List<JobPost> findByStatusAndDeadlineBefore(JobStatus status, LocalDate date);
 
-    /** Tìm bài đăng theo status — Admin */
     Page<JobPost> findByStatus(JobStatus status, Pageable pageable);
 
     JobPost save(JobPost jobPost);
+
+    List<JobPost> findAllById(Collection<UUID> ids);
 
     void deleteById(UUID id);
 }

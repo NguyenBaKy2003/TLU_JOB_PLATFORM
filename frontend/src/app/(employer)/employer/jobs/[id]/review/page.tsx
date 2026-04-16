@@ -1,6 +1,5 @@
 // src/app/(employer)/jobs/[id]/review/page.tsx
 "use client";
-import { useState }              from "react";
 import {
   Briefcase, MonitorSmartphone, MapPin,
   DollarSign, Heart, UserCheck, ClipboardList,

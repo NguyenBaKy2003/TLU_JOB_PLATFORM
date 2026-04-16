@@ -40,13 +40,13 @@ public class MessageController {
                         @Valid @RequestBody StartConversationRequest request,
                         @Parameter(hidden = true) @AuthenticationPrincipal String userId) {
 
-                var conversation = startConversation.execute(new StartConversationUseCase.Command(
+                // Use case đã trả về ConversationResponse — không cần .from() ở đây nữa
+                ConversationResponse response = startConversation.execute(new StartConversationUseCase.Command(
                                 UUID.fromString(userId),
                                 request.candidateId(),
                                 request.jobPostId()));
 
-                return ResponseEntity.ok(ApiResponse.success(
-                                ConversationResponse.from(conversation, UUID.fromString(userId))));
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
 
         @Operation(summary = "Lấy danh sách hội thoại", description = "Trả về inbox của user (candidate hoặc employer)")

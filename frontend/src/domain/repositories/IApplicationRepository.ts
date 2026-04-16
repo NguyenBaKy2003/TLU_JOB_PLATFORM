@@ -36,6 +36,13 @@ export interface IApplicationRepository {
    */
   getEmployerDetail(applicationId: string): Promise<ApplicationDetail>;
 
+
+ getApplicationsByCompany(
+  page?: number,
+  size?: number,
+  status?: ApplicationStatus
+): Promise<PageResponse<ApplicationWithCandidate>>;
+
   updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application>;
   scheduleInterview(applicationId: string, req: ScheduleInterviewRequest): Promise<Application>;
 }

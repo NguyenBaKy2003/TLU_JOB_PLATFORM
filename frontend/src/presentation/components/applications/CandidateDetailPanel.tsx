@@ -13,6 +13,7 @@ import type {
   ApplicationDetail,
   ApplicationStatus,
 } from "@/domain/models/Application";
+import { AIScorePanel } from "./AIScorePanel";
 
 const service = new ApplicationService(new ApplicationRepository());
 
@@ -121,84 +122,15 @@ export function CandidateDetailPanel({
       </div>
 
       {/* ── AI Score ───────────────────────────────────────────── */}
+
       {detail?.aiScore && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-            <Zap size={12} /> Đánh giá AI
-          </p>
-
-          {/* Overall score */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-600">{detail.aiScore.label}</span>
-            <span className={`text-2xl font-bold ${
-              detail.aiScore.score >= 80 ? "text-green-600"
-              : detail.aiScore.score >= 60 ? "text-yellow-600"
-              : "text-red-500"
-            }`}>
-              {detail.aiScore.score}<span className="text-sm font-normal text-gray-400">/100</span>
-            </span>
-          </div>
-
-          {/* Sub-scores */}
-          <div className="flex flex-col gap-2 mb-3">
-            {[
-              { label: "Kỹ năng",      score: detail.aiScore.skillMatchScore },
-              { label: "Kinh nghiệm",  score: detail.aiScore.experienceScore },
-              { label: "Học vấn",      score: detail.aiScore.educationScore  },
-            ].map(({ label, score }) => (
-              <div key={label} className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 w-20 shrink-0">{label}</span>
-                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      score >= 80 ? "bg-green-500" : score >= 60 ? "bg-yellow-500" : "bg-red-400"
-                    }`}
-                    style={{ width: `${score}%` }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-gray-700 w-8 text-right">{score}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Summary */}
-          {detail.aiScore.summary && (
-            <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 rounded-xl p-3">
-              {detail.aiScore.summary}
-            </p>
-          )}
-
-          {/* Strengths */}
-          {detail.aiScore.strengths && detail.aiScore.strengths.length > 0 && (
-            <div className="mt-3">
-              <p className="text-[11px] font-semibold text-green-700 mb-1.5 flex items-center gap-1">
-                <Star size={10} /> Điểm mạnh
-              </p>
-              <ul className="flex flex-col gap-1">
-                {detail.aiScore.strengths.map((s, i) => (
-                  <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                    <span className="text-green-500 mt-0.5">·</span> {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Gaps */}
-          {detail.aiScore.gaps && detail.aiScore.gaps.length > 0 && (
-            <div className="mt-3">
-              <p className="text-[11px] font-semibold text-orange-600 mb-1.5">Cần cải thiện</p>
-              <ul className="flex flex-col gap-1">
-                {detail.aiScore.gaps.map((g, i) => (
-                  <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                    <span className="text-orange-400 mt-0.5">·</span> {g}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <AIScorePanel
+            score={detail.aiScore}
+          />
         </div>
       )}
+
 
       {/* ── Cover letter ───────────────────────────────────────── */}
       {current.coverLetter && (

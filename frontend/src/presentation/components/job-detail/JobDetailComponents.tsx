@@ -108,7 +108,7 @@ export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHero
   const tags = [
     job.jobType           && JOB_TYPE_LABELS[job.jobType],
     job.level             && JOB_LEVEL_LABELS[job.level],
-    job.workLocation?.type && WORK_LOC_LABELS[job.workLocation.type],
+    job.workLocationCity && WORK_LOC_LABELS[job.workLocationType],
   ].filter(Boolean) as string[];
 
   return (
@@ -116,7 +116,7 @@ export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHero
       <div className="flex items-start gap-4 mb-5">
         {/* Logo */}
         <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
-          <CompanyLogo name={job.companyName} src={job.companyLogo} />
+          <CompanyLogo name={job.companyName} src={job.companyLogoUrl} />
         </div>
 
         {/* Title block */}
@@ -160,8 +160,8 @@ export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHero
 
       {/* Meta chips */}
       <div className="flex flex-wrap gap-2">
-        {job.workLocation?.city && (
-          <MetaChip icon={<MapPin size={13} />} label={job.workLocation.city} />
+        {job.workLocationCity && (
+          <MetaChip icon={<MapPin size={13} />} label={job.workLocationCity} />
         )}
         {job.experienceYears != null && (
           <MetaChip icon={<Briefcase size={13} />}
@@ -247,7 +247,7 @@ export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
   const rows = [
     { icon: <Briefcase size={14} />,   label: "Hình thức", value: job.jobType ? JOB_TYPE_LABELS[job.jobType]  : "—" },
     { icon: <Star size={14} />,         label: "Cấp bậc",  value: job.level   ? JOB_LEVEL_LABELS[job.level]   : "—" },
-    { icon: <MapPin size={14} />,       label: "Địa điểm", value: job.workLocation?.city ?? "—" },
+    { icon: <MapPin size={14} />,       label: "Địa điểm", value: job.workLocationAddress ?? "—" },
     { icon: <Users size={14} />,        label: "Số lượng", value: `${job.vacancies} người` },
     { icon: <CalendarDays size={14} />, label: "Hạn nộp",  value: formatDate(job.deadline) },
     { icon: <Clock size={14} />,        label: "Đăng ngày",value: formatDate(job.publishedAt) },
@@ -282,7 +282,7 @@ export function CompanyCard({ job }: { job: JobPostDetail }) {
         hover:border-blue-200 transition-colors group block">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 shrink-0">
-          <CompanyLogo name={job.companyName} src={job.companyLogo} size="sm" />
+          <CompanyLogo name={job.companyName} src={job.companyLogoUrl} size="sm" />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-gray-800 truncate

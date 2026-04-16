@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.job.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
+import edu.tlu.jobplatform.job.application.usecase.candidate.SearchJobsUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import lombok.Builder;
@@ -10,7 +12,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/** Response ngắn gọn cho danh sách */
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -18,12 +19,14 @@ public class JobPostResponse {
 
         private final UUID id;
         private final UUID companyId;
+        private final String companyName;
+        private final String companyLogoUrl;
         private final String title;
         private final String slug;
         private final String jobType;
         private final String level;
         private final String category;
-        private final String salaryDisplay; // "20tr - 35tr VND"
+        private final String salaryDisplay;
         private final String workLocationType;
         private final String workLocationCity;
         private final Integer experienceYears;
@@ -35,10 +38,22 @@ public class JobPostResponse {
         private final LocalDateTime publishedAt;
         private final LocalDateTime createdAt;
 
+        /** Dùng cho search/list có company info */
+        public static JobPostResponse from(SearchJobsUseCase.Result result) {
+                return from(result.job(), result.company());
+        }
+
+        /** Dùng cho findPublished listing (không có company) */
         public static JobPostResponse from(JobPost j) {
+                return from(j, null);
+        }
+
+        private static JobPostResponse from(JobPost j, CompanySnapshot c) {
                 return JobPostResponse.builder()
                                 .id(j.getId())
                                 .companyId(j.getCompanyId())
+                                .companyName(c != null ? c.name() : null)
+                                .companyLogoUrl(c != null ? c.logoUrl() : null)
                                 .title(j.getTitle())
                                 .slug(j.getSlug())
                                 .jobType(j.getJobType())
