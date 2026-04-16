@@ -1,3 +1,4 @@
+// src/application/services/AuthService.ts
 import { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import {
   AuthResult,
@@ -46,28 +47,30 @@ function assertOtpCode(code: string): void {
  *
  * Trách nhiệm:
  * - Validate input trước khi gọi repository
- * - Orchestrate business rules (VD: mật khẩu mới ≠ mật khẩu cũ)
+ * - Orchestrate business rules
  * - Không biết HTTP, axios, hay storage tồn tại
+ *
+ * Quy tắc logout:
+ * - logout/logoutAll chỉ xử lý user token
+ * - Admin logout do AdminAuthContext tự gọi trực tiếp
  */
 export class AuthService {
   constructor(private readonly authRepository: IAuthRepository) {}
 
-  // ── Session ──────────────────────────────────────────────────────────────────
+  // ── Session ───────────────────────────────────────────────────────────────
 
   async getCurrentUser(): Promise<User | null> {
     return this.authRepository.getCurrentUser();
   }
 
-  // ── Registration & Login ──────────────────────────────────────────────────────
+  // ── Registration & Login ──────────────────────────────────────────────────
 
   async signup(data: SignupData): Promise<RegisterResult> {
     assertValidEmail(data.email);
     assertStrongPassword(data.password);
-
     if (!data.fullName?.trim()) {
       throw new Error("Họ và tên không được để trống");
     }
-
     return this.authRepository.signup(data);
   }
 
@@ -75,7 +78,6 @@ export class AuthService {
     if (!credentials.email || !credentials.password) {
       throw new Error("Email và mật khẩu không được để trống");
     }
-
     return this.authRepository.login(credentials);
   }
 
@@ -83,19 +85,17 @@ export class AuthService {
     if (!data.accessToken || !data.provider) {
       throw new Error("Dữ liệu OAuth không hợp lệ");
     }
-
     return this.authRepository.loginWithOAuth(data);
   }
 
-  // ── Token & Logout ────────────────────────────────────────────────────────────
+  // ── Token ─────────────────────────────────────────────────────────────────
 
   async refreshToken(refreshToken: string): Promise<AuthToken> {
-    if (!refreshToken) {
-      throw new Error("Refresh token không hợp lệ");
-    }
-
+    if (!refreshToken) throw new Error("Refresh token không hợp lệ");
     return this.authRepository.refreshToken(refreshToken);
   }
+
+  // ── Logout (user token only) ──────────────────────────────────────────────
 
   async logout(accessToken: string): Promise<void> {
     return this.authRepository.logout(accessToken);
@@ -105,7 +105,7 @@ export class AuthService {
     return this.authRepository.logoutAll(accessToken);
   }
 
-  // ── OAuth2 URL ────────────────────────────────────────────────────────────────
+  // ── OAuth2 URL ────────────────────────────────────────────────────────────
 
   async getGoogleOAuthUrl(): Promise<string> {
     return this.authRepository.getGoogleOAuthUrl();
@@ -115,24 +115,17 @@ export class AuthService {
     return this.authRepository.getFacebookOAuthUrl();
   }
 
-  // ── Profile ───────────────────────────────────────────────────────────────────
+  // ── Profile ───────────────────────────────────────────────────────────────
 
-  async updateProfile(
-    userId: string,
-    updates: UpdateProfileData,
-  ): Promise<User> {
-    if (!userId) {
-      throw new Error("User ID không hợp lệ");
-    }
-
+  async updateProfile(userId: string, updates: UpdateProfileData): Promise<User> {
+    if (!userId) throw new Error("User ID không hợp lệ");
     if (!updates || Object.keys(updates).length === 0) {
       throw new Error("Không có thông tin nào để cập nhật");
     }
-
     return this.authRepository.updateProfile(userId, updates);
   }
 
-  // ── Password Reset (quên mật khẩu) ───────────────────────────────────────────
+  // ── Password Reset ────────────────────────────────────────────────────────
 
   async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
     return this.authRepository.requestPasswordReset(data);
@@ -140,39 +133,31 @@ export class AuthService {
 
   async verifyPasswordReset(data: PasswordResetVerify): Promise<void> {
     assertStrongPassword(data.newPassword, "Mật khẩu mới");
-
     return this.authRepository.verifyPasswordReset(data);
   }
 
-  // ── Password Change (đã đăng nhập) ───────────────────────────────────────────
+  // ── Password Change ───────────────────────────────────────────────────────
 
   async requestPasswordChange(data: PasswordChangeRequest): Promise<void> {
-    if (!data.oldPassword?.trim()) {
-      throw new Error("Vui lòng nhập mật khẩu cũ");
-    }
-
+    if (!data.oldPassword?.trim()) throw new Error("Vui lòng nhập mật khẩu cũ");
     assertStrongPassword(data.newPassword, "Mật khẩu mới");
-
     if (data.newPassword === data.oldPassword) {
       throw new Error("Mật khẩu mới không được trùng với mật khẩu cũ");
     }
-
     return this.authRepository.requestPasswordChange(data);
   }
 
   async verifyPasswordChange(data: PasswordChangeVerify): Promise<void> {
     assertOtpCode(data.code);
     assertStrongPassword(data.newPassword, "Mật khẩu mới");
-
     return this.authRepository.verifyPasswordChange(data);
   }
 
-  // ── Email Verification ────────────────────────────────────────
+  // ── Email Verification ────────────────────────────────────────────────────
 
   async verifyEmail(email: string, code: string): Promise<AuthTokenResponse> {
     assertValidEmail(email);
     assertOtpCode(code);
-    // fix: dùng this.authRepository thay vì this.repo
     return this.authRepository.verifyEmail({ email, code });
   }
 
@@ -180,24 +165,4 @@ export class AuthService {
     assertValidEmail(email);
     return this.authRepository.resendVerificationEmail(email);
   }
-
-  /**
- * Refresh admin access token dùng adminRefreshToken.
- * Trả về { accessToken, refreshToken } mới để caller lưu vào admin storage.
- */
-async refreshAdminToken(refreshToken: string): Promise<{
-  accessToken:  string;
-  refreshToken: string;
-}> {
-  // Gọi cùng endpoint /auth/refresh nhưng không tự lưu vào localStorage
-  // (để AdminAuthContext tự quyết định lưu vào adminToken keys)
-  return this.authRepository.refreshToken(refreshToken);
-}
-
-async loginAdmin(credentials: UserCredentials): Promise<AuthResult> {
-  if (!credentials.email || !credentials.password) {
-    throw new Error("Email và mật khẩu không được để trống");
-  }
-  return this.authRepository.loginAdmin(credentials);
-}
 }

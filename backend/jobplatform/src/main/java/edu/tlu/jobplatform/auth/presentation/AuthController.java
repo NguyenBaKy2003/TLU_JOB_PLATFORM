@@ -140,7 +140,10 @@ public class AuthController {
                         @Valid @RequestBody LoginRequest req) {
 
                 AuthToken token = loginUseCase.execute(
-                                new LoginUseCase.Command(req.getEmail(), req.getPassword()));
+                                new LoginUseCase.Command(
+                                                req.getEmail(),
+                                                req.getPassword(),
+                                                req.getPortalType()));
 
                 return ResponseEntity.ok(
                                 ApiResponse.success(TokenResponse.from(token), "Đăng nhập thành công."));

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useCallback, useEffect } from "react";
 import { useRouter }                        from "next/navigation";
 import { Shield, Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -6,6 +7,7 @@ import { AuthService }                      from "@/application/services/AuthSer
 import { AuthRepository }                   from "@/infrastructure/repositories/AuthRepository";
 import { useAdminAuth }                     from "@/application/contexts/AdminAuthContext";
 import { extractErrorMessage }              from "@/lib/extractErrorMessage";
+import { useToast }                           from "@/presentation/components/ui/toast";
 
 const authService = new AuthService(new AuthRepository());
 
@@ -19,15 +21,19 @@ function FormInput({
   return (
     <div>
       <div className={`relative border rounded-xl px-3 pt-3 pb-2 transition-all
-        ${error ? "border-red-400 bg-red-50" : "border-gray-300 focus-within:border-red-500"}`}>
+        ${error
+          ? "border-red-400 bg-red-50"
+          : "border-gray-300 focus-within:border-red-500"}`}>
         <label className={`absolute -top-2.5 left-3 bg-white px-1 text-sm leading-none
           ${error ? "text-red-500" : "text-gray-800"}`}>
           {label}<span className="text-red-500 ml-0.5">*</span>
         </label>
         <div className="relative">
-          <input {...props}
+          <input
+            {...props}
             className="w-full bg-transparent text-sm text-gray-700 placeholder-gray-400
-              outline-none pr-8" />
+              outline-none pr-8"
+          />
           {rightElement && (
             <div className="absolute right-0 top-1/2 -translate-y-1/2">{rightElement}</div>
           )}
@@ -61,21 +67,16 @@ function FullPageSpinner() {
 export default function AdminLoginPage() {
   const router                                         = useRouter();
   const { adminUser, adminLoading, setAdminFromToken } = useAdminAuth();
-
+    const toast                                            = useToast();
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [showPw,   setShowPw]   = useState(false);
   const [errors,   setErrors]   = useState<{ email?: string; password?: string }>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [busy,     setBusy]     = useState(false);
-
-  // ✅ Đợi load xong (adminUser !== undefined) rồi mới redirect
   useEffect(() => {
-    if (adminLoading)              return; // đang verify token → chờ
-    if (adminUser === undefined)   return; // chưa khởi tạo → chờ
-    if (adminUser?.role === "ADMIN") {
-      router.replace("/admin/dashboard");
-    }
+    if (adminLoading || adminUser === undefined) return;
+    if (adminUser?.role === "ADMIN") router.replace("/admin/dashboard");
   }, [adminUser, adminLoading, router]);
 
   const validate = () => {
@@ -93,29 +94,22 @@ export default function AdminLoginPage() {
 
     setBusy(true);
     try {
-      // loginAdmin — KHÔNG lưu vào accessToken/refreshToken thường
-      // → tokenChanged event không fire
-      // → AuthContext candidate/employer không bị trigger
-      // → không redirect về /auth/login
-      const token = await authService.loginAdmin({ email, password });
+      const token = await authService.login({ email, password, portalType: "ADMIN" });
 
-      if (token.user.role !== "ADMIN") {
-        setApiError("Tài khoản này không có quyền truy cập trang quản trị.");
-        return;
-      }
-
-      // Lưu đúng vào adminAccessToken / adminRefreshToken
       setAdminFromToken(token.user, token.accessToken, token.refreshToken);
-
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn trở lại Joblin!");
       router.replace("/admin/dashboard");
-    } catch (e) {
-      setApiError(extractErrorMessage(e, "Email hoặc mật khẩu không đúng."));
+    } catch (e:any) {
+      toast.error(
+        "Đăng nhập thất bại",
+        e?.response?.data?.message ?? "Vui lòng thử lại.",
+      );
     } finally {
       setBusy(false);
     }
   }, [email, password, router, setAdminFromToken]);
 
-  // ✅ Spinner khi đang verify token hoặc chưa khởi tạo
+  // Spinner khi AdminAuthContext đang verify token
   if (adminLoading || adminUser === undefined) return <FullPageSpinner />;
 
   // adminUser === null → chưa login → hiện form
@@ -173,18 +167,24 @@ export default function AdminLoginPage() {
               error={errors.password}
               autoComplete="current-password"
               rightElement={
-                <button type="button" onClick={() => setShowPw(v => !v)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
                   {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               }
             />
 
-            <button type="submit" disabled={busy}
+            <button
+              type="submit"
+              disabled={busy}
               className="w-full flex items-center justify-center gap-2 py-3 bg-red-600
                 text-white text-sm font-semibold rounded-xl hover:bg-red-700
                 disabled:opacity-60 disabled:cursor-not-allowed transition-colors
-                shadow-sm shadow-red-200">
+                shadow-sm shadow-red-200"
+            >
               {busy && (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white
                   rounded-full animate-spin" />

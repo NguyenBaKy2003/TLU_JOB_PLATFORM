@@ -1,4 +1,5 @@
 "use client";
+// src/application/contexts/AdminAuthContext.tsx
 
 import {
   createContext, useContext, useState,
@@ -6,8 +7,10 @@ import {
 } from "react";
 import type { User, AuthTokenUser, UserRole } from "@/domain/models/User";
 import {
-  getAdminAccessToken, getAdminRefreshToken,
-  setAdminAccessToken, setAdminRefreshToken,
+  getAdminAccessToken,
+  getAdminRefreshToken,
+  setAdminAccessToken,
+  setAdminRefreshToken,
   clearAdminTokens,
 } from "@/lib/auth-helpers";
 
@@ -26,12 +29,9 @@ interface AdminAuthContextType {
 const REFRESH_BEFORE_EXPIRY_S = 60;
 const MAX_BACKOFF_MS          = 30_000;
 
-// ─── Lấy base URL — dùng cùng 1 nguồn với axios ──────────────────────────────
-// axios dùng NEXT_PUBLIC_API_BASE_URL, fetch thuần phải dùng cùng biến
-
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
-).replace(/\/$/, ""); // bỏ trailing slash nếu có
+).replace(/\/$/, "");
 
 // ─── JWT helpers ──────────────────────────────────────────────────────────────
 
@@ -45,13 +45,13 @@ function getSecondsUntilExpiry(token: string): number {
   }
 }
 
-// ─── fetch /users/me với adminAccessToken ────────────────────────────────────
+// ─── fetch helpers (dùng fetch thuần, không qua axios interceptor) ────────────
 
 async function fetchAdminMe(accessToken: string): Promise<User | null> {
   try {
     const res = await fetch(`${API_BASE}/users/me`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization:  `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -62,8 +62,6 @@ async function fetchAdminMe(accessToken: string): Promise<User | null> {
     return null;
   }
 }
-
-// ─── fetch /auth/refresh với adminRefreshToken ────────────────────────────────
 
 async function fetchAdminRefresh(refreshToken: string): Promise<{
   accessToken:  string;
@@ -92,10 +90,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [adminUser,    setAdminUser]    = useState<User | null | undefined>(undefined);
   const [adminLoading, setAdminLoading] = useState(true);
 
-  const isRefreshing   = useRef(false);
-  const hasInitialized = useRef(false);
-  const timerRef       = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryCount     = useRef(0);
+  const isRefreshing    = useRef(false);
+  const hasInitialized  = useRef(false);
+  const timerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCount      = useRef(0);
   const silentRefreshRef = useRef<() => Promise<void>>(async () => {});
 
   // ── cancelTimer ──────────────────────────────────────────────────────────
@@ -156,8 +154,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   ) => {
     setAdminAccessToken(accessToken);
     setAdminRefreshToken(refreshToken);
-
-    // ✅ Build User object đủ các field bắt buộc của interface User
     setAdminUser({
       id:                  tokenUser.id,
       email:               tokenUser.email,
@@ -168,7 +164,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       active:              tokenUser.active,
       phone:               null,
       lastLoginAt:         null,
-      // ── fields bắt buộc còn lại — sẽ được ghi đè bởi refreshAdminUser ──
       status:              "ACTIVE",
       oauthProvider:       "LOCAL",
       createdAt:           "",
@@ -178,7 +173,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       minutesUntilUnlock:  0,
       failedLoginAttempts: 0,
     });
-
     scheduleRefresh();
   }, [scheduleRefresh]);
 
@@ -194,7 +188,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       if (!token) { setAdminUser(null); return; }
 
       const currentUser = await fetchAdminMe(token);
-
       if (!currentUser || currentUser.role !== "ADMIN") {
         clearAdminTokens();
         setAdminUser(null);
@@ -211,7 +204,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [scheduleRefresh]);
 
-  // ── adminLogout ───────────────────────────────────────────────────────────
+  // ── adminLogout — chỉ clear admin tokens ─────────────────────────────────
 
   const adminLogout = useCallback(async () => {
     cancelTimer();
@@ -219,12 +212,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       try {
         await fetch(`${API_BASE}/auth/logout`, {
-          method: "POST",
+          method:  "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
-      } catch { /* token hết hạn — bỏ qua */ }
+      } catch { /* expired — ignore */ }
     }
-    clearAdminTokens();
+    clearAdminTokens(); // chỉ xóa adminAccessToken + adminRefreshToken
     setAdminUser(null);
   }, [cancelTimer]);
 
@@ -240,11 +233,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setAdminLoading(false);
       return;
     }
-
     refreshAdminUser();
   }, [refreshAdminUser]);
 
-  // ── Visibility change ─────────────────────────────────────────────────────
+  // ── visibilitychange ──────────────────────────────────────────────────────
 
   useEffect(() => {
     const handle = () => {

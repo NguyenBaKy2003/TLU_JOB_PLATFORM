@@ -62,10 +62,10 @@ export interface SignupData {
 }
 
 export interface UserCredentials {
-  email:    string;
+  email: string;
   password: string;
+  portalType?: "CANDIDATE" | "EMPLOYER" | "ADMIN";
 }
-
 export interface OAuthUserData {
   provider:     "google" | "facebook";
   accessToken:  string;
