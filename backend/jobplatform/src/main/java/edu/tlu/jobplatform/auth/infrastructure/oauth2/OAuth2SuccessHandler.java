@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.auth.infrastructure.oauth2;
 import edu.tlu.jobplatform.auth.application.port.out.TokenStorePort;
 import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
 import edu.tlu.jobplatform.user.domain.model.User;
+import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenStorePort tokenStore;
-
+    private final UserRepository userRepository;
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
@@ -55,7 +56,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2UserPrincipal principal = (OAuth2UserPrincipal) auth.getPrincipal();
         User user = principal.getDomainUser();
-
+        user.recordLogin();
+        userRepository.save(user);
         // Account bị khóa → redirect về frontend với error
         if (!user.isActive()) {
             log.warn("OAuth2 login blocked — account locked: {}", user.getEmail());
@@ -75,7 +77,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         tokenStore.save(user.getId(), tokenId, refreshToken, REFRESH_TTL);
 
         log.info("OAuth2 login success: {} [{}]", user.getEmail(), user.getId());
-
         String redirectUrl = UriComponentsBuilder
                 .fromUriString(frontendUrl + "/auth/oauth2/callback")
                 .queryParam("accessToken", accessToken)

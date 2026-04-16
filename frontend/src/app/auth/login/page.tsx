@@ -1,4 +1,3 @@
-// src/app/auth/login/page.tsx
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -9,46 +8,38 @@ import { AuthService }            from "@/application/services/AuthService";
 import { AuthRepository }         from "@/infrastructure/repositories/AuthRepository";
 import { useAuth }                from "@/application/contexts/AuthContext";
 import { useToast }               from "@/presentation/components/ui/toast";
+import { setAccessToken, setRefreshToken } from "@/lib/auth-helpers";
 
 const authService = new AuthService(new AuthRepository());
 
 export default function LoginPage() {
-  const router               = useRouter();
+  const router                                           = useRouter();
   const { user, loading: authLoading, setUserFromToken } = useAuth();
-  const toast                = useToast();
+  const toast                                            = useToast();
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
   // Nếu đã đăng nhập → redirect về đúng dashboard theo role
   useEffect(() => {
     if (authLoading || !user) return;
-    if (user.role === "EMPLOYER") {
-      router.replace("/employer/dashboard");
-    } else {
-      router.replace("/home");
-    }
+    router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/home");
   }, [user, authLoading, router]);
 
   const handleSubmit = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      const token = await authService.login({ email, password });
+      const token = await authService.login({ email, password, portalType: "CANDIDATE" });
 
-      // Chặn EMPLOYER đăng nhập nhầm trang
-      if (token.user.role === "EMPLOYER") {
-        toast.error(
-          "Sai trang đăng nhập",
-          "Tài khoản nhà tuyển dụng vui lòng đăng nhập tại trang dành riêng.",
-        );
-        router.push("/auth/employer/login");
-        return;
-      }
-
+      setAccessToken(token.accessToken);
+      setRefreshToken(token.refreshToken);
       setUserFromToken(token.user);
-      toast.success("Đăng nhập thành công!", "Chào mừng bạn quay trở lại Joblin!");
+
       router.push("/home");
     } catch (err: any) {
-      toast.error("Đăng nhập thất bại", err?.response?.data?.message ?? "Vui lòng thử lại.");
+      toast.error(
+        "Đăng nhập thất bại",
+        err?.response?.data?.message ?? "Vui lòng thử lại.",
+      );
     } finally {
       setLoading(false);
     }
