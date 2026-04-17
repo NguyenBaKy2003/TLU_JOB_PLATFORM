@@ -57,20 +57,7 @@ function Tag({ value }: { value: string }) {
 
 // ── Salary formatter ────────────────────────────────────────────────────────────
 
-function formatSalary(job: JobPost): string {
-  const { salary } = job;
-  if (!salary || salary.negotiable) return "Thoả thuận";
-  const fmt = (n: number) => n >= 1_000_000
-    ? `${(n / 1_000_000).toFixed(0)} tr`
-    : n >= 1_000
-      ? `${(n / 1_000).toFixed(0)}k`
-      : `${n}`;
-  const cur = salary.currency === "VND" ? "" : ` ${salary.currency}`;
-  if (salary.min && salary.max) return `${fmt(salary.min)} - ${fmt(salary.max)}${cur}`;
-  if (salary.min) return `Từ ${fmt(salary.min)}${cur}`;
-  if (salary.max) return `Đến ${fmt(salary.max)}${cur}`;
-  return "Thoả thuận";
-}
+
 
 // ── Time ago ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +91,7 @@ export function JobCard({ job, onSave, saved = false }: Props) {
   const tags = [
     job.jobType,
     job.level,
-    job.workLocation?.type,
+    job.workLocationCity,
   ].filter(Boolean) as string[];
 
   return (
@@ -115,7 +102,7 @@ export function JobCard({ job, onSave, saved = false }: Props) {
       {/* Header: logo + company + time + save */}
       <div className="flex items-start gap-3">
         <div className="w-11 h-11 rounded-xl overflow-hidden border border-gray-100 shrink-0">
-          <CompanyLogo name={job.companyName} src={job.companyLogo} />
+          <CompanyLogo name={job.companyName} src={job.companyLogoUrl} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[11px] text-gray-400 truncate">{job.companyName}</p>
@@ -149,11 +136,11 @@ export function JobCard({ job, onSave, saved = false }: Props) {
         <div className="flex items-center gap-1 text-xs text-gray-500 min-w-0">
           <MapPin size={12} className="shrink-0" />
           <span className="truncate">
-            {job.workLocation?.city ?? "—"}
+            {job?.workLocationCity ?? "—"}
           </span>
         </div>
         <p className="text-sm font-bold text-blue-600 shrink-0 whitespace-nowrap">
-          {formatSalary(job)}
+          {job.salaryDisplay}
         </p>
       </div>
     </Link>

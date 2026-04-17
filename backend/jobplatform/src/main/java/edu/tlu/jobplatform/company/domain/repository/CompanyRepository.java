@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +20,8 @@ public interface CompanyRepository {
     Optional<CompanyProfile> findById(UUID id);
 
     Optional<CompanyProfile> findByOwnerId(UUID ownerId);
+
+    List<CompanyProfile> findAllById(Collection<UUID> ids);
 
     Optional<CompanyProfile> findBySlug(String slug);
 
@@ -36,4 +40,6 @@ public interface CompanyRepository {
     Page<CompanyProfile> findVerifiedCompanies(Pageable pageable);
 
     CompanyProfile save(CompanyProfile company);
+
+    List<CompanyProfile> findAllByOwnerIdIn(Collection<UUID> ownerIds);
 }

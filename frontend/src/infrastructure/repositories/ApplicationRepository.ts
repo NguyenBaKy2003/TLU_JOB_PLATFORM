@@ -103,4 +103,21 @@ export class ApplicationRepository implements IApplicationRepository {
     );
     return res.data.data;
   }
+
+  async getApplicationsByCompany(
+  page = 0,
+  size = 20,
+  status?: ApplicationStatus | "ALL",
+): Promise<PageResponse<ApplicationWithCandidate>> {
+
+  const params: Record<string, unknown> = { page, size };
+  if (status && status !== "ALL") params.status = status;
+
+  const res = await api.get<{ data: PageResponse<ApplicationWithCandidate> }>(
+    `${EMPLOYER}`,
+    { params },
+  );
+
+  return res.data.data;
+}
 }

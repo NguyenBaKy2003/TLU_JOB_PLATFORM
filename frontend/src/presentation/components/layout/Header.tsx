@@ -35,7 +35,7 @@ const CANDIDATE_DROPDOWN = [
 const EMPLOYER_DROPDOWN = [
   { label: "Dashboard",              href: "/employer/dashboard",  Icon: LayoutDashboard },
   { label: "Quản lý tin tuyển dụng", href: "/employer/jobs",       Icon: FileText        },
-  { label: "Ứng viên",               href: "/employer/candidates", Icon: Users           },
+  { label: "Ứng viên",               href: "/employer/applications", Icon: Users           },
   { label: "Đăng tin mới",           href: "/employer/jobs/new",   Icon: PlusCircle      },
   { label: "Thống kê",               href: "/employer/analytics",  Icon: BarChart2       },
   { label: "Hồ sơ công ty",          href: "/employer/profile",   Icon: Building2       },

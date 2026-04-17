@@ -13,7 +13,7 @@ import type { IncomingMessage }     from "@/application/contexts/WebSocketContex
 
 const service = new MessageService(new MessageRepository());
 
-export default function MessagesPage() {
+export default function CandidateMessagesPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState<string | null>(null);
@@ -115,6 +115,7 @@ export default function MessagesPage() {
           conversations={conversations}
           loading={loading}
           error={error}
+          role="CANDIDATE"
           activeId={activeId}
           onSelect={handleSelect}
           onRetry={loadInbox}
@@ -125,7 +126,7 @@ export default function MessagesPage() {
       {/* Chat area */}
       <div className={`${activeId ? "flex" : "hidden md:flex"} flex-1 min-w-0 flex-col`}>
         {activeConv
-          ? <ChatWindow conv={activeConv} onBack={() => setActiveId(null)} />
+          ? <ChatWindow role="CANDIDATE" conv={activeConv} onBack={() => setActiveId(null)} />
           : <EmptyChat />
         }
       </div>

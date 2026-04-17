@@ -2,7 +2,6 @@ package edu.tlu.jobplatform.job.presentation;
 
 import edu.tlu.jobplatform.job.application.usecase.candidate.GetJobDetailUseCase;
 import edu.tlu.jobplatform.job.application.usecase.candidate.SearchJobsUseCase;
-import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
@@ -25,7 +24,7 @@ public class JobSearchController {
 
     private final GetJobDetailUseCase getJobDetailUseCase;
     private final SearchJobsUseCase searchJobsUseCase;
-    private final JobPostRepository jobPostRepository; // chỉ dùng cho findPublished listing
+    private final JobPostRepository jobPostRepository;
 
     @Operation(summary = "Danh sách việc làm đang tuyển")
     @GetMapping("/api/v1/jobs")
@@ -34,7 +33,8 @@ public class JobSearchController {
             @RequestParam(defaultValue = "12") int size) {
 
         var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-        var result = jobPostRepository.findPublished(pageable).map(JobPostResponse::from);
+        var result = jobPostRepository.findPublished(pageable)
+                .map(JobPostResponse::from); // from(JobPost) — không có company
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
@@ -52,21 +52,22 @@ public class JobSearchController {
 
         var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
         var query = new SearchJobsUseCase.SearchQuery(keyword, city, category, jobType, level, companyId);
-        var result = searchJobsUseCase.execute(query, pageable).map(JobPostResponse::from);
+        var result = searchJobsUseCase.execute(query, pageable)
+                .map(JobPostResponse::from); // from(Result) — có company
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
     @Operation(summary = "Chi tiết bài đăng theo ID")
     @GetMapping("/api/v1/jobs/{id}")
     public ResponseEntity<ApiResponse<JobPostDetailResponse>> getById(@PathVariable UUID id) {
-        JobPost job = getJobDetailUseCase.executeById(id);
-        return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job)));
+        return ResponseEntity.ok(ApiResponse.success(
+                JobPostDetailResponse.from(getJobDetailUseCase.executeById(id))));
     }
 
     @Operation(summary = "Chi tiết bài đăng theo slug")
     @GetMapping("/api/v1/jobs/slug/{slug}")
     public ResponseEntity<ApiResponse<JobPostDetailResponse>> getBySlug(@PathVariable String slug) {
-        JobPost job = getJobDetailUseCase.executeBySlug(slug);
-        return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job)));
+        return ResponseEntity.ok(ApiResponse.success(
+                JobPostDetailResponse.from(getJobDetailUseCase.executeBySlug(slug))));
     }
 }

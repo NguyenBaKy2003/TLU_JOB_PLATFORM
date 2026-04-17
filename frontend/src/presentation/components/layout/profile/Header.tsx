@@ -41,7 +41,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
   const EMPLOYER_ITEMS = [
     { label: "Tổng quan",     href: "/employer/dashboard",  Icon: LayoutDashboard },
     { label: "Quản lý tin",   href: "/employer/jobs",       Icon: FileText        },
-    { label: "Ứng viên",      href: "/employer/candidates", Icon: Users           },
+    { label: "Ứng viên",      href: "/employer/applications", Icon: Users           },
     { label: "Hồ sơ công ty", href: "/employer/company",   Icon: Building2       },
     { label: "Cài đặt",       href: "/employer/settings",   Icon: Settings        },
   ];

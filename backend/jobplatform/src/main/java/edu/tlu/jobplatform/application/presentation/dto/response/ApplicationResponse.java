@@ -30,13 +30,19 @@ public class ApplicationResponse {
     // Thêm field candidate
     private final CandidateInfo candidate;
 
+    private final JobInfo job;
+
     /** Dùng cho candidate tự xem đơn của mình — không cần candidate info */
     public static ApplicationResponse from(Application a) {
-        return from(a, null);
+        return from(a, null, null);
+    }
+
+    public static ApplicationResponse from(Application a, CandidateInfo candidateInfo) {
+        return from(a, candidateInfo, null);
     }
 
     /** Dùng cho employer / admin — kèm candidate info đã batch-resolve */
-    public static ApplicationResponse from(Application a, CandidateInfo candidateInfo) {
+    public static ApplicationResponse from(Application a, CandidateInfo candidateInfo, JobInfo jobInfo) {
         return ApplicationResponse.builder()
                 .id(a.getId())
                 .jobPostId(a.getJobPostId())
@@ -50,6 +56,28 @@ public class ApplicationResponse {
                 .appliedAt(a.getAppliedAt())
                 .interviewScheduledAt(a.getInterviewScheduledAt())
                 .candidate(candidateInfo) // null → bị bỏ qua nhờ @JsonInclude(NON_NULL)
+                .job(jobInfo)
                 .build();
+    }
+
+    @Getter
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class JobInfo {
+        private final UUID id;
+        private final String title;
+        private final String slug;
+        private final String jobType;
+        private final String level;
+        private final String workLocationCity;
+
+        public static JobInfo of(UUID id, String title, String slug,
+                String jobType, String level, String workLocationCity) {
+            return JobInfo.builder()
+                    .id(id).title(title).slug(slug)
+                    .jobType(jobType).level(level)
+                    .workLocationCity(workLocationCity)
+                    .build();
+        }
     }
 }

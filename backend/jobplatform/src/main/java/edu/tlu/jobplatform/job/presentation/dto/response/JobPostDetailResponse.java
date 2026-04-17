@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.job.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
+import edu.tlu.jobplatform.job.application.usecase.candidate.GetJobDetailUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
@@ -12,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/** Response đầy đủ cho trang chi tiết */
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -53,7 +54,23 @@ public class JobPostDetailResponse {
         private final LocalDateTime publishedAt;
         private final LocalDateTime createdAt;
 
-        public static JobPostDetailResponse from(JobPost j) {
+        // Company
+        private final String companyName;
+        private final String companyLogoUrl;
+        private final String companyIndustry;
+        private final String companySize;
+        private final String companyWebsite;
+
+        /** Dùng cho GetJobDetailUseCase trả Result có company */
+        public static JobPostDetailResponse from(GetJobDetailUseCase.Result result) {
+                return from(result.job(), result.company());
+        }
+
+        public static JobPostDetailResponse from(JobPost job) {
+                return from(job, null);
+        }
+
+        private static JobPostDetailResponse from(JobPost j, CompanySnapshot c) {
                 List<SkillDto> skills = j.getSkills() == null ? List.of()
                                 : j.getSkills().stream().map(SkillDto::from).toList();
 
@@ -86,6 +103,12 @@ public class JobPostDetailResponse {
                                 .skills(skills)
                                 .publishedAt(j.getPublishedAt())
                                 .createdAt(j.getCreatedAt())
+                                // Company
+                                .companyName(c != null ? c.name() : null)
+                                .companyLogoUrl(c != null ? c.logoUrl() : null)
+                                .companyIndustry(c != null ? c.industry() : null)
+                                .companySize(c != null ? c.size() : null)
+                                .companyWebsite(c != null ? c.website() : null)
                                 .build();
         }
 

@@ -53,8 +53,13 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
     }
 
     @Override
-    public Page<Application> findByCompanyId(UUID cid, Pageable p) {
-        return jpaRepo.findByCompanyId(cid, p).map(this::toDomain);
+    public Page<Application> findByCompanyId(UUID companyId, ApplicationStatus status, Pageable pageable) {
+        if (status != null) {
+            return jpaRepo.findByCompanyIdAndStatus(companyId, status, pageable)
+                    .map(this::toDomain);
+        }
+        return jpaRepo.findByCompanyId(companyId, pageable)
+                .map(this::toDomain);
     }
 
     @Override
@@ -128,5 +133,15 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
             e.setAiSummary(s.getSummary());
             e.setAiModelVersion(s.getModelVersion());
         }
+    }
+
+    @Override
+    public Page<Application> findByCompanyId(UUID companyId, Pageable pageable) {
+        return jpaRepo.findByCompanyId(companyId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public long countAll() {
+        return jpaRepo.count(); // JpaRepository đã có sẵn
     }
 }
