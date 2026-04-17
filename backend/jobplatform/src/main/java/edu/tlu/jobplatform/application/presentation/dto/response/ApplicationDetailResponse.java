@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.model.ApplicationStatusLog;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.CompanyInfo;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,6 +27,10 @@ public class ApplicationDetailResponse {
     private final String expectedSalary;
     private final ApplicationStatus status;
     private final String rejectionReason;
+
+    // ── Job & Company info ────────────────────────────────────
+    private final JobInfo job;
+    private final CompanyInfo company;
 
     // ── Candidate info (populated từ UserRepository) ──────────
     private final CandidateInfo candidate;
@@ -49,19 +55,52 @@ public class ApplicationDetailResponse {
 
     /** Không có candidate info (dùng khi candidate tự xem đơn của mình) */
     public static ApplicationDetailResponse from(Application a) {
-        return from(a, List.of(), null);
+        return build(a, List.of(), null, null, null);
     }
 
-    /** Có status logs (dùng khi candidate xem lịch sử) */
+    /** Có status logs, không có candidate / job / company */
     public static ApplicationDetailResponse from(Application a,
             List<ApplicationStatusLog> logs) {
-        return from(a, logs, null);
+        return build(a, logs, null, null, null);
     }
 
-    /** Đầy đủ: có logs + candidate info (dùng cho employer / admin) */
+    /** Có logs + job + company — dùng cho candidate xem chi tiết */
+    public static ApplicationDetailResponse from(Application a,
+            List<ApplicationStatusLog> logs,
+            JobInfo jobInfo,
+            CompanyInfo companyInfo) {
+        return build(a, logs, null, jobInfo, companyInfo);
+    }
+
+    /**
+     * Có logs + candidate — dùng cho employer xem chi tiết (không cần job/company
+     * vì đã biết context)
+     */
     public static ApplicationDetailResponse from(Application a,
             List<ApplicationStatusLog> logs,
             CandidateInfo candidateInfo) {
+        return build(a, logs, candidateInfo, null, null);
+    }
+
+    /** Đầy đủ: có logs + candidate + job + company — dùng cho admin */
+    public static ApplicationDetailResponse from(Application a,
+            List<ApplicationStatusLog> logs,
+            CandidateInfo candidateInfo,
+            JobInfo jobInfo,
+            CompanyInfo companyInfo) {
+        return build(a, logs, candidateInfo, jobInfo, companyInfo);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Private builder — single source of truth
+    // ─────────────────────────────────────────────────────────
+
+    private static ApplicationDetailResponse build(Application a,
+            List<ApplicationStatusLog> logs,
+            CandidateInfo candidateInfo,
+            JobInfo jobInfo,
+            CompanyInfo companyInfo) {
+
         AIScoreDto scoreDto = null;
         if (a.getAiScore() != null) {
             var s = a.getAiScore();
@@ -86,6 +125,8 @@ public class ApplicationDetailResponse {
                 .cvUrl(a.getCvUrl()).coverLetter(a.getCoverLetter())
                 .expectedSalary(a.getExpectedSalary()).status(a.getStatus())
                 .rejectionReason(a.getRejectionReason())
+                .job(jobInfo)
+                .company(companyInfo)
                 .candidate(candidateInfo)
                 .interviewScheduledAt(a.getInterviewScheduledAt())
                 .interviewLocation(a.getInterviewLocation())
@@ -99,7 +140,6 @@ public class ApplicationDetailResponse {
     // Nested DTOs
     // ─────────────────────────────────────────────────────────
 
-    /** Thông tin ứng viên — resolve từ UserRepository */
     @Getter
     @Builder
     public static class CandidateInfo {
@@ -110,8 +150,7 @@ public class ApplicationDetailResponse {
         private final String avatarUrl;
 
         public static CandidateInfo of(UUID id, String fullName,
-                String email, String phone,
-                String avatarUrl) {
+                String email, String phone, String avatarUrl) {
             return CandidateInfo.builder()
                     .id(id).fullName(fullName).email(email)
                     .phone(phone).avatarUrl(avatarUrl).build();

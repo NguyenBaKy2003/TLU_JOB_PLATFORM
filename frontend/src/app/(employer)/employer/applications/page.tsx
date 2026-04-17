@@ -73,12 +73,10 @@ function TableSkeleton() {
 interface ScheduleTarget { id: string; candidateName: string; }
 
 export default function EmployerApplicationsPage({
-  params,
 }: {
   params?: { jobPostId?: string };
 }) {
   const toast = useToast();
-  const jobPostId = params?.jobPostId;
 
   const [apps,          setApps]          = useState<ApplicationWithCandidate[]>([]);
   const [totalElements, setTotalElements] = useState(0);
