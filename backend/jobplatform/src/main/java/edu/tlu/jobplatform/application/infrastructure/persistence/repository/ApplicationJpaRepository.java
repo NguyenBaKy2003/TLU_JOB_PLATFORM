@@ -22,5 +22,7 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationJpaEn
 
     Page<ApplicationJpaEntity> findByCompanyId(UUID companyId, Pageable p);
 
+    Page<ApplicationJpaEntity> findByCompanyIdAndStatus(UUID companyId, ApplicationStatus status, Pageable pageable);
+
     Optional<ApplicationJpaEntity> findByJobPostIdAndCandidateId(UUID jobPostId, UUID candidateId);
 }

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +60,13 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
     public List<JobPost> findByStatusAndDeadlineBefore(JobStatus status, LocalDate date) {
         return jpaRepo.findByStatusAndDeadlineBefore(status, date)
                 .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<JobPost> findAllById(Collection<UUID> ids) {
+        return jpaRepo.findAllById(ids).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
@@ -114,4 +122,5 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
         return jpaRepo.search(keyword, city, category, jobType, level, companyId, pageable)
                 .map(mapper::toDomain);
     }
+
 }

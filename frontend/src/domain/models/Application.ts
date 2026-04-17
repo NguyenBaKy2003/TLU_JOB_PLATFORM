@@ -76,6 +76,28 @@ export interface AIScore {
   summary?:        string | null;
 }
 
+/** Khớp với ApplicationDetailResponse.JobInfo của backend */
+export interface JobInfo {
+  id:       string;
+  title:    string;
+  slug?:    string | null;
+  jobType?: string | null;
+  level?:   string | null;
+  city?:    string | null;
+  deadline?: string | null;
+}
+
+/** Khớp với ApplicationResponse.CompanyInfo của backend */
+export interface CompanyInfo {
+  id:       string;
+  name:     string;
+  logoUrl?: string | null;
+  industry?: string | null;
+  website?: string | null;
+  size?:    string | null;
+  city?:    string | null;
+}
+
 // ── Domain models ──────────────────────────────────────────────────────────────
 
 export interface Application {
@@ -100,7 +122,7 @@ export interface Application {
 export interface ApplicationWithJob extends Application {
   jobTitle:        string;
   companyName:     string;
-  companyLogo:     string | null;
+  companyLogoUrl:     string | null;
   jobCity:         string | null;
   jobType:         string | null;
   salaryMin?:      number | null;
@@ -110,13 +132,17 @@ export interface ApplicationWithJob extends Application {
 
 /**
  * Khớp với ApplicationDetailResponse của backend.
- * Dùng cho GET /api/v1/employer/applications/{id}
- * — có candidate, aiScore, statusHistory đầy đủ.
+ * Dùng cho GET /api/v1/applications/{id}
+ * — có job, company, statusHistory đầy đủ trong một request.
  */
 export interface ApplicationDetail extends Application {
+  job?:          JobInfo    | null;
+  company?:      CompanyInfo | null;
   candidate?:    CandidateInfo | null;
   aiScore?:      AIScore | null;
   statusHistory: ApplicationStatusLog[];
+  // interview fields (mapped từ backend interviewScheduledAt)
+  interviewScheduledAt?: string | null;
 }
 
 /**

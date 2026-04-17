@@ -28,11 +28,18 @@ public interface ApplicationRepository {
             ApplicationStatus status,
             Pageable pageable);
 
-    /** Tất cả đơn của 1 công ty */
-    Page<Application> findByCompanyId(UUID companyId, Pageable pageable);
-
     /** Đơn của ứng viên vào 1 bài đăng cụ thể */
     Optional<Application> findByJobPostIdAndCandidateId(UUID jobPostId, UUID candidateId);
 
     Application save(Application application);
+
+    /** Tất cả đơn của 1 công ty (không lọc status) */
+    Page<Application> findByCompanyId(UUID companyId, Pageable pageable);
+
+    /** Tất cả đơn của 1 công ty */
+
+    Page<Application> findByCompanyId(UUID companyId, ApplicationStatus status, Pageable pageable);
+
+    /** Đếm tổng tất cả đơn — dùng cho admin dashboard */
+    long countAll();
 }

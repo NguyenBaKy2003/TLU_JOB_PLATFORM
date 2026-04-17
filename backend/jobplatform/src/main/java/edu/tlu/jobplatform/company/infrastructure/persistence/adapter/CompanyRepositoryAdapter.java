@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +41,13 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     @Override
     public boolean existsByOwnerId(UUID ownerId) {
         return jpaRepo.existsByOwnerId(ownerId);
+    }
+
+    @Override
+    public List<CompanyProfile> findAllById(Collection<UUID> ids) {
+        return jpaRepo.findAllById(ids).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override
@@ -83,5 +92,13 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
             }
         }
         return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(company)));
+    }
+
+    @Override
+    public List<CompanyProfile> findAllByOwnerIdIn(Collection<UUID> ownerIds) {
+        return jpaRepo.findAllByOwnerIdIn(ownerIds)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

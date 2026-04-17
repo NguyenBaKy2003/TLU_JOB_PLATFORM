@@ -89,4 +89,17 @@ export class ApplicationService {
   canScheduleInterview(app: Application): boolean {
     return app.status === "SHORTLISTED";
   }
+
+
+  async getApplicationsByCompany(
+  page = 0,
+  size = 20,
+  status?: ApplicationStatus | "ALL",
+): Promise<PageResponse<ApplicationWithCandidate>> {
+
+  const statusParam = (!status || status === "ALL") ? undefined : status;
+  return this.repo.getApplicationsByCompany(page, size, statusParam);
+}
+
+
 }

@@ -1,5 +1,7 @@
 package edu.tlu.jobplatform.job.application.usecase.candidate;
 
+import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
+import edu.tlu.jobplatform.job.application.port.out.CompanyQueryPort;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
@@ -16,20 +18,26 @@ import java.util.UUID;
 public class GetJobDetailUseCase {
 
     private final JobPostRepository jobPostRepository;
+    private final CompanyQueryPort companyQueryPort;
 
     @Transactional
-    public JobPost executeById(UUID jobPostId) {
+    public Result executeById(UUID jobPostId) {
         JobPost job = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
         job.incrementView();
-        return jobPostRepository.save(job);
+        jobPostRepository.save(job);
+        return new Result(job, companyQueryPort.findById(job.getCompanyId()));
     }
 
     @Transactional
-    public JobPost executeBySlug(String slug) {
+    public Result executeBySlug(String slug) {
         JobPost job = jobPostRepository.findBySlug(slug)
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", slug));
         job.incrementView();
-        return jobPostRepository.save(job);
+        jobPostRepository.save(job);
+        return new Result(job, companyQueryPort.findById(job.getCompanyId()));
+    }
+
+    public record Result(JobPost job, CompanySnapshot company) {
     }
 }

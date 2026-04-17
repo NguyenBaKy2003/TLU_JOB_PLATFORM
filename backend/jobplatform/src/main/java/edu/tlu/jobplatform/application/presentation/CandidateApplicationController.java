@@ -3,9 +3,13 @@ package edu.tlu.jobplatform.application.presentation;
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
+import edu.tlu.jobplatform.application.domain.service.CompanyInfoResolver;
+import edu.tlu.jobplatform.application.domain.service.JobPostInfoResolver;
 import edu.tlu.jobplatform.application.presentation.dto.request.SubmitApplicationRequest;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.CompanyInfo;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
 import edu.tlu.jobplatform.application.usecase.candidate.GetMyApplicationsUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.SubmitApplicationUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.WithdrawApplicationUseCase;
@@ -14,7 +18,6 @@ import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +28,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Candidate endpoints:
- * POST /api/v1/jobs/{jobPostId}/apply — Nộp đơn
- * GET /api/v1/applications/my — Danh sách đơn của tôi
- * GET /api/v1/applications/{id} — Chi tiết đơn
- * DELETE /api/v1/applications/{id}/withdraw — Rút đơn
- * GET /api/v1/jobs/{jobPostId}/my-application — Kiểm tra đã nộp chưa
- */
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Application (Candidate)", description = "Ứng viên quản lý đơn ứng tuyển")
@@ -45,6 +43,8 @@ public class CandidateApplicationController {
         private final GetMyApplicationsUseCase getMyAppsUseCase;
         private final ApplicationRepository applicationRepo;
         private final ApplicationStatusLogRepository logRepo;
+        private final JobPostInfoResolver jobPostInfoResolver;
+        private final CompanyInfoResolver companyInfoResolver;
 
         @Operation(summary = "Nộp đơn ứng tuyển")
         @PostMapping("/api/v1/jobs/{jobPostId}/apply")
@@ -73,8 +73,24 @@ public class CandidateApplicationController {
 
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
                 var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
-                var result = getMyAppsUseCase.execute(candidateId, pageable)
-                                .map(ApplicationResponse::from);
+                var appPage = getMyAppsUseCase.execute(candidateId, pageable);
+
+                Set<UUID> jobPostIds = appPage.stream()
+                                .map(Application::getJobPostId)
+                                .collect(Collectors.toSet());
+
+                Set<UUID> companyIds = appPage.stream()
+                                .map(Application::getCompanyId)
+                                .collect(Collectors.toSet());
+
+                Map<UUID, JobInfo> jobMap = jobPostInfoResolver.resolveAll(jobPostIds);
+                Map<UUID, CompanyInfo> companyMap = companyInfoResolver.resolveAll(companyIds);
+
+                var result = appPage.map(app -> ApplicationResponse.from(
+                                app,
+                                null,
+                                jobMap.get(app.getJobPostId()),
+                                companyMap.get(app.getCompanyId())));
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
@@ -86,7 +102,6 @@ public class CandidateApplicationController {
                 Application app = applicationRepo.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
 
-                // Chỉ candidate hoặc employer của công ty mới được xem
                 UUID currentUser = SecurityUtils.getCurrentUserIdOrThrow();
                 boolean isOwner = app.getCandidateId().equals(currentUser)
                                 || app.getCompanyId().equals(currentUser)
@@ -96,7 +111,17 @@ public class CandidateApplicationController {
                                         "Bạn không có quyền xem đơn này.", "FORBIDDEN");
 
                 var logs = logRepo.findByApplicationId(id);
-                return ResponseEntity.ok(ApiResponse.success(ApplicationDetailResponse.from(app, logs)));
+
+                JobInfo jobInfo = jobPostInfoResolver
+                                .resolveAll(Set.of(app.getJobPostId()))
+                                .get(app.getJobPostId());
+
+                CompanyInfo companyInfo = companyInfoResolver
+                                .resolveAll(Set.of(app.getCompanyId()))
+                                .get(app.getCompanyId());
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                ApplicationDetailResponse.from(app, logs, jobInfo, companyInfo)));
         }
 
         @Operation(summary = "Rút đơn ứng tuyển")
@@ -111,13 +136,9 @@ public class CandidateApplicationController {
         @Operation(summary = "Kiểm tra đã nộp đơn vào bài đăng này chưa")
         @GetMapping("/api/v1/jobs/{jobPostId}/my-application")
         @PreAuthorize("hasRole('CANDIDATE')")
-        public ResponseEntity<ApiResponse<Boolean>> checkApplied(
-                        @PathVariable UUID jobPostId) {
-
+        public ResponseEntity<ApiResponse<Boolean>> checkApplied(@PathVariable UUID jobPostId) {
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
-
                 boolean exists = applicationRepo.existsByJobPostIdAndCandidateId(jobPostId, candidateId);
-
                 return ResponseEntity.ok(ApiResponse.success(exists));
         }
 }

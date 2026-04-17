@@ -2,11 +2,20 @@
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-export type MessageType         = "TEXT" | "FILE" | "IMAGE" | "AUDIO" | "EMOJI";
-export type ConversationStatus  = "ACTIVE" | "ARCHIVED" | "BLOCKED";
+export type MessageType        = "TEXT" | "FILE" | "IMAGE" | "AUDIO" | "EMOJI";
+export type ConversationStatus = "ACTIVE" | "ARCHIVED" | "BLOCKED";
 
-// ── Domain models (map với backend response) ──────────────────────────────────
+// ── Shared types ──────────────────────────────────────────────────────────────
 
+export interface Participant {
+  id: string;
+  fullName: string;
+  avatarUrl?: string | null;
+}
+
+// ── Domain models (match backend 100%) ───────────────────────────────────────
+
+// Message trong conversation
 export interface ConversationMessage {
   id:             string;
   conversationId: string;
@@ -16,33 +25,33 @@ export interface ConversationMessage {
   read:           boolean;
   readAt:         string | null;
   createdAt:      string;
-  // Frontend-only extras (được enrich từ context)
-  fromMe?:        boolean;
-  fileName?:      string;
-  fileSize?:      string;
-  duration?:      string;
+
+  // Frontend-only extras
+  fromMe?:   boolean;
+  fileName?: string;
+  fileSize?: string;
+  duration?: string;
 }
 
+// Summary conversation (LIST)
 export interface ConversationSummary {
-  id:                 string;
-  participantA:       string;  // employerId
-  participantB:       string;  // candidateId
-  jobPostId:          string | null;
-  status:             ConversationStatus;
-  lastMessagePreview: string | null;
-  lastMessageAt:      string | null;
-  unreadCountA:       number;
-  unreadCountB:       number;
-  createdAt:          string;
-  updatedAt:          string;
+  id: string;
 
-  // Được enrich từ backend ConversationResponse
-  otherParticipantId:   string;
-  otherParticipantName: string;
-  otherParticipantAvatar?: string | null;
-  jobTitle?:            string | null;
-  unreadCount:          number;  // unread của current user
-  online?:              boolean;
+  employer:  Participant;
+  candidate: Participant;
+
+  jobPostId: string | null;
+  status:    ConversationStatus;
+
+  unreadCount: number;
+
+  // optional (backend có thể chưa trả)
+  lastMessagePreview?: string | null;
+  lastMessageAt?:      string | null;
+
+  // optional UI
+  jobTitle?: string | null;
+  online?:   boolean;
 }
 
 // ── Payloads ──────────────────────────────────────────────────────────────────
@@ -62,8 +71,5 @@ export interface SendMessagePayload {
 
 export interface MessagePage {
   conversations: ConversationSummary[];
-  page:          number;
-  size:          number;
-  totalElements: number;
-  totalPages:    number;
+  totalUnread:   number;
 }

@@ -2,20 +2,24 @@ package edu.tlu.jobplatform.application.presentation;
 
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
+import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
+import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
+import edu.tlu.jobplatform.application.domain.service.CandidateInfoResolver;
+import edu.tlu.jobplatform.application.domain.service.JobPostInfoResolver;
 import edu.tlu.jobplatform.application.presentation.dto.request.ScheduleInterviewRequest;
 import edu.tlu.jobplatform.application.presentation.dto.request.UpdateStatusRequest;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse.CandidateInfo;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
 import edu.tlu.jobplatform.application.usecase.employer.GetApplicationsForJobUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.ScheduleInterviewUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.UpdateApplicationStatusUseCase;
-import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
-import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
-import edu.tlu.jobplatform.application.domain.service.CandidateInfoResolver;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,13 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Employer endpoints:
- * GET /api/v1/jobs/{jobPostId}/applications — Danh sách đơn của bài đăng
- * GET /api/v1/applications/{id} — Chi tiết (shared với candidate)
- * PATCH /api/v1/applications/{id}/status — Cập nhật trạng thái
- * POST /api/v1/applications/{id}/schedule-interview — Lên lịch phỏng vấn
- */
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Application (Employer)", description = "Nhà tuyển dụng quản lý đơn ứng tuyển")
@@ -49,6 +46,8 @@ public class EmployerApplicationController {
         private final ApplicationRepository applicationRepo;
         private final ApplicationStatusLogRepository logRepo;
         private final CandidateInfoResolver candidateInfoResolver;
+        private final JobPostInfoResolver jobPostInfoResolver;
+        private final CompanyRepository companyRepository;
 
         @Operation(summary = "Danh sách đơn ứng tuyển của bài đăng")
         @GetMapping("/api/v1/jobs/{jobPostId}/applications")
@@ -62,13 +61,13 @@ public class EmployerApplicationController {
                 var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
                 var appPage = getAppsUseCase.execute(jobPostId, status, pageable);
 
-                // Batch resolve 1 query — tránh N+1
                 Set<UUID> candidateIds = appPage.stream()
                                 .map(Application::getCandidateId)
                                 .collect(Collectors.toSet());
                 Map<UUID, CandidateInfo> candidateMap = candidateInfoResolver.resolveAll(candidateIds);
 
-                var result = appPage.map(app -> ApplicationResponse.from(app, candidateMap.get(app.getCandidateId())));
+                var result = appPage.map(app -> ApplicationResponse.from(
+                                app, candidateMap.get(app.getCandidateId())));
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
@@ -79,10 +78,14 @@ public class EmployerApplicationController {
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getDetail(@PathVariable UUID id) {
                 Application app = applicationRepo.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
+
                 var logs = logRepo.findByApplicationId(id);
                 CandidateInfo candidateInfo = candidateInfoResolver.resolve(app.getCandidateId());
 
-                return ResponseEntity.ok(ApiResponse.success(ApplicationDetailResponse.from(app, logs, candidateInfo)));
+                // Dùng overload (app, logs, candidateInfo) — employer đã biết context
+                // job/company
+                return ResponseEntity.ok(ApiResponse.success(
+                                ApplicationDetailResponse.from(app, logs, candidateInfo)));
         }
 
         @Operation(summary = "Cập nhật trạng thái đơn ứng tuyển")
@@ -108,8 +111,46 @@ public class EmployerApplicationController {
                                 new ScheduleInterviewUseCase.Command(
                                                 req.getScheduledAt(), req.getLocation(), req.getNote()));
 
-                return ResponseEntity.ok(
-                                ApiResponse.success(ApplicationResponse.from(app),
-                                                "Đã lên lịch phỏng vấn. Email thông báo đã được gửi cho ứng viên."));
+                return ResponseEntity.ok(ApiResponse.success(ApplicationResponse.from(app),
+                                "Đã lên lịch phỏng vấn. Email thông báo đã được gửi cho ứng viên."));
+        }
+
+        @Operation(summary = "Lấy ra toàn bộ đơn ứng tuyển của công ty")
+        @GetMapping("/api/v1/employer/applications")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getAllApplicationsForCompany(
+                        @RequestParam(required = false) ApplicationStatus status,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
+
+                UUID companyId = resolveCompanyId();
+                var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
+                var appPage = applicationRepo.findByCompanyId(companyId, status, pageable);
+
+                Set<UUID> candidateIds = appPage.stream()
+                                .map(Application::getCandidateId)
+                                .collect(Collectors.toSet());
+
+                Set<UUID> jobPostIds = appPage.stream()
+                                .map(Application::getJobPostId)
+                                .collect(Collectors.toSet());
+
+                Map<UUID, CandidateInfo> candidateMap = candidateInfoResolver.resolveAll(candidateIds);
+                Map<UUID, JobInfo> jobMap = jobPostInfoResolver.resolveAll(jobPostIds);
+
+                var result = appPage.map(app -> ApplicationResponse.from(
+                                app,
+                                candidateMap.get(app.getCandidateId()),
+                                jobMap.get(app.getJobPostId())));
+
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+        }
+
+        private UUID resolveCompanyId() {
+                UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
+                return companyRepository.findByOwnerId(ownerId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Company not found for owner: " + ownerId))
+                                .getId();
         }
 }

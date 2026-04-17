@@ -64,15 +64,15 @@ export interface JobPost {
   id:           string;
   companyId:    string;
   companyName:  string;
-  companyLogo:  string | null;
+  companyLogoUrl:  string | null;
   postedBy:     string;
   slug:         string;
   title:        string;
   category:     string | null;
   jobType:      JobType | null;
   level:        JobLevel | null;
-  salary:       Salary;
-  workLocation: WorkLocation | null;
+  salaryDisplay:       string;
+  workLocationCity: string | null;
   status:       JobStatus;
   viewCount:    number;
   deadline:     string;
