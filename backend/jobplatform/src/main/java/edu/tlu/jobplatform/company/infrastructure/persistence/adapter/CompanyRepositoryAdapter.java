@@ -71,6 +71,11 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
+    public Page<CompanyProfile> findAll(Pageable pageable) {
+        return jpaRepo.findAll(pageable).map(mapper::toDomain);
+    }
+
+    @Override
     public Page<CompanyProfile> findByVerificationStatus(VerificationStatus status, Pageable pageable) {
         return jpaRepo.findByVerificationStatus(status, pageable).map(mapper::toDomain);
     }

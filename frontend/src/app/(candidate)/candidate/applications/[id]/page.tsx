@@ -1,10 +1,11 @@
+// src/app/(candidate)/candidate/applications/[id]/page.tsx
 "use client";
 import { useState, useEffect }                    from "react";
 import { useParams, useRouter }                    from "next/navigation";
 import Link                                        from "next/link";
 import {
   Briefcase, Eye, X, FileText, MapPin, Clock,
-  ArrowLeft, ChevronRight,
+  ArrowLeft, ChevronRight, BadgeCheck,
 } from "lucide-react";
 import { ApplicationStatusBadge }                  from "@/presentation/components/applications/ApplicationStatusBadge";
 import { StatusTimeline }                          from "@/presentation/components/applications/StatusTimeline";
@@ -16,33 +17,29 @@ import { useToast }                                from "@/presentation/componen
 
 const service = new ApplicationService(new ApplicationRepository());
 
-// ── Skeleton ─────────────────────────────────────────────────────────────────
 function PageSkeleton() {
   return (
     <div className="animate-pulse flex flex-col gap-5 max-w-2xl mx-auto px-4 py-6">
       <div className="h-4 w-32 bg-gray-100 rounded" />
       <div className="h-24 bg-gray-100 rounded-2xl" />
       <div className="h-6 bg-gray-100 rounded w-1/3" />
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-4 bg-gray-100 rounded w-full" />
-        ))}
-      </div>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-4 bg-gray-100 rounded w-full" />
+      ))}
     </div>
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function ApplicationDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const toast  = useToast();
 
-  const [app,         setApp]         = useState<ApplicationDetail | null>(null);
-  const [loading,     setLoading]     = useState(true);
-  const [withdrawing, setWithdrawing] = useState(false);
-
-  // Load application detail — job, company, statusHistory đã có trong một response
+  const [app,          setApp]          = useState<ApplicationDetail | null>(null);
+  const [loading,      setLoading]      = useState(true);
+  const [withdrawing,  setWithdrawing]  = useState(false);
+  const [accepting,    setAccepting]    = useState(false);
+  const [declining, setDeclining] = useState(false);
   useEffect(() => {
     if (!params.id) return;
     (async () => {
@@ -71,7 +68,20 @@ export default function ApplicationDetailPage() {
     }
   };
 
-  // ── Loading / not found ──────────────────────────────────────────────────
+  const handleAcceptOffer = async () => {
+    if (!app) return;
+    setAccepting(true);
+    try {
+      const updated = await service.acceptOffer(app.id);
+      setApp(prev => prev ? { ...prev, status: updated.status } : prev);
+      toast.success("Chúc mừng!", "Bạn đã chấp nhận offer thành công.");
+    } catch (e) {
+      toast.error("Lỗi", extractErrorMessage(e));
+    } finally {
+      setAccepting(false);
+    }
+  };
+
   if (loading) return <PageSkeleton />;
 
   if (!app) {
@@ -79,37 +89,46 @@ export default function ApplicationDetailPage() {
       <div className="py-24 flex flex-col items-center gap-4 text-gray-400">
         <Briefcase size={40} strokeWidth={1.2} />
         <p className="text-sm">Không tìm thấy đơn ứng tuyển</p>
-        <Link
-          href="/candidate/applications"
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <Link href="/candidate/applications" className="text-sm text-blue-600 hover:underline">
           Quay lại danh sách
         </Link>
       </div>
     );
   }
 
-  const canWithdraw  = service.canWithdraw(app);
-  const jobTitle     = app.job?.title     ?? "—";
-  const companyName  = app.company?.name  ?? "—";
-  const companyLogo  = app.company?.logoUrl ?? null;
-  const jobCity      = app.job?.city      ?? null;
-  const jobType      = app.job?.jobType   ?? null;
-  // backend field: interviewScheduledAt (ApplicationDetailResponse) hoặc scheduledAt (Application base)
-  const scheduledAt  = app.interviewScheduledAt ?? app.scheduledAt ?? null;
+  const handleDeclineOffer = async () => {
+  if (!app) return;
+  setDeclining(true);
+  try {
+    const updated = await service.declineOffer(app.id);
+    setApp(prev => prev ? { ...prev, status: updated.status } : prev);
+    toast.success("Đã từ chối offer", "Bạn đã từ chối offer của nhà tuyển dụng.");
+  } catch (e) {
+    toast.error("Lỗi", extractErrorMessage(e));
+  } finally {
+    setDeclining(false);
+  }
+};
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  const canWithdraw     = service.canWithdraw(app);
+  const canAcceptOffer  = service.canAcceptOffer(app);
+  const jobTitle        = app.job?.title    ?? "—";
+  const companyName     = app.company?.name ?? "—";
+  const companyLogo     = app.company?.logoUrl ?? null;
+  const jobCity         = app.job?.city    ?? null;
+  const jobType         = app.job?.jobType ?? null;
+  const scheduledAt     = app.interviewScheduledAt ?? app.scheduledAt ?? null;
+  const canDeclineOffer = service.canDeclineOffer(app);
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
 
-      {/* Breadcrumb / Back */}
+      {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-xs text-gray-400">
         <Link
           href="/candidate/applications"
           className="flex items-center gap-1 hover:text-blue-600 transition-colors"
         >
-          <ArrowLeft size={13} />
-          Đơn ứng tuyển
+          <ArrowLeft size={13} /> Đơn ứng tuyển
         </Link>
         <ChevronRight size={12} />
         <span className="text-gray-600 truncate max-w-[200px]">{jobTitle}</span>
@@ -137,6 +156,21 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Offer banner */}
+      {canAcceptOffer && (
+        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+          <BadgeCheck size={20} className="text-emerald-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-emerald-800">Bạn đã nhận được offer!</p>
+            <p className="text-xs text-emerald-600 mt-0.5">
+              Hãy xem xét và chấp nhận nếu bạn đồng ý với điều kiện của nhà tuyển dụng.
+            </p>
+          </div>
+        </div>
+      )}
+
+      
 
       {/* Current status */}
       <div className="flex items-center justify-between px-1">
@@ -215,7 +249,7 @@ export default function ApplicationDetailPage() {
         <FileText size={14} /> Xem CV đã nộp
       </a>
 
-      {/* Status timeline — statusHistory đã có sẵn trong response */}
+      {/* Status timeline */}
       <div>
         <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
           Lịch sử trạng thái
@@ -232,6 +266,35 @@ export default function ApplicationDetailPage() {
         >
           <Eye size={15} /> Xem tin tuyển dụng
         </Link>
+
+        {/* Chấp nhận offer — chỉ hiện khi status = OFFERED */}
+        {canAcceptOffer && (
+          <button
+            onClick={handleAcceptOffer}
+            disabled={accepting}
+            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+              font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700
+              transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <BadgeCheck size={15} />
+            {accepting ? "Đang xử lý..." : "Chấp nhận offer"}
+          </button>
+        )}
+
+        {canDeclineOffer && (
+            <button
+              onClick={handleDeclineOffer}
+              disabled={declining || accepting}
+              className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+                font-medium text-orange-600 bg-orange-50 rounded-xl hover:bg-orange-100
+                transition-colors border border-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <X size={15} />
+              {declining ? "Đang xử lý..." : "Từ chối offer"}
+            </button>
+          )}
+
+        {/* Rút đơn — chỉ hiện khi status thuộc WITHDRAWABLE_STATUSES */}
         {canWithdraw && (
           <button
             onClick={handleWithdraw}

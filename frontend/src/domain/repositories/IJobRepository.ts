@@ -1,8 +1,8 @@
 // src/domain/repositories/IJobRepository.ts
 
 import type {
-  JobPost, JobPostDetail, CreateJobPayload,
-  JobSearchParams, PageResponse, SavedJob,
+  JobPost, JobPostDetail, CreateJobPayload, UpdateJobPayload,
+  JobSearchParams, PageResponse,
 } from "@/domain/models/Job";
 
 export interface IJobRepository {
@@ -33,6 +33,9 @@ export interface IJobRepository {
 
   /** Tạo bài đăng mới (DRAFT) */
   create(payload: CreateJobPayload): Promise<JobPostDetail>;
+
+  /** Cập nhật bài đăng — PATCH /api/v1/jobs/:id */
+  update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail>;
 
   /** Lấy danh sách bài đăng của tôi (employer) */
   getMyJobs(page?: number, size?: number): Promise<PageResponse<JobPost>>;

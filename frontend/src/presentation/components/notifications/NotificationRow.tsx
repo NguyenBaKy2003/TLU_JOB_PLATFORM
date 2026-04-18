@@ -58,13 +58,13 @@ export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggl
 
       {/* Unread dot */}
       <div className="shrink-0 mt-2">
-        <div className={`w-2 h-2 rounded-full ${notif.isRead ? "bg-transparent" : "bg-blue-500"}`} />
+        <div className={`w-2 h-2 rounded-full ${notif.read ? "bg-transparent" : "bg-blue-500"}`} />
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0" onClick={handleClick}>
         <p className={`text-sm leading-snug mb-0.5
-          ${notif.isRead ? "text-gray-600" : "text-gray-900 font-semibold"}`}>
+          ${notif.read ? "text-gray-600" : "text-gray-900 font-semibold"}`}>
           {notif.title}
         </p>
         <p className="text-xs text-gray-500 leading-relaxed mb-1.5 line-clamp-2">

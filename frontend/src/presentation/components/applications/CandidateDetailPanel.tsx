@@ -1,19 +1,22 @@
 // src/presentation/components/applications/CandidateDetailPanel.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { Mail, Phone, FileText, Calendar, Clock, Zap, Star } from "lucide-react";
-import { CandidateAvatar } from "./CandidateAvatar";
-import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
-import { StatusDropdown } from "./StatusDropdown";
-import { StatusTimeline } from "./StatusTimeline";
-import { ApplicationService } from "@/application/services/ApplicationService";
-import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository";
+import { Mail, Phone, Calendar, Clock,
+         Eye, Download, Loader2 }        from "lucide-react";
+import { CandidateAvatar }               from "./CandidateAvatar";
+import { ApplicationStatusBadge }        from "./ApplicationStatusBadge";
+import { StatusDropdown }                from "./StatusDropdown";
+import { StatusTimeline }                from "./StatusTimeline";
+import { AIScorePanel }                  from "./AIScorePanel";
+import { ApplicationService }            from "@/application/services/ApplicationService";
+import { ApplicationRepository }         from "@/infrastructure/repositories/ApplicationRepository";
+import { useToast }                      from "@/presentation/components/ui/toast";
+import { extractErrorMessage }           from "@/lib/extractErrorMessage";
 import type {
   ApplicationWithCandidate,
   ApplicationDetail,
   ApplicationStatus,
 } from "@/domain/models/Application";
-import { AIScorePanel } from "./AIScorePanel";
 
 const service = new ApplicationService(new ApplicationRepository());
 
@@ -22,13 +25,19 @@ export function CandidateDetailPanel({
   onStatusChange,
   onScheduleInterview,
 }: {
-  app:                ApplicationWithCandidate;
-  onStatusChange:     (s: ApplicationStatus, note?: string) => void;
+  app:                 ApplicationWithCandidate;
+  onStatusChange:      (s: ApplicationStatus, note?: string) => void;
   onScheduleInterview: () => void;
 }) {
-  const [detail,   setDetail]   = useState<ApplicationDetail | null>(null);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState(false);
+  const toast = useToast();
+
+  const [detail,  setDetail]  = useState<ApplicationDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(false);
+
+  // CV action states
+  const [cvViewing,     setCvViewing]     = useState(false);
+  const [cvDownloading, setCvDownloading] = useState(false);
 
   useEffect(() => {
     setDetail(null);
@@ -43,32 +52,59 @@ export function CandidateDetailPanel({
   }, [app.id]);
 
   // Dùng detail nếu đã load, fallback về app từ list
-  const current   = detail ?? app;
-  const candidate = detail?.candidate;
-  const name      = candidate?.fullName  ?? app.candidateName;
-  const avatar    = candidate?.avatarUrl ?? app.candidateAvatar;
-  const email     = candidate?.email     ?? app.candidateEmail;
-  const phone     = candidate?.phone     ?? app.candidatePhone;
+  const current     = detail ?? app;
+  const candidate   = detail?.candidate;
+  const name        = candidate?.fullName  ?? app.candidateName;
+  const avatar      = candidate?.avatarUrl ?? app.candidateAvatar;
+  const email       = candidate?.email     ?? app.candidateEmail;
+  const phone       = candidate?.phone     ?? app.candidatePhone;
   const canSchedule = service.canScheduleInterview(current);
+
+  // ── CV actions ───────────────────────────────────────────────────────────
+  // FIX: Dùng service thay vì <a href={cvUrl}> trực tiếp.
+  // Request đi qua /employer/applications/{id}/cv/view|download
+  // → được kiểm tra auth 2 lớp ở backend. S3 URL không lộ ra client.
+  const handleViewCV = async () => {
+    setCvViewing(true);
+    try {
+      await service.viewCVAsEmployer(app.id);
+    } catch (e) {
+      toast.error("Không thể mở CV", extractErrorMessage(e));
+    } finally {
+      setCvViewing(false);
+    }
+  };
+
+  const handleDownloadCV = async () => {
+    setCvDownloading(true);
+    try {
+      await service.downloadCVAsEmployer(app.id, name);
+    } catch (e) {
+      toast.error("Không thể tải CV", extractErrorMessage(e));
+    } finally {
+      setCvDownloading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto pb-4">
 
-      {/* ── Candidate header ───────────────────────────────────── */}
+      {/* ── Candidate header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
         <CandidateAvatar name={name} src={avatar} size="lg" />
         <div className="flex-1 min-w-0">
           <p className="text-base font-bold text-gray-900 truncate">{name}</p>
           <div className="flex flex-col gap-0.5 mt-0.5">
             {email && (
-              <a href={`mailto:${email}`}
-                className="text-xs text-blue-600 hover:underline flex items-center gap-1 truncate">
+              <a
+                href={`mailto:${email}`}
+                className="text-xs text-blue-600 hover:underline flex items-center gap-1 truncate"
+              >
                 <Mail size={11} /> {email}
               </a>
             )}
             {phone && (
-              <a href={`tel:${phone}`}
-                className="text-xs text-gray-500 flex items-center gap-1">
+              <a href={`tel:${phone}`} className="text-xs text-gray-500 flex items-center gap-1">
                 <Phone size={11} /> {phone}
               </a>
             )}
@@ -76,29 +112,59 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── Status + actions ───────────────────────────────────── */}
+      {/* ── Status + actions ──────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <ApplicationStatusBadge status={current.status} />
           <StatusDropdown current={current.status} onChange={onStatusChange} />
         </div>
+
         <div className="flex flex-col gap-2">
-          <a href={current.cvUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl text-xs
-              font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-            <FileText size={13} /> Xem CV
-          </a>
+          {/* CV: Xem + Tải */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleViewCV}
+              disabled={cvViewing || cvDownloading}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-50
+                rounded-xl text-xs font-medium text-gray-700 hover:bg-blue-50
+                hover:text-blue-600 transition-colors disabled:opacity-60"
+            >
+              {cvViewing
+                ? <Loader2 size={13} className="animate-spin" />
+                : <Eye size={13} />
+              }
+              {cvViewing ? "Đang mở..." : "Xem CV"}
+            </button>
+
+            <button
+              onClick={handleDownloadCV}
+              disabled={cvViewing || cvDownloading}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-50
+                rounded-xl text-xs font-medium text-gray-700 hover:bg-green-50
+                hover:text-green-600 transition-colors disabled:opacity-60"
+            >
+              {cvDownloading
+                ? <Loader2 size={13} className="animate-spin" />
+                : <Download size={13} />
+              }
+              {cvDownloading ? "Đang tải..." : "Tải CV"}
+            </button>
+          </div>
+
+          {/* Lên lịch phỏng vấn */}
           {canSchedule && (
-            <button onClick={onScheduleInterview}
+            <button
+              onClick={onScheduleInterview}
               className="flex items-center gap-2 px-3 py-2 bg-purple-50 rounded-xl text-xs
-                font-medium text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200">
+                font-medium text-purple-700 hover:bg-purple-100 transition-colors border border-purple-200"
+            >
               <Calendar size={13} /> Lên lịch phỏng vấn
             </button>
           )}
         </div>
       </div>
 
-      {/* ── Application info ───────────────────────────────────── */}
+      {/* ── Application info ──────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Thông tin đơn
@@ -121,18 +187,14 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── AI Score ───────────────────────────────────────────── */}
-
+      {/* ── AI Score ──────────────────────────────────────────────────────── */}
       {detail?.aiScore && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-          <AIScorePanel
-            score={detail.aiScore}
-          />
+          <AIScorePanel score={detail.aiScore} />
         </div>
       )}
 
-
-      {/* ── Cover letter ───────────────────────────────────────── */}
+      {/* ── Cover letter ──────────────────────────────────────────────────── */}
       {current.coverLetter && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -144,7 +206,7 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Interview info ─────────────────────────────────────── */}
+      {/* ── Interview info ────────────────────────────────────────────────── */}
       {current.scheduledAt && (
         <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4">
           <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
@@ -162,16 +224,12 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Status timeline ────────────────────────────────────── */}
+      {/* ── Status timeline ───────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Lịch sử trạng thái
         </p>
-        {/* statusHistory có sẵn trong response — không cần gọi /logs */}
-        <StatusTimeline
-          logs={detail?.statusHistory ?? []}
-          loading={loading}
-        />
+        <StatusTimeline logs={detail?.statusHistory ?? []} loading={loading} />
         {error && (
           <p className="text-xs text-red-400 italic">Không thể tải lịch sử trạng thái.</p>
         )}
