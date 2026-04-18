@@ -25,7 +25,7 @@ export interface NotificationItem {
   title:          string;
   body:           string;
   link:           string | null;
-  isRead:         boolean;
+  read:         boolean;
   readAt:         string | null;
   createdAt:      string;
   isStarred?:     boolean; // client-side only

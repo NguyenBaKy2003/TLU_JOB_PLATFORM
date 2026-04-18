@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import {
-  Users, Clock, CheckCircle, XCircle,
+  Users, Clock, CheckCircle,
   Calendar, ChevronDown, Search,
 } from "lucide-react";
 import { ApplicationStatusBadge }       from "@/presentation/components/applications/ApplicationStatusBadge";
@@ -17,6 +17,7 @@ import { extractErrorMessage }          from "@/lib/extractErrorMessage";
 import type {
   ApplicationWithCandidate, ApplicationStatus, ApplicationDetail,
 } from "@/domain/models/Application";
+import { useRouter } from "next/navigation";
 
 const service = new ApplicationService(new ApplicationRepository());
 
@@ -87,7 +88,7 @@ export default function EmployerApplicationsPage({
   const [loading,       setLoading]       = useState(true);
   const [selectedId,    setSelectedId]    = useState<string | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<ScheduleTarget | null>(null);
-
+  const router= useRouter();
   const load = useCallback(async (p: number, s: ApplicationStatus | "ALL") => {
   setLoading(true);
   try {
@@ -254,8 +255,8 @@ export default function EmployerApplicationsPage({
                             label=""
                           />
                           {/* Detail */}
-                          <button
-                            onClick={() => setSelectedId(app.id)}
+                        <button
+                            onClick={() => router.push(`/employer/applications/${app.id}`)}
                             className="w-7 h-7 rounded-lg flex items-center justify-center
                               text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                             title="Xem chi tiết"

@@ -61,34 +61,40 @@ export interface JobSkill {
 
 /** Dùng trong list (JobPostResponse từ backend) */
 export interface JobPost {
-  id:           string;
-  companyId:    string;
-  companyName:  string;
+  id:              string;
+  companyId:       string;
+  companyName:     string;
   companyLogoUrl:  string | null;
-  postedBy:     string;
-  slug:         string;
-  title:        string;
-  category:     string | null;
-  jobType:      JobType | null;
-  level:        JobLevel | null;
-  salaryDisplay:       string;
-  workLocationCity: string | null;
-  status:       JobStatus;
-  viewCount:    number;
-  deadline:     string;
-  publishedAt:  string | null;
-  createdAt:    string;
-  updatedAt:    string;
+  postedBy:        string;
+  slug:            string;
+  title:           string;
+  category:        string | null;
+  jobType:         JobType | null;
+  level:           JobLevel | null;
+  salaryDisplay:   string;
+  workLocationCity:string | null;
+  status:          JobStatus;
+  viewCount:       number;
+  deadline:        string;
+  publishedAt:     string | null;
+  createdAt:       string;
+  updatedAt:       string;
 }
 
 /** Dùng trong detail (JobPostDetailResponse từ backend) */
 export interface JobPostDetail extends JobPost {
-  description:     string | null;
-  requirements:    string | null;
-  benefits:        string | null;
-  experienceYears: number | null;
-  vacancies:       number;
-  skills:          JobSkill[];
+  description:         string | null;
+  requirements:        string | null;
+  benefits:            string | null;
+  salaryNegotiable:    boolean;
+  salaryMin:           number | null;
+  salaryMax:           number | null;
+  salaryCurrency:      string | null;
+  workLocationType:    WorkLocType | null;
+  workLocationAddress: string | null;
+  experienceYears:     number | null;
+  vacancies:           number;
+  skills:              JobSkill[];
 }
 
 export interface SavedJob {
@@ -117,6 +123,28 @@ export interface CreateJobPayload {
   experienceYears?:    number;
   vacancies?:          number;
   deadline:            string;       // ISO date "YYYY-MM-DD"
+  skills?:             JobSkill[];
+}
+
+/** Payload cho PATCH /api/v1/jobs/:id — tất cả field đều optional */
+export interface UpdateJobPayload {
+  title?:              string;
+  description?:        string;
+  requirements?:       string;
+  benefits?:           string;
+  jobType?:            JobType;
+  level?:              JobLevel;
+  category?:           string;
+  salaryMin?:          number;
+  salaryMax?:          number;
+  salaryCurrency?:     string;
+  salaryNegotiable?:   boolean;
+  workLocationType?:   WorkLocType;
+  workLocationCity?:   string;
+  workLocationAddress?:string;
+  experienceYears?:    number;
+  vacancies?:          number;
+  deadline?:           string;
   skills?:             JobSkill[];
 }
 

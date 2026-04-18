@@ -42,4 +42,6 @@ public interface CompanyRepository {
     CompanyProfile save(CompanyProfile company);
 
     List<CompanyProfile> findAllByOwnerIdIn(Collection<UUID> ownerIds);
+
+    Page<CompanyProfile> findAll(Pageable pageable);
 }

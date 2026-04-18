@@ -109,7 +109,7 @@ export function CompanyTable({
                       </ActionBtn>
 
                       {/* Approve — chỉ hiện khi PENDING hoặc REJECTED */}
-                      {(company.verificationStatus === "PENDING" || company.verificationStatus === "REJECTED") && (
+                      {(company.verificationStatus === "UNVERIFIED" || company.verificationStatus === "REJECTED") && (
                         <ActionBtn
                           title="Duyệt"
                           onClick={() => onApprove(company)}
@@ -121,7 +121,7 @@ export function CompanyTable({
                       )}
 
                       {/* Reject — chỉ hiện khi PENDING */}
-                      {company.verificationStatus === "PENDING" && (
+                      {company.verificationStatus === "UNVERIFIED" && (
                         <ActionBtn
                           title="Từ chối"
                           onClick={() => onReject(company)}
@@ -133,7 +133,7 @@ export function CompanyTable({
                       )}
 
                       {/* Suspend / Unsuspend */}
-                      {company.verificationStatus === "APPROVED" && (
+                      {company.verificationStatus === "VERIFIED" && (
                         <ActionBtn
                           title="Khoá công ty"
                           onClick={() => onSuspend(company)}

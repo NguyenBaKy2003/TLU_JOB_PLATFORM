@@ -88,7 +88,7 @@ export default function EmployerNotificationsPage() {
   // ✅ Đồng bộ trạng thái isRead khi server broadcast all-read
   useEffect(() => {
     return subscribeToAllRead(() => {
-      setItems(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })))
+      setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
     })
   }, [subscribeToAllRead])
 
@@ -109,13 +109,13 @@ export default function EmployerNotificationsPage() {
   // ─── Actions ────────────────────────────────────────────────────────────────
   const markOneRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n =>
-      n.notificationId === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
+      n.notificationId === id ? { ...n, read: true, readAt: new Date().toISOString() } : n
     ))
     try { await service.markOneRead(id) } catch { /* silent */ }
   }, [])
 
   const markAllRead = useCallback(async () => {
-    setItems(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })))
+    setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
     try { await service.markAllRead() } catch { load() }
   }, [load])
 
@@ -142,7 +142,7 @@ export default function EmployerNotificationsPage() {
   )
 
   const todayUnread = items.filter(n => {
-    if (n.isRead) return false
+    if (n.read) return false
     const d = new Date(n.createdAt), now = new Date()
     return (
       d.getDate()     === now.getDate()   &&
