@@ -10,17 +10,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 import java.util.UUID;
-
-// ── ApplicationRepositoryAdapter ──────────────────────────────────
 
 @Component
 @RequiredArgsConstructor
 public class ApplicationRepositoryAdapter implements ApplicationRepository {
 
     private final ApplicationJpaRepository jpaRepo;
+
+    // ── Existing methods ──────────────────────────────────────────────────────
 
     @Override
     public Optional<Application> findById(UUID id) {
@@ -53,13 +54,16 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
     }
 
     @Override
+    public Page<Application> findByCompanyId(UUID companyId, Pageable pageable) {
+        return jpaRepo.findByCompanyId(companyId, pageable).map(this::toDomain);
+    }
+
+    @Override
     public Page<Application> findByCompanyId(UUID companyId, ApplicationStatus status, Pageable pageable) {
         if (status != null) {
-            return jpaRepo.findByCompanyIdAndStatus(companyId, status, pageable)
-                    .map(this::toDomain);
+            return jpaRepo.findByCompanyIdAndStatus(companyId, status, pageable).map(this::toDomain);
         }
-        return jpaRepo.findByCompanyId(companyId, pageable)
-                .map(this::toDomain);
+        return jpaRepo.findByCompanyId(companyId, pageable).map(this::toDomain);
     }
 
     @Override
@@ -80,7 +84,41 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
         return toDomain(jpaRepo.save(toNewEntity(app)));
     }
 
-    // ── Mapper ────────────────────────────────────────────────
+    @Override
+    public long countAll() {
+        return jpaRepo.count();
+    }
+
+    // ── Search methods ────────────────────────────────────────────────────────
+
+    /**
+     * Chuẩn hoá keyword: null/blank → null (JPQL sẽ bỏ qua điều kiện search).
+     */
+    private String normalizeKeyword(String keyword) {
+        return StringUtils.hasText(keyword) ? keyword.trim() : null;
+    }
+
+    @Override
+    public Page<Application> searchAll(ApplicationStatus status, String keyword, Pageable pageable) {
+        return jpaRepo.searchAll(status, normalizeKeyword(keyword), pageable)
+                .map(this::toDomain);
+    }
+
+    @Override
+    public Page<Application> searchByCompanyId(
+            UUID companyId, ApplicationStatus status, String keyword, Pageable pageable) {
+        return jpaRepo.searchByCompanyId(companyId, status, normalizeKeyword(keyword), pageable)
+                .map(this::toDomain);
+    }
+
+    @Override
+    public Page<Application> searchByJobPostId(
+            UUID jobPostId, ApplicationStatus status, String keyword, Pageable pageable) {
+        return jpaRepo.searchByJobPostId(jobPostId, status, normalizeKeyword(keyword), pageable)
+                .map(this::toDomain);
+    }
+
+    // ── Mappers ───────────────────────────────────────────────────────────────
 
     private Application toDomain(ApplicationJpaEntity e) {
         AIScore score = null;
@@ -133,15 +171,5 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
             e.setAiSummary(s.getSummary());
             e.setAiModelVersion(s.getModelVersion());
         }
-    }
-
-    @Override
-    public Page<Application> findByCompanyId(UUID companyId, Pageable pageable) {
-        return jpaRepo.findByCompanyId(companyId, pageable).map(this::toDomain);
-    }
-
-    @Override
-    public long countAll() {
-        return jpaRepo.count(); // JpaRepository đã có sẵn
     }
 }

@@ -69,7 +69,7 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Danh sách đơn ứng tuyển của tôi")
-        @GetMapping("/api/v1/applications/my")
+        @GetMapping("/api/v1/candidate/applications/my")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getMyApplications(
                         @RequestParam(defaultValue = "0") int page,

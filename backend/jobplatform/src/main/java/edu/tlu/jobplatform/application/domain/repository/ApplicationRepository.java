@@ -24,9 +24,7 @@ public interface ApplicationRepository {
     Page<Application> findByJobPostId(UUID jobPostId, Pageable pageable);
 
     /** Lọc theo status */
-    Page<Application> findByJobPostIdAndStatus(UUID jobPostId,
-            ApplicationStatus status,
-            Pageable pageable);
+    Page<Application> findByJobPostIdAndStatus(UUID jobPostId, ApplicationStatus status, Pageable pageable);
 
     /** Đơn của ứng viên vào 1 bài đăng cụ thể */
     Optional<Application> findByJobPostIdAndCandidateId(UUID jobPostId, UUID candidateId);
@@ -36,10 +34,27 @@ public interface ApplicationRepository {
     /** Tất cả đơn của 1 công ty (không lọc status) */
     Page<Application> findByCompanyId(UUID companyId, Pageable pageable);
 
-    /** Tất cả đơn của 1 công ty */
-
+    /** Tất cả đơn của 1 công ty, có lọc status */
     Page<Application> findByCompanyId(UUID companyId, ApplicationStatus status, Pageable pageable);
 
     /** Đếm tổng tất cả đơn — dùng cho admin dashboard */
     long countAll();
+
+    // ── Search methods (admin) ────────────────────────────────────────────────
+
+    /**
+     * Admin: tìm tất cả đơn, lọc theo status và keyword.
+     * Keyword null/blank → bỏ qua điều kiện search.
+     */
+    Page<Application> searchAll(ApplicationStatus status, String keyword, Pageable pageable);
+
+    /**
+     * Admin: tìm đơn theo công ty, lọc theo status và keyword.
+     */
+    Page<Application> searchByCompanyId(UUID companyId, ApplicationStatus status, String keyword, Pageable pageable);
+
+    /**
+     * Admin/Employer: tìm đơn theo bài đăng, lọc theo status và keyword.
+     */
+    Page<Application> searchByJobPostId(UUID jobPostId, ApplicationStatus status, String keyword, Pageable pageable);
 }

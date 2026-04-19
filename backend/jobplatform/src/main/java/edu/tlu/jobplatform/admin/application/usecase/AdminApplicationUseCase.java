@@ -21,10 +21,11 @@ import java.util.UUID;
 
 /**
  * Admin quản lý đơn ứng tuyển:
- * - Xem tất cả đơn theo công ty / bài đăng
- * - Override status khi có tranh chấp
- * - Cancel đơn khi bài đăng vi phạm
- * - Xem lịch sử status log
+ * - listAll — xem tất cả, filter status + keyword search
+ * - listByCompany — xem theo công ty, filter status + keyword
+ * - listByJob — xem theo bài đăng, filter status + keyword
+ * - overrideStatus — override khi tranh chấp
+ * - cancelAllForJob — cancel khi bài vi phạm bị xóa
  */
 @Slf4j
 @Service
@@ -35,16 +36,41 @@ public class AdminApplicationUseCase {
     private final ApplicationStatusLogRepository logRepo;
     private final ApplicationDomainService domainService;
 
+    // ── Queries ───────────────────────────────────────────────────────────────
+
+    /**
+     * Tất cả đơn trong hệ thống.
+     *
+     * @param status  null → không lọc status
+     * @param keyword null/blank → không lọc keyword
+     */
     @Transactional(readOnly = true)
-    public Page<Application> listByCompany(UUID companyId, Pageable pageable) {
-        return applicationRepo.findByCompanyId(companyId, pageable);
+    public Page<Application> listAll(ApplicationStatus status, String keyword, Pageable pageable) {
+        return applicationRepo.searchAll(status, keyword, pageable);
     }
 
+    /**
+     * Đơn theo công ty.
+     *
+     * @param status  null → không lọc status
+     * @param keyword null/blank → không lọc keyword
+     */
     @Transactional(readOnly = true)
-    public Page<Application> listByJob(UUID jobPostId, ApplicationStatus status, Pageable pageable) {
-        if (status != null)
-            return applicationRepo.findByJobPostIdAndStatus(jobPostId, status, pageable);
-        return applicationRepo.findByJobPostId(jobPostId, pageable);
+    public Page<Application> listByCompany(UUID companyId, ApplicationStatus status,
+            String keyword, Pageable pageable) {
+        return applicationRepo.searchByCompanyId(companyId, status, keyword, pageable);
+    }
+
+    /**
+     * Đơn theo bài đăng.
+     *
+     * @param status  null → không lọc status
+     * @param keyword null/blank → không lọc keyword
+     */
+    @Transactional(readOnly = true)
+    public Page<Application> listByJob(UUID jobPostId, ApplicationStatus status,
+            String keyword, Pageable pageable) {
+        return applicationRepo.searchByJobPostId(jobPostId, status, keyword, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -58,9 +84,10 @@ public class AdminApplicationUseCase {
         return logRepo.findByApplicationId(applicationId);
     }
 
+    // ── Commands ──────────────────────────────────────────────────────────────
+
     /**
-     * Admin override status — dùng khi có tranh chấp giữa 2 bên.
-     * Không validate transition rules — admin có quyền override.
+     * Admin override status — bypass transition validation, ghi log đầy đủ.
      */
     @Transactional
     public Application overrideStatus(UUID applicationId, ApplicationStatus newStatus, String reason) {
@@ -68,36 +95,35 @@ public class AdminApplicationUseCase {
             throw new BusinessRuleException("Vui lòng nhập lý do override.", "REASON_REQUIRED");
 
         Application app = getById(applicationId);
-        ApplicationStatus prevStatus = app.getStatus();
+        ApplicationStatus prev = app.getStatus();
 
-        // Admin bypass transition validation
         app.updateStatus(newStatus, "[ADMIN] " + reason);
         Application saved = applicationRepo.save(app);
 
         UUID adminId = SecurityUtils.getCurrentUserIdOrThrow();
-        domainService.logStatusChange(saved, prevStatus, "[ADMIN] " + reason, adminId);
+        domainService.logStatusChange(saved, prev, "[ADMIN] " + reason, adminId);
 
-        log.warn("Admin overrode application status: id={} {} → {} reason='{}'",
-                applicationId, prevStatus, newStatus, reason);
+        log.warn("Admin overrode application: id={} {} → {} reason='{}'",
+                applicationId, prev, newStatus, reason);
         return saved;
     }
 
     /**
-     * Cancel toàn bộ đơn của 1 bài đăng (khi bài vi phạm bị xóa).
-     * Gọi sau khi Admin force-delete job.
+     * Cancel toàn bộ đơn chưa terminal của 1 bài đăng (sau khi force-delete job).
      */
     @Transactional
     public int cancelAllForJob(UUID jobPostId, String reason) {
         Page<Application> apps = applicationRepo.findByJobPostId(jobPostId, Pageable.unpaged());
+        UUID adminId = SecurityUtils.getCurrentUserIdOrThrow();
         int count = 0;
+
         for (Application app : apps) {
             if (!app.getStatus().isTerminal()) {
                 ApplicationStatus prev = app.getStatus();
-                app.updateStatus(ApplicationStatus.CANCELLED, "[ADMIN] Bài đăng bị xóa: " + reason);
+                String note = "[ADMIN] Bài đăng bị xóa: " + reason;
+                app.updateStatus(ApplicationStatus.CANCELLED, note);
                 applicationRepo.save(app);
-                domainService.logStatusChange(app, prev,
-                        "[ADMIN] Bài đăng bị xóa: " + reason,
-                        SecurityUtils.getCurrentUserIdOrThrow());
+                domainService.logStatusChange(app, prev, note, adminId);
                 count++;
             }
         }
