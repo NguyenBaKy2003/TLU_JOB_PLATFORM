@@ -89,7 +89,7 @@ public class EmployerApplicationController {
         }
 
         @Operation(summary = "Cập nhật trạng thái đơn ứng tuyển")
-        @PatchMapping("/api/v1/applications/{id}/status")
+        @PatchMapping("/api/v1/employer/applications/{id}/status")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
         public ResponseEntity<ApiResponse<ApplicationResponse>> updateStatus(
                         @PathVariable UUID id,
@@ -101,7 +101,7 @@ public class EmployerApplicationController {
         }
 
         @Operation(summary = "Lên lịch phỏng vấn")
-        @PostMapping("/api/v1/applications/{id}/schedule-interview")
+        @PostMapping("/api/v1/employer/applications/{id}/schedule-interview")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
         public ResponseEntity<ApiResponse<ApplicationResponse>> scheduleInterview(
                         @PathVariable UUID id,

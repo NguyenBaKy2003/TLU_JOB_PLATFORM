@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thông báo lịch phỏng vấn</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+
+    .wrapper {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+      padding: 36px 40px;
+      text-align: center;
+    }
+    .header .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+    .header .logo span {
+      color: #82b1ff;
+    }
+    .header h1 {
+      margin-top: 14px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.4;
+    }
+
+    /* ── Body ── */
+    .body {
+      padding: 36px 40px;
+    }
+    .body p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #444;
+    }
+    .body .greeting {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+
+    /* ── Info Card ── */
+    .info-card {
+      margin: 24px 0;
+      background: #f0f4ff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .info-card .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #dce4f5;
+    }
+    .info-card .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-card .info-label {
+      min-width: 130px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-top: 1px;
+    }
+    .info-card .info-value {
+      font-size: 15px;
+      color: #1a1a1a;
+      font-weight: 500;
+      word-break: break-word;
+    }
+    .info-card .info-value.highlight {
+      color: #1a73e8;
+      font-weight: 700;
+    }
+
+    /* ── Note box ── */
+    .note-box {
+      background: #fffde7;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #5d4037;
+      line-height: 1.6;
+    }
+    .note-box strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #e65100;
+    }
+
+    /* ── CTA ── */
+    .cta {
+      text-align: center;
+      margin: 28px 0 8px;
+    }
+    .cta a {
+      display: inline-block;
+      background: #1a73e8;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 36px;
+      border-radius: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #f4f6f9;
+      padding: 24px 40px;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      line-height: 1.8;
+      border-top: 1px solid #e8ecf0;
+    }
+    .footer a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .header, .body, .footer { padding-left: 20px; padding-right: 20px; }
+      .info-card .info-row { flex-direction: column; gap: 4px; }
+      .info-card .info-label { min-width: unset; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">Job<span>Platform</span></div>
+    <h1>🎉 Chúc mừng! Bạn được mời phỏng vấn</h1>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <p class="greeting">Xin chào <span th:text="${candidateName}">Nguyễn Văn A</span>,</p>
+
+    <p>
+      Nhà tuyển dụng <strong th:text="${companyName}">Công ty ABC</strong>
+      đã xem xét hồ sơ của bạn cho vị trí
+      <strong th:text="${jobTitle}">Software Engineer</strong>
+      và muốn mời bạn tham gia buổi phỏng vấn.
+    </p>
+
+    <!-- Info Card -->
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-label">Vị trí</span>
+        <span class="info-value" th:text="${jobTitle}">Software Engineer</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Công ty</span>
+        <span class="info-value" th:text="${companyName}">Công ty ABC</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Thời gian</span>
+        <span class="info-value highlight" th:text="${scheduledAt}">10:00 - Thứ Hai, 21/04/2026</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Địa điểm</span>
+        <span class="info-value" th:text="${location}">Tầng 5, 123 Lê Lợi, Hà Nội</span>
+      </div>
+    </div>
+
+    <!-- Note (chỉ hiển thị nếu có) -->
+    <div class="note-box" th:if="${note != null and !#strings.isEmpty(note)}">
+      <strong>📌 Ghi chú từ nhà tuyển dụng:</strong>
+      <span th:text="${note}">Vui lòng mang theo CV bản cứng.</span>
+    </div>
+
+    <p>
+      Vui lòng xác nhận tham dự hoặc liên hệ với nhà tuyển dụng nếu bạn cần thay đổi lịch.
+      Chúc bạn phỏng vấn thành công! 💪
+    </p>
+
+    <div class="cta">
+      <a href="#">Xem chi tiết đơn ứng tuyển</a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Bạn nhận được email này vì đã ứng tuyển qua <strong>JobPlatform</strong>.</p>
+    <p>
+      Nếu cần hỗ trợ, liên hệ:
+      <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@jobplatform.vn</a>
+    </p>
+    <p style="margin-top:8px; color:#bbb;">© 2026 JobPlatform. All rights reserved.</p>
+  </div>
+
+</div>
+</body>
+</html>

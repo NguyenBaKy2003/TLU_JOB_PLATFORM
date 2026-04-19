@@ -1,18 +1,21 @@
 package edu.tlu.jobplatform.auth.infrastructure.oauth2;
 
+import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.context.ApplicationEventPublisher;
-import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -42,24 +45,65 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                     "Không lấy được email từ " + provider);
         }
 
+        // Đọc portalType từ session — được lưu bởi CustomAuthorizationRequestResolver
+        // khi browser redirect vào /oauth2/authorization/google?portal=EMPLOYER.
+        // additionalParameters KHÔNG dùng được ở đây vì Google không echo chúng về.
+        String portalType = readPortalTypeFromSession();
+        UserRole roleForNew = "EMPLOYER".equals(portalType)
+                ? UserRole.EMPLOYER
+                : UserRole.CANDIDATE;
+
         boolean isNewUser = !userRepository.existsByEmail(email.toLowerCase());
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .map(existing -> syncOAuth2User(existing, provider, providerId, avatar))
-                .orElseGet(() -> createOAuth2User(email, name, avatar, provider, providerId));
+                // Role chỉ áp dụng khi TẠO MỚI — user cũ giữ nguyên role
+                .orElseGet(() -> createOAuth2User(
+                        email, name, avatar, provider, providerId, roleForNew));
 
-        // Publish event sau khi user đã được save
         if (isNewUser) {
             eventPublisher.publishEvent(new UserRegisteredEvent(user));
             log.info("Published UserRegisteredEvent for userId={}", user.getId());
         }
 
-        log.info("OAuth2 login: {} via {} [{}]", email, provider, providerId);
+        log.info("OAuth2 loadUser: {} via {} | portal={} | role={}",
+                email, provider, portalType, user.getRole());
+
         return new OAuth2UserPrincipal(user, attrs);
     }
 
+    // ── Session helper ────────────────────────────────────────────────────────
+
+    /**
+     * Đọc portalType từ HttpSession hiện tại.
+     * Session được tạo bởi CustomAuthorizationRequestResolver khi bắt đầu OAuth2
+     * flow.
+     * Fallback về "CANDIDATE" nếu không tìm thấy (session hết hạn, direct access,
+     * v.v.)
+     */
+    private String readPortalTypeFromSession() {
+        try {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs != null) {
+                HttpSession session = attrs.getRequest().getSession(false); // false = không tạo mới
+                if (session != null) {
+                    Object value = session.getAttribute(
+                            CustomAuthorizationRequestResolver.SESSION_KEY_PORTAL_TYPE);
+                    if (value instanceof String portal) {
+                        return portal;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Cannot read portal type from session", e);
+        }
+        return "CANDIDATE";
+    }
+
+    // ── Domain helpers ────────────────────────────────────────────────────────
+
     private User createOAuth2User(String email, String name, String avatar,
-            String provider, String providerId) {
+            String provider, String providerId, UserRole role) {
         User newUser = User.builder()
                 .id(UUID.randomUUID())
                 .email(email.toLowerCase().trim())
@@ -68,7 +112,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                         ? name.trim()
                         : email.split("@")[0])
                 .avatarUrl(avatar)
-                .role(UserRole.CANDIDATE)
+                .role(role) // ← không hardcode CANDIDATE nữa
                 .authProvider(provider)
                 .authProviderId(providerId)
                 .active(true)
@@ -81,12 +125,14 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private User syncOAuth2User(User existing, String provider,
             String providerId, String avatar) {
+        // Không thay đổi role của user cũ — chỉ sync provider info và avatar
         existing.linkOAuth2Provider(provider, providerId);
         existing.syncOAuth2Profile(avatar);
         return userRepository.save(existing);
     }
 
-    // extractors không đổi...
+    // ── Attribute extractors ──────────────────────────────────────────────────
+
     private String extractProviderId(Map<String, Object> attrs, String provider) {
         return switch (provider) {
             case "google" -> (String) attrs.get("sub");

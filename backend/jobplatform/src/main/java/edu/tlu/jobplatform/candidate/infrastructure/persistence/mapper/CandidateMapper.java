@@ -2,18 +2,30 @@ package edu.tlu.jobplatform.candidate.infrastructure.persistence.mapper;
 
 import edu.tlu.jobplatform.candidate.domain.model.*;
 import edu.tlu.jobplatform.candidate.infrastructure.persistence.entity.*;
+import edu.tlu.jobplatform.user.infrastructure.persistence.repository.UserJpaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class CandidateMapper {
+
+        /**
+         * Inject UserJpaRepository để lấy email khi map sang domain.
+         *
+         * Email nằm trong bảng users, không persist trong candidate_profiles.
+         * Tất cả caller của toDomain() đều nhận CandidateProfile có email sẵn —
+         * không cần workaround ở từng UseCase hay EventListener.
+         */
+        private final UserJpaRepository userJpaRepo;
 
         // ── CandidateProfile ──────────────────────────────────────────────────────
 
         public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
-                return CandidateProfile.builder()
+                CandidateProfile profile = CandidateProfile.builder()
                                 .id(e.getId())
                                 .userId(e.getUserId())
                                 .firstName(e.getFirstName())
@@ -55,6 +67,12 @@ public class CandidateMapper {
                                 .createdAt(e.getCreatedAt())
                                 .updatedAt(e.getUpdatedAt())
                                 .build();
+
+                // Inject email từ bảng users — userId luôn có vì NOT NULL constraint
+                userJpaRepo.findById(e.getUserId())
+                                .ifPresent(u -> profile.setEmail(u.getEmail()));
+
+                return profile;
         }
 
         public CandidateProfileJpaEntity toNewEntity(CandidateProfile p) {
@@ -98,7 +116,7 @@ public class CandidateMapper {
                 // Skills — dedup theo name (case-insensitive) trước khi insert
                 e.getSkills().clear();
                 p.getSkills().stream()
-                                .filter(distinctByName()) // ← chặn trùng ngay tại tầng persistence
+                                .filter(distinctByName())
                                 .map(this::toEmbeddable)
                                 .forEach(e.getSkills()::add);
 

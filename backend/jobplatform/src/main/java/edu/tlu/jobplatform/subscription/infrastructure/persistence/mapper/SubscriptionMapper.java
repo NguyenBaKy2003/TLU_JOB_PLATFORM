@@ -1,5 +1,7 @@
 package edu.tlu.jobplatform.subscription.infrastructure.persistence.mapper;
 
+import edu.tlu.jobplatform.payment.domain.model.Payment;
+import edu.tlu.jobplatform.payment.infrastructure.persistence.entity.PaymentJpaEntity;
 import edu.tlu.jobplatform.subscription.domain.model.*;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.*;
 import org.springframework.stereotype.Component;
