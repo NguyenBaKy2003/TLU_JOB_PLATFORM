@@ -1,9 +1,5 @@
 package edu.tlu.jobplatform.application.infrastructure.event;
 
-import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
-import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
-import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.event.application.InterviewScheduledEvent;
 import lombok.RequiredArgsConstructor;
@@ -16,23 +12,20 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * Lắng nghe InterviewScheduledEvent → resolve thông tin còn thiếu → gửi email
- * cho ứng viên.
+ * Lắng nghe InterviewScheduledEvent → gửi email cho ứng viên.
+ *
+ * Sau fix: tất cả field cần thiết (candidateEmail, candidateName, companyName)
+ * đã được ApplicationDomainEventPublisher resolve TRONG transaction.
+ * Listener chỉ còn nhiệm vụ format và gửi — không query DB nữa.
  *
  * Pattern:
- * @TransactionalEventListener(AFTER_COMMIT) — chỉ chạy sau khi transaction
- * commit thành công,
- * tránh gửi email khi UseCase bị rollback.
+ *   @TransactionalEventListener(AFTER_COMMIT) — chỉ chạy sau khi transaction
+ *   commit thành công, tránh gửi email khi UseCase bị rollback.
  *
- * @Async("aiTaskExecutor") — không block thread của UseCase,
- * email fail không ảnh hưởng response trả về client.
- *
- * Email được inject sẵn vào CandidateProfile bởi CandidateMapper.toDomain()
- * (query users table theo userId) — listener chỉ cần gọi profile.getEmail().
+ *   @Async("aiTaskExecutor") — không block thread của UseCase,
+ *   email fail không ảnh hưởng response trả về client.
  */
 @Slf4j
 @Component
@@ -40,25 +33,24 @@ import java.util.stream.Stream;
 public class InterviewScheduledEventListener {
 
     private final EmailService emailService;
-    private final CandidateProfileRepository candidateRepo;
-    private final CompanyRepository companyRepo;
 
-    private static final DateTimeFormatter DISPLAY_FMT = DateTimeFormatter.ofPattern("HH:mm - EEEE, dd/MM/yyyy",
-            new Locale("vi"));
+    private static final DateTimeFormatter DISPLAY_FMT =
+            DateTimeFormatter.ofPattern("HH:mm - EEEE, dd/MM/yyyy", new Locale("vi"));
 
     @Async("aiTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(InterviewScheduledEvent event) {
         log.debug("Handling InterviewScheduledEvent: applicationId={}", event.getApplicationId());
         try {
-            String toEmail = resolveEmail(event);
+            String toEmail       = event.getCandidateEmail();
             String candidateName = resolveCandidateName(event);
-            String companyName = resolveCompanyName(event);
-            String jobTitle = resolveJobTitle(event);
-            String scheduledAt = formatInterviewAt(event.getInterviewAt());
+            String companyName   = resolveCompanyName(event);
+            String jobTitle      = resolveJobTitle(event);
+            String scheduledAt   = formatInterviewAt(event.getInterviewAt());
 
             if (toEmail == null) {
-                log.warn("Cannot send interview email — candidateEmail not found: applicationId={}",
+                log.warn("Cannot send interview email — candidateEmail not found: applicationId={}. " +
+                         "Kiểm tra ApplicationDomainEventPublisher.publishInterviewScheduled()",
                         event.getApplicationId());
                 return;
             }
@@ -70,7 +62,8 @@ public class InterviewScheduledEventListener {
                     companyName,
                     scheduledAt,
                     event.getLocation(),
-                    event.getNote());
+                    event.getNote()
+            );
 
             log.info("Interview email sent: applicationId={} to={}",
                     event.getApplicationId(), toEmail);
@@ -85,62 +78,39 @@ public class InterviewScheduledEventListener {
     // ── Resolve helpers ───────────────────────────────────────────────────────
 
     /**
-     * Email được CandidateMapper.toDomain() inject sẵn từ bảng users.
-     * Ưu tiên field trong event nếu publisher đã set (future-proof).
-     */
-    private String resolveEmail(InterviewScheduledEvent event) {
-        if (event.getCandidateEmail() != null)
-            return event.getCandidateEmail();
-
-        return candidateRepo.findById(event.getCandidateId())
-                .map(CandidateProfile::getEmail) // không null nhờ CandidateMapper
-                .orElse(null);
-    }
-
-    /**
-     * Ghép firstName + lastName — CandidateProfile không có getFullName().
+     * candidateName đã được publisher set sẵn.
+     * Fallback "Ứng viên" chỉ dùng khi event cũ chưa có field này.
      */
     private String resolveCandidateName(InterviewScheduledEvent event) {
-        if (event.getCandidateName() != null)
-            return event.getCandidateName();
-
-        return candidateRepo.findById(event.getCandidateId())
-                .map(c -> Stream.of(c.getFirstName(), c.getLastName())
-                        .filter(s -> s != null && !s.isBlank())
-                        .collect(Collectors.joining(" ")))
-                .filter(s -> !s.isBlank())
-                .orElse("Ứng viên");
-    }
-
-    private String resolveCompanyName(InterviewScheduledEvent event) {
-        if (event.getCompanyName() != null)
-            return event.getCompanyName();
-        if (event.getCompanyId() == null)
-            return "Nhà tuyển dụng";
-
-        return companyRepo.findById(event.getCompanyId())
-                .map(CompanyProfile::getName)
-                .orElse("Nhà tuyển dụng");
+        String name = event.getCandidateName();
+        return (name != null && !name.isBlank()) ? name : "Ứng viên";
     }
 
     /**
-     * jobTitle không có trong Application aggregate — fallback về chuỗi mặc định.
+     * companyName đã được publisher set sẵn.
+     * Fallback "Nhà tuyển dụng" chỉ dùng khi event cũ chưa có field này.
+     */
+    private String resolveCompanyName(InterviewScheduledEvent event) {
+        String name = event.getCompanyName();
+        return (name != null && !name.isBlank()) ? name : "Nhà tuyển dụng";
+    }
+
+    /**
+     * jobTitle chưa có trong Application aggregate.
      * Nếu cần chính xác, truyền jobTitle vào event từ ScheduleInterviewUseCase.
      */
     private String resolveJobTitle(InterviewScheduledEvent event) {
-        if (event.getJobTitle() != null)
-            return event.getJobTitle();
-        return "Vị trí ứng tuyển";
+        String title = event.getJobTitle();
+        return (title != null && !title.isBlank()) ? title : "Vị trí ứng tuyển";
     }
 
     // ── Format helper ─────────────────────────────────────────────────────────
 
     /**
-     * "2026-04-21T10:00:00" → "10:00 - Thứ Hai, 21/04/2026"
+     * "2026-04-25T10:29:00" → "10:29 - Thứ Sáu, 25/04/2026"
      */
     private String formatInterviewAt(String interviewAt) {
-        if (interviewAt == null)
-            return "Chưa xác định";
+        if (interviewAt == null) return "Chưa xác định";
         try {
             return LocalDateTime.parse(interviewAt).format(DISPLAY_FMT);
         } catch (Exception e) {
