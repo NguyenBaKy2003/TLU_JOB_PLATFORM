@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -244,11 +245,21 @@ public class AuthController {
         }
 
         // ── GET /api/v1/auth/oauth2/url/{provider} ────────────────────────────────
+        @Operation(summary = "Lấy OAuth2 authorization URL", description = """
+                        Trả về URL để frontend redirect sang Google/Facebook.
 
-        @Operation(summary = "Lấy OAuth2 authorization URL", description = "Trả về URL để frontend redirect sang Google/Facebook.")
+                        **portal** xác định ngữ cảnh đăng nhập:
+                        - `CANDIDATE` (default) — trang ứng viên
+                        - `EMPLOYER` — trang nhà tuyển dụng
+
+                        Backend gắn `portal` vào URL dưới dạng query param `?portal=EMPLOYER`.
+                        `CustomAuthorizationRequestResolver` đọc param này và lưu vào HttpSession
+                        để persist qua toàn bộ OAuth2 roundtrip (redirect → Google → callback).
+                        """)
         @GetMapping("/oauth2/url/{provider}")
         public ResponseEntity<ApiResponse<Map<String, String>>> getOAuth2Url(
-                        @PathVariable String provider) {
+                        @PathVariable String provider,
+                        @RequestParam(defaultValue = "CANDIDATE") String portal) { // ← thêm param portal
 
                 List<String> supported = List.of("google", "facebook");
                 if (!supported.contains(provider.toLowerCase())) {
@@ -257,7 +268,23 @@ public class AuthController {
                                         "UNSUPPORTED_PROVIDER");
                 }
 
-                String url = baseUrl + "/oauth2/authorization/" + provider.toLowerCase();
+                // Validate portal value
+                List<String> validPortals = List.of("CANDIDATE", "EMPLOYER", "ADMIN");
+                String normalizedPortal = portal.toUpperCase().trim();
+                if (!validPortals.contains(normalizedPortal)) {
+                        throw new BusinessRuleException(
+                                        "Portal không hợp lệ: " + portal + ". Hỗ trợ: " + validPortals,
+                                        "INVALID_PORTAL");
+                }
+
+                // Gắn portal vào URL dưới dạng query param "portal" — KHÔNG dùng "state"
+                // vì Spring Security sẽ ghi đè "state" bằng CSRF token của nó.
+                // CustomAuthorizationRequestResolver đọc "portal" param và lưu vào session.
+                String url = UriComponentsBuilder
+                                .fromUriString(baseUrl + "/oauth2/authorization/" + provider.toLowerCase())
+                                .queryParam("portal", normalizedPortal)
+                                .build().toUriString();
+
                 return ResponseEntity.ok(ApiResponse.success(Map.of("url", url)));
         }
 

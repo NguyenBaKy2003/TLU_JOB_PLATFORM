@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.subscription.domain.service;
 
+import edu.tlu.jobplatform.payment.domain.model.Payment;
 import edu.tlu.jobplatform.subscription.domain.model.*;
 import org.springframework.stereotype.Service;
 

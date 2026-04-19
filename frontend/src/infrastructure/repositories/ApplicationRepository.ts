@@ -24,7 +24,7 @@ export class ApplicationRepository implements IApplicationRepository {
   private readonly BASE      = "/applications";
   private readonly EMPLOYER  = "/employer/applications";
   private readonly CANDIDATE = "/candidate/applications";
-
+  private readonly JOBS     = "/jobs";
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
@@ -44,8 +44,12 @@ export class ApplicationRepository implements IApplicationRepository {
 
   // ─── Candidate ────────────────────────────────────────────────────────────
 
-  async submit(req: SubmitApplicationRequest): Promise<Application> {
-    return this.post(`${this.BASE}`, req);
+async submit(req: SubmitApplicationRequest): Promise<Application> {
+    const res = await api.post<{ data: Application }>(
+      `${this.JOBS}/${req.jobPostId}/apply`,
+      { cvUrl: req.cvUrl, coverLetter: req.coverLetter, expectedSalary: req.expectedSalary },
+    );
+    return res.data.data;
   }
 
   async withdraw(applicationId: string): Promise<Application> {
@@ -53,15 +57,19 @@ export class ApplicationRepository implements IApplicationRepository {
   }
 
   async getMyApplications(page = 0, size = 10): Promise<PageResponse<ApplicationWithJob>> {
-    return this.get(`${this.CANDIDATE}/my-applications`, { page, size });
+    return this.get(`${this.CANDIDATE}/my`, { page, size });
   }
 
   async getById(applicationId: string): Promise<Application> {
     return this.get(`${this.BASE}/${applicationId}`);
   }
-
   async checkApplied(jobPostId: string): Promise<boolean> {
-    return this.get(`${this.BASE}/check`, { jobPostId });
+    try {
+      const res = await api.get<{ data: boolean }>(`${this.JOBS}/${jobPostId}/my-application`);
+      return res.data.data;
+    } catch {
+      return false;
+    }
   }
 
   async acceptOffer(applicationId: string): Promise<Application> {
@@ -111,7 +119,7 @@ export class ApplicationRepository implements IApplicationRepository {
     applicationId: string,
     req: ScheduleInterviewRequest,
   ): Promise<Application> {
-    return this.patch(`${this.EMPLOYER}/${applicationId}/interview`, req);
+    return this.post(`${this.EMPLOYER}/${applicationId}/schedule-interview`, req);
   }
 
   /**

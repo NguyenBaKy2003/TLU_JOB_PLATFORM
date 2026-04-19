@@ -45,13 +45,20 @@ export default function LoginPage() {
     }
   }, [router, setUserFromToken, toast]);
 
+  /**
+   * Đăng nhập Google với portalType = "CANDIDATE".
+   * AuthService truyền portal vào query param → backend nhúng vào OAuth2 state.
+   */
   const handleGoogleLogin = useCallback(async () => {
     setOauthLoading(true);
     try {
-      const url = await authService.getGoogleOAuthUrl();
+      const url = await authService.getGoogleOAuthUrl("CANDIDATE");
       window.location.href = url;
     } catch (err: any) {
-      toast.error("Lỗi kết nối", err?.response?.data?.message ?? "Không thể kết nối Google.");
+      toast.error(
+        "Lỗi kết nối",
+        err?.response?.data?.message ?? "Không thể kết nối Google.",
+      );
       setOauthLoading(false);
     }
   }, [toast]);

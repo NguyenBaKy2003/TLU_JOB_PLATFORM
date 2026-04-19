@@ -74,7 +74,7 @@ export class AuthRepository implements IAuthRepository {
     await api.post("/auth/logout", null, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    clearTokens(); // chỉ xóa accessToken + refreshToken
+    clearTokens();
   }
 
   async logoutAll(accessToken: string): Promise<void> {
@@ -102,14 +102,31 @@ export class AuthRepository implements IAuthRepository {
 
   // ── OAuth2 URL ─────────────────────────────────────────────────────────────
 
-  async getGoogleOAuthUrl(): Promise<string> {
-    const res = await api.get("/auth/oauth2/url/google");
-    return res.data.data.url as string;
+  /**
+   * Lấy OAuth2 authorization URL cho provider + portal cụ thể.
+   *
+   * portal được truyền xuống backend qua query param:
+   *   GET /auth/oauth2/url/google?portal=EMPLOYER
+   *
+   * Backend (AuthController) sẽ gắn portal vào URL dạng:
+   *   /oauth2/authorization/google?state=EMPLOYER
+   *
+   * CustomAuthorizationRequestResolver nhúng vào OAuth2 state và
+   * additionalParameters["portal_type"] để các handler phía sau đọc được.
+   */
+  async getOAuthUrl(
+    provider: "google" | "facebook",
+    portal: "CANDIDATE" | "EMPLOYER",
+  ): Promise<{ url: string }> {
+    const res = await api.get(`/auth/oauth2/url/${provider}`, {
+      params: { portal },
+    });
+    return res.data.data as { url: string };
   }
 
   async getFacebookOAuthUrl(): Promise<string> {
-    const res = await api.get("/auth/oauth2/url/facebook");
-    return res.data.data.url as string;
+    const res = await this.getOAuthUrl("facebook", "CANDIDATE");
+    return res.url;
   }
 
   // ── Password Reset ─────────────────────────────────────────────────────────

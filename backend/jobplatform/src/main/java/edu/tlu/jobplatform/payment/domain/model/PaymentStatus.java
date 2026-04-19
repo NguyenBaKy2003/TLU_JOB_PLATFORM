@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.subscription.domain.model;
+package edu.tlu.jobplatform.payment.domain.model;
 
 public enum PaymentStatus {
     PENDING, // Đang chờ thanh toán

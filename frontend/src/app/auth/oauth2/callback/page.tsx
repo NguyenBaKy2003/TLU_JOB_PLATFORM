@@ -6,10 +6,16 @@ import { setAccessToken, setRefreshToken } from "@/lib/auth-helpers";
 import { useAuth } from "@/application/contexts/AuthContext";
 import { useToast } from "@/presentation/components/ui/toast";
 
+/** Map error code → trang login phù hợp để redirect sau khi báo lỗi */
+const LOGIN_REDIRECT: Record<string, string> = {
+  PORTAL_ACCESS_DENIED: "/auth/login", // frontend tự suy ra từ context; đây là fallback candidate
+  ACCOUNT_LOCKED:       "/auth/login",
+};
+
 export default function OAuth2CallbackPage() {
-  const router = useRouter();
+  const router       = useRouter();
   const { refreshUser } = useAuth();
-  const toast = useToast();
+  const toast        = useToast();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,17 +25,21 @@ export default function OAuth2CallbackPage() {
     const refreshToken = params.get("refreshToken");
     const error        = params.get("error");
     const message      = params.get("message");
+    const portal       = params.get("portal"); // "CANDIDATE" | "EMPLOYER"
 
     // ── Lỗi từ backend ──────────────────────────────────────────────────────
     if (error) {
-      const msg =
-        message ??
-        (error === "ACCOUNT_LOCKED"
-          ? "Tài khoản đã bị khóa. Vui lòng liên hệ support."
-          : "Đăng nhập mạng xã hội thất bại. Vui lòng thử lại.");
-
+      const msg = message ?? buildDefaultMessage(error);
       toast.error("Đăng nhập thất bại", msg);
       setErrorMsg(msg);
+
+      // Với PORTAL_ACCESS_DENIED: backend trả message đã có hướng dẫn.
+      // Sau 2 giây tự redirect về trang login tương ứng.
+      const redirectTo = error === "PORTAL_ACCESS_DENIED"
+        ? resolveLoginPage(portal, message)
+        : LOGIN_REDIRECT[error] ?? "/auth/login";
+
+      setTimeout(() => router.replace(redirectTo), 2500);
       return;
     }
 
@@ -38,25 +48,30 @@ export default function OAuth2CallbackPage() {
       const msg = "Không nhận được token. Vui lòng thử lại.";
       toast.error("Lỗi xác thực", msg);
       setErrorMsg(msg);
+      setTimeout(() => router.replace("/auth/login"), 2500);
       return;
     }
 
     // ── Thành công ───────────────────────────────────────────────────────────
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
+    // Xóa tokens khỏi URL (tránh leak trong history / referer header)
     window.history.replaceState({}, "", window.location.pathname);
 
     refreshUser()
       .then(() => {
         toast.success("Đăng nhập thành công!", "Chào mừng bạn đến với JobPlatform.");
-        setTimeout(() => router.replace("/home"), 800);
+        // Redirect theo portal mà backend xác nhận — không tự suy từ JWT phía client
+        const dest = portal === "EMPLOYER" ? "/employer/dashboard" : "/home";
+        setTimeout(() => router.replace(dest), 800);
       })
       .catch(() => {
         const msg = "Không thể tải thông tin tài khoản. Vui lòng thử lại.";
         toast.error("Lỗi tải dữ liệu", msg);
         setErrorMsg(msg);
+        setTimeout(() => router.replace("/auth/login"), 2500);
       });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (!errorMsg) {
@@ -82,13 +97,33 @@ export default function OAuth2CallbackPage() {
           </svg>
         </div>
         <p className="text-red-500 text-sm max-w-xs">{errorMsg}</p>
-        <a
-          href="/auth/login"
-          className="inline-block mt-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
-        >
-          Quay lại đăng nhập
-        </a>
+        <p className="text-gray-400 text-xs">Đang chuyển hướng về trang đăng nhập...</p>
       </div>
     </main>
   );
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildDefaultMessage(error: string): string {
+  switch (error) {
+    case "ACCOUNT_LOCKED":
+      return "Tài khoản đã bị khóa. Vui lòng liên hệ support.";
+    case "PORTAL_ACCESS_DENIED":
+      return "Tài khoản không có quyền truy cập trang này.";
+    default:
+      return "Đăng nhập mạng xã hội thất bại. Vui lòng thử lại.";
+  }
+}
+
+/**
+ * Với PORTAL_ACCESS_DENIED, backend đã trả message chứa gợi ý ("trang ứng viên" / "trang nhà tuyển dụng").
+ * Dùng nội dung đó để redirect về đúng trang login.
+ */
+function resolveLoginPage(portal: string | null, message: string | null): string {
+  if (message?.includes("nhà tuyển dụng")) return "/employer/auth/login";
+  if (message?.includes("ứng viên"))      return "/auth/login";
+  // Fallback theo portal param (nếu có)
+  if (portal === "EMPLOYER")              return "/employer/auth/login";
+  return "/auth/login";
 }

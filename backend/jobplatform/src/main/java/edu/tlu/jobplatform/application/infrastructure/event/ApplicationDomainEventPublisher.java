@@ -15,9 +15,9 @@ import java.time.format.DateTimeFormatter;
 /**
  * Publisher wrap Spring's ApplicationEventPublisher.
  *
- * Các field không có sẵn trong Application aggregate (candidateEmail,
- * employerEmail, candidateName, jobTitle) được truyền null — Notification
- * domain tự resolve từ UserRepository / JobPostRepository nếu cần.
+ * Chỉ truyền các field có sẵn trong Application aggregate.
+ * Các field thiếu (candidateEmail, candidateName, companyName, jobTitle)
+ * để null — InterviewScheduledEventListener tự resolve từ repository.
  */
 @Slf4j
 @Component
@@ -28,38 +28,37 @@ public class ApplicationDomainEventPublisher {
 
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    // ── publishApplicationSubmitted ───────────────────────────
+    // ── publishApplicationSubmitted ───────────────────────────────────────────
 
     public void publishApplicationSubmitted(Application app, String jobTitle) {
         eventPublisher.publishEvent(new ApplicationSubmittedEvent(
-                app.getId(), // applicationId
-                app.getJobPostId(), // jobPostId
-                app.getCandidateId(), // candidateId
+                app.getId(),
+                app.getJobPostId(),
+                app.getCandidateId(),
                 null, // cvId — không có trong model
-                app.getCompanyId(), // companyId
-                jobTitle, // jobTitle
+                app.getCompanyId(),
+                jobTitle,
                 null, // candidateName — consumer tự resolve
                 null // employerEmail — consumer tự resolve
         ));
         log.debug("ApplicationSubmittedEvent fired: {}", app.getId());
     }
 
-    // ── publishStatusChanged ──────────────────────────────────
+    // ── publishStatusChanged ──────────────────────────────────────────────────
 
     public void publishStatusChanged(Application app, ApplicationStatus prevStatus) {
         eventPublisher.publishEvent(new ApplicationStatusChangedEvent(
-                app.getId(), // applicationId
-                app.getCandidateId(), // candidateId
+                app.getId(),
+                app.getCandidateId(),
                 null, // candidateEmail — consumer tự resolve
                 null, // jobTitle — consumer tự resolve
-                prevStatus.name(), // oldStatus
-                app.getStatus().name(), // newStatus
-                app.getRejectionReason() // note
-        ));
+                prevStatus.name(),
+                app.getStatus().name(),
+                app.getRejectionReason()));
         log.debug("ApplicationStatusChangedEvent fired: {} → {}", prevStatus, app.getStatus());
     }
 
-    // ── publishInterviewScheduled ─────────────────────────────
+    // ── publishInterviewScheduled ─────────────────────────────────────────────
 
     public void publishInterviewScheduled(Application app) {
         String interviewAt = app.getInterviewScheduledAt() != null
@@ -69,12 +68,16 @@ public class ApplicationDomainEventPublisher {
         eventPublisher.publishEvent(new InterviewScheduledEvent(
                 app.getId(), // applicationId
                 app.getCandidateId(), // candidateId
-                null, // candidateEmail — consumer tự resolve
-                null, // employerEmail — consumer tự resolve
-                null, // jobTitle — consumer tự resolve
-                interviewAt, // interviewAt (ISO string)
+                app.getCompanyId(), // companyId ← listener resolve companyName
+                null, // candidateEmail — listener resolve
+                null, // candidateName — listener resolve
+                null, // employerEmail — không cần cho email này
+                null, // companyName — listener resolve
+                null, // jobTitle — listener resolve
+                interviewAt, // ISO string
                 null, // format (ONLINE/OFFLINE) — không có trong model
-                app.getInterviewLocation() // location
+                app.getInterviewLocation(), // location
+                app.getInterviewNote() // note
         ));
         log.debug("InterviewScheduledEvent fired: applicationId={}", app.getId());
     }

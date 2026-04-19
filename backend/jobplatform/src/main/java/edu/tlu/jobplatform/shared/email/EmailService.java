@@ -135,4 +135,29 @@ public class EmailService {
                     template, to, e.getMessage());
         }
     }
+
+    @Async("aiTaskExecutor")
+    public void sendInterviewScheduledEmail(
+            String toEmail,
+            String candidateName,
+            String jobTitle,
+            String companyName,
+            String scheduledAt,
+            String location,
+            String note) {
+
+        send(
+                toEmail,
+                "[JobPlatform] Bạn có lịch phỏng vấn tại " + companyName,
+                "interview-scheduled",
+                Map.of(
+                        "candidateName", candidateName,
+                        "jobTitle", jobTitle,
+                        "companyName", companyName,
+                        "scheduledAt", scheduledAt,
+                        "location", location,
+                        "note", note != null ? note : "",
+                        "supportEmail", "support@jobplatform.vn"));
+    }
+
 }
