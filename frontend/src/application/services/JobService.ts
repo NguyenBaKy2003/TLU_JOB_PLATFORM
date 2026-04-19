@@ -3,7 +3,7 @@
 import type { IJobRepository }   from "@/domain/repositories/IJobRepository";
 import type {
   JobPost, JobPostDetail, JobPostForm,
-  CreateJobPayload, JobSearchParams, PageResponse,
+  CreateJobPayload, UpdateJobPayload, JobSearchParams, PageResponse,
 } from "@/domain/models/Job";
 
 export class JobService {
@@ -45,7 +45,7 @@ export class JobService {
    * Chuyển string → number, lọc empty string, build payload đúng kiểu backend.
    */
   createFromForm(form: JobPostForm, publish: boolean): Promise<JobPostDetail> {
-    const payload = this._buildPayload(form);
+    const payload = this._buildCreatePayload(form);
     if (publish) {
       // Tạo draft trước, rồi publish ngay
       return this.repo.create(payload).then(job => this.repo.publish(job.id));
@@ -53,9 +53,26 @@ export class JobService {
     return this.repo.create(payload);
   }
 
+  /**
+   * Cập nhật bài đăng từ form state.
+   * Nếu publish=true và job đang là draft → publish sau khi update.
+   */
+  updateFromForm(id: string, form: JobPostForm, publish: boolean): Promise<JobPostDetail> {
+    const payload = this._buildUpdatePayload(form);
+    if (publish) {
+      return this.repo.update(id, payload).then(job => this.repo.publish(job.id));
+    }
+    return this.repo.update(id, payload);
+  }
+
   /** Tạo trực tiếp từ payload đã build sẵn */
   create(payload: CreateJobPayload): Promise<JobPostDetail> {
     return this.repo.create(payload);
+  }
+
+  /** Cập nhật trực tiếp từ payload đã build sẵn */
+  update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail> {
+    return this.repo.update(id, payload);
   }
 
   getMyJobs(page = 0, size = 10): Promise<PageResponse<JobPost>> {
@@ -76,8 +93,8 @@ export class JobService {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  /** Map JobPostForm (all strings) → CreateJobPayload (typed) */
-  private _buildPayload(form: JobPostForm): CreateJobPayload {
+  /** Map JobPostForm → CreateJobPayload */
+  private _buildCreatePayload(form: JobPostForm): CreateJobPayload {
     return {
       title:               form.title.trim(),
       description:         form.description  || undefined,
@@ -91,6 +108,30 @@ export class JobService {
       salaryMax:           form.salaryNegotiable || !form.salaryMax   ? undefined : Number(form.salaryMax),
       salaryCurrency:      form.salaryCurrency   || undefined,
       workLocationType:    (form.workLocationType || undefined) as CreateJobPayload["workLocationType"],
+      workLocationCity:    form.workLocationCity    || undefined,
+      workLocationAddress: form.workLocationAddress || undefined,
+      experienceYears:     form.experienceYears ? Number(form.experienceYears) : undefined,
+      vacancies:           form.vacancies    ? Number(form.vacancies)    : undefined,
+      deadline:            form.deadline,
+      skills:              form.skills.length ? form.skills : undefined,
+    };
+  }
+
+  /** Map JobPostForm → UpdateJobPayload (giống create, dùng riêng để dễ mở rộng) */
+  private _buildUpdatePayload(form: JobPostForm): UpdateJobPayload {
+    return {
+      title:               form.title.trim(),
+      description:         form.description  || undefined,
+      requirements:        form.requirements || undefined,
+      benefits:            form.benefits     || undefined,
+      jobType:             (form.jobType     || undefined) as UpdateJobPayload["jobType"],
+      level:               (form.level       || undefined) as UpdateJobPayload["level"],
+      category:            form.category     || undefined,
+      salaryNegotiable:    form.salaryNegotiable,
+      salaryMin:           form.salaryNegotiable || !form.salaryMin   ? undefined : Number(form.salaryMin),
+      salaryMax:           form.salaryNegotiable || !form.salaryMax   ? undefined : Number(form.salaryMax),
+      salaryCurrency:      form.salaryCurrency   || undefined,
+      workLocationType:    (form.workLocationType || undefined) as UpdateJobPayload["workLocationType"],
       workLocationCity:    form.workLocationCity    || undefined,
       workLocationAddress: form.workLocationAddress || undefined,
       experienceYears:     form.experienceYears ? Number(form.experienceYears) : undefined,

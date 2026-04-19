@@ -10,6 +10,8 @@ import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDeta
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.CompanyInfo;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
+import edu.tlu.jobplatform.application.usecase.candidate.AcceptOfferUseCase;
+import edu.tlu.jobplatform.application.usecase.candidate.DeclineOfferUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.GetMyApplicationsUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.SubmitApplicationUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.WithdrawApplicationUseCase;
@@ -45,6 +47,8 @@ public class CandidateApplicationController {
         private final ApplicationStatusLogRepository logRepo;
         private final JobPostInfoResolver jobPostInfoResolver;
         private final CompanyInfoResolver companyInfoResolver;
+        private final AcceptOfferUseCase acceptOfferUseCase;
+        private final DeclineOfferUseCase declineOfferUseCase;
 
         @Operation(summary = "Nộp đơn ứng tuyển")
         @PostMapping("/api/v1/jobs/{jobPostId}/apply")
@@ -141,4 +145,30 @@ public class CandidateApplicationController {
                 boolean exists = applicationRepo.existsByJobPostIdAndCandidateId(jobPostId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(exists));
         }
+
+        @Operation(summary = "Chấp nhận offer")
+        @PatchMapping("/api/v1/applications/{id}/accept-offer")
+        @PreAuthorize("hasRole('CANDIDATE')")
+        public ResponseEntity<ApiResponse<ApplicationResponse>> acceptOffer(
+                        @PathVariable UUID id,
+                        @RequestParam(required = false) String note) {
+
+                Application app = acceptOfferUseCase.execute(new AcceptOfferUseCase.Command(id, note));
+                return ResponseEntity.ok(
+                                ApiResponse.success(ApplicationResponse.from(app),
+                                                "Bạn đã chấp nhận offer thành công!"));
+        }
+
+        @Operation(summary = "Từ chối offer")
+        @PatchMapping("/api/v1/applications/{id}/decline-offer")
+        @PreAuthorize("hasRole('CANDIDATE')")
+        public ResponseEntity<ApiResponse<ApplicationResponse>> declineOffer(
+                        @PathVariable UUID id,
+                        @RequestParam(required = false) String reason) {
+
+                Application app = declineOfferUseCase.execute(new DeclineOfferUseCase.Command(id, reason));
+                return ResponseEntity.ok(
+                                ApiResponse.success(ApplicationResponse.from(app), "Bạn đã từ chối offer."));
+        }
+
 }

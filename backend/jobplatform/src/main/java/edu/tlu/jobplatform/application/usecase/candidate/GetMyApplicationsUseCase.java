@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.application.usecase.candidate;
 
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
+import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class GetMyApplicationsUseCase {
 
     private final ApplicationRepository applicationRepo;
+    private final JobPostRepository jobPostRepository;
 
     @Transactional(readOnly = true)
     public Page<Application> execute(UUID candidateId, Pageable pageable) {

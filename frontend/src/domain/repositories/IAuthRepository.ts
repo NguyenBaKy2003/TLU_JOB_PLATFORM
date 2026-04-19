@@ -62,7 +62,20 @@ export interface IAuthRepository {
 
   // ── OAuth2 URL ────────────────────────────────────────────────────────────
 
-  getGoogleOAuthUrl(): Promise<string>;
+  /**
+   * GET /auth/oauth2/url/{provider}?portal={portal}
+   *
+   * portal xác định role khi tạo user mới và kiểm tra portal access:
+   *  - "CANDIDATE" → trang ứng viên
+   *  - "EMPLOYER"  → trang nhà tuyển dụng
+   *
+   * Trả về { url: string } để frontend redirect sang Google/Facebook.
+   */
+  getOAuthUrl(
+    provider: "google" | "facebook",
+    portal: "CANDIDATE" | "EMPLOYER",
+  ): Promise<{ url: string }>;
+
   getFacebookOAuthUrl(): Promise<string>;
 
   // ── Password Reset ────────────────────────────────────────────────────────

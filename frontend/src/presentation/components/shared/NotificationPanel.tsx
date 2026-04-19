@@ -15,12 +15,14 @@ interface Props {
 export function NotificationPanel({ onClose }: Props) {
   const { notifications, unreadCount } = useWebSocket();
   const { user } = useAuth();
-  const router = useRouter();
+  const router   = useRouter();
 
-  const isEmployer = user?.role === "EMPLOYER";
-  const allNotifHref = isEmployer ? "/employer/notifications" : "/candidate/notifications";
+  const isEmployer    = user?.role === "EMPLOYER";
+  const allNotifHref  = isEmployer ? "/employer/notifications" : "/candidate/notifications";
 
-  // ── Mark all as read ──────────────────────────────────────────────────────
+  // ── Mark all as read ────────────────────────────────────────────────────────
+  // FIX: Gọi REST — backend sẽ push WS event /user/queue/all-read để
+  // WebSocketContext tự reset state. Không cần reset thủ công ở đây.
   const markAllRead = async () => {
     try {
       await api.patch("/notifications/read-all");
@@ -29,13 +31,14 @@ export function NotificationPanel({ onClose }: Props) {
     }
   };
 
-  // ── Mark single as read then navigate (if link present) ───────────────────
+  // ── Mark single as read then navigate ───────────────────────────────────────
+  // FIX: dùng đúng field "read" (NotificationItem) thay vì "isRead"
   const handleItemClick = async (
     notificationId: string,
-    isRead: boolean,
-    link: string | null
+    read: boolean,
+    link: string | null,
   ) => {
-    if (!isRead) {
+    if (!read) {
       try {
         await api.patch(`/notifications/${notificationId}/read`);
       } catch {
@@ -48,10 +51,10 @@ export function NotificationPanel({ onClose }: Props) {
     }
   };
 
-  // ── Time helper ───────────────────────────────────────────────────────────
+  // ── Time helper ─────────────────────────────────────────────────────────────
   function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
-    const m = Math.floor(diff / 60_000);
+    const m    = Math.floor(diff / 60_000);
     if (m < 1)  return "Vừa xong";
     if (m < 60) return `${m} phút trước`;
     const h = Math.floor(m / 60);
@@ -88,7 +91,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── List ─────────────────────────────────────────────────────────── */}
+      {/* ── List ────────────────────────────────────────────────────────────── */}
       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-gray-400">
@@ -97,34 +100,39 @@ export function NotificationPanel({ onClose }: Props) {
           </div>
         ) : (
           notifications.map((n) => {
-            const meta        = TYPE_META[n.type as NotificationApiType];
+            const meta = TYPE_META[n.type as NotificationApiType];
+
+            // FIX: dùng đúng field "body" và "title" từ NotificationItem
             const displayText = n.title || n.body || "";
-            const truncated   = displayText.length > 80
-              ? displayText.slice(0, 80) + "…"
-              : displayText;
-            const isClickable = !n.isRead || !!n.link;
+            const truncated   =
+              displayText.length > 80
+                ? displayText.slice(0, 80) + "…"
+                : displayText;
+
+            // FIX: dùng đúng field "read" và "link" từ NotificationItem
+            const isClickable = !n.read || !!n.link;
 
             return (
               <div
                 key={n.notificationId}
-                onClick={() => handleItemClick(n.notificationId, n.isRead, n.link)}
+                onClick={() => handleItemClick(n.notificationId, n.read, n.link)}
                 role={isClickable ? "button" : undefined}
                 tabIndex={isClickable ? 0 : undefined}
                 onKeyDown={(e) => {
                   if (isClickable && (e.key === "Enter" || e.key === " "))
-                    handleItemClick(n.notificationId, n.isRead, n.link);
+                    handleItemClick(n.notificationId, n.read, n.link);
                 }}
                 className={`
                   flex items-start gap-3 px-4 py-3 transition-colors
                   ${isClickable ? "cursor-pointer" : "cursor-default"}
-                  ${n.isRead ? "hover:bg-gray-50" : "bg-blue-50/40 hover:bg-blue-50"}
+                  ${n.read ? "hover:bg-gray-50" : "bg-blue-50/40 hover:bg-blue-50"}
                 `}
               >
                 {/* Unread dot */}
                 <div className="shrink-0 mt-1.5">
                   <div
                     className={`w-1.5 h-1.5 rounded-full transition-colors
-                      ${n.isRead ? "bg-transparent" : "bg-blue-500"}`}
+                      ${n.read ? "bg-transparent" : "bg-blue-500"}`}
                   />
                 </div>
 
@@ -132,7 +140,7 @@ export function NotificationPanel({ onClose }: Props) {
                 <div className="flex-1 min-w-0">
                   <p
                     className={`text-xs leading-relaxed mb-1
-                      ${n.isRead ? "text-gray-500" : "text-gray-800 font-medium"}`}
+                      ${n.read ? "text-gray-500" : "text-gray-800 font-medium"}`}
                   >
                     {truncated}
                   </p>
@@ -156,7 +164,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
         <Link
           href={allNotifHref}

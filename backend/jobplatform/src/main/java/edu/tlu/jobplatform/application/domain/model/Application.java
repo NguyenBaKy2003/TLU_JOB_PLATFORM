@@ -92,4 +92,18 @@ public class Application {
     public boolean hasAIScore() {
         return aiScoreCalculated && aiScore != null;
     }
+
+    public void acceptOffer() {
+        status.assertCanTransitionTo(ApplicationStatus.ACCEPTED);
+        this.status = ApplicationStatus.ACCEPTED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /** Ứng viên từ chối offer */
+    public void declineOffer(String reason) {
+        status.assertCanTransitionTo(ApplicationStatus.DECLINED);
+        this.status = ApplicationStatus.DECLINED;
+        this.rejectionReason = reason;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

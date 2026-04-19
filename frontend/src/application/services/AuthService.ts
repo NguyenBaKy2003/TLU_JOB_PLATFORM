@@ -107,8 +107,21 @@ export class AuthService {
 
   // ── OAuth2 URL ────────────────────────────────────────────────────────────
 
-  async getGoogleOAuthUrl(): Promise<string> {
-    return this.authRepository.getGoogleOAuthUrl();
+  /**
+   * Lấy Google OAuth2 URL cho portal cụ thể.
+   *
+   * portal quyết định:
+   *  1. Role được gán khi tạo user mới qua OAuth2
+   *  2. Portal access check sau khi Google callback về — nếu user đã có role
+   *     khác portal → backend redirect về với lỗi PORTAL_ACCESS_DENIED
+   *
+   * Luôn phải truyền đúng portal tương ứng với trang đang gọi:
+   *  - LoginPage (Candidate)  → "CANDIDATE"
+   *  - EmployerLoginPage      → "EMPLOYER"
+   */
+  async getGoogleOAuthUrl(portal: "CANDIDATE" | "EMPLOYER" = "CANDIDATE"): Promise<string> {
+    const res = await this.authRepository.getOAuthUrl("google", portal);
+    return res.url;
   }
 
   async getFacebookOAuthUrl(): Promise<string> {

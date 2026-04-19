@@ -189,3 +189,12 @@ export interface PageResponse<T> {
   first?:        boolean;
   empty?:        boolean;
 }
+
+export const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
+  "SUBMITTED",
+  "PENDING",
+  "REVIEWING",
+  "SHORTLISTED",
+  "INTERVIEW_SCHEDULED",
+  "INTERVIEWED",
+];

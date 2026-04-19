@@ -2,7 +2,7 @@
 
 import type { IJobRepository } from "@/domain/repositories/IJobRepository";
 import type {
-  JobPost, JobPostDetail, CreateJobPayload,
+  JobPost, JobPostDetail, CreateJobPayload, UpdateJobPayload,
   JobSearchParams, PageResponse,
 } from "@/domain/models/Job";
 import api from "@/lib/axios";
@@ -22,6 +22,11 @@ export class JobRepository implements IJobRepository {
 
   private async post<T>(url: string, body?: unknown): Promise<T> {
     const res = await api.post<ApiResponse<T>>(url, body);
+    return res.data.data;
+  }
+
+  private async patch<T>(url: string, body?: unknown): Promise<T> {
+    const res = await api.patch<ApiResponse<T>>(url, body);
     return res.data.data;
   }
 
@@ -63,6 +68,11 @@ export class JobRepository implements IJobRepository {
   /** POST /api/v1/jobs — tạo DRAFT */
   async create(payload: CreateJobPayload): Promise<JobPostDetail> {
     return this.post(this.BASE, payload);
+  }
+
+  /** PATCH /api/v1/jobs/:id — cập nhật bài đăng */
+  async update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail> {
+    return this.patch(`${this.BASE}/${id}`, payload);
   }
 
   /** GET /api/v1/jobs/my */

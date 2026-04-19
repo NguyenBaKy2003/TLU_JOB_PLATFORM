@@ -267,9 +267,15 @@ export default function EmployerApplicationsPage() {
       {/* Schedule interview modal */}
       {showSchedule && selectedApp && (
         <ScheduleInterviewModal
+          applicationId={selectedApp.id}
           candidateName={selectedApp.candidate?.fullName ?? selectedApp.candidateName}
-          onConfirm={handleScheduleInterview}
-          onCancel={() => setShowSchedule(false)}
+          onSuccess={() => {
+            setDetailKey(k => k + 1);
+            setApps(prev =>
+              prev.map(a => a.id === selectedApp.id ? { ...a, status: "INTERVIEW_SCHEDULED" } : a)
+            );
+          }}
+          onClose={() => setShowSchedule(false)}
         />
       )}
     </div>

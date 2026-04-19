@@ -20,6 +20,8 @@ export interface IApplicationRepository {
   getMyApplications(page?: number, size?: number): Promise<PageResponse<ApplicationWithJob>>;
   getById(applicationId: string): Promise<Application>;
   checkApplied(jobPostId: string): Promise<boolean>;
+  acceptOffer(applicationId: string): Promise<Application>;
+  declineOffer(applicationId: string, reason?: string): Promise<Application>;
 
   // ── Employer ─────────────────────────────────────────────────
 
@@ -30,19 +32,27 @@ export interface IApplicationRepository {
     status?: ApplicationStatus,
   ): Promise<PageResponse<ApplicationWithCandidate>>;
 
-  /**
-   * GET /api/v1/employer/applications/{id}
-   * Trả về ApplicationDetail — có candidate, aiScore, statusHistory.
-   */
   getEmployerDetail(applicationId: string): Promise<ApplicationDetail>;
 
-
- getApplicationsByCompany(
-  page?: number,
-  size?: number,
-  status?: ApplicationStatus
-): Promise<PageResponse<ApplicationWithCandidate>>;
+  getApplicationsByCompany(
+    page?: number,
+    size?: number,
+    status?: ApplicationStatus,
+  ): Promise<PageResponse<ApplicationWithCandidate>>;
 
   updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application>;
   scheduleInterview(applicationId: string, req: ScheduleInterviewRequest): Promise<Application>;
+
+  /**
+   * Lấy blob URL để xem hoặc tải CV của ứng viên.
+   *
+   * @param applicationId  ID của application
+   * @param mode           "view" (inline) | "download" (attachment)
+   * @param cvId           Nếu có → xem CV cụ thể, nếu null → xem CV từ application (cvUrl)
+   */
+  fetchCVBlobUrl(
+    applicationId: string,
+    mode: "view" | "download",
+    cvId?: string | null,
+  ): Promise<string>;
 }

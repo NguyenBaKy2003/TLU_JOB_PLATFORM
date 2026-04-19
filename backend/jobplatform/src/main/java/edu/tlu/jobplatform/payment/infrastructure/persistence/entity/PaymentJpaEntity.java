@@ -1,7 +1,7 @@
-package edu.tlu.jobplatform.subscription.infrastructure.persistence.entity;
+package edu.tlu.jobplatform.payment.infrastructure.persistence.entity;
 
+import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.shared.base.BaseJpaEntity;
-import edu.tlu.jobplatform.subscription.domain.model.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

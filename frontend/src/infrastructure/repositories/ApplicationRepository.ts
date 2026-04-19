@@ -1,4 +1,5 @@
 // src/infrastructure/repositories/ApplicationRepository.ts
+import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import type {
   Application,
   ApplicationWithJob,
@@ -10,114 +11,144 @@ import type {
   PageResponse,
   ApplicationStatus,
 } from "@/domain/models/Application";
-import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import api from "@/lib/axios";
 
-const BASE     = "/applications";
-const JOBS     = "/jobs";
-const EMPLOYER = "/employer/applications";
+interface ApiResponse<T> {
+  success: boolean;
+  data:    T;
+  message: string | null;
+}
 
 export class ApplicationRepository implements IApplicationRepository {
 
-  // ── Candidate ────────────────────────────────────────────────
+  private readonly BASE      = "/applications";
+  private readonly EMPLOYER  = "/employer/applications";
+  private readonly CANDIDATE = "/candidate/applications";
+  private readonly JOBS     = "/jobs";
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
-  async submit(req: SubmitApplicationRequest): Promise<Application> {
+  private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
+    const res = await api.get<ApiResponse<T>>(url, { params });
+    return res.data.data;
+  }
+
+  private async post<T>(url: string, body?: unknown): Promise<T> {
+    const res = await api.post<ApiResponse<T>>(url, body);
+    return res.data.data;
+  }
+
+  private async patch<T>(url: string, body?: unknown): Promise<T> {
+    const res = await api.patch<ApiResponse<T>>(url, body);
+    return res.data.data;
+  }
+
+  // ─── Candidate ────────────────────────────────────────────────────────────
+
+async submit(req: SubmitApplicationRequest): Promise<Application> {
     const res = await api.post<{ data: Application }>(
-      `${JOBS}/${req.jobPostId}/apply`,
+      `${this.JOBS}/${req.jobPostId}/apply`,
       { cvUrl: req.cvUrl, coverLetter: req.coverLetter, expectedSalary: req.expectedSalary },
     );
     return res.data.data;
   }
 
   async withdraw(applicationId: string): Promise<Application> {
-    const res = await api.delete<{ data: Application }>(`${BASE}/${applicationId}/withdraw`);
-    return res.data.data;
+    return this.patch(`${this.BASE}/${applicationId}/withdraw`);
   }
 
   async getMyApplications(page = 0, size = 10): Promise<PageResponse<ApplicationWithJob>> {
-    const res = await api.get<{ data: PageResponse<ApplicationWithJob> }>(
-      `${BASE}/my`,
-      { params: { page, size } },
-    );
-    return res.data.data;
+    return this.get(`${this.CANDIDATE}/my`, { page, size });
   }
 
   async getById(applicationId: string): Promise<Application> {
-    const res = await api.get<{ data: Application }>(`${BASE}/${applicationId}`);
-    return res.data.data;
+    return this.get(`${this.BASE}/${applicationId}`);
   }
-
   async checkApplied(jobPostId: string): Promise<boolean> {
     try {
-      const res = await api.get<{ data: boolean }>(`${JOBS}/${jobPostId}/my-application`);
+      const res = await api.get<{ data: boolean }>(`${this.JOBS}/${jobPostId}/my-application`);
       return res.data.data;
     } catch {
       return false;
     }
   }
 
-  // ── Employer ─────────────────────────────────────────────────
+  async acceptOffer(applicationId: string): Promise<Application> {
+    return this.patch(`${this.BASE}/${applicationId}/accept-offer`);
+  }
+
+  async declineOffer(applicationId: string, reason?: string): Promise<Application> {
+    return this.patch(`${this.BASE}/${applicationId}/decline-offer`, reason ? { reason } : undefined);
+  }
+
+  // ─── Employer ─────────────────────────────────────────────────────────────
 
   async getByJobPost(
     jobPostId: string,
     page = 0,
     size = 20,
-    status?: ApplicationStatus | "ALL",
+    status?: ApplicationStatus,
   ): Promise<PageResponse<ApplicationWithCandidate>> {
-    const params: Record<string, unknown> = { page, size };
-    if (status && status !== "ALL") params.status = status;
-
-    const res = await api.get<{ data: PageResponse<ApplicationWithCandidate> }>(
-      `${JOBS}/${jobPostId}/applications`,
-      { params },
-    );
-    return res.data.data;
+    return this.get(`/jobs/${jobPostId}/applications`, {
+      page,
+      size,
+      ...(status ? { status } : {}),
+    });
   }
 
-  /**
-   * GET /api/v1/employer/applications/{id}
-   * Response chứa candidate, aiScore, statusHistory — không cần gọi /logs riêng.
-   */
   async getEmployerDetail(applicationId: string): Promise<ApplicationDetail> {
-    const res = await api.get<{ data: ApplicationDetail }>(
-      `${EMPLOYER}/${applicationId}`,
-    );
-    return res.data.data;
+    return this.get(`${this.EMPLOYER}/${applicationId}`);
+  }
+
+  async getApplicationsByCompany(
+    page = 0,
+    size = 20,
+    status?: ApplicationStatus,
+  ): Promise<PageResponse<ApplicationWithCandidate>> {
+    return this.get(`${this.EMPLOYER}`, {
+      page,
+      size,
+      ...(status ? { status } : {}),
+    });
   }
 
   async updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application> {
-    const res = await api.patch<{ data: Application }>(
-      `${BASE}/${applicationId}/status`,
-      req,
-    );
-    return res.data.data;
+    return this.patch(`${this.EMPLOYER}/${applicationId}/status`, req);
   }
 
   async scheduleInterview(
     applicationId: string,
     req: ScheduleInterviewRequest,
   ): Promise<Application> {
-    const res = await api.post<{ data: Application }>(
-      `${BASE}/${applicationId}/schedule-interview`,
-      req,
-    );
-    return res.data.data;
+    return this.post(`${this.EMPLOYER}/${applicationId}/schedule-interview`, req);
   }
 
-  async getApplicationsByCompany(
-  page = 0,
-  size = 20,
-  status?: ApplicationStatus | "ALL",
-): Promise<PageResponse<ApplicationWithCandidate>> {
+  /**
+   * Employer xem / tải CV của ứng viên.
+   *
+   * Endpoint:
+   *   - CV từ application (không có cvId):
+   *       GET /employer/applications/{applicationId}/cv/view
+   *       GET /employer/applications/{applicationId}/cv/download
+   *   - CV cụ thể (có cvId):
+   *       GET /employer/applications/{applicationId}/cv/{cvId}/view
+   *       GET /employer/applications/{applicationId}/cv/{cvId}/download
+   *
+   * Backend trả về stream (InputStreamResource) — không phải JSON,
+   * nên phải dùng responseType: "blob".
+   */
+  async fetchCVBlobUrl(
+    applicationId: string,
+    mode: "view" | "download",
+    cvId?: string | null,
+  ): Promise<string> {
+    const url = cvId
+      ? `${this.EMPLOYER}/${applicationId}/cv/${cvId}/${mode}`
+      : `${this.EMPLOYER}/${applicationId}/cv/${mode}`;
 
-  const params: Record<string, unknown> = { page, size };
-  if (status && status !== "ALL") params.status = status;
+    const res = await api.get(url, {
+      responseType: "blob",
+    });
 
-  const res = await api.get<{ data: PageResponse<ApplicationWithCandidate> }>(
-    `${EMPLOYER}`,
-    { params },
-  );
-
-  return res.data.data;
-}
+    return URL.createObjectURL(res.data as Blob);
+  }
 }

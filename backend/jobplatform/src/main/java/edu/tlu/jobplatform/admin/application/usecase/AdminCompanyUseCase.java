@@ -29,7 +29,8 @@ public class AdminCompanyUseCase {
     public Page<CompanyProfile> list(VerificationStatus status, Pageable pageable) {
         if (status != null)
             return companyRepo.findByVerificationStatus(status, pageable);
-        return companyRepo.findVerifiedCompanies(pageable); // fallback — tất cả
+        // Không filter → trả về toàn bộ công ty
+        return companyRepo.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

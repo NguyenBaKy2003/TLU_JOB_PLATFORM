@@ -1,5 +1,8 @@
 package edu.tlu.jobplatform.subscription.application.usecase;
 
+import edu.tlu.jobplatform.payment.domain.model.Payment;
+import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
+import edu.tlu.jobplatform.payment.domain.repository.PaymentRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.subscription.application.port.out.PaymentGatewayPort;
