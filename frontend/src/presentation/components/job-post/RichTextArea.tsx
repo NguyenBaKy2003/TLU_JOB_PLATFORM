@@ -47,7 +47,7 @@ function ToolbarBtn({
       className={`
         flex items-center justify-center w-7 h-7 rounded-lg text-gray-500
         transition-all hover:bg-gray-200 hover:text-gray-800 disabled:opacity-30
-        ${active ? "bg-gray-900 text-white hover:bg-gray-800 hover:text-white" : ""}
+        ${active ? "bg-blue-500 text-white hover:bg-blue-800 hover:text-white" : ""}
       `}
     >
       {children}

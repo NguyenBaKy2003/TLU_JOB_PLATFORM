@@ -1,12 +1,11 @@
 package edu.tlu.jobplatform.auth.infrastructure.oauth2;
 
-import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
+import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -26,7 +25,7 @@ import java.util.UUID;
 public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ProfileCreationService profileCreationService; // ← thay eventPublisher
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
@@ -41,13 +40,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String avatar = extractAvatar(attrs, provider);
 
         if (email == null || email.isBlank()) {
-            throw new OAuth2AuthenticationException(
-                    "Không lấy được email từ " + provider);
+            throw new OAuth2AuthenticationException("Không lấy được email từ " + provider);
         }
 
-        // Đọc portalType từ session — được lưu bởi CustomAuthorizationRequestResolver
-        // khi browser redirect vào /oauth2/authorization/google?portal=EMPLOYER.
-        // additionalParameters KHÔNG dùng được ở đây vì Google không echo chúng về.
         String portalType = readPortalTypeFromSession();
         UserRole roleForNew = "EMPLOYER".equals(portalType)
                 ? UserRole.EMPLOYER
@@ -57,13 +52,14 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         User user = userRepository.findByEmail(email.toLowerCase())
                 .map(existing -> syncOAuth2User(existing, provider, providerId, avatar))
-                // Role chỉ áp dụng khi TẠO MỚI — user cũ giữ nguyên role
                 .orElseGet(() -> createOAuth2User(
                         email, name, avatar, provider, providerId, roleForNew));
 
+        // ✅ Gọi thẳng, không qua event
         if (isNewUser) {
-            eventPublisher.publishEvent(new UserRegisteredEvent(user));
-            log.info("Published UserRegisteredEvent for userId={}", user.getId());
+            profileCreationService.createProfileForUser(user);
+            log.info("Profile created for new OAuth2 user={} role={}",
+                    user.getId(), user.getRole());
         }
 
         log.info("OAuth2 loadUser: {} via {} | portal={} | role={}",

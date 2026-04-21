@@ -79,7 +79,7 @@ function SegmentedControl<T extends string>({ options, value, onChange, cols = 3
         <button key={o.value} type="button" onClick={() => onChange(o.value)}
           className={`py-2.5 px-3 text-sm font-medium rounded-xl border transition-all
             ${value === o.value
-              ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+              ? "bg-blue-500 text-white border-gray-900 shadow-sm"
               : "bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-800"}`}>
           {o.label}
         </button>
@@ -327,7 +327,7 @@ export default function CreateJobPage() {
             <button type="button" disabled={isBusy}
               onClick={() => handleSubmit(true)}
               className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
-                font-semibold text-white bg-gray-900 rounded-2xl hover:bg-gray-800
+                font-semibold text-white bg-blue-500 rounded-2xl hover:bg-blue-800
                 disabled:opacity-50 transition-all shadow-sm">
               {saving === "publish"
                 ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

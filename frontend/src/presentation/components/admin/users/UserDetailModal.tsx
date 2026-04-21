@@ -111,8 +111,8 @@ export function UserDetailModal({ user, onClose, onToggle, onChangeRole }: Props
               </select>
               <button onClick={handleChangeRole}
                 disabled={busyRole || newRole === user.role}
-                className="px-4 py-2 text-xs font-semibold bg-gray-900 text-white
-                  rounded-xl hover:bg-gray-800 disabled:opacity-40
+                className="px-4 py-2 text-xs font-semibold bg-blue-500 text-white
+                  rounded-xl hover:bg-blue-800 disabled:opacity-40
                   disabled:cursor-not-allowed transition-colors">
                 {busyRole ? "..." : "Lưu"}
               </button>

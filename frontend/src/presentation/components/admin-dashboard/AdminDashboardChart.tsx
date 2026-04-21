@@ -38,7 +38,7 @@ const MINI = [
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 shadow-2xl text-xs">
+    <div className="bg-blue-500 border border-gray-700 rounded-xl px-4 py-3 shadow-2xl text-xs">
       <p className="text-gray-400 mb-2 font-medium">{label}</p>
       {payload.map((p: any) => (
         <div key={p.name} className="flex items-center gap-2 mb-1">
@@ -68,7 +68,7 @@ export function AdminDashboardChart() {
           {(["Tuần", "Tháng", "Năm"] as Period[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)}
               className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                period === p ? "bg-gray-900 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                period === p ? "bg-blue-500 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}>
               {p}
             </button>
