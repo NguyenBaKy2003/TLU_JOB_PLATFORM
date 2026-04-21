@@ -5,6 +5,7 @@ import edu.tlu.jobplatform.auth.application.port.out.TokenStorePort;
 import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
+import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,13 @@ import java.util.UUID;
 /**
  * UseCase: Xác thực email bằng OTP.
  *
- * Sau khi verify thành công → trả về AuthToken luôn.
- * Frontend nhận token → lưu vào storage → chuyển thẳng vào /home.
+ * Sau khi verify thành công:
+ * 1. Đánh dấu user.verified = true
+ * 2. Publish UserRegisteredEvent → tạo profile mặc định (CandidateProfile /
+ * CompanyProfile)
+ * 3. Trả về AuthToken → frontend đăng nhập luôn, tiếp tục các bước điền thông
+ * tin.
+ *
  * Không cần quay lại trang login.
  */
 @Slf4j
@@ -34,20 +40,18 @@ public class VerifyEmailUseCase {
     private final OtpStorePort otpStore;
     private final TokenStorePort tokenStore;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ProfileCreationService profileCreationService; // ← thay eventPublisher
 
     @Transactional
     public AuthToken execute(Command cmd) {
         String email = cmd.email().toLowerCase().trim();
 
-        // BR-01: User phải tồn tại
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException(
                         "Email không tồn tại trong hệ thống.", "USER_NOT_FOUND"));
 
-        // Đã verified rồi → cấp token luôn (idempotent)
         if (!user.isVerified()) {
 
-            // BR-02: OTP phải còn hiệu lực
             String storedOtp = otpStore.find(PURPOSE, email)
                     .orElseThrow(() -> new BusinessRuleException(
                             "Mã OTP không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu gửi lại.",
@@ -59,17 +63,17 @@ public class VerifyEmailUseCase {
                         "OTP_MISMATCH");
             }
 
-            // BR-03: Xóa OTP sau khi dùng
             otpStore.delete(PURPOSE, email);
 
-            // BR-04: Đánh dấu verified
             user.markVerified();
             userRepository.save(user);
 
-            log.info("Email verified: {}", email);
+            // ✅ Gọi thẳng — không qua event, không có ẩn số transaction
+            profileCreationService.createProfileForUser(user);
+
+            log.info("Email verified + profile created: {} [{}]", email, user.getRole());
         }
 
-        // Cấp token → frontend đăng nhập luôn
         String tokenId = UUID.randomUUID().toString();
         String accessToken = jwtTokenProvider.generateAccessToken(user, tokenId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user, tokenId);

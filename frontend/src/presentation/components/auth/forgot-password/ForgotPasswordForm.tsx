@@ -50,7 +50,7 @@ export function ForgotPasswordForm({ onSent }: Props) {
         Quên Mật Khẩu?
       </h1>
       <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
-        Nhập email tài khoản Jobi của bạn bên dưới, chúng
+        Nhập email tài khoản JobLin của bạn bên dưới, chúng
         tôi sẽ gửi liên kết để đặt lại mật khẩu.
       </p>
 

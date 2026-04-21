@@ -5,13 +5,14 @@ import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
+import edu.tlu.jobplatform.user.infrastructure.cache.UserCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import java.util.UUID;
 
 /**
@@ -26,6 +27,8 @@ import java.util.UUID;
 public class AdminUserUseCase {
 
     private final UserRepository userRepo;
+    private final UserCacheService userCacheService;
+    private final ProfileCreationService profileCreationService;
 
     @Transactional(readOnly = true)
     public Page<User> listUsers(String keyword, UserRole role, Pageable pageable) {
@@ -57,8 +60,10 @@ public class AdminUserUseCase {
         else
             user.activate();
 
-        log.info("User {} → active={}", userId, user.isActive());
-        return userRepo.save(user);
+        User saved = userRepo.save(user);
+        userCacheService.evict(userId); // ← thêm
+        log.info("User {} → active={}", userId, saved.isActive());
+        return saved;
     }
 
     /** Đổi role */
@@ -76,8 +81,14 @@ public class AdminUserUseCase {
                     "Không thể gán role SUPER_ADMIN qua API.", "FORBIDDEN");
 
         user.changeRole(newRole);
-        log.info("User {} role changed to {}", userId, newRole);
-        return userRepo.save(user);
+        User saved = userRepo.save(user);
+        userCacheService.evict(userId);
+
+        // ← Tạo profile cho role mới nếu chưa có
+        profileCreationService.ensureProfileExists(saved);
+        log.info("User {} role changed to {} — profile ensured", userId, newRole);
+
+        return saved;
     }
 
 }

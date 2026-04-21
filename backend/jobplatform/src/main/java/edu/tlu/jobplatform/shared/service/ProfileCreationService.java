@@ -2,12 +2,11 @@ package edu.tlu.jobplatform.shared.service;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
-import edu.tlu.jobplatform.candidate.domain.service.ProfileUrlService;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.CompanySize;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
-import edu.tlu.jobplatform.company.domain.service.CompanySlugService;
+import edu.tlu.jobplatform.shared.util.SlugUtils;
 import edu.tlu.jobplatform.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +23,7 @@ import java.util.UUID;
 public class ProfileCreationService {
 
     private final CandidateProfileRepository candidateProfileRepository;
-    private final ProfileUrlService profileUrlService;
-
     private final CompanyRepository companyRepository;
-    private final CompanySlugService companySlugService;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void createProfileForUser(User user) {
@@ -51,7 +47,7 @@ public class ProfileCreationService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Candidate ─────────────────────────────────────────────────────────────
 
     private void createCandidateProfile(User user) {
         if (candidateProfileRepository.existsByUserId(user.getId())) {
@@ -59,15 +55,12 @@ public class ProfileCreationService {
             return;
         }
 
-        // Tách firstName / lastName từ fullName
-        // "Minh Hằng" → firstName="Minh", lastName="Hằng"
-        // "Hằng" → firstName="Hằng", lastName=null
         String[] parts = splitFullName(user.getFullName());
         String firstName = parts[0];
         String lastName = parts[1];
 
-        // Sinh profileUrl ngay khi tạo — không bao giờ để null
-        String profileUrl = profileUrlService.generateSlug(firstName, lastName);
+        // Sinh profileUrl unique — tránh trùng giữa nhiều user cùng tên
+        String profileUrl = generateUniqueCandidateSlug(firstName, lastName);
 
         CandidateProfile profile = CandidateProfile.builder()
                 .id(UUID.randomUUID())
@@ -78,7 +71,7 @@ public class ProfileCreationService {
                 .summary("")
                 .location("")
                 .avatarUrl("")
-                .profileUrl(profileUrl) // ← sinh tự động
+                .profileUrl(profileUrl)
                 .jobSearchStatus(CandidateProfile.JobSearchStatus.OPEN_TO_OFFERS)
                 .expectedSalary(0)
                 .currency("VND")
@@ -93,25 +86,18 @@ public class ProfileCreationService {
 
     // ── Company ───────────────────────────────────────────────────────────────
 
-    /**
-     * Tạo CompanyProfile mặc định (placeholder) khi Employer đăng ký.
-     *
-     * Thông tin thực (tên công ty, địa chỉ, …) sẽ được employer điền sau
-     * qua màn hình "Hoàn thiện hồ sơ công ty".
-     * Trạng thái ban đầu: UNVERIFIED — chưa được admin duyệt.
-     */
     private void createCompanyProfile(User user) {
         if (companyRepository.existsByOwnerId(user.getId())) {
             log.info("CompanyProfile already exists for user={}", user.getId());
             return;
         }
 
-        // Dùng fullName của user làm tên tạm — employer sẽ cập nhật sau
-        String tempName = user.getFullName() != null && !user.getFullName().isBlank()
+        String tempName = (user.getFullName() != null && !user.getFullName().isBlank())
                 ? user.getFullName().trim()
                 : "company-" + user.getId().toString().substring(0, 8);
 
-        String slug = companySlugService.generateSlug(tempName);
+        // Sinh slug unique — tránh trùng giữa nhiều user cùng tên
+        String slug = generateUniqueCompanySlug(tempName);
 
         CompanyProfile profile = CompanyProfile.builder()
                 .id(UUID.randomUUID())
@@ -120,7 +106,7 @@ public class ProfileCreationService {
                 .slug(slug)
                 .description("")
                 .website("")
-                .email(user.getEmail()) // dùng email đăng ký làm liên lạc mặc định
+                .email(user.getEmail())
                 .phone("")
                 .address("")
                 .city("")
@@ -144,31 +130,71 @@ public class ProfileCreationService {
                 saved.getId(), user.getId(), saved.getSlug());
     }
 
+    // ── Slug generators ───────────────────────────────────────────────────────
+
+    /**
+     * Sinh profileUrl unique cho CandidateProfile.
+     *
+     * Ví dụ: "nguyen-minh-hang" → "nguyen-minh-hang-1" → "nguyen-minh-hang-2" …
+     * Fallback (suffix > 100): thêm 8 ký tự UUID ngẫu nhiên để tránh loop vô hạn.
+     */
+    private String generateUniqueCandidateSlug(String firstName, String lastName) {
+        String base = (lastName != null && !lastName.isBlank())
+                ? SlugUtils.slugify(firstName + " " + lastName)
+                : SlugUtils.slugify(firstName);
+
+        String slug = base;
+        int suffix = 1;
+
+        while (candidateProfileRepository.existsByProfileUrl(slug)) {
+            if (suffix > 100) {
+                slug = base + "-" + UUID.randomUUID().toString().substring(0, 8);
+                break;
+            }
+            slug = base + "-" + suffix++;
+        }
+        return slug;
+    }
+
+    /**
+     * Sinh slug unique cho CompanyProfile.
+     *
+     * Ví dụ: "nguyen-ba-ky" → "nguyen-ba-ky-1" → "nguyen-ba-ky-2" …
+     * Fallback (suffix > 100): thêm 8 ký tự UUID ngẫu nhiên.
+     */
+    private String generateUniqueCompanySlug(String name) {
+        String base = SlugUtils.slugify(name);
+        String slug = base;
+        int suffix = 1;
+
+        while (companyRepository.existsBySlug(slug)) {
+            if (suffix > 100) {
+                slug = base + "-" + UUID.randomUUID().toString().substring(0, 8);
+                break;
+            }
+            slug = base + "-" + suffix++;
+        }
+        return slug;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
      * Tách fullName thành [firstName, lastName].
      *
-     * Quy tắc:
-     * - "Nguyễn Minh Hằng" → ["Nguyễn", "Minh Hằng"] (từ đầu = họ, phần còn lại =
-     * tên)
-     * - "Hằng" → ["Hằng", null]
-     * - null / blank → ["user", null]
-     *
-     * Lưu ý: Có thể điều chỉnh quy tắc tách tùy theo quy ước đặt tên của hệ thống.
+     * "Nguyễn Minh Hằng" → ["Nguyễn", "Minh Hằng"]
+     * "Hằng" → ["Hằng", null]
+     * null / blank → ["user", null]
      */
     private static String[] splitFullName(String fullName) {
         if (fullName == null || fullName.isBlank()) {
             return new String[] { "user", null };
         }
-
         String trimmed = fullName.trim();
         int space = trimmed.indexOf(' ');
-
         if (space < 0) {
             return new String[] { trimmed, null };
         }
-
         String first = trimmed.substring(0, space);
         String last = trimmed.substring(space + 1).trim();
         return new String[] { first, last.isEmpty() ? null : last };
@@ -179,7 +205,7 @@ public class ProfileCreationService {
     public boolean hasProfile(User user) {
         return switch (user.getRole()) {
             case CANDIDATE -> candidateProfileRepository.existsByUserId(user.getId());
-            case EMPLOYER -> false;
+            case EMPLOYER -> companyRepository.existsByOwnerId(user.getId());
             case ADMIN, SUPER_ADMIN -> true;
             default -> false;
         };
