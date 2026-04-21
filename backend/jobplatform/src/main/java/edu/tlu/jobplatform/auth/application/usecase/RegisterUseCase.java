@@ -3,7 +3,6 @@ package edu.tlu.jobplatform.auth.application.usecase;
 import edu.tlu.jobplatform.auth.application.port.out.OtpStorePort;
 import edu.tlu.jobplatform.auth.domain.service.PasswordEncoder;
 import edu.tlu.jobplatform.shared.email.EmailService;
-import edu.tlu.jobplatform.shared.event.UserRegisteredEvent;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
@@ -11,7 +10,6 @@ import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +24,12 @@ import java.util.UUID;
  * Flow:
  * 1. Validate email unique + password strength
  * 2. Tạo User (verified = false)
- * 3. Tạo profile mặc định (CandidateProfile / EmployerProfile)
- * 4. Sinh OTP → lưu Redis → gửi email
- * 5. Trả về userId + email + role
+ * 3. Sinh OTP → lưu Redis → gửi email
+ * 4. Trả về userId + email + role
  * (Không đăng nhập ngay — phải verify email trước)
  *
- * Sau khi verify email xong (VerifyEmailUseCase):
- * → Trả về AuthToken để frontend đăng nhập luôn không cần redirect.
+ * Profile mặc định (CandidateProfile / CompanyProfile) được tạo
+ * trong VerifyEmailUseCase SAU KHI user xác thực email thành công.
  */
 @Slf4j
 @Service
@@ -46,7 +43,7 @@ public class RegisterUseCase {
     private final PasswordEncoder passwordEncoder;
     private final OtpStorePort otpStore;
     private final EmailService emailService;
-    private final ApplicationEventPublisher eventPublisher;
+    // ApplicationEventPublisher đã được xóa — profile tạo sau verify email
 
     @Transactional
     public Result execute(Command cmd) {
@@ -61,7 +58,7 @@ public class RegisterUseCase {
         // BR-02: Password đủ mạnh
         validatePassword(cmd.password());
 
-        // Tạo User
+        // Tạo User (verified = false, chưa có profile)
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .email(cmd.email().toLowerCase().trim())
@@ -75,9 +72,6 @@ public class RegisterUseCase {
                 .build();
 
         User saved = userRepository.save(user);
-
-        // Tạo profile mặc định theo role
-        eventPublisher.publishEvent(new UserRegisteredEvent(saved));
 
         // Sinh OTP → Redis → Email
         String otp = generateOtp();

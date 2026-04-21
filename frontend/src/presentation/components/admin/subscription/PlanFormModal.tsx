@@ -268,7 +268,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
             </button>
             <button onClick={handleSave} disabled={saving}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm
-                font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800
+                font-semibold text-white bg-blue-500 rounded-xl hover:bg-blue-800
                 disabled:opacity-50 transition-colors">
               {saving
                 ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

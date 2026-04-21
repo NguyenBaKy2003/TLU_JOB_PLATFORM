@@ -70,14 +70,14 @@ export function EmployerLoginForm({ onSubmit, onGoogleLogin, loading = false, oa
               className="w-3.5 h-3.5 rounded border-gray-300 accent-blue-600" />
             Ghi nhớ mật khẩu
           </label>
-          <Link href="/auth/employer/forgot-password" className="text-blue-600 hover:underline">
+          <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
             Quên mật khẩu?
           </Link>
         </div>
 
         {/* Submit — dark button like PDF */}
         <button type="submit" disabled={busy}
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded text-sm
+          className="w-full bg-blue-500 hover:bg-blue-800 text-white py-2.5 rounded text-sm
             font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
           {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
           {loading ? "Đang xử lý..." : "Đăng Nhập"}

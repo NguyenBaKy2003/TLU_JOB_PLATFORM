@@ -54,8 +54,8 @@ export function VerificationStatusCard({ status, rejectionReason, onResubmit }: 
           )}
           {status === "REJECTED" && onResubmit && (
             <button onClick={onResubmit}
-              className="mt-3 flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white
-                text-xs font-semibold rounded-xl hover:bg-gray-800 transition-colors">
+              className="mt-3 flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white
+                text-xs font-semibold rounded-xl hover:bg-blue-800 transition-colors">
               <Send size={12} /> Gửi lại để xét duyệt
             </button>
           )}

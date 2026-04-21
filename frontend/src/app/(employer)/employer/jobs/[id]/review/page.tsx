@@ -163,8 +163,8 @@ export default function JobReviewPage() {
         {/* ── Save ─────────────────────────────────────────────── */}
         <button
           onClick={handleSave}
-          className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-2xl
-            hover:bg-gray-800 transition-colors shadow-sm"
+          className="w-full py-3.5 bg-blue-500 text-white text-sm font-semibold rounded-2xl
+            hover:bg-blue-800 transition-colors shadow-sm"
         >
           Lưu
         </button>

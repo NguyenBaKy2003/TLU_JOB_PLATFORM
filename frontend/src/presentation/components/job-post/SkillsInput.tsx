@@ -61,8 +61,8 @@ export function SkillsInput({ skills, onChange }: Props) {
           Bắt buộc
         </label>
         <button onClick={() => add()} type="button"
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 text-white text-sm
-            font-medium rounded-xl hover:bg-gray-800 transition-colors shrink-0 whitespace-nowrap">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white text-sm
+            font-medium rounded-xl hover:bg-blue-800 transition-colors shrink-0 whitespace-nowrap">
           <Plus size={15} /> Thêm
         </button>
       </div>

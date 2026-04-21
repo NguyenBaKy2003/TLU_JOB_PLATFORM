@@ -1,5 +1,8 @@
 package edu.tlu.jobplatform.subscription.application.usecase;
 
+import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.payment.domain.model.Payment;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.domain.repository.PaymentRepository;
@@ -29,13 +32,19 @@ public class PurchasePlanUseCase {
         private final PaymentRepository paymentRepository;
         private final SubscriptionDomainService domainService;
         private final PaymentGatewayPort paymentGateway;
-
+        private final CompanyRepository companyRepository;
         @Value("${app.base-url:http://localhost:8080}")
         private String baseUrl;
 
         @Transactional
         public Result execute(Command cmd) {
+                CompanyProfile company = companyRepository.findById(cmd.companyId())
+                                .orElseThrow(() -> ResourceNotFoundException.of("Company", cmd.companyId()));
 
+                if (company.getVerificationStatus() != VerificationStatus.VERIFIED)
+                        throw new BusinessRuleException(
+                                        "Công ty chưa được xác thực. Vui lòng chờ admin duyệt hồ sơ trước khi mua gói.",
+                                        "COMPANY_NOT_VERIFIED");
                 SubscriptionPlan plan = planRepository.findById(cmd.planId())
                                 .orElseThrow(() -> ResourceNotFoundException.of("SubscriptionPlan", cmd.planId()));
 

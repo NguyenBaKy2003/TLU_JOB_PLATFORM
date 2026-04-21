@@ -171,14 +171,34 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         };
     }
 
-    /** Redirect về frontend callback với error params. */
+    /** Redirect về frontend login page với error params. */
     private void redirectError(HttpServletRequest req, HttpServletResponse res,
             String errorCode, String message) throws IOException {
+
+        // Xác định trang login phù hợp dựa theo errorCode
+        String loginPath = switch (errorCode) {
+            case "PORTAL_ACCESS_DENIED" -> {
+                // Redirect về đúng portal của user, không phải portal họ đang cố vào
+                HttpSession session = req.getSession(false);
+                String attempted = (session != null)
+                        ? (String) session.getAttribute(
+                                CustomAuthorizationRequestResolver.SESSION_KEY_PORTAL_TYPE)
+                        : "CANDIDATE";
+                // Nếu cố vào CANDIDATE nhưng là EMPLOYER → redirect về employer login
+                yield "CANDIDATE".equals(attempted)
+                        ? "/employer/login"
+                        : "/login";
+            }
+            case "ACCOUNT_LOCKED" -> "/login";
+            default -> "/login";
+        };
+
         String url = UriComponentsBuilder
-                .fromUriString(frontendUrl + "/auth/oauth2/callback")
+                .fromUriString(frontendUrl + loginPath)
                 .queryParam("error", errorCode)
-                .queryParam("message", message)
-                .build().toUriString();
+                .build()
+                .toUriString();
+
         getRedirectStrategy().sendRedirect(req, res, url);
     }
 }
