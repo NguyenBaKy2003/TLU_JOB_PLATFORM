@@ -42,7 +42,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
     { label: "Tổng quan",     href: "/employer/dashboard",  Icon: LayoutDashboard },
     { label: "Quản lý tin",   href: "/employer/jobs",       Icon: FileText        },
     { label: "Ứng viên",      href: "/employer/applications", Icon: Users           },
-    { label: "Hồ sơ công ty", href: "/employer/company",   Icon: Building2       },
+    { label: "Hồ sơ công ty", href: "/employer/profile",   Icon: Building2       },
     { label: "Cài đặt",       href: "/employer/settings",   Icon: Settings        },
   ];
   const dropdownItems = isEmployer ? EMPLOYER_ITEMS : CANDIDATE_ITEMS;
@@ -74,7 +74,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
   return (
     <header
       className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
-        border-b border-gray-100 sticky top-0 z-10 shrink-0"
+  border-b border-gray-100 sticky top-0 z-20 shrink-0"
     >
       {/* ── Left ──────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 min-w-0">
@@ -131,7 +131,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           </button>
         ) : (
           <div
-            className="sm:hidden fixed inset-x-0 top-0 z-30 flex items-center gap-2
+            className="sm:hidden fixed inset-x-0 top-0 z-20 flex items-center gap-2
               px-4 py-3 bg-white border-b border-gray-100 shadow-sm"
           >
             <Search size={15} className="text-gray-400 shrink-0" />
@@ -196,7 +196,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
 
         {/* ── User menu ─────────────────────────────────────────────────── */}
         {user && (
-          <div className="relative" ref={userMenuRef}>
+          <div className="relative " ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen((v) => !v); setNotifOpen(false); }}
               className="flex items-center gap-1.5 px-1 py-1 rounded-xl hover:bg-gray-50 transition-colors"
@@ -232,7 +232,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             {userMenuOpen && (
               <div
                 className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl
-                  border border-gray-100 shadow-lg py-1 z-10"
+  border border-gray-100 shadow-lg py-1 z-20"
               >
                 {/* Mobile-only user info */}
                 <div className="px-4 py-2.5 border-b border-gray-50 lg:hidden">

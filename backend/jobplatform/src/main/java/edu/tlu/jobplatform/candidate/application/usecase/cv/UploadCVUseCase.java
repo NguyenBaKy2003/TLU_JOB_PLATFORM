@@ -4,7 +4,7 @@ import edu.tlu.jobplatform.candidate.application.port.out.CVParserPort;
 import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateCVRepository;
-import edu.tlu.jobplatform.candidate.domain.service.CVDomainService;
+import edu.tlu.jobplatform.cv.domain.service.CVDomainService;
 import edu.tlu.jobplatform.shared.event.candidate.CVUploadedEvent;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;

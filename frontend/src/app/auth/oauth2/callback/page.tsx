@@ -33,8 +33,6 @@ export default function OAuth2CallbackPage() {
       toast.error("Đăng nhập thất bại", msg);
       setErrorMsg(msg);
 
-      // Với PORTAL_ACCESS_DENIED: backend trả message đã có hướng dẫn.
-      // Sau 2 giây tự redirect về trang login tương ứng.
       const redirectTo = error === "PORTAL_ACCESS_DENIED"
         ? resolveLoginPage(portal, message)
         : LOGIN_REDIRECT[error] ?? "/auth/login";
