@@ -230,7 +230,7 @@ export default function ProfilePage() {
   return (
  
 
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-4  lg:gap-6 items-start">
 
         {/* ── Left: profile sections ─────────────────────────────────── */}
         <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
@@ -261,7 +261,7 @@ export default function ProfilePage() {
           Mobile:  full width, below sections (order doesn't matter, natural flow)
           Desktop: fixed w-72, sticky top-4 so cards stay visible while scrolling
         */}
-        <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 flex flex-col gap-4">
+        <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 z-10 flex flex-col gap-4">
           <ProfileCompletionCard percentage={percentage} steps={steps} />
           <CVUploadCard
             primaryCV={primaryCV}

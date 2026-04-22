@@ -2,11 +2,11 @@ package edu.tlu.jobplatform.candidate.application.usecase.cv;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateCVRepository;
-import edu.tlu.jobplatform.candidate.domain.service.CVDomainService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import edu.tlu.jobplatform.cv.domain.service.CVDomainService;
 
 import java.util.List;
 import java.util.UUID;

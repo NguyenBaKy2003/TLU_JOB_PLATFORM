@@ -546,6 +546,109 @@ src/main/java/edu/tlu/jobplatform/
                 # @RateLimit(policy = "send-message", scope = USER)
                 # Dùng trên method trong MessageController, AuthController…
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+│  DOMAIN: CV  (Online CV Builder)
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── cv/
+│   ├── domain/
+│   │   ├── model/
+│   │   │   ├── OnlineCV.java                   # Aggregate root
+│   │   │   │   # {id, candidateId, title, templateId,
+│   │   │   │   #  personalInfo, sections[], status, visibility,
+│   │   │   │   #  slug, viewCount, createdAt, updatedAt}
+│   │   │   ├── CVSection.java                  # Entity trong aggregate
+│   │   │   │   # {id, type, displayOrder, visible, content}
+│   │   │   │   # type: SUMMARY | EXPERIENCE | EDUCATION |
+│   │   │   │   #       SKILL | PROJECT | CERTIFICATE |
+│   │   │   │   #       LANGUAGE | AWARD | CUSTOM
+│   │   │   ├── CVTemplate.java                 # Value object (read-only)
+│   │   │   │   # {id, name, thumbnailUrl, category, isPremium}
+│   │   │   └── vo/
+│   │   │       ├── PersonalInfo.java            # Value object
+│   │   │       │   # {fullName, email, phone, address,
+│   │   │       │   #  avatarUrl, linkedIn, github, website, headline}
+│   │   │       ├── CVStatus.java               # Enum: DRAFT, PUBLISHED, ARCHIVED
+│   │   │       ├── CVVisibility.java           # Enum: PRIVATE, PUBLIC, LINK_ONLY
+│   │   │       └── SectionContent.java         # Sealed interface / marker
+│   │   │           # Các impl: ExperienceContent, EducationContent,
+│   │   │           #           SkillContent, ProjectContent,
+│   │   │           #           SummaryContent, CustomContent
+│   │   ├── repository/
+│   │   │   ├── OnlineCVRepository.java         # Port ra ngoài
+│   │   │   └── CVTemplateRepository.java
+│   │   └── service/
+│   │       └── CVDomainService.java
+│   │           # validateCanPublish(cv) — kiểm tra đủ thông tin tối thiểu
+│   │           # reorderSections(cv, newOrder) — cập nhật displayOrder
+│   │           # duplicateCV(cv) → OnlineCV — clone sang draft mới
+│   │           # generateSlug(title, candidateId) → String
+│   │
+│   ├── application/
+│   │   ├── usecase/
+│   │   │   ├── CreateOnlineCVUseCase.java      # Tạo CV mới từ template
+│   │   │   ├── UpdateOnlineCVUseCase.java      # Cập nhật personalInfo, metadata
+│   │   │   ├── UpdateCVSectionUseCase.java     # Thêm/sửa/xóa một section
+│   │   │   ├── ReorderSectionsUseCase.java     # Kéo thả thứ tự section
+│   │   │   ├── PublishCVUseCase.java           # DRAFT → PUBLISHED + sinh slug
+│   │   │   ├── ArchiveCVUseCase.java           # PUBLISHED/DRAFT → ARCHIVED
+│   │   │   ├── DuplicateCVUseCase.java         # Clone CV hiện tại → draft mới
+│   │   │   ├── ExportCVUseCase.java            # Render → PDF file
+│   │   │   ├── GetMyCVsUseCase.java            # Danh sách CV của candidate
+│   │   │   ├── GetCVDetailUseCase.java         # Chi tiết để edit
+│   │   │   ├── GetPublicCVUseCase.java         # Xem public qua slug (không cần auth)
+│   │   │   ├── GetCVTemplatesUseCase.java      # Danh sách template
+│   │   │   └── ImportFromProfileUseCase.java   # Tự điền từ CandidateProfile
+│   │   └── port/
+│   │       └── out/
+│   │           ├── CVRenderPort.java           # Interface render HTML → PDF
+│   │           │   # render(OnlineCV, CVTemplate) → byte[]
+│   │           └── CVStoragePort.java          # Interface lưu PDF đã render
+│   │               # store(candidateId, cvId, pdfBytes) → String (url)
+│   │
+│   ├── infrastructure/
+│   │   ├── persistence/
+│   │   │   ├── entity/
+│   │   │   │   ├── OnlineCVJpaEntity.java
+│   │   │   │   ├── CVSectionJpaEntity.java
+│   │   │   │   └── CVTemplateJpaEntity.java
+│   │   │   ├── repository/
+│   │   │   │   ├── OnlineCVJpaRepository.java
+│   │   │   │   └── CVTemplateJpaRepository.java
+│   │   │   ├── adapter/
+│   │   │   │   ├── OnlineCVRepositoryAdapter.java  # implements OnlineCVRepository
+│   │   │   │   └── CVTemplateRepositoryAdapter.java
+│   │   │   └── mapper/
+│   │   │       └── OnlineCVMapper.java
+│   │   ├── render/
+│   │   │   ├── ThymeleafCVRenderAdapter.java   # implements CVRenderPort
+│   │   │   │   # Render Thymeleaf template → HTML → Flying Saucer → PDF
+│   │   │   └── templates/                      # Thymeleaf .html templates
+│   │   │       ├── cv-template-classic.html
+│   │   │       ├── cv-template-modern.html
+│   │   │       └── cv-template-minimal.html
+│   │   ├── storage/
+│   │   │   └── S3CVStorageAdapter.java         # implements CVStoragePort
+│   │   │       # Tái dùng S3FileStorageAdapter của candidate domain
+│   │   └── event/
+│   │       └── CVPublishedEventPublisher.java
+│   │           # Publish CVPublishedEvent khi CV chuyển sang PUBLISHED
+│   │
+│   └── presentation/
+│       ├── OnlineCVController.java             # /api/cv — CRUD + publish + export
+│       ├── PublicCVController.java             # /public/cv/{slug} — không cần auth
+│       ├── CVTemplateController.java           # /api/cv/templates
+│       └── dto/
+│           ├── request/
+│           │   ├── CreateOnlineCVRequest.java  # {title, templateId}
+│           │   ├── UpdateOnlineCVRequest.java  # {title, personalInfo, visibility}
+│           │   ├── UpdateCVSectionRequest.java # {type, content, visible}
+│           │   ├── ReorderSectionsRequest.java # {sectionIds: []}
+│           │   └── ImportFromProfileRequest.java
+│           └── response/
+│               ├── OnlineCVResponse.java       # Dùng cho list (không có sections)
+│               ├── OnlineCVDetailResponse.java # Dùng cho edit (có đầy đủ sections)
+│               ├── PublicCVResponse.java       # Dùng cho view public
+│               └── CVTemplateResponse.java
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 │  SHARED — Dùng chung toàn app
 │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 └── shared/
@@ -585,6 +688,13 @@ src/main/java/edu/tlu/jobplatform/
     │   │   └── PaymentSuccessEvent.java
     │   └── company/
     │       └── CompanyVerifiedEvent.java
+            cv/
+        ├── CVPublishedEvent.java
+        │   # {cvId, candidateId, slug, publishedAt}
+        ├── CVExportedEvent.java
+        │   # {cvId, candidateId, pdfUrl}
+        └── CVViewedEvent.java
+            # {cvId, slug, viewerIp} — dùng để tăng viewCount async
     ├── response/
     │   ├── ApiResponse.java            # {success, data, message, timestamp}
     │   └── PageResponse.java
@@ -630,3 +740,26 @@ SubmitApplicationUseCase.execute(command)
          ▼           ▼               ▼                 ▼
   JobEventHandler  AIEventHandler  NotificationHandler AuditHandler
   (tăng count)    (@Async score)   (gửi email)        (log action)
+
+POST /api/cv/{cvId}/export
+         │
+         ▼
+OnlineCVController
+         │  extract cvId, check ownership
+         ▼
+ExportCVUseCase.execute(cvId, candidateId)
+         │
+         ├─► OnlineCVRepository.findById(cvId)
+         │       └── check ownership + status != ARCHIVED
+         │
+         ├─► CVTemplateRepository.findById(cv.templateId)
+         │
+         ├─► CVRenderPort.render(cv, template)
+         │       └── ThymeleafCVRenderAdapter
+         │               ├── render HTML từ template .html
+         │               └── Flying Saucer → byte[] PDF
+         │
+         ├─► CVStoragePort.store(candidateId, cvId, pdfBytes)
+         │       └── S3CVStorageAdapter → trả về pdfUrl
+         │
+         └─► ApplicationEventPublisher.publish(CVExportedEvent)

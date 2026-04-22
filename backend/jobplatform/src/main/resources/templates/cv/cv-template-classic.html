@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xml:lang="vi">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title th:text="${cv.title}">CV</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 20mm 18mm 20mm 18mm;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "DejaVu Sans", sans-serif;
+            font-size: 10pt;
+            color: #2c2c2c;
+            line-height: 1.5;
+        }
+
+        /* ── Header ── */
+        .header {
+            border-bottom: 3px solid #1a3c5e;
+            padding-bottom: 12pt;
+            margin-bottom: 16pt;
+        }
+        .name {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #1a3c5e;
+            letter-spacing: 1pt;
+        }
+        .headline {
+            font-size: 11pt;
+            color: #555;
+            margin-top: 3pt;
+        }
+        .contact-row {
+            margin-top: 8pt;
+            font-size: 9pt;
+            color: #444;
+        }
+        .contact-row span { margin-right: 14pt; }
+
+        /* ── Sections ── */
+        .section { margin-bottom: 14pt; }
+        .section-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #1a3c5e;
+            text-transform: uppercase;
+            letter-spacing: 0.5pt;
+            border-bottom: 1px solid #c8d8e8;
+            padding-bottom: 3pt;
+            margin-bottom: 8pt;
+        }
+
+        /* ── Experience / Education entries ── */
+        .entry { margin-bottom: 9pt; }
+        .entry-header {
+            display: table;
+            width: 100%;
+        }
+        .entry-left  { display: table-cell; }
+        .entry-right {
+            display: table-cell;
+            text-align: right;
+            white-space: nowrap;
+            color: #666;
+            font-size: 9pt;
+        }
+        .entry-title { font-weight: bold; font-size: 10.5pt; }
+        .entry-sub   { color: #555; font-size: 9.5pt; }
+        .entry-desc  { margin-top: 4pt; font-size: 9.5pt; color: #333; }
+
+        /* ── Skills ── */
+        .skill-list { }
+        .skill-item {
+            display: inline-block;
+            background: #e8f0fa;
+            color: #1a3c5e;
+            border-radius: 3pt;
+            padding: 2pt 7pt;
+            margin: 2pt 3pt 2pt 0;
+            font-size: 9pt;
+        }
+
+        /* ── Summary ── */
+        .summary-text { font-size: 10pt; color: #333; }
+
+        /* ── Languages ── */
+        .lang-item { display: inline-block; margin-right: 18pt; font-size: 9.5pt; }
+        .lang-level { color: #666; }
+    </style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+<div class="header" th:if="${personalInfo != null}">
+    <div class="name"    th:text="${personalInfo.fullName}">Nguyễn Văn A</div>
+    <div class="headline" th:if="${personalInfo.headline}"
+         th:text="${personalInfo.headline}">Java Developer</div>
+    <div class="contact-row">
+        <span th:if="${personalInfo.email}"    th:text="${personalInfo.email}"/>
+        <span th:if="${personalInfo.phone}"    th:text="${personalInfo.phone}"/>
+        <span th:if="${personalInfo.address}"  th:text="${personalInfo.address}"/>
+        <span th:if="${personalInfo.linkedIn}" th:text="${personalInfo.linkedIn}"/>
+        <span th:if="${personalInfo.github}"   th:text="${personalInfo.github}"/>
+        <span th:if="${personalInfo.website}"  th:text="${personalInfo.website}"/>
+    </div>
+</div>
+
+<!-- ── SECTIONS (theo thứ tự displayOrder) ────────────────────────────── -->
+<div th:each="section : ${sections}">
+
+    <!-- SUMMARY -->
+    <div class="section" th:if="${section.type.name() == 'SUMMARY'}">
+        <div class="section-title" th:text="${section.title}">Giới thiệu</div>
+        <div class="summary-text" th:utext="${#strings.replace(section.content, '&quot;', '')}"/>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="section" th:if="${section.type.name() == 'EXPERIENCE'}">
+        <div class="section-title" th:text="${section.title}">Kinh nghiệm</div>
+        <!--/* content là JSON array — parse bên adapter trước khi đưa vào context nếu cần
+               Ở đây dùng cách đơn giản: in raw text block nếu chưa parse */-->
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+    <!-- EDUCATION -->
+    <div class="section" th:if="${section.type.name() == 'EDUCATION'}">
+        <div class="section-title" th:text="${section.title}">Học vấn</div>
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+    <!-- SKILL -->
+    <div class="section" th:if="${section.type.name() == 'SKILL'}">
+        <div class="section-title" th:text="${section.title}">Kỹ năng</div>
+        <div class="skill-list" th:utext="${section.content}"/>
+    </div>
+
+    <!-- PROJECT -->
+    <div class="section" th:if="${section.type.name() == 'PROJECT'}">
+        <div class="section-title" th:text="${section.title}">Dự án</div>
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+    <!-- CERTIFICATE -->
+    <div class="section" th:if="${section.type.name() == 'CERTIFICATE'}">
+        <div class="section-title" th:text="${section.title}">Chứng chỉ</div>
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+    <!-- LANGUAGE -->
+    <div class="section" th:if="${section.type.name() == 'LANGUAGE'}">
+        <div class="section-title" th:text="${section.title}">Ngoại ngữ</div>
+        <div th:utext="${section.content}"/>
+    </div>
+
+    <!-- AWARD -->
+    <div class="section" th:if="${section.type.name() == 'AWARD'}">
+        <div class="section-title" th:text="${section.title}">Giải thưởng</div>
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+    <!-- CUSTOM -->
+    <div class="section" th:if="${section.type.name() == 'CUSTOM'}">
+        <div class="section-title" th:text="${section.title}">Khác</div>
+        <div th:utext="${section.content}" class="entry-desc"/>
+    </div>
+
+</div>
+
+</body>
+</html>

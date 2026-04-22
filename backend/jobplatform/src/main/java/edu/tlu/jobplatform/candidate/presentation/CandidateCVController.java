@@ -2,7 +2,6 @@ package edu.tlu.jobplatform.candidate.presentation;
 
 import edu.tlu.jobplatform.candidate.application.usecase.cv.*;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
-import edu.tlu.jobplatform.candidate.presentation.dto.request.CreateOnlineCVRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.CVUploadRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.CVResponse;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
@@ -38,7 +37,6 @@ public class CandidateCVController {
 
         private final ListCVUseCase listCVUseCase;
         private final UploadCVUseCase uploadCVUseCase;
-        private final CreateOnlineCVUseCase createOnlineCVUseCase;
         private final SetPrimaryCVUseCase setPrimaryCVUseCase;
         private final DeleteCVUseCase deleteCVUseCase;
         private final DownloadCVUseCase downloadCVUseCase;
@@ -98,23 +96,6 @@ public class CandidateCVController {
                 CandidateCV cv = uploadCVUseCase.execute(cmd);
                 return ResponseEntity.ok(ApiResponse.success(
                                 CVResponse.from(cv), "CV đã được tải lên thành công."));
-        }
-
-        // ── POST /api/v1/candidate/cv/online ──────────────────────────────────────
-
-        @Operation(summary = "Tạo CV online", description = """
-                        Tạo CV trực tiếp trên hệ thống (không cần upload file).
-                        Nội dung có thể là plain text hoặc HTML.
-                        """)
-        @PostMapping("/online")
-        public ResponseEntity<ApiResponse<CVResponse>> createOnlineCV(
-                        @CurrentUser UUID userId,
-                        @Valid @org.springframework.web.bind.annotation.RequestBody CreateOnlineCVRequest req) {
-
-                CandidateCV cv = createOnlineCVUseCase.execute(
-                                new CreateOnlineCVUseCase.Command(userId, req.getTitle(), req.getContent()));
-                return ResponseEntity.ok(ApiResponse.success(
-                                CVResponse.from(cv), "CV đã được tạo thành công."));
         }
 
         // ── GET /api/v1/candidate/cv/{cvId}/view ──────────────────────────────────
