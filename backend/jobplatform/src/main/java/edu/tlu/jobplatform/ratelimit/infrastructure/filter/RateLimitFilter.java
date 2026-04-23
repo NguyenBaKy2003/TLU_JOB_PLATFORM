@@ -70,7 +70,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     private RateLimit resolveAnnotation(HttpServletRequest request) {
         try {

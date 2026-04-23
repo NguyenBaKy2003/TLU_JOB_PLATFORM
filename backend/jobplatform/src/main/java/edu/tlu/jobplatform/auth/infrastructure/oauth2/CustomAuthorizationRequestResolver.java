@@ -67,7 +67,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
         return savePortalAndReturn(request, base);
     }
 
-    // ── Private ───────────────────────────────────────────────────────────────
+    // ── Private
 
     private OAuth2AuthorizationRequest savePortalAndReturn(
             HttpServletRequest request, OAuth2AuthorizationRequest base) {

@@ -118,7 +118,7 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
                 .map(this::toDomain);
     }
 
-    // ── Mappers ───────────────────────────────────────────────────────────────
+    // ── Mappers
 
     private Application toDomain(ApplicationJpaEntity e) {
         AIScore score = null;

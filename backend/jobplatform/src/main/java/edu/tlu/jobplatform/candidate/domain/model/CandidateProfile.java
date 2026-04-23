@@ -145,7 +145,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Skills ────────────────────────────────────────────────────────────────
+    // ── Skills ─
 
     public void replaceSkills(List<Skill> incoming) {
         this.skills = new ArrayList<>(incoming);
