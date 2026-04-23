@@ -62,7 +62,7 @@ public class GetProfileUseCase {
                                 .build();
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
+        // ──────────
 
         /**
          * Giữ lại skill đầu tiên của mỗi name (case-insensitive).

@@ -8,6 +8,7 @@ import {
   Banknote, BarChart2, Settings, LogOut,
   HelpCircle, ChevronLeft, Shield, X,
   Bell, FileText, CreditCard,
+  BookOpen,
 } from "lucide-react";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -40,6 +41,7 @@ const ADMIN_NAV = [
     items: [
       { label: "Thông báo",     icon: <Bell size={18} />,            href: "/admin/notifications" },
       { label: "Thống kê",      icon: <BarChart2 size={18} />,       href: "/admin/analytics"     },
+      { label: "Mẫu CV",       icon: <BookOpen size={18} />,        href: "/admin/templates"      },
       { label: "Cài đặt",       icon: <Settings size={18} />,        href: "/admin/settings"      },
     ],
   },

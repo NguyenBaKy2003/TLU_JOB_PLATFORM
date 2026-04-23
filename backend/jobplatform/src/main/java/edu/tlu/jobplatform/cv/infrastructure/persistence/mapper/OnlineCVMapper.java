@@ -130,11 +130,30 @@ public class OnlineCVMapper {
                 .thumbnailUrl(e.getThumbnailUrl())
                 .category(e.getCategory())
                 .premium(e.isPremium())
-                .thymeleafTemplate(e.getThymeleafTemplate())
+                .htmlContent(e.getHtmlContent())
                 .build();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    public CVTemplateJpaEntity templateToNewEntity(CVTemplate t) {
+        CVTemplateJpaEntity e = new CVTemplateJpaEntity();
+        e.setId(t.getId());
+        mapTemplateFields(t, e);
+        return e;
+    }
+
+    public void updateTemplateEntity(CVTemplateJpaEntity e, CVTemplate t) {
+        mapTemplateFields(t, e);
+    }
+
+    private void mapTemplateFields(CVTemplate t, CVTemplateJpaEntity e) {
+        e.setName(t.getName());
+        e.setThumbnailUrl(t.getThumbnailUrl());
+        e.setCategory(t.getCategory());
+        e.setPremium(t.isPremium());
+        e.setHtmlContent(t.getHtmlContent());
+    }
+
+    // ── Helpers
 
     private PersonalInfo toPersonalInfo(OnlineCVJpaEntity e) {
         if (e.getPiFullName() == null && e.getPiEmail() == null)

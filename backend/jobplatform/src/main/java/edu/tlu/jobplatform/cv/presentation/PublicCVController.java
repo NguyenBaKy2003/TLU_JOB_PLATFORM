@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/public/cv")
+@RequestMapping("/api/v1/public/cv")
 @RequiredArgsConstructor
 @Tag(name = "Public CV", description = "Xem CV công khai — không cần đăng nhập")
 public class PublicCVController {
@@ -38,7 +38,7 @@ public class PublicCVController {
         return ResponseEntity.ok(ApiResponse.success(PublicCVResponse.from(cv)));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     /**
      * Lấy IP thực của client, xử lý trường hợp đứng sau proxy / load balancer.

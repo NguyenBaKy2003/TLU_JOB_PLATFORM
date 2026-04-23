@@ -46,7 +46,7 @@ public class CandidateProfileQueryAdapter implements CandidateProfileQueryPort {
                 mapLanguages(profile));
     }
 
-    // ── Mappers ───────────────────────────────────────────────────────────────
+    // ── Mappers
 
     private String buildFullName(CandidateProfile p) {
         String first = p.getFirstName() != null ? p.getFirstName() : "";

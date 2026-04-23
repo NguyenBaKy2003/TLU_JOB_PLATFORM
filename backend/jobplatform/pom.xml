@@ -235,6 +235,12 @@
                 <artifactId>itext</artifactId>
                 <version>2.1.7</version>
             </dependency>
+
+            <dependency>
+                <groupId>ognl</groupId>
+                <artifactId>ognl</artifactId>
+                <version>3.3.4</version>
+            </dependency>
       
     </dependencies>
 

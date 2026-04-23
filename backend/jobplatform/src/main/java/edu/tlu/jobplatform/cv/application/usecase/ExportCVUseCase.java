@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.cv.application.usecase;
 
+import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
 import edu.tlu.jobplatform.cv.application.port.out.CVRenderPort;
 import edu.tlu.jobplatform.cv.application.port.out.CVStoragePort;
 import edu.tlu.jobplatform.cv.domain.model.CVTemplate;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -41,10 +42,10 @@ public class ExportCVUseCase {
     private final CVDomainService cvDomainService;
     private final CVRenderPort cvRenderPort;
     private final CVStoragePort cvStoragePort;
+    private final FileStoragePort fileStoragePort; // thêm
     private final ApplicationEventPublisher eventPublisher;
 
-    /** Trả về URL của file PDF đã tạo */
-    public record Result(String pdfUrl, String fileName) {
+    public record Result(String pdfUrl, String fileName, byte[] pdfBytes) {
     }
 
     @Transactional
@@ -52,30 +53,37 @@ public class ExportCVUseCase {
         OnlineCV cv = cvDomainService.loadAndVerifyOwnership(cvId, candidateId);
 
         if (cv.getStatus() == CVStatus.ARCHIVED) {
-            throw new BusinessRuleException(
-                    "CV đã bị archive. Không thể xuất PDF.", "CV_ARCHIVED");
+            throw new BusinessRuleException("CV đã bị archive. Không thể xuất PDF.", "CV_ARCHIVED");
         }
 
+        byte[] pdfBytes;
+
+        // Nếu đã có URL → download lại từ S3, không render lại
+        if (cv.getExportedPdfUrl() != null && !cv.getExportedPdfUrl().isBlank()) {
+            FileStoragePort.FileResult file = fileStoragePort.download(cv.getExportedPdfUrl());
+            try {
+                pdfBytes = file.inputStream().readAllBytes();
+            } catch (IOException e) {
+                throw new BusinessRuleException("Không thể đọc file PDF từ S3.", "CV_PDF_READ_ERROR");
+            }
+            return new Result(cv.getExportedPdfUrl(), buildFileName(cv), pdfBytes);
+        }
+
+        // Chưa có URL → render + upload S3
         CVTemplate template = templateRepository.findById(cv.getTemplateId())
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Template không tồn tại.", "TEMPLATE_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessRuleException("Template không tồn tại.", "TEMPLATE_NOT_FOUND"));
 
-        // Render PDF
-        byte[] pdfBytes = cvRenderPort.render(cv, template);
+        pdfBytes = cvRenderPort.render(cv, template);
 
-        // Lưu lên S3 (ghi đè file cũ nếu cùng cvId)
         String pdfUrl = cvStoragePort.store(candidateId, cvId, pdfBytes);
-
-        // Cập nhật URL vào CV
         cv.updateExportedPdfUrl(pdfUrl);
         cvRepository.save(cv);
 
         String fileName = buildFileName(cv);
-
         eventPublisher.publishEvent(new CVExportedEvent(cvId, candidateId, pdfUrl));
-
         log.info("OnlineCV exported: cvId={} pdfUrl={}", cvId, pdfUrl);
-        return new Result(pdfUrl, fileName);
+
+        return new Result(pdfUrl, fileName, pdfBytes);
     }
 
     private String buildFileName(OnlineCV cv) {

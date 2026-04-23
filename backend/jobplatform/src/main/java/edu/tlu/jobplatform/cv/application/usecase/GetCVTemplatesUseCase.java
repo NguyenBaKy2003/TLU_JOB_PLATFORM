@@ -19,6 +19,7 @@ public class GetCVTemplatesUseCase {
 
     @Transactional(readOnly = true)
     public List<CVTemplate> execute() {
-        return templateRepository.findAll();
+        // Candidate chỉ thấy template đang active
+        return templateRepository.findAllActive();
     }
 }

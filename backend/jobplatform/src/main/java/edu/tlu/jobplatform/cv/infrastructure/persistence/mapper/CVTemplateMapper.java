@@ -14,7 +14,6 @@ public class CVTemplateMapper {
                 .thumbnailUrl(e.getThumbnailUrl())
                 .category(e.getCategory())
                 .premium(e.isPremium())
-                .thymeleafTemplate(e.getThymeleafTemplate())
                 .build();
     }
 
@@ -24,7 +23,6 @@ public class CVTemplateMapper {
         e.setThumbnailUrl(domain.getThumbnailUrl());
         e.setCategory(domain.getCategory());
         e.setPremium(domain.isPremium());
-        e.setThymeleafTemplate(domain.getThymeleafTemplate());
         return e;
     }
 }

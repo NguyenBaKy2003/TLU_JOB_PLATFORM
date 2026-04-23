@@ -60,7 +60,7 @@ public class DownloadCVUseCase {
                 file.contentLength());
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     /** Bỏ ký tự đặc biệt khỏi tên file để tránh lỗi Content-Disposition header */
     private static String sanitizeFileName(String title) {

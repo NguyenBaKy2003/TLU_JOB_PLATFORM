@@ -84,7 +84,7 @@ public class ProfileCreationService {
                 saved.getId(), user.getId(), saved.getProfileUrl());
     }
 
-    // ── Company ───────────────────────────────────────────────────────────────
+    // ── Company
 
     private void createCompanyProfile(User user) {
         if (companyRepository.existsByOwnerId(user.getId())) {
@@ -177,7 +177,7 @@ public class ProfileCreationService {
         return slug;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     /**
      * Tách fullName thành [firstName, lastName].
@@ -200,7 +200,7 @@ public class ProfileCreationService {
         return new String[] { first, last.isEmpty() ? null : last };
     }
 
-    // ── Guards ────────────────────────────────────────────────────────────────
+    // ── Guards ─
 
     public boolean hasProfile(User user) {
         return switch (user.getRole()) {

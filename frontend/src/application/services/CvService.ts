@@ -9,7 +9,7 @@ import type {
 
 export class CvService {
 
-  constructor(private readonly repo: ICvRepository) {}
+  constructor(readonly repo: ICvRepository) {}
 
   // ── Queries ───────────────────────────────────────────────────────────────
 
@@ -27,10 +27,6 @@ export class CvService {
 
   // ── CV CRUD ───────────────────────────────────────────────────────────────
 
-  /**
-   * Tạo CV mới từ form.
-   * title rỗng → dùng tên template làm tiêu đề mặc định.
-   */
   createFromForm(form: CreateCVForm): Promise<OnlineCVDetail> {
     return this.repo.create({
       title:      form.title.trim() || "CV của tôi",
@@ -39,10 +35,21 @@ export class CvService {
   }
 
   /**
-   * Cập nhật metadata CV: title, template, visibility, personalInfo.
+   * Cập nhật personalInfo của CV.
+   * Backend yêu cầu PUT phải gửi đủ title + templateId + visibility,
+   * nên cần truyền vào `currentCv` để merge các field bắt buộc đó.
    */
-  updatePersonalInfo(cvId: string, form: PersonalInfoForm): Promise<OnlineCVDetail> {
+  updatePersonalInfo(
+    cvId: string,
+    form: PersonalInfoForm,
+    currentCv: Pick<OnlineCVDetail, "title" | "templateId" | "visibility">,
+  ): Promise<OnlineCVDetail> {
     return this.repo.update(cvId, {
+      // Giữ nguyên các field bắt buộc từ CV hiện tại
+      title:      currentCv.title,
+      templateId: currentCv.templateId,
+      visibility: currentCv.visibility,
+      // Chỉ cập nhật personalInfo
       personalInfo: {
         fullName:  form.fullName  || null,
         email:     form.email     || null,
@@ -57,16 +64,28 @@ export class CvService {
     });
   }
 
-  updateTitle(cvId: string, title: string): Promise<OnlineCVDetail> {
-    return this.repo.update(cvId, { title: title.trim() });
+  updateTitle(cvId: string, title: string, currentCv: Pick<OnlineCVDetail, "templateId" | "visibility">): Promise<OnlineCVDetail> {
+    return this.repo.update(cvId, {
+      title:      title.trim(),
+      templateId: currentCv.templateId,
+      visibility: currentCv.visibility,
+    });
   }
 
-  updateVisibility(cvId: string, visibility: CVVisibility): Promise<OnlineCVDetail> {
-    return this.repo.update(cvId, { visibility });
+  updateVisibility(cvId: string, visibility: CVVisibility, currentCv: Pick<OnlineCVDetail, "title" | "templateId">): Promise<OnlineCVDetail> {
+    return this.repo.update(cvId, {
+      title:      currentCv.title,
+      templateId: currentCv.templateId,
+      visibility,
+    });
   }
 
-  updateTemplate(cvId: string, templateId: string): Promise<OnlineCVDetail> {
-    return this.repo.update(cvId, { templateId });
+  updateTemplate(cvId: string, templateId: string, currentCv: Pick<OnlineCVDetail, "title" | "visibility">): Promise<OnlineCVDetail> {
+    return this.repo.update(cvId, {
+      title:      currentCv.title,
+      templateId,
+      visibility: currentCv.visibility,
+    });
   }
 
   delete(cvId: string): Promise<void> {
