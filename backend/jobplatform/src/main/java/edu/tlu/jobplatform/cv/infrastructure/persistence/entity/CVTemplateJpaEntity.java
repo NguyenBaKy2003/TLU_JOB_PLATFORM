@@ -25,7 +25,11 @@ public class CVTemplateJpaEntity extends BaseJpaEntity {
     @Column(name = "is_premium", nullable = false)
     private boolean premium;
 
-    /** Tên file Thymeleaf, VD: "cv-template-classic" */
-    @Column(name = "thymeleaf_template", nullable = false, length = 100)
-    private String thymeleafTemplate;
+    /**
+     * Noi dung HTML day du cua template -- luu trong DB.
+     * Admin upload qua POST /api/v1/admin/cv-templates.
+     */
+    @Column(name = "html_content", columnDefinition = "TEXT", nullable = false)
+    private String htmlContent;
+
 }

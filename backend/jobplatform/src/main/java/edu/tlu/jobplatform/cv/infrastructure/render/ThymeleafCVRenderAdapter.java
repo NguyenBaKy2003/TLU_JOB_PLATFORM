@@ -15,6 +15,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,12 @@ import java.util.Map;
  * Implements CVRenderPort.
  *
  * Pipeline:
- * 1. Build Thymeleaf Context từ OnlineCV domain object
- * 2. process(templateName) → resolver ghép "templates/cv/{templateName}.html"
- * 3. Flying Saucer ITextRenderer: XHTML → PDF bytes
+ * 1. Build Thymeleaf Context tu OnlineCV domain object
+ * 2. cvTemplateEngine.process(template.getHtmlContent(), ctx)
+ * StringTemplateResolver render truc tiep HTML string tu DB
+ * 3. Flying Saucer ITextRenderer: XHTML -> PDF bytes
  *
- * Không dùng @RequiredArgsConstructor vì cần @Qualifier trên constructor param.
- * Lombok không forward @Qualifier vào generated constructor.
+ * Khong con file classpath template. Moi template lay tu DB qua Admin API.
  */
 @Slf4j
 @Component
@@ -36,56 +37,59 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
 
     private final TemplateEngine cvTemplateEngine;
 
-    // Constructor tường minh để @Qualifier hoạt động đúng
-    public ThymeleafCVRenderAdapter(@Qualifier("cvTemplateEngine") TemplateEngine cvTemplateEngine) {
+    public ThymeleafCVRenderAdapter(
+            @Qualifier("cvTemplateEngine") TemplateEngine cvTemplateEngine) {
         this.cvTemplateEngine = cvTemplateEngine;
     }
 
     @Override
     public byte[] render(OnlineCV cv, CVTemplate template) {
+        if (template.getHtmlContent() == null || template.getHtmlContent().isBlank()) {
+            throw new BusinessRuleException(
+                    "Template chua co noi dung HTML. Vui long cap nhat template qua Admin API.",
+                    "TEMPLATE_CONTENT_EMPTY");
+        }
+
         try {
             Context ctx = buildContext(cv);
 
-            // FIX: truyền thẳng tên file, KHÔNG prefix "cv/" ở đây.
-            // ✅ templates/cv/cv-template-modern.html
-            String html = cvTemplateEngine.process(template.getThymeleafTemplate(), ctx);
+            // StringTemplateResolver nhan thang HTML string tu DB
+            String html = cvTemplateEngine.process(template.getHtmlContent(), ctx);
 
-            // 3. HTML → PDF
             return htmlToPdf(html);
 
-        } catch (DocumentException | java.io.IOException e) {
-            log.error("CV render failed: cvId={} template={} error={}",
-                    cv.getId(), template.getThymeleafTemplate(), e.getMessage(), e);
+        } catch (DocumentException | IOException e) {
+            log.error("CV render failed: cvId={} templateId={} error={}",
+                    cv.getId(), template.getId(), e.getMessage(), e);
             throw new BusinessRuleException(
-                    "Không thể tạo file PDF. Vui lòng thử lại.", "CV_RENDER_FAILED");
+                    "Khong the tao file PDF. Vui long thu lai.", "CV_RENDER_FAILED");
         }
     }
 
-    // ── Context builder ───────────────────────────────────────────────────────
+    // Context builder
 
     private Context buildContext(OnlineCV cv) {
         Context ctx = new Context();
 
-        // Personal info
         ctx.setVariable("cv", cv);
         ctx.setVariable("personalInfo", cv.getPersonalInfo());
 
-        // Group visible sections theo type để template dễ dùng
+        // Group visible sections theo type -- ${sectionsByType['EXPERIENCE']}
         Map<String, List<CVSection>> sectionsByType = new LinkedHashMap<>();
         for (CVSection s : cv.getVisibleSections()) {
             sectionsByType
-                    .computeIfAbsent(s.getType().name(), k -> new java.util.ArrayList<>())
+                    .computeIfAbsent(s.getType().name(), k -> new ArrayList<>())
                     .add(s);
         }
         ctx.setVariable("sectionsByType", sectionsByType);
 
-        // Danh sách sections theo thứ tự để template dạng linear
+        // Danh sach phang theo displayOrder -- th:each="section : ${sections}"
         ctx.setVariable("sections", cv.getVisibleSections());
 
         return ctx;
     }
 
-    // ── Flying Saucer PDF render ──────────────────────────────────────────────
+    // Flying Saucer
 
     private byte[] htmlToPdf(String html) throws DocumentException, IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {

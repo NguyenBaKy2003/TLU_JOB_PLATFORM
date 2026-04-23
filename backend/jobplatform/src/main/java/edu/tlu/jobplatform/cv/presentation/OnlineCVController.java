@@ -12,6 +12,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +45,8 @@ public class OnlineCVController {
         private final GetMyCVsUseCase getMyCVsUseCase;
         private final GetCVDetailUseCase getCVDetailUseCase;
         private final ImportFromProfileUseCase importFromProfileUseCase;
-
+        private final PreviewCVUseCase previewCVUseCase;
+        private final DownloadExportedCVUseCase downloadExportedCVUseCase;
         // ── GET /api/v1/cv ────────────────────────────────────────────────────────
 
         @Operation(summary = "Danh sách CV của tôi")
@@ -237,19 +242,25 @@ public class OnlineCVController {
 
         // ── POST /api/v1/cv/{cvId}/export ─────────────────────────────────────────
 
-        @Operation(summary = "Xuất CV thành PDF", description = """
-                        Render CV theo template đã chọn → PDF.
-                        Trả về URL tải PDF.
-                        Có thể export cả DRAFT (để preview) lẫn PUBLISHED.
+        @Operation(summary = "Xuất CV thành PDF và tải về", description = """
+                        Nếu CV chưa có PDF → render + upload S3 → stream về máy.
+                        Nếu đã có PDF → tải thẳng từ S3 về.
                         """)
         @PostMapping("/{cvId}/export")
-        public ResponseEntity<ApiResponse<String>> exportCV(
+        public ResponseEntity<InputStreamResource> exportCV(
                         @CurrentUser UUID candidateId,
-                        @PathVariable UUID cvId) {
+                        @PathVariable UUID cvId,
+                        @RequestParam(defaultValue = "attachment") String disposition) { // "inline" hoặc "attachment"
 
                 ExportCVUseCase.Result result = exportUseCase.execute(cvId, candidateId);
-                return ResponseEntity.ok(ApiResponse.success(
-                                result.pdfUrl(), "PDF đã sẵn sàng: " + result.fileName()));
+
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                disposition + "; filename=\"" + result.fileName() + "\"")
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .contentLength(result.pdfBytes().length)
+                                .body(new InputStreamResource(
+                                                new java.io.ByteArrayInputStream(result.pdfBytes())));
         }
 
         // ── POST /api/v1/cv/{cvId}/import-from-profile ────────────────────────────
@@ -269,7 +280,39 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "Dữ liệu hồ sơ đã được import vào CV."));
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────────
+        @Operation(summary = "Preview CV dưới dạng HTML")
+        @GetMapping("/{cvId}/preview-html")
+        public ResponseEntity<ApiResponse<String>> previewHTML(
+                        @CurrentUser UUID candidateId,
+                        @PathVariable UUID cvId) {
+
+                String renderedHtml = previewCVUseCase.execute(cvId, candidateId);
+                // Gọi overload success(T data, String message) để tránh nhầm overload
+                return ResponseEntity.ok(ApiResponse.success(renderedHtml, "Thành công"));
+        }
+
+        // ── GET /api/v1/cv/{cvId}/view ────────────────────────────────────────────
+
+        @Operation(summary = "Xem CV PDF (inline)", description = """
+                        Hiển thị PDF trực tiếp trong browser.
+                        CV phải được export trước.
+                        """)
+        @GetMapping("/{cvId}/view")
+        public ResponseEntity<InputStreamResource> viewCV(
+                        @CurrentUser UUID candidateId,
+                        @PathVariable UUID cvId) {
+
+                DownloadExportedCVUseCase.Result result = downloadExportedCVUseCase.execute(candidateId, cvId);
+
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION,
+                                                "inline; filename=\"" + result.fileName() + "\"")
+                                .contentType(MediaType.parseMediaType(result.contentType()))
+                                .contentLength(result.contentLength())
+                                .body(new InputStreamResource(result.inputStream()));
+        }
+
+        // ── Helpers
 
         private PersonalInfo buildPersonalInfo(PersonalInfoRequest req) {
                 if (req == null)

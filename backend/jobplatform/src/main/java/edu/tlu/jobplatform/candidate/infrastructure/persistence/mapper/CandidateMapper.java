@@ -209,7 +209,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Skill ─────────────────────────────────────────────────────────────────
+        // ── Skill ──
 
         public Skill toDomain(SkillEmbeddable e) {
                 return Skill.of(e.getName(), e.getLevel(), e.getYearsOfExp());
@@ -283,7 +283,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Benefit ───────────────────────────────────────────────────────────────
+        // ── Benefit
 
         public Benefit toDomain(BenefitJpaEntity e) {
                 return Benefit.builder()

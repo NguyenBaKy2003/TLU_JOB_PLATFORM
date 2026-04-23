@@ -4,31 +4,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 /**
- * Cấu hình Thymeleaf engine RIÊNG cho CV rendering.
+ * Cau hinh Thymeleaf engine RIENG cho CV rendering.
  *
- * Tại sao cần engine riêng?
- * - Engine mặc định của Spring Boot dùng HTML5 mode (lenient parsing).
- * - Flying Saucer yêu cầu XHTML hợp lệ (strict XML).
- * - Template resolver riêng trỏ đến /templates/cv/ thay vì /templates/.
+ * Chi dung StringTemplateResolver vi moi template deu lay tu DB (htmlContent).
+ * Khong con file classpath template.
  *
- * Bean name "cvTemplateEngine" để phân biệt với Spring Boot's default engine.
+ * Engine nay doc lap voi Spring Boot default engine (HTML5 mode).
+ * Dung XML mode de Flying Saucer render duoc XHTML.
  */
 @Configuration
 public class CVRenderConfig {
 
     @Bean("cvTemplateEngine")
     public TemplateEngine cvTemplateEngine() {
-        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-
-        resolver.setPrefix("templates/cv/");
-        resolver.setSuffix(".html");
+        StringTemplateResolver resolver = new StringTemplateResolver();
         resolver.setTemplateMode(TemplateMode.XML); // XHTML strict cho Flying Saucer
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setCacheable(true);
-        resolver.setCacheTTLMs(3_600_000L); // 1 giờ
+        resolver.setCacheable(false); // DB content thay doi thuong xuyen
 
         TemplateEngine engine = new TemplateEngine();
         engine.setTemplateResolver(resolver);

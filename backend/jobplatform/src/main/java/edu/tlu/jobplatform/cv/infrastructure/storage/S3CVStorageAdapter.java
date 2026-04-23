@@ -30,7 +30,7 @@ public class S3CVStorageAdapter implements CVStoragePort {
     private String bucketName;
 
     @Value("${aws.s3.region}")
-    private String baseUrl; // VD: https://cdn.jobplatform.vn
+    private String region; // ← đổi từ "baseUrl" thành "region" cho đúng nghĩa
 
     private static final String FOLDER = "cv-exports";
 
@@ -47,7 +47,7 @@ public class S3CVStorageAdapter implements CVStoragePort {
 
             s3Client.putObject(request, RequestBody.fromBytes(pdfBytes));
 
-            String url = baseUrl + "/" + key;
+            String url = buildUrl(key); // ← dùng buildUrl() như FileStorageAdapter
             log.info("CV PDF stored: key={} size={}KB", key, pdfBytes.length / 1024);
             return url;
 
@@ -60,8 +60,11 @@ public class S3CVStorageAdapter implements CVStoragePort {
 
     @Override
     public void delete(String pdfUrl) {
-        // Extract S3 key từ URL
-        String key = pdfUrl.replace(baseUrl + "/", "");
+        String key = extractKeyFromUrl(pdfUrl); // ← dùng extractKeyFromUrl() như FileStorageAdapter
+        if (key == null) {
+            log.warn("Cannot extract S3 key from url={}", pdfUrl);
+            return;
+        }
         try {
             s3Client.deleteObject(DeleteObjectRequest.builder()
                     .bucket(bucketName)
@@ -69,12 +72,29 @@ public class S3CVStorageAdapter implements CVStoragePort {
                     .build());
             log.info("CV PDF deleted: key={}", key);
         } catch (Exception e) {
-            // best-effort — log nhưng không throw
             log.warn("Failed to delete CV PDF: key={} error={}", key, e.getMessage());
         }
     }
 
+    // ── Helpers (copy y chang từ S3FileStorageAdapter) ────────────────────────
+
     private String buildKey(UUID candidateId, UUID cvId) {
         return FOLDER + "/" + candidateId + "/" + cvId + ".pdf";
+    }
+
+    private String buildUrl(String key) {
+        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key;
+    }
+
+    private String extractKeyFromUrl(String url) {
+        if (url == null || url.isBlank())
+            return null;
+        try {
+            String prefix = "amazonaws.com/";
+            int idx = url.indexOf(prefix);
+            return idx >= 0 ? url.substring(idx + prefix.length()) : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -301,7 +301,7 @@ public class AuthController {
                                 "OAUTH2_FAILURE");
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────────
+        // ── Helper ─
 
         private String extractToken(String authHeader) {
                 return authHeader.startsWith("Bearer ")

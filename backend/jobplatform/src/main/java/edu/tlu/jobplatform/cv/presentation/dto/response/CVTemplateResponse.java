@@ -15,6 +15,7 @@ public class CVTemplateResponse {
     private String thumbnailUrl;
     private String category;
     private boolean premium;
+    private String html_content;
 
     public static CVTemplateResponse from(CVTemplate t) {
         return CVTemplateResponse.builder()
@@ -23,6 +24,7 @@ public class CVTemplateResponse {
                 .thumbnailUrl(t.getThumbnailUrl())
                 .category(t.getCategory())
                 .premium(t.isPremium())
+                .html_content(t.getHtmlContent())
                 .build();
     }
 }

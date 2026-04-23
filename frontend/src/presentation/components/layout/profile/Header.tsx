@@ -11,6 +11,7 @@ import {
 import { useAuth }      from "@/application/contexts/AuthContext";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { NotificationPanel } from "@/presentation/components/shared/NotificationPanel";
+import { FaMoneyBill } from "react-icons/fa";
 
 interface Props {
   title?:       string;
@@ -43,6 +44,8 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
     { label: "Quản lý tin",   href: "/employer/jobs",       Icon: FileText        },
     { label: "Ứng viên",      href: "/employer/applications", Icon: Users           },
     { label: "Hồ sơ công ty", href: "/employer/profile",   Icon: Building2       },
+    { label: "Thanh toán", href: "/employer/payments",   Icon: FaMoneyBill       },
+    
     { label: "Cài đặt",       href: "/employer/settings",   Icon: Settings        },
   ];
   const dropdownItems = isEmployer ? EMPLOYER_ITEMS : CANDIDATE_ITEMS;

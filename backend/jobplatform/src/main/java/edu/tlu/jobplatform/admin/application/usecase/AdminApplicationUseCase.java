@@ -36,7 +36,7 @@ public class AdminApplicationUseCase {
     private final ApplicationStatusLogRepository logRepo;
     private final ApplicationDomainService domainService;
 
-    // ── Queries ───────────────────────────────────────────────────────────────
+    // ── Queries
 
     /**
      * Tất cả đơn trong hệ thống.

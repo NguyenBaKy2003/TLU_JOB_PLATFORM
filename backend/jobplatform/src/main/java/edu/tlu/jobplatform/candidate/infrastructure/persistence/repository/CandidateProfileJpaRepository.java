@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface CandidateProfileJpaRepository
                 extends JpaRepository<CandidateProfileJpaEntity, UUID> {
 
-        // ── Finders ───────────────────────────────────────────────────────────────
+        // ── Finders
 
         /**
          * Fetch đầy đủ collections qua @EntityGraph — tránh Cartesian product

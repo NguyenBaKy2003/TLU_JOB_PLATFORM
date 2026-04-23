@@ -26,7 +26,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
     @Value("${aws.s3.region}")
     private String region;
 
-    // ── Upload ────────────────────────────────────────────────────────────────
+    // ── Upload ─
 
     @Override
     public String upload(InputStream inputStream, String fileName,
@@ -87,7 +87,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
+    // ── Delete ─
 
     @Override
     public void delete(String fileUrl) {
@@ -106,7 +106,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     private String buildKey(String folder, String fileName) {
         String sanitized = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");

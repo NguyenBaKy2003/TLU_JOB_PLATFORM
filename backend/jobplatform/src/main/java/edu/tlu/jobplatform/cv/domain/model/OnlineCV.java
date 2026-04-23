@@ -193,7 +193,7 @@ public class OnlineCV {
         return candidateId.equals(userId);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     private void guardNotArchived() {
         if (status == CVStatus.ARCHIVED) {
