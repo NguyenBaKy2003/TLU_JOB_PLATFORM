@@ -1,115 +1,140 @@
-interface LoadingSpinnerProps {
+'use client';
+
+import React from 'react';
+
+export interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'primary' | 'secondary' | 'white';
   fullScreen?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-  message?: string;
+  text?: string;
   className?: string;
 }
 
-export function LoadingSpinner({ 
-  fullScreen = false, 
+const sizeClasses = {
+  sm: 'w-4 h-4 border-2',
+  md: 'w-6 h-6 border-2',
+  lg: 'w-8 h-8 border-3',
+  xl: 'w-12 h-12 border-4'
+};
+
+const variantClasses = {
+  primary: 'border-primary/20 border-t-primary',
+  secondary: 'border-secondary/20 border-t-secondary',
+  white: 'border-white/20 border-t-white'
+};
+
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
-  message = 'Đang tải...',
+  variant = 'primary',
+  fullScreen = false,
+  text,
   className = ''
-}: LoadingSpinnerProps) {
+}) => {
+  const spinner = (
+    <div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
+      <div
+        className={`
+          ${sizeClasses[size]}
+          ${variantClasses[variant]}
+          rounded-full animate-spin
+        `}
+      />
+      {text && (
+        <p className="text-sm text-muted-foreground animate-pulse">
+          {text}
+        </p>
+      )}
+    </div>
+  );
   
-  const sizeClasses = {
-    sm: 'h-8 w-8 border-2',
-    md: 'h-12 w-12 border-3',
-    lg: 'h-16 w-16 border-4'
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        {spinner}
+      </div>
+    );
+  }
+  
+  return spinner;
+};
+
+// Skeleton loading for content
+export interface SkeletonLoaderProps {
+  variant?: 'text' | 'circle' | 'rectangle';
+  width?: string | number;
+  height?: string | number;
+  className?: string;
+}
+
+export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ 
+  variant = 'text', 
+  width, 
+  height, 
+  className = '' 
+}) => {
+  const baseClass = 'animate-pulse bg-muted rounded';
+  
+  const variantClass = {
+    text: 'h-4 rounded',
+    circle: 'rounded-full',
+    rectangle: 'rounded-lg'
   };
-
-  const containerClasses = fullScreen 
-    ? 'fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex items-center justify-center'
-    : `flex items-center justify-center min-h-[200px] ${className}`;
-
+  
+  const style: React.CSSProperties = {};
+  if (width) style.width = typeof width === 'number' ? `${width}px` : width;
+  if (height) style.height = typeof height === 'number' ? `${height}px` : height;
+  else if (variant === 'text') style.height = '1rem';
+  
   return (
-    <div className={containerClasses}>
-      <div className="text-center">
-        <div className="relative inline-block">
-          <div 
-            className={`animate-spin rounded-full border-blue-200 border-t-blue-600 ${sizeClasses[size]} mx-auto`}
-          />
-          
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-          </div>
-        </div>
-        
-        {message && (
-          <p className="text-gray-600 font-medium mt-4 animate-pulse">
-            {message}
-          </p>
-        )}
+    <div
+      className={`${baseClass} ${variantClass[variant]} ${className}`}
+      style={style}
+    />
+  );
+};
+
+// Skeleton for card
+export interface CardSkeletonProps {
+  lines?: number;
+}
+
+export const CardSkeleton: React.FC<CardSkeletonProps> = ({ lines = 3 }) => {
+  return (
+    <div className="border border-border rounded-lg p-4 space-y-3">
+      <SkeletonLoader variant="rectangle" height={160} className="w-full" />
+      <SkeletonLoader variant="text" width="80%" />
+      <SkeletonLoader variant="text" width="60%" />
+      {lines > 2 && <SkeletonLoader variant="text" width="90%" />}
+      <div className="flex gap-2 pt-2">
+        <SkeletonLoader variant="text" width={80} />
+        <SkeletonLoader variant="text" width={80} />
       </div>
     </div>
   );
+};
+
+// Skeleton for list
+export interface ListSkeletonProps {
+  rows?: number;
+  avatar?: boolean;
 }
 
-export function SkeletonLoader({ className = '' }: { className?: string }) {
+export const ListSkeleton: React.FC<ListSkeletonProps> = ({ 
+  rows = 5, 
+  avatar = false 
+}) => {
   return (
-    <div className={`animate-pulse ${className}`}>
-      <div className="space-y-4">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-      </div>
-    </div>
-  );
-}
-
-export function CardSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
-            <div className="flex-1 space-y-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              <div className="flex gap-2">
-                <div className="h-6 bg-gray-200 rounded-full w-20"></div>
-                <div className="h-6 bg-gray-200 rounded-full w-24"></div>
-              </div>
-            </div>
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+          {avatar && <SkeletonLoader variant="circle" width={40} height={40} />}
+          <div className="flex-1 space-y-2">
+            <SkeletonLoader variant="text" width="70%" />
+            <SkeletonLoader variant="text" width="50%" />
           </div>
+          <SkeletonLoader variant="rectangle" width={60} height={28} />
         </div>
       ))}
     </div>
   );
-}
-
-export function PageLoader({ message = 'Đang tải dữ liệu...' }: { message?: string }) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="relative inline-block mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-200 opacity-25"></div>
-          
-          <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 border-t-blue-600"></div>
-          
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-        
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{message}</h3>
-        <p className="text-sm text-gray-500">Vui lòng đợi trong giây lát</p>
-        
-        <div className="flex justify-center gap-2 mt-4">
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ButtonLoader({ size = 'sm' }: { size?: 'sm' | 'md' }) {
-  const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-  
-  return (
-    <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${sizeClass}`} />
-  );
-}
+};

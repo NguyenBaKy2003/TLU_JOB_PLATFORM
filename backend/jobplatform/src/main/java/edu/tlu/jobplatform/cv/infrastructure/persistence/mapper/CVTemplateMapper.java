@@ -14,15 +14,22 @@ public class CVTemplateMapper {
                 .thumbnailUrl(e.getThumbnailUrl())
                 .category(e.getCategory())
                 .premium(e.isPremium())
+                .htmlContent(e.getHtmlContent())
+                .active(e.isActive())
+                .createdAt(e.getCreatedAt())
+                .updatedAt(e.getUpdatedAt())
                 .build();
     }
 
     public CVTemplateJpaEntity toEntity(CVTemplate domain) {
         CVTemplateJpaEntity e = new CVTemplateJpaEntity();
+        e.setId(domain.getId());
         e.setName(domain.getName());
         e.setThumbnailUrl(domain.getThumbnailUrl());
         e.setCategory(domain.getCategory());
         e.setPremium(domain.isPremium());
+        e.setHtmlContent(domain.getHtmlContent());
+        e.setIsActive(domain.isActive());
         return e;
     }
 }

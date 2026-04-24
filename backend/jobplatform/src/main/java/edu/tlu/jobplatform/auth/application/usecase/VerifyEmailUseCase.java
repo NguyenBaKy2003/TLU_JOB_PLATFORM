@@ -68,7 +68,7 @@ public class VerifyEmailUseCase {
             user.markVerified();
             userRepository.save(user);
 
-            // ✅ Gọi thẳng — không qua event, không có ẩn số transaction
+            // Gọi thẳng — không qua event, không có ẩn số transaction
             profileCreationService.createProfileForUser(user);
 
             log.info("Email verified + profile created: {} [{}]", email, user.getRole());

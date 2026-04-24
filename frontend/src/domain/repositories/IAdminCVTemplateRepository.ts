@@ -1,8 +1,12 @@
-import type { CVTemplate, CreateTemplateData, UpdateTemplateData } from "../models/CVTemplate";
+// domain/repositories/IAdminCVTemplateRepository.ts
+import type { 
+  CVTemplate, 
+  CreateCVTemplateRequest, 
+  UpdateCVTemplateRequest 
+} from "@/domain/models/AdminTemplates";
 
 // ─────────────────────────────────────────────────────────────
 // Repository Interface (Port) — domain không phụ thuộc infra
-// Adapter thật: AdminCVTemplateRepository (infrastructure)
 // ─────────────────────────────────────────────────────────────
 
 export interface IAdminCVTemplateRepository {
@@ -13,14 +17,17 @@ export interface IAdminCVTemplateRepository {
   findById(id: string): Promise<CVTemplate>;
 
   /** POST /api/v1/admin/cv-templates */
-  create(data: CreateTemplateData): Promise<CVTemplate>;
+  create(data: CreateCVTemplateRequest): Promise<CVTemplate>;
 
   /** PUT /api/v1/admin/cv-templates/:id */
-  update(id: string, data: UpdateTemplateData): Promise<CVTemplate>;
+  update(id: string, data: UpdateCVTemplateRequest): Promise<CVTemplate>;
 
   /** DELETE /api/v1/admin/cv-templates/:id */
   remove(id: string): Promise<void>;
 
-  /** PATCH /api/v1/admin/cv-templates/:id/toggle-active */
-  toggleActive(id: string, active: boolean): Promise<CVTemplate>;
+  /** PATCH /api/v1/admin/cv-templates/:id/activate */
+  activate(id: string): Promise<CVTemplate>;
+
+  /** PATCH /api/v1/admin/cv-templates/:id/deactivate */
+  deactivate(id: string): Promise<CVTemplate>;
 }

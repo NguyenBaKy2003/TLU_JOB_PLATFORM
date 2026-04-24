@@ -30,7 +30,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
     @Value("classpath:prompts/cv-scoring.st")
     private Resource promptTemplate;
 
-    // ✅ Inject jsonChatClient (temperature thấp, JSON mode)
+    // Inject jsonChatClient (temperature thấp, JSON mode)
     public OpenAICvAnalysisAdapter(
             @Qualifier("jsonChatClient") ChatClient chatClient,
             ObjectMapper objectMapper) {
@@ -43,7 +43,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         log.info("CV analysis: applicationId={} jobTitle='{}'",
                 request.getApplicationId(), request.getJobTitle());
         try {
-            // ✅ Đọc file .st và replace thủ công — không dùng PromptTemplate
+            // Đọc file .st và replace thủ công — không dùng PromptTemplate
             String prompt = promptTemplate
                     .getContentAsString(StandardCharsets.UTF_8)
                     .replace("$jobTitle$", nullSafe(request.getJobTitle()))

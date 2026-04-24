@@ -1,6 +1,7 @@
+// src/presentation/components/cv/edit/CVEditorPanel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Loader2, Download, UserCircle2 } from "lucide-react";
 import type { OnlineCVDetail, CVSection, PersonalInfoForm, UpdateCVSectionPayload } from "@/domain/models/Cv";
 import { EMPTY_PERSONAL_INFO_FORM, SECTION_TYPE_LABELS } from "@/domain/models/Cv";
@@ -47,11 +48,13 @@ function PersonalInfoEditor({
   saving,
   onSave,
   onImportFromProfile,
+  onRealtimeUpdate, // Thêm prop mới
 }: {
   cv: OnlineCVDetail;
   saving: boolean;
   onSave: (form: PersonalInfoForm) => Promise<void>;
   onImportFromProfile: () => Promise<void>;
+  onRealtimeUpdate: (form: PersonalInfoForm) => void; // Cập nhật realtime
 }) {
   const [form, setForm] = useState<PersonalInfoForm>({
     fullName:  cv.personalInfo?.fullName  ?? "",
@@ -66,8 +69,27 @@ function PersonalInfoEditor({
   });
   const [importing, setImporting] = useState(false);
 
-  const set = (key: keyof PersonalInfoForm) => (val: string) =>
-    setForm((f) => ({ ...f, [key]: val }));
+  // Sync form khi cv thay đổi từ bên ngoài
+  useEffect(() => {
+    setForm({
+      fullName:  cv.personalInfo?.fullName  ?? "",
+      email:     cv.personalInfo?.email     ?? "",
+      phone:     cv.personalInfo?.phone     ?? "",
+      address:   cv.personalInfo?.address   ?? "",
+      avatarUrl: cv.personalInfo?.avatarUrl ?? "",
+      headline:  cv.personalInfo?.headline  ?? "",
+      linkedIn:  cv.personalInfo?.linkedIn  ?? "",
+      github:    cv.personalInfo?.github    ?? "",
+      website:   cv.personalInfo?.website   ?? "",
+    });
+  }, [cv.personalInfo]);
+
+  const set = (key: keyof PersonalInfoForm) => (val: string) => {
+    const newForm = { ...form, [key]: val };
+    setForm(newForm);
+    // Cập nhật realtime cho preview
+    onRealtimeUpdate(newForm);
+  };
 
   const handleImport = async () => {
     setImporting(true);
@@ -168,23 +190,50 @@ function SectionEditor({
   section,
   saving,
   onUpdate,
+  onRealtimeUpdate, // Thêm prop mới
 }: {
   section: CVSection;
   saving: boolean;
   onUpdate: (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
+  onRealtimeUpdate: (sectionId: string, payload: UpdateCVSectionPayload) => void; // Cập nhật realtime
 }) {
   const [title, setTitle] = useState(section.title);
   const [content, setContent] = useState(section.content);
+  const [isDirty, setIsDirty] = useState(false);
 
+  // Sync khi section thay đổi từ bên ngoài (chỉ khi không dirty)
   useEffect(() => {
-    setTitle(section.title);
-    setContent(section.content);
-  }, [section.id]);
+    if (!isDirty) {
+      setTitle(section.title);
+      setContent(section.content);
+    }
+  }, [section.id]); // Chỉ sync khi chuyển section
 
-  const isDirty = title !== section.title || content !== section.content;
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    setIsDirty(true);
+    // Cập nhật realtime cho preview
+    onRealtimeUpdate(section.id, { 
+      title: newTitle, 
+      content, 
+      visible: section.visible 
+    });
+  };
 
-  const handleSave = () => {
-    onUpdate(section.id, { title, content, visible: section.visible });
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    setIsDirty(true);
+    // Cập nhật realtime cho preview
+    onRealtimeUpdate(section.id, { 
+      title, 
+      content: newContent, 
+      visible: section.visible 
+    });
+  };
+
+  const handleSave = async () => {
+    await onUpdate(section.id, { title, content, visible: section.visible });
+    setIsDirty(false);
   };
 
   return (
@@ -207,7 +256,7 @@ function SectionEditor({
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             className="
               w-full px-3.5 py-2.5 text-sm font-semibold text-gray-900
               bg-white border border-gray-200 rounded-xl
@@ -233,7 +282,8 @@ function SectionEditor({
                   style={{ fontStyle: f === "I" ? "italic" : "normal", textDecoration: f === "U" ? "underline" : "none" }}
                   onClick={() => {
                     const tag = f === "B" ? "**" : f === "I" ? "_" : "__";
-                    setContent((c) => c + `${tag}text${tag}`);
+                    const newContent = content + `${tag}text${tag}`;
+                    handleContentChange(newContent);
                   }}
                 >
                   {f}
@@ -243,7 +293,10 @@ function SectionEditor({
               <button
                 type="button"
                 className="text-[10px] font-mono text-gray-400 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors"
-                onClick={() => setContent((c) => c + "\n- ")}
+                onClick={() => {
+                  const newContent = content + "\n- ";
+                  handleContentChange(newContent);
+                }}
               >
                 — list
               </button>
@@ -251,7 +304,7 @@ function SectionEditor({
 
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => handleContentChange(e.target.value)}
               rows={16}
               placeholder={`Nhập nội dung cho mục "${title}"...\n\nHỗ trợ Markdown:\n- **in đậm**, _in nghiêng_\n- Danh sách: bắt đầu với "- "\n- Tách đoạn bằng dòng trống`}
               className="
@@ -302,11 +355,15 @@ interface Props {
   onSavePersonalInfo: (form: PersonalInfoForm) => Promise<void>;
   onUpdateSection: (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
   onImportFromProfile: () => Promise<void>;
+  onRealtimePersonalInfoUpdate?: (form: PersonalInfoForm) => void; // Mới
+  onRealtimeSectionUpdate?: (sectionId: string, payload: UpdateCVSectionPayload) => void; // Mới
 }
 
 export function CVEditorPanel({
   cv, activeTab, activeSection, saving,
   onSavePersonalInfo, onUpdateSection, onImportFromProfile,
+  onRealtimePersonalInfoUpdate,
+  onRealtimeSectionUpdate,
 }: Props) {
   return (
     <main className="flex-1 min-w-0 bg-[#F7F6F3] flex flex-col overflow-hidden">
@@ -317,6 +374,7 @@ export function CVEditorPanel({
             saving={saving}
             onSave={onSavePersonalInfo}
             onImportFromProfile={onImportFromProfile}
+            onRealtimeUpdate={onRealtimePersonalInfoUpdate || (() => {})}
           />
         ) : activeSection ? (
           <SectionEditor
@@ -324,6 +382,7 @@ export function CVEditorPanel({
             section={activeSection}
             saving={saving}
             onUpdate={onUpdateSection}
+            onRealtimeUpdate={onRealtimeSectionUpdate || (() => {})}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-400">

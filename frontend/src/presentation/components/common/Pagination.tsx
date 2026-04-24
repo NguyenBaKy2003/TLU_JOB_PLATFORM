@@ -1,51 +1,141 @@
-// src/presentation/components/companies/Pagination.tsx
-import { ChevronLeft, ChevronRight } from "lucide-react";
+'use client';
 
-interface Props {
-  current:  number;
-  total:    number;
-  onChange: (p: number) => void;
+import React from 'react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  siblingCount?: number;
+  showFirstLast?: boolean;
+  className?: string;
 }
 
-export function Pagination({ current, total, onChange }: Props) {
-  const pages: (number | "...")[] = [];
+export const Pagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  siblingCount = 1,
+  showFirstLast = true,
+  className = ''
+}) => {
+  if (totalPages <= 1) return null;
 
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    pages.push(1, 2, 3);
-    if (current > 4) pages.push("...");
-    if (current > 3 && current < total - 2) pages.push(current);
-    if (current < total - 3) pages.push("...");
-    pages.push(total - 1, total);
-  }
+  const range = (start: number, end: number) => {
+    const length = end - start + 1;
+    return Array.from({ length }, (_, i) => start + i);
+  };
 
-  const btn = (label: React.ReactNode, page: number, active = false, disabled = false) => (
-    <button
-      key={String(page) + String(label)}
-      onClick={() => !disabled && onChange(page)}
-      disabled={disabled}
-      className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors
-        ${active
-          ? "bg-blue-600 text-white"
-          : disabled
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-600 hover:bg-gray-100"
-        }`}
-    >
-      {label}
-    </button>
-  );
+  const getPaginationRange = () => {
+    const totalPageNumbers = siblingCount * 2 + 5;
+    
+    if (totalPageNumbers >= totalPages) {
+      return range(1, totalPages);
+    }
+
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 2;
+    const firstPageIndex = 1;
+    const lastPageIndex = totalPages;
+
+    if (!showLeftDots && showRightDots) {
+      const leftRange = range(1, 3 + siblingCount * 2);
+      return [...leftRange, '...', totalPages];
+    }
+
+    if (showLeftDots && !showRightDots) {
+      const rightRange = range(totalPages - (3 + siblingCount * 2) + 1, totalPages);
+      return [firstPageIndex, '...', ...rightRange];
+    }
+
+    if (showLeftDots && showRightDots) {
+      const middleRange = range(leftSiblingIndex, rightSiblingIndex);
+      return [firstPageIndex, '...', ...middleRange, '...', lastPageIndex];
+    }
+
+    return range(1, totalPages);
+  };
+
+  const pages = getPaginationRange();
 
   return (
-    <div className="flex items-center gap-1">
-      {btn(<ChevronLeft size={16} />, current - 1, false, current === 1)}
-      {pages.map((p, i) =>
-        p === "..."
-          ? <span key={`dots-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">…</span>
-          : btn(p, p as number, p === current)
+    <nav className={`flex items-center justify-center gap-1 ${className}`}>
+      {showFirstLast && (
+        <button
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="p-2 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          aria-label="First page"
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </button>
       )}
-      {btn(<ChevronRight size={16} />, current + 1, false, current === total)}
-    </div>
+      
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="p-2 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        aria-label="Previous page"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      
+      <div className="flex gap-1">
+        {pages.map((page, index) => {
+          if (page === '...') {
+            return (
+              <span
+                key={`dots-${index}`}
+                className="px-3 py-2 text-sm text-muted-foreground"
+              >
+                ...
+              </span>
+            );
+          }
+          
+          const pageNumber = page as number;
+          const isActive = pageNumber === currentPage;
+          
+          return (
+            <button
+              key={pageNumber}
+              onClick={() => onPageChange(pageNumber)}
+              className={`
+                min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-all duration-200
+                ${isActive 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'border border-border bg-background hover:bg-muted'
+                }
+              `}
+            >
+              {pageNumber}
+            </button>
+          );
+        })}
+      </div>
+      
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="p-2 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        aria-label="Next page"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+      
+      {showFirstLast && (
+        <button
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="p-2 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          aria-label="Last page"
+        >
+          <ChevronsRight className="w-4 h-4" />
+        </button>
+      )}
+    </nav>
   );
-}
+};

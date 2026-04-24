@@ -6,7 +6,6 @@ import { Shield, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { AuthService }                      from "@/application/services/AuthService";
 import { AuthRepository }                   from "@/infrastructure/repositories/AuthRepository";
 import { useAdminAuth }                     from "@/application/contexts/AdminAuthContext";
-import { extractErrorMessage }              from "@/lib/extractErrorMessage";
 import { useToast }                           from "@/presentation/components/ui/toast";
 
 const authService = new AuthService(new AuthRepository());

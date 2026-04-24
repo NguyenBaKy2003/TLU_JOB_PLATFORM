@@ -28,7 +28,7 @@ public class AdminActionNotificationHandler {
                                 "Công ty đã được xác thực",
                                 "Công ty %s đã được xác thực. Bạn có thể bắt đầu đăng tin tuyển dụng."
                                                 .formatted(event.getCompanyName()),
-                                "/employer/company"));
+                                "/employer/profile"));
         }
 
         @Async("taskExecutor")
@@ -40,7 +40,7 @@ public class AdminActionNotificationHandler {
                                 "Yêu cầu xác thực bị từ chối",
                                 "Công ty %s chưa được xác thực. Lý do: %s"
                                                 .formatted(event.getCompanyName(), event.getReason()),
-                                "/employer/company/edit"));
+                                "/employer/profile/edit"));
         }
 
         @Async("taskExecutor")

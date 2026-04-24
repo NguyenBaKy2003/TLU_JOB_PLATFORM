@@ -55,7 +55,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> createOAuth2User(
                         email, name, avatar, provider, providerId, roleForNew));
 
-        // ✅ Gọi thẳng, không qua event
+        // Gọi thẳng, không qua event
         if (isNewUser) {
             profileCreationService.createProfileForUser(user);
             log.info("Profile created for new OAuth2 user={} role={}",

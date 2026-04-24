@@ -1,25 +1,55 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter }              from "next/navigation";
-import { AuthLayout }             from "@/presentation/components/auth/AuthLayout";
-import { LoginForm }              from "@/presentation/components/auth/LoginForm";
-import { AuthService }            from "@/application/services/AuthService";
-import { AuthRepository }         from "@/infrastructure/repositories/AuthRepository";
-import { useAuth }                from "@/application/contexts/AuthContext";
-import { useToast }               from "@/presentation/components/ui/toast";
-import { setAccessToken, setRefreshToken } from "@/lib/auth-helpers";
+import { useRouter, useSearchParams }        from "next/navigation";
+import { AuthLayout }                        from "@/presentation/components/auth/AuthLayout";
+import { LoginForm }                         from "@/presentation/components/auth/LoginForm";
+import { AuthService }                       from "@/application/services/AuthService";
+import { AuthRepository }                    from "@/infrastructure/repositories/AuthRepository";
+import { useAuth }                           from "@/application/contexts/AuthContext";
+import { useToast }                          from "@/presentation/components/ui/toast";
+import { setAccessToken, setRefreshToken }   from "@/lib/auth-helpers";
 
 const authService = new AuthService(new AuthRepository());
 
+const OAUTH_ERROR_MESSAGES: Record<string, { title: string; message: string }> = {
+  PORTAL_ACCESS_DENIED: {
+    title:   "Sai trang đăng nhập",
+    message: "Tài khoản này là nhà tuyển dụng. Vui lòng đăng nhập tại trang nhà tuyển dụng.",
+  },
+  ACCOUNT_LOCKED: {
+    title:   "Tài khoản bị khóa",
+    message: "Tài khoản đã bị khóa. Vui lòng liên hệ support.",
+  },
+};
+
 export default function LoginPage() {
   const router                                           = useRouter();
+  const searchParams                                     = useSearchParams();
   const { user, loading: authLoading, setUserFromToken } = useAuth();
   const toast                                            = useToast();
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // Nếu đã đăng nhập → redirect về đúng dashboard theo role
+  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ──────────────────────
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (!error) return;
+
+    const { title, message } = OAUTH_ERROR_MESSAGES[error] ?? {
+      title:   "Đăng nhập thất bại",
+      message: "Đăng nhập mạng xã hội thất bại. Vui lòng thử lại.",
+    };
+
+    toast.error(title, message);
+
+    // Xóa ?error khỏi URL để tránh hiển thị lại khi refresh
+    const url = new URL(window.location.href);
+    url.searchParams.delete("error");
+    window.history.replaceState({}, "", url.toString());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Nếu đã đăng nhập → redirect về đúng dashboard theo role ──────────────
   useEffect(() => {
     if (authLoading || !user) return;
     router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/home");
@@ -45,10 +75,6 @@ export default function LoginPage() {
     }
   }, [router, setUserFromToken, toast]);
 
-  /**
-   * Đăng nhập Google với portalType = "CANDIDATE".
-   * AuthService truyền portal vào query param → backend nhúng vào OAuth2 state.
-   */
   const handleGoogleLogin = useCallback(async () => {
     setOauthLoading(true);
     try {

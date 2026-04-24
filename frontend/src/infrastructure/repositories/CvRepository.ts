@@ -6,6 +6,7 @@ import type {
   CreateOnlineCVPayload, UpdateOnlineCVPayload,
   UpdateCVSectionPayload, ReorderSectionsPayload,
   CVSection,
+  PublicCVDetail,
 } from "@/domain/models/Cv";
 import api from "@/lib/axios";
 
@@ -99,9 +100,29 @@ export class CvRepository implements ICvRepository {
     return this.post<OnlineCVDetail>(`${this.BASE}/${cvId}/duplicate`);
   }
 
-  async exportPdf(cvId: string): Promise<string> {
-    return this.post<string>(`${this.BASE}/${cvId}/export`);
-  }
+// Sửa exportPdf
+async exportPdf(cvId: string): Promise<Blob> {
+  const res = await api.post(
+    `${this.BASE}/${cvId}/export`,
+    null,
+    { responseType: "blob" }
+  );
+  return res.data;
+}
+
+// Thêm previewHtml
+async previewHtml(cvId: string): Promise<string> {
+  return this.get<string>(`${this.BASE}/${cvId}/preview-html`);
+}
+
+// Thêm viewPdf
+async viewPdf(cvId: string): Promise<Blob> {
+  const res = await api.get(
+    `${this.BASE}/${cvId}/view`,
+    { responseType: "blob" }
+  );
+  return res.data;
+}
 
   async importFromProfile(cvId: string): Promise<OnlineCVDetail> {
     return this.post<OnlineCVDetail>(`${this.BASE}/${cvId}/import-from-profile`);
@@ -112,4 +133,13 @@ export class CvRepository implements ICvRepository {
   async listTemplates(): Promise<CVTemplate[]> {
     return this.get<CVTemplate[]>(`${this.BASE}/templates`);
   }
+
+
+   async getBySlug(slug: string): Promise<PublicCVDetail> {
+    const res = await api.get<ApiResponse<PublicCVDetail>>(`/public/${this.BASE}/${slug}`);
+    return res.data.data;
+  }
+
+
+
 }

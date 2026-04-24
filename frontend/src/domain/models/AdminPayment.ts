@@ -1,46 +1,45 @@
-export type PaymentStatus =
-  | "PENDING"
-  | "SUCCESS"
-  | "FAILED"
-  | "REFUNDED";
+export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 export interface AdminPayment {
-  id:          string;
-  companyId:   string;
+  id: string;
+  companyId: string;
   companyName: string;
-  amount:      number;
-  currency:    string;
-  status:      PaymentStatus;
-  gateway:     string | null;
-  reason:      string | null;
-  createdAt:   string;
-  updatedAt:   string | null;
-}
-
-export interface AdminPaymentStats {
-  totalRevenue:  number;
-  totalCount:    number;
-  pendingCount:  number;
-  successCount:  number;
-  failedCount:   number;
-  from:          string;
-  to:            string;
+  subscriptionId: string;
+  planCode: string;
+  amount: number;
+  currency: string;
+  amountFormatted: string;
+  gateway: string | null;
+  gatewayOrderCode: string;
+  gatewayTransactionId: string | null;
+  status: PaymentStatus;
+  statusLabel: string;
+  statusColor: string;
+  failureReason: string | null;
+  createdAt: string;
+  completedAt: string | null;
 }
 
 export interface AdminPaymentPage {
-  content:       AdminPayment[];
+  content: AdminPayment[];
   totalElements: number;
-  totalPages:    number;
-  number:        number;
-  size:          number;
+  totalPages: number;
+  number: number;
+  size: number;
 }
 
 export interface AdminPaymentFilters {
-  companyId?: string;
-  status?:    PaymentStatus | "";
-  gateway?:   string;
-  fromDate?:  string; // ISO datetime
-  toDate?:    string;
-  page:       number;
-  size:       number;
+  status?: PaymentStatus;
+  planCode?: string;
+  page: number;
+  size: number;
+}
+
+export interface AdminPaymentStats {
+  totalRevenue: number;
+  totalTransactions: number;
+  successCount: number;
+  failedCount: number;
+  revenueTrend?: number;
+  transactionsTrend?: number;
 }

@@ -2,7 +2,6 @@ package edu.tlu.jobplatform.cv.application.usecase;
 
 import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
 import edu.tlu.jobplatform.cv.application.port.out.CVRenderPort;
-import edu.tlu.jobplatform.cv.application.port.out.CVStoragePort;
 import edu.tlu.jobplatform.cv.domain.model.CVTemplate;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.model.vo.CVStatus;
@@ -16,21 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Export CV thành PDF.
+ * Export CV thanh PDF.
  *
  * Flow:
- * 1. Load CV + verify ownership
- * 2. Load template
- * 3. Render HTML → PDF bytes (CVRenderPort)
- * 4. Upload PDF lên S3 (CVStoragePort)
- * 5. Lưu pdfUrl vào CV + publish event
+ * - Da co exportedPdfUrl -> download thang tu S3 (khong render lai)
+ * - Chua co URL -> render HTML -> PDF bytes -> upload S3 -> luu URL
  *
- * Có thể export cả DRAFT (để preview) và PUBLISHED.
- * ARCHIVED CV không thể export.
+ * Co the export DRAFT (preview) va PUBLISHED. ARCHIVED thi tu choi.
  */
 @Slf4j
 @Service
@@ -41,8 +37,7 @@ public class ExportCVUseCase {
     private final CVTemplateRepository templateRepository;
     private final CVDomainService cvDomainService;
     private final CVRenderPort cvRenderPort;
-    private final CVStoragePort cvStoragePort;
-    private final FileStoragePort fileStoragePort; // thêm
+    private final FileStoragePort fileStoragePort;
     private final ApplicationEventPublisher eventPublisher;
 
     public record Result(String pdfUrl, String fileName, byte[] pdfBytes) {
@@ -53,42 +48,87 @@ public class ExportCVUseCase {
         OnlineCV cv = cvDomainService.loadAndVerifyOwnership(cvId, candidateId);
 
         if (cv.getStatus() == CVStatus.ARCHIVED) {
-            throw new BusinessRuleException("CV đã bị archive. Không thể xuất PDF.", "CV_ARCHIVED");
+            throw new BusinessRuleException(
+                    "CV da bi archive. Khong the xuat PDF.", "CV_ARCHIVED");
         }
 
-        byte[] pdfBytes;
+        String fileName = buildFileName(cv);
 
-        // Nếu đã có URL → download lại từ S3, không render lại
+        // Da co PDF -> download thang tu S3
         if (cv.getExportedPdfUrl() != null && !cv.getExportedPdfUrl().isBlank()) {
-            FileStoragePort.FileResult file = fileStoragePort.download(cv.getExportedPdfUrl());
             try {
-                pdfBytes = file.inputStream().readAllBytes();
+                FileStoragePort.FileResult file = fileStoragePort.download(cv.getExportedPdfUrl());
+                byte[] pdfBytes = file.inputStream().readAllBytes();
+                log.info("CV PDF served from S3 cache: cvId={}", cvId);
+                return new Result(cv.getExportedPdfUrl(), fileName, pdfBytes);
             } catch (IOException e) {
-                throw new BusinessRuleException("Không thể đọc file PDF từ S3.", "CV_PDF_READ_ERROR");
+                // S3 loi hoac het han -> render lai
+                log.warn("Failed to download cached PDF, re-rendering: cvId={} error={}",
+                        cvId, e.getMessage());
             }
-            return new Result(cv.getExportedPdfUrl(), buildFileName(cv), pdfBytes);
         }
 
-        // Chưa có URL → render + upload S3
+        // Chua co URL hoac download that bai -> render moi
         CVTemplate template = templateRepository.findById(cv.getTemplateId())
-                .orElseThrow(() -> new BusinessRuleException("Template không tồn tại.", "TEMPLATE_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Template khong ton tai.", "TEMPLATE_NOT_FOUND"));
 
-        pdfBytes = cvRenderPort.render(cv, template);
+        byte[] pdfBytes = cvRenderPort.render(cv, template);
 
-        String pdfUrl = cvStoragePort.store(candidateId, cvId, pdfBytes);
+        // Upload S3: folder "cv-exports", fileName = "{cvId}.pdf"
+        String pdfUrl = fileStoragePort.upload(
+                new java.io.ByteArrayInputStream(pdfBytes),
+                cv.getId() + ".pdf",
+                "application/pdf",
+                "cv-exports");
+
         cv.updateExportedPdfUrl(pdfUrl);
         cvRepository.save(cv);
 
-        String fileName = buildFileName(cv);
         eventPublisher.publishEvent(new CVExportedEvent(cvId, candidateId, pdfUrl));
         log.info("OnlineCV exported: cvId={} pdfUrl={}", cvId, pdfUrl);
 
         return new Result(pdfUrl, fileName, pdfBytes);
     }
 
+    /**
+     * Force re-render: bo qua cache, render lai tu template hien tai.
+     * Dung khi template duoc cap nhat hoac noi dung CV thay doi.
+     */
+    @Transactional
+    public Result forceRerender(UUID cvId, UUID candidateId) {
+        OnlineCV cv = cvDomainService.loadAndVerifyOwnership(cvId, candidateId);
+
+        if (cv.getStatus() == CVStatus.ARCHIVED) {
+            throw new BusinessRuleException(
+                    "CV da bi archive. Khong the xuat PDF.", "CV_ARCHIVED");
+        }
+
+        CVTemplate template = templateRepository.findById(cv.getTemplateId())
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Template khong ton tai.", "TEMPLATE_NOT_FOUND"));
+
+        byte[] pdfBytes = cvRenderPort.render(cv, template);
+
+        String pdfUrl = fileStoragePort.upload(
+                new java.io.ByteArrayInputStream(pdfBytes),
+                cv.getId() + ".pdf",
+                "application/pdf",
+                "cv-exports");
+
+        cv.updateExportedPdfUrl(pdfUrl);
+        cvRepository.save(cv);
+
+        String fileName = buildFileName(cv);
+        eventPublisher.publishEvent(new CVExportedEvent(cvId, candidateId, pdfUrl));
+        log.info("OnlineCV force re-rendered: cvId={}", cvId);
+
+        return new Result(pdfUrl, fileName, pdfBytes);
+    }
+
     private String buildFileName(OnlineCV cv) {
         String title = cv.getTitle() != null
-                ? cv.getTitle().replaceAll("[^a-zA-Z0-9\\-_]", "_")
+                ? cv.getTitle().replaceAll("[^a-zA-Z0-9_-]", "_")
                 : "cv";
         return title + "_" + cv.getId().toString().substring(0, 8) + ".pdf";
     }

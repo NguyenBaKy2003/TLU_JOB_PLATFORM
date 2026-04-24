@@ -17,7 +17,7 @@ public class SubscriptionMapper {
                 .companyId(e.getCompanyId())
                 .planId(e.getPlanId())
                 .planCode(e.getPlanCode())
-                .yearly(e.isYearly()) // ✅ thêm mới
+                .yearly(e.isYearly()) // thêm mới
                 .startedAt(e.getStartedAt())
                 .expiresAt(e.getExpiresAt())
                 .status(e.getStatus())
@@ -39,7 +39,7 @@ public class SubscriptionMapper {
                 .companyId(d.getCompanyId())
                 .planId(d.getPlanId())
                 .planCode(d.getPlanCode())
-                .yearly(d.isYearly()) // ✅ thêm mới
+                .yearly(d.isYearly()) // thêm mới
                 .startedAt(d.getStartedAt())
                 .expiresAt(d.getExpiresAt())
                 .status(d.getStatus())
