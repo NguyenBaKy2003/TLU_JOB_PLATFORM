@@ -33,7 +33,7 @@ public class SubscriptionDomainService {
                 .companyId(companyId)
                 .planId(plan.getId())
                 .planCode(plan.getCode())
-                .yearly(yearly) // ✅ lưu lại để dùng khi activate
+                .yearly(yearly) // lưu lại để dùng khi activate
                 .status(SubscriptionStatus.PENDING)
                 .jobPostQuota(Quota.of(plan.getJobPostLimit()))
                 .featuredJobQuota(Quota.of(plan.getFeaturedJobLimit()))
@@ -61,7 +61,7 @@ public class SubscriptionDomainService {
             Payment payment,
             CompanySubscription existingActive) {
 
-        // ✅ Tính đúng thời hạn theo yearly flag đã lưu trong subscription
+        // Tính đúng thời hạn theo yearly flag đã lưu trong subscription
         LocalDateTime newExpiresAt = subscription.isYearly()
                 ? LocalDateTime.now().plusYears(1)
                 : LocalDateTime.now().plusMonths(1);

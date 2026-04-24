@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.cv.domain.model;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -22,7 +23,8 @@ public class CVTemplate {
     private boolean premium;
     private String htmlContent; // XHTML string day du, luu trong DB
     private boolean active; // false = an khoi danh sach candidate
-
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     // Business rules
 
     public void update(String name, String thumbnailUrl, String category,

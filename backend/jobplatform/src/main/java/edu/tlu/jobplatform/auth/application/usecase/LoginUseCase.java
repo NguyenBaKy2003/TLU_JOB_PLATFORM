@@ -77,7 +77,7 @@ public class LoginUseCase {
                         }
                 }
 
-                // ✅ active trước, verified sau
+                // active trước, verified sau
                 if (!user.isActive()) {
                         throw new BusinessRuleException(
                                         "Tài khoản đã bị khóa. Vui lòng liên hệ: support@jobplatform.vn",

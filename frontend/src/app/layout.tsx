@@ -32,7 +32,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <WebSocketProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider defaultPosition="top-right" maxToasts={5}>{children}</ToastProvider>
           </WebSocketProvider>
         </AuthProvider>
       </body>

@@ -1,66 +1,23 @@
+// infrastructure/repositories/AdminCVTemplateRepository.ts
 import api from "@/lib/axios";
 import { getAdminAccessToken } from "@/lib/auth-helpers";
 import type { IAdminCVTemplateRepository } from "../../domain/repositories/IAdminCVTemplateRepository";
-import type { CVTemplate, CreateTemplateData, UpdateTemplateData } from "../../domain/models/CVTemplate";
+import type { 
+  CVTemplate, 
+  CVTemplateListResponse, 
+  CVTemplateDetailResponse,
+  CreateCVTemplateRequest, 
+  UpdateCVTemplateRequest 
+} from "@/domain/models/AdminTemplates";
 
 // ─────────────────────────────────────────────────────────────
 // Infrastructure: HTTP Adapter
-// Implements IAdminCVTemplateRepository bằng cách gọi REST API
 // ─────────────────────────────────────────────────────────────
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
-}
-
-/** Raw shape trả về từ API — có thể khác domain model */
-interface CVTemplateRaw {
-  id: string;
-  name: string;
-  thumbnailUrl?: string | null;
-  category?: string | null;
-  premium: boolean;
-  active: boolean;
-  thymeleafTemplate?: string | null; // tên field backend dùng
-  htmlContent?: string | null;       // fallback nếu backend đổi tên
-  createdAt?: string | null;
-  updatedAt?: string | null;
-}
-
-/** Map raw API response → domain model */
-function toDomain(raw: CVTemplateRaw): CVTemplate {
-  return {
-    id: raw.id,
-    name: raw.name,
-    thumbnailUrl: raw.thumbnailUrl ?? null,
-    category: (raw.category as CVTemplate["category"]) ?? null,
-    premium: raw.premium,
-    active: raw.active,
-    // backend mapper dùng field "thymeleafTemplate" cho htmlContent
-    htmlContent: raw.htmlContent ?? raw.thymeleafTemplate ?? null,
-    createdAt: raw.createdAt ?? null,
-    updatedAt: raw.updatedAt ?? null,
-  };
-}
-
-/** Map domain create data → request body backend mong đợi */
-function toCreateBody(data: CreateTemplateData) {
-  return {
-    name: data.name,
-    thumbnailUrl: data.thumbnailUrl || null,
-    category: data.category,
-    premium: data.premium,
-    htmlContent: data.htmlContent,
-  };
-}
-
-/** Map domain update data → request body backend mong đợi */
-function toUpdateBody(data: UpdateTemplateData) {
-  return {
-    ...toCreateBody(data),
-    active: data.active,
-  };
 }
 
 function adminHeaders() {
@@ -72,47 +29,58 @@ export class AdminCVTemplateRepository implements IAdminCVTemplateRepository {
   private readonly BASE = "/admin/cv-templates";
 
   async findAll(): Promise<CVTemplate[]> {
-    const res = await api.get<ApiResponse<CVTemplateRaw[]>>(this.BASE, {
+    const res = await api.get<ApiResponse<CVTemplateListResponse[]>>(this.BASE, {
       headers: adminHeaders(),
     });
-    return res.data.data.map(toDomain);
+    // CVTemplateListResponse[] is assignable to CVTemplate[] vì htmlContent là optional
+    return res.data.data;
   }
 
   async findById(id: string): Promise<CVTemplate> {
-    const res = await api.get<ApiResponse<CVTemplateRaw>>(`${this.BASE}/${id}`, {
+    const res = await api.get<ApiResponse<CVTemplateDetailResponse>>(`${this.BASE}/${id}`, {
       headers: adminHeaders(),
     });
-    return toDomain(res.data.data);
+    // CVTemplateDetailResponse extends CVTemplate nên assignable
+    return res.data.data;
   }
 
-  async create(data: CreateTemplateData): Promise<CVTemplate> {
-    const res = await api.post<ApiResponse<CVTemplateRaw>>(
+  async create(data: CreateCVTemplateRequest): Promise<CVTemplate> {
+    const res = await api.post<ApiResponse<CVTemplateDetailResponse>>(
       this.BASE,
-      toCreateBody(data),
+      data,
       { headers: adminHeaders() }
     );
-    return toDomain(res.data.data);
+    return res.data.data;
   }
 
-  async update(id: string, data: UpdateTemplateData): Promise<CVTemplate> {
-    const res = await api.put<ApiResponse<CVTemplateRaw>>(
+  async update(id: string, data: UpdateCVTemplateRequest): Promise<CVTemplate> {
+    const res = await api.put<ApiResponse<CVTemplateDetailResponse>>(
       `${this.BASE}/${id}`,
-      toUpdateBody(data),
+      data,
       { headers: adminHeaders() }
     );
-    return toDomain(res.data.data);
+    return res.data.data;
   }
 
   async remove(id: string): Promise<void> {
     await api.delete(`${this.BASE}/${id}`, { headers: adminHeaders() });
   }
 
-  async toggleActive(id: string, active: boolean): Promise<CVTemplate> {
-    const res = await api.patch<ApiResponse<CVTemplateRaw>>(
+  async activate(id: string): Promise<CVTemplate> {
+    const res = await api.patch<ApiResponse<CVTemplateListResponse>>(
       `${this.BASE}/${id}/activate`,
-      { active },
+      {},
       { headers: adminHeaders() }
     );
-    return toDomain(res.data.data);
+    return res.data.data;
+  }
+
+  async deactivate(id: string): Promise<CVTemplate> {
+    const res = await api.patch<ApiResponse<CVTemplateListResponse>>(
+      `${this.BASE}/${id}/deactivate`,
+      {},
+      { headers: adminHeaders() }
+    );
+    return res.data.data;
   }
 }

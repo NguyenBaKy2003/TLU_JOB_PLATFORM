@@ -4,6 +4,7 @@ import edu.tlu.jobplatform.cv.domain.model.CVTemplate;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -22,6 +23,8 @@ public class AdminCVTemplateResponse {
     private boolean active;
     private boolean dbDriven; // true = HTML từ DB, false = file classpath
     private String htmlContent; // full HTML — chỉ trả trong GET detail, không trả trong list
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static AdminCVTemplateResponse from(CVTemplate t) {
         return AdminCVTemplateResponse.builder()
@@ -32,6 +35,8 @@ public class AdminCVTemplateResponse {
                 .premium(t.isPremium())
                 .active(t.isActive())
                 .htmlContent(t.getHtmlContent())
+                .createdAt(t.getCreatedAt())
+                .updatedAt(t.getUpdatedAt())
                 .build();
     }
 
@@ -45,6 +50,8 @@ public class AdminCVTemplateResponse {
                 .premium(t.isPremium())
                 .active(t.isActive())
                 .htmlContent(null) // ẩn trong list
+                .createdAt(t.getCreatedAt())
+                .updatedAt(t.getUpdatedAt())
                 .build();
     }
 }

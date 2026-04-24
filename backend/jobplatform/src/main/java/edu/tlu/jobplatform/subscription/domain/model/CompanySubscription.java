@@ -15,7 +15,7 @@ public class CompanySubscription {
     private final UUID planId;
     private final String planCode;
 
-    private final boolean yearly; // ✅ thêm mới
+    private final boolean yearly; // thêm mới
 
     private LocalDateTime startedAt;
     private LocalDateTime expiresAt;

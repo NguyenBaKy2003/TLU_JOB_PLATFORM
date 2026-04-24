@@ -1,6 +1,7 @@
+// src/presentation/components/admin/templates/TemplateFormFields.tsx
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export interface TemplateFormData {
   name: string;
@@ -25,8 +26,47 @@ const CATEGORIES = [
   { value: "simple", label: "Simple" },
 ];
 
+function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
+  if (!htmlContent) {
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-400">
+        <div className="text-center">
+          <svg className="mx-auto h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="text-sm">Chưa có HTML content</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative bg-gray-100 dark:bg-gray-800 p-4 min-h-[400px]">
+      <div
+        className="mx-auto w-full max-w-full overflow-hidden rounded-lg bg-white shadow-md"
+        style={{ aspectRatio: "210 / 297" }}
+      >
+        <iframe
+          srcDoc={htmlContent}
+          title="HTML Preview"
+          className="h-full w-full border-0"
+          sandbox="allow-same-origin"
+          style={{ pointerEvents: "none" }}
+        />
+      </div>
+      <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Preview hiển thị HTML thô — Thymeleaf expressions chưa được render bởi backend.</span>
+      </div>
+    </div>
+  );
+}
+
 export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
 
   function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -177,9 +217,38 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
       {/* HTML Content */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            HTML Content (Thymeleaf) <span className="text-red-500">*</span>
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              HTML Content (Thymeleaf) <span className="text-red-500">*</span>
+            </label>
+            
+            {/* Tab buttons */}
+            <div className="flex rounded-lg border border-gray-200 p-0.5 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setViewMode("edit")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  viewMode === "edit"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("preview")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  viewMode === "preview"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Preview
+              </button>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -193,19 +262,26 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
           <input ref={fileRef} type="file" accept=".html,.xhtml,.xml" className="hidden" onChange={handleFileImport} />
         </div>
 
+        {/* Editor / Preview */}
         <div className="relative">
-          <textarea
-            value={data.htmlContent}
-            onChange={(e) => onChange("htmlContent", e.target.value)}
-            rows={16}
-            spellCheck={false}
-            placeholder={`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ...>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">\n...`}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-800 placeholder-gray-400 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:placeholder-gray-600"
-          />
-          {data.htmlContent && (
-            <div className="absolute bottom-2 right-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400 dark:bg-gray-800">
-              {data.htmlContent.length.toLocaleString()} chars
-            </div>
+          {viewMode === "edit" ? (
+            <>
+              <textarea
+                value={data.htmlContent}
+                onChange={(e) => onChange("htmlContent", e.target.value)}
+                rows={16}
+                spellCheck={false}
+                placeholder={`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ...>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">\n...`}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-800 placeholder-gray-400 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:placeholder-gray-600"
+              />
+              {data.htmlContent && (
+                <div className="absolute bottom-2 right-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400 dark:bg-gray-800">
+                  {data.htmlContent.length.toLocaleString()} chars
+                </div>
+              )}
+            </>
+          ) : (
+            <HtmlPreview htmlContent={data.htmlContent} />
           )}
         </div>
 

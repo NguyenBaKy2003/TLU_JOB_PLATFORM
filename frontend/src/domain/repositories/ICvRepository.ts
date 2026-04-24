@@ -5,6 +5,7 @@ import type {
   CreateOnlineCVPayload, UpdateOnlineCVPayload,
   UpdateCVSectionPayload, ReorderSectionsPayload,
   CVSection,
+  PublicCVDetail,
 } from "@/domain/models/Cv";
 
 export interface ICvRepository {
@@ -55,7 +56,7 @@ export interface ICvRepository {
   duplicate(cvId: string): Promise<OnlineCVDetail>;
 
   /** POST /api/v1/cv/:cvId/export — Trả về PDF URL */
-  exportPdf(cvId: string): Promise<string>;
+  exportPdf(cvId: string): Promise<Blob>;
 
   /** POST /api/v1/cv/:cvId/import-from-profile */
   importFromProfile(cvId: string): Promise<OnlineCVDetail>;
@@ -64,4 +65,14 @@ export interface ICvRepository {
 
   /** GET /api/v1/cv/templates — Danh sách template */
   listTemplates(): Promise<CVTemplate[]>;
+
+
+  /** GET /api/v1/cv/:cvId/preview-html */
+  previewHtml(cvId: string): Promise<string>;
+
+  /** GET /api/v1/cv/:cvId/view — stream PDF inline */
+  viewPdf(cvId: string): Promise<Blob>;
+
+    /** GET /api/v1/public/cv/:slug */
+  getBySlug(slug: string): Promise<PublicCVDetail>;
 }

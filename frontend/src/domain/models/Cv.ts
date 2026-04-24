@@ -147,3 +147,15 @@ export const EMPTY_CREATE_CV_FORM: CreateCVForm = {
   title:      "",
   templateId: "",
 };
+
+
+export interface PublicCVDetail {
+  id: string;
+  slug: string;
+  title: string;
+  templateId: string;
+  personalInfo: PersonalInfo | null;
+  sections: CVSection[];      // chỉ những section visible = true
+  viewCount: number;
+  publishedAt: string | null;
+}

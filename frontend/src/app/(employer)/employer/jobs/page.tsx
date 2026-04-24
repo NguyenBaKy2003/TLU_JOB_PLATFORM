@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link                           from "next/link";
 import { Plus, Search, Filter, PlusCircle }       from "lucide-react";
-import { DashboardLayout }            from "@/presentation/components/layout/profile/DashboardLayout";
 import { EmployerJobsTable }          from "@/presentation/components/employer/jobs/EmployerJobsTable";
 import { JobStatsRow }                from "@/presentation/components/employer/jobs/JobStatsRow";
 import { JobService }                 from "@/application/services/JobService";

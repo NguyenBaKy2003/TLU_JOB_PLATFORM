@@ -7,6 +7,9 @@ import edu.tlu.jobplatform.subscription.domain.repository.CompanySubscriptionRep
 import edu.tlu.jobplatform.subscription.domain.repository.SubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,5 +99,10 @@ public class AdminSubscriptionUseCase {
     @Transactional(readOnly = true)
     public List<SubscriptionPlan> listAllPlans() {
         return planRepo.findAllActive();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CompanySubscription> listAll(Pageable pageable) {
+        return subscriptionRepo.findAll(pageable);
     }
 }

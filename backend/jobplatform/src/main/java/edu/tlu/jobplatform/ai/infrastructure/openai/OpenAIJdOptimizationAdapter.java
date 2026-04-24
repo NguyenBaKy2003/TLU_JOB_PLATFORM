@@ -37,7 +37,7 @@ public class OpenAIJdOptimizationAdapter implements JdOptimizationPort {
     public JdOptimizationResult optimize(JdOptimizationRequest request) {
         log.info("JD optimization: title='{}'", request.getOriginalTitle());
         try {
-            // ✅ Đọc file và replace thủ công — không dùng PromptTemplate
+            // Đọc file và replace thủ công — không dùng PromptTemplate
             String prompt = promptTemplate
                     .getContentAsString(StandardCharsets.UTF_8)
                     .replace("$title$", nullSafe(request.getOriginalTitle()))

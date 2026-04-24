@@ -12,6 +12,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,61 +43,79 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
 public class AdminSubscriptionController {
 
-    private final AdminSubscriptionUseCase adminSubscriptionUseCase;
+        private final AdminSubscriptionUseCase adminSubscriptionUseCase;
 
-    @Operation(summary = "Lịch sử subscription của công ty")
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<ApiResponse<List<CompanySubscription>>> listByCompany(
-            @PathVariable UUID companyId) {
-        return ResponseEntity.ok(
-                ApiResponse.success(adminSubscriptionUseCase.listByCompany(companyId)));
-    }
+        @Operation(summary = "Danh sách tất cả subscriptions trong hệ thống")
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<CompanySubscription>>> listAll(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size,
+                        @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @RequestParam(defaultValue = "desc") String direction) {
 
-    @Operation(summary = "Subscription đang active")
-    @GetMapping("/company/{companyId}/active")
-    public ResponseEntity<ApiResponse<CompanySubscription>> getActive(
-            @PathVariable UUID companyId) {
-        return ResponseEntity.ok(
-                ApiResponse.success(adminSubscriptionUseCase.getActive(companyId)));
-    }
+                Sort sort = direction.equalsIgnoreCase("asc")
+                                ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
 
-    @Operation(summary = "Cấp thêm quota đăng bài (hỗ trợ khách hàng / bug fix)")
-    @PostMapping("/company/{companyId}/grant-quota")
-    public ResponseEntity<ApiResponse<CompanySubscription>> grantQuota(
-            @PathVariable UUID companyId,
-            @Valid @RequestBody GrantQuotaRequest req) {
-        var sub = adminSubscriptionUseCase.grantJobPostQuota(
-                companyId, req.getAmount(), req.getReason());
-        return ResponseEntity.ok(
-                ApiResponse.success(sub, "Đã cấp thêm " + req.getAmount() + " quota đăng bài."));
-    }
+                Pageable pageable = PageRequest.of(page, size, sort);
 
-    @Operation(summary = "Gia hạn subscription thủ công (khách hàng VIP)")
-    @PostMapping("/company/{companyId}/extend")
-    public ResponseEntity<ApiResponse<CompanySubscription>> extend(
-            @PathVariable UUID companyId,
-            @Valid @RequestBody ExtendExpiryRequest req) {
-        var sub = adminSubscriptionUseCase.extendExpiry(
-                companyId, req.getDays(), req.getReason());
-        return ResponseEntity.ok(
-                ApiResponse.success(sub, "Đã gia hạn thêm " + req.getDays() + " ngày."));
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.success(adminSubscriptionUseCase.listAll(pageable)));
+        }
 
-    @Operation(summary = "Thu hồi subscription (vi phạm)")
-    @PostMapping("/company/{companyId}/revoke")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<CompanySubscription>> revoke(
-            @PathVariable UUID companyId,
-            @Valid @RequestBody ReasonRequest req) {
-        var sub = adminSubscriptionUseCase.revoke(companyId, req.getReason());
-        return ResponseEntity.ok(
-                ApiResponse.success(sub, "Subscription đã bị thu hồi."));
-    }
+        @Operation(summary = "Lịch sử subscription của công ty")
+        @GetMapping("/company/{companyId}")
+        public ResponseEntity<ApiResponse<List<CompanySubscription>>> listByCompany(
+                        @PathVariable UUID companyId) {
+                return ResponseEntity.ok(
+                                ApiResponse.success(adminSubscriptionUseCase.listByCompany(companyId)));
+        }
 
-    @Operation(summary = "Danh sách tất cả plans")
-    @GetMapping("/plans")
-    public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> listPlans() {
-        return ResponseEntity.ok(
-                ApiResponse.success(adminSubscriptionUseCase.listAllPlans()));
-    }
+        @Operation(summary = "Subscription đang active")
+        @GetMapping("/company/{companyId}/active")
+        public ResponseEntity<ApiResponse<CompanySubscription>> getActive(
+                        @PathVariable UUID companyId) {
+                return ResponseEntity.ok(
+                                ApiResponse.success(adminSubscriptionUseCase.getActive(companyId)));
+        }
+
+        @Operation(summary = "Cấp thêm quota đăng bài (hỗ trợ khách hàng / bug fix)")
+        @PostMapping("/company/{companyId}/grant-quota")
+        public ResponseEntity<ApiResponse<CompanySubscription>> grantQuota(
+                        @PathVariable UUID companyId,
+                        @Valid @RequestBody GrantQuotaRequest req) {
+                var sub = adminSubscriptionUseCase.grantJobPostQuota(
+                                companyId, req.getAmount(), req.getReason());
+                return ResponseEntity.ok(
+                                ApiResponse.success(sub, "Đã cấp thêm " + req.getAmount() + " quota đăng bài."));
+        }
+
+        @Operation(summary = "Gia hạn subscription thủ công (khách hàng VIP)")
+        @PostMapping("/company/{companyId}/extend")
+        public ResponseEntity<ApiResponse<CompanySubscription>> extend(
+                        @PathVariable UUID companyId,
+                        @Valid @RequestBody ExtendExpiryRequest req) {
+                var sub = adminSubscriptionUseCase.extendExpiry(
+                                companyId, req.getDays(), req.getReason());
+                return ResponseEntity.ok(
+                                ApiResponse.success(sub, "Đã gia hạn thêm " + req.getDays() + " ngày."));
+        }
+
+        @Operation(summary = "Thu hồi subscription (vi phạm)")
+        @PostMapping("/company/{companyId}/revoke")
+        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<CompanySubscription>> revoke(
+                        @PathVariable UUID companyId,
+                        @Valid @RequestBody ReasonRequest req) {
+                var sub = adminSubscriptionUseCase.revoke(companyId, req.getReason());
+                return ResponseEntity.ok(
+                                ApiResponse.success(sub, "Subscription đã bị thu hồi."));
+        }
+
+        @Operation(summary = "Danh sách tất cả plans")
+        @GetMapping("/plans")
+        public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> listPlans() {
+                return ResponseEntity.ok(
+                                ApiResponse.success(adminSubscriptionUseCase.listAllPlans()));
+        }
 }

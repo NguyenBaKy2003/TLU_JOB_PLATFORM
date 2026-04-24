@@ -1,456 +1,563 @@
-"use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+'use client';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Briefcase, Search, CheckCircle, XCircle, Clock,
-  Trash2, Lock, ChevronDown, AlertTriangle, FileText,
-} from "lucide-react";
-import { useRouter }            from "next/navigation";
-import { Pagination }           from "@/presentation/components/common/Pagination";
-import { AdminJobService }      from "@/application/services/AdminJobService";
-import { AdminJobRepository }   from "@/infrastructure/repositories/AdminJobRepository";
-import { useToast }             from "@/presentation/components/ui/toast";
-import { extractErrorMessage }  from "@/lib/extractErrorMessage";
-import type { AdminJob, JobStatus } from "@/domain/models/AdminJob";
+  DataTable,
+  Column,
+  ActionItem,
+  AdminFilter,
+  useFilter,
+  TableActions,
+  FormModel,
+  FormField,
+  DetailModel,
+  DetailField
+} from '@/presentation/components/common';
+import { AdminJobRepository } from '@/infrastructure/repositories/AdminJobRepository';
+import type {
+  AdminJob,
+  AdminJobFilters,
+  JobStatus
+} from '@/domain/models/AdminJob';
+import { AdminJobService } from '@/application/services/AdminJobService';
+import { useToast } from '@/presentation/components/ui/toast';
+import { extractErrorMessage } from '@/lib/extractErrorMessage';
+import {Building2, MapPin,  Calendar, Clock, AlertCircle, Eye,  Trash2, XCircle, CheckCircle } from 'lucide-react';
 
-// ── Constants ────────────────────────────────────────────────────────────────
-
-const service = new AdminJobService(new AdminJobRepository());
-
-const STATUS_FILTERS: { value: JobStatus | "ALL"; label: string }[] = [
-  { value: "ALL",       label: "Tất cả"     },
-  { value: "PUBLISHED", label: "Đang đăng"  },
-  { value: "CLOSED",    label: "Đã đóng"    },
-  { value: "EXPIRED",   label: "Hết hạn"    },
-  { value: "DRAFT",     label: "Nháp"       },
-  { value: "DELETED",   label: "Đã xóa"     },
+// Status options for filter
+const statusOptions = [
+  { value: 'DRAFT', label: 'Bản nháp' },
+  { value: 'PUBLISHED', label: 'Đã đăng' },
+  { value: 'CLOSED', label: 'Đã đóng' },
+  { value: 'EXPIRED', label: 'Hết hạn' },
+  { value: 'DELETED', label: 'Đã xóa' }
 ];
 
-const PAGE_SIZE = 20;
-
-const JOB_STATUS_STYLE: Record<JobStatus, string> = {
-  PUBLISHED: "bg-green-50 text-green-700 border border-green-100",
-  CLOSED:    "bg-gray-100 text-gray-600",
-  EXPIRED:   "bg-amber-50 text-amber-600 border border-amber-100",
-  DRAFT:     "bg-blue-50 text-blue-600",
-  DELETED:   "bg-red-50 text-red-500",
+// Status config for badge
+const statusConfig: Record<JobStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  DRAFT: {
+    label: 'Bản nháp',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+    icon: <Clock className="w-3 h-3" />
+  },
+  PUBLISHED: {
+    label: 'Đã đăng',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    icon: <CheckCircle className="w-3 h-3" />
+  },
+  CLOSED: {
+    label: 'Đã đóng',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    icon: <XCircle className="w-3 h-3" />
+  },
+  EXPIRED: {
+    label: 'Hết hạn',
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    icon: <AlertCircle className="w-3 h-3" />
+  },
+  DELETED: {
+    label: 'Đã xóa',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+    icon: <Trash2 className="w-3 h-3" />
+  }
 };
 
-const JOB_STATUS_LABEL: Record<JobStatus, string> = {
-  PUBLISHED: "Đang đăng",
-  CLOSED:    "Đã đóng",
-  EXPIRED:   "Hết hạn",
-  DRAFT:     "Nháp",
-  DELETED:   "Đã xóa",
+// Format currency
+const formatCurrency = (amount: number | null, currency: string | null): string => {
+  if (!amount) return 'Thỏa thuận';
+  const currencySymbol = currency === 'USD' ? '$' : '₫';
+  return `${currencySymbol}${amount.toLocaleString()}`;
 };
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function StatCard({
-  icon, label, value, color,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  color: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function JobStatusBadge({ status }: { status: JobStatus }) {
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-      ${JOB_STATUS_STYLE[status] ?? "bg-gray-100 text-gray-500"}`}>
-      {JOB_STATUS_LABEL[status] ?? status}
-    </span>
-  );
-}
-
-function TableSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50">
-          <div className="flex-1 flex flex-col gap-1.5">
-            <div className="h-3 bg-gray-100 rounded w-48" />
-            <div className="h-2.5 bg-gray-100 rounded w-32" />
-          </div>
-          <div className="h-5 bg-gray-100 rounded-full w-24" />
-          <div className="h-3 bg-gray-100 rounded w-20" />
-          <div className="flex gap-1.5">
-            <div className="w-8 h-7 bg-gray-100 rounded-lg" />
-            <div className="w-8 h-7 bg-gray-100 rounded-lg" />
-            <div className="w-8 h-7 bg-gray-100 rounded-lg" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Modal xác nhận force-close hoặc force-delete */
-function ConfirmActionModal({
-  job,
-  action,
-  onClose,
-  onConfirm,
-}: {
-  job:       AdminJob;
-  action:    "close" | "delete";
-  onClose:   () => void;
-  onConfirm: (reason: string) => Promise<void>;
-}) {
-  const [reason,  setReason]  = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const isDelete = action === "delete";
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await onConfirm(reason || (isDelete ? "Vi phạm chính sách" : "Vi phạm chính sách"));
-      onClose();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 flex flex-col gap-5">
-        <div className={`flex items-center gap-2 ${isDelete ? "text-red-600" : "text-amber-600"}`}>
-          {isDelete ? <Trash2 size={20} /> : <Lock size={20} />}
-          <h2 className="font-semibold text-base">
-            {isDelete ? "Force-delete bài đăng" : "Force-close bài đăng"}
-          </h2>
-        </div>
-
-        <div className="text-sm text-gray-600 flex flex-col gap-1">
-          <p>Bài đăng: <strong className="text-gray-900">{job.title}</strong></p>
-          <p className="text-gray-400 text-xs">Công ty: {job.companyName}</p>
-          {isDelete && (
-            <p className="mt-1 text-red-500 text-xs font-medium">
-              ⚠ Sau khi xóa, toàn bộ đơn ứng tuyển liên quan sẽ bị cancel.
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-gray-600">
-            Lý do <span className="text-gray-400">(tuỳ chọn — mặc định "Vi phạm chính sách")</span>
-          </label>
-          <textarea
-            value={reason}
-            onChange={e => setReason(e.target.value)}
-            rows={3}
-            placeholder="Nhập lý do..."
-            className={`w-full border rounded-xl px-3 py-2 text-sm outline-none resize-none
-              ${isDelete
-                ? "border-gray-200 focus:border-red-300 focus:ring-2 focus:ring-red-100"
-                : "border-gray-200 focus:border-amber-300 focus:ring-2 focus:ring-amber-100"
-              }`}
-          />
-        </div>
-
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50"
-          >
-            Hủy
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`px-4 py-2 text-sm rounded-xl text-white font-medium transition-colors disabled:opacity-40
-              ${isDelete
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-amber-500 hover:bg-amber-600"
-              }`}
-          >
-            {loading ? "Đang xử lý..." : isDelete ? "Xóa bài đăng" : "Đóng bài đăng"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AdminJobsPage() {
-  const router = useRouter();
-  const toast  = useToast();
-
-  const [jobs,          setJobs]          = useState<AdminJob[]>([]);
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages,    setTotalPages]    = useState(1);
-  const [page,          setPage]          = useState(0);
-  const [statusFilter,  setStatusFilter]  = useState<JobStatus | "ALL">("ALL");
-  const [search,        setSearch]        = useState("");
-  const [loading,       setLoading]       = useState(true);
-
-  const [actionTarget, setActionTarget] = useState<{
-    job:    AdminJob;
-    action: "close" | "delete";
-  } | null>(null);
-
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Fetch ───────────────────────────────────────────────────────────────────
-
-  const load = useCallback(async (p: number, s: JobStatus | "ALL") => {
-    setLoading(true);
-    try {
-      const res = await service.listJobs({
-        status: s === "ALL" ? "" : s,
-        page:   p,
-        size:   PAGE_SIZE,
-      });
-      setJobs(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-    } finally {
-      setLoading(false);
-    }
+  const toast = useToast();
+  const toastRef = useRef(toast);
+  useEffect(() => {
+    toastRef.current = toast;
   }, [toast]);
 
-  useEffect(() => { load(page, statusFilter); }, [page, statusFilter, load]);
+  const [jobs, setJobs] = useState<AdminJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalElements, setTotalElements] = useState(0);
+  const [selectedJob, setSelectedJob] = useState<AdminJob | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  // Confirm Modal state for close/delete
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'success';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => {}
+  });
 
-  const handleConfirm = async (reason: string) => {
-    if (!actionTarget) return;
-    const { job, action } = actionTarget;
+  // Close Form Modal state
+  const [closeFormModal, setCloseFormModal] = useState<{
+    isOpen: boolean;
+    job: AdminJob | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    job: null,
+    loading: false
+  });
+
+  // Delete Form Modal state
+  const [deleteFormModal, setDeleteFormModal] = useState<{
+    isOpen: boolean;
+    job: AdminJob | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    job: null,
+    loading: false
+  });
+
+  const isFetching = useRef(false);
+
+  const service = new AdminJobService(new AdminJobRepository());
+
+  const filterConfigs = [
+    { key: 'status', type: 'select' as const, label: 'Trạng thái', options: statusOptions }
+  ];
+
+  const { filters, setFilter, resetAllFilters, getFilterValue } = useFilter({
+    configs: filterConfigs,
+    syncWithUrl: true,
+    debounceMs: 500
+  });
+
+  const fetchJobs = useCallback(async (filterValues: { status?: string }) => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
+    setLoading(true);
+
     try {
-      if (action === "close") {
-        await service.forceClose(job.id, reason);
-        toast.success("Thành công", "Bài đăng đã bị đóng.");
-      } else {
-        await service.forceDelete(job.id, reason);
-        toast.success("Thành công", "Bài đăng đã bị xóa. Đơn ứng tuyển sẽ được cancel.");
+      const apiFilters: AdminJobFilters = {
+        page: 0,
+        size: 10,
+        status: filterValues.status as JobStatus || ''
+      };
+
+      const result = await service.listJobs(apiFilters);
+      setJobs(result.content);
+      setTotalElements(result.totalElements);
+    } catch (error) {
+      console.error('Failed to fetch jobs:', error);
+      const message = extractErrorMessage(error, 'Không thể tải danh sách tin tuyển dụng');
+      toastRef.current.error('Lỗi tải dữ liệu', message);
+    } finally {
+      setLoading(false);
+      isFetching.current = false;
+    }
+  }, []);
+
+  // Fetch when filter changes
+  useEffect(() => {
+    fetchJobs({
+      status: filters.status
+    });
+  }, [filters.status]);
+
+  const fetchJobDetail = async (id: string) => {
+    try {
+      // Note: You may need to implement getJobById in the service
+      // For now, find from existing jobs
+      const job = jobs.find(j => j.id === id);
+      if (job) {
+        setSelectedJob(job);
+        setDetailModalOpen(true);
       }
-      load(page, statusFilter);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-      throw e;
+    } catch (error) {
+      console.error('Failed to fetch job detail:', error);
+      const message = extractErrorMessage(error, 'Không thể tải chi tiết tin tuyển dụng');
+      toastRef.current.error('Lỗi', message);
     }
   };
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
-
-  const handleSearch = (v: string) => {
-    setSearch(v);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setPage(0), 400);
+  const handleForceClose = async (id: string, reason: string) => {
+    setCloseFormModal(prev => ({ ...prev, loading: true }));
+    try {
+      const job = jobs.find(j => j.id === id);
+      await service.forceClose(id, reason);
+      await fetchJobs({
+        status: getFilterValue('status')
+      });
+      setCloseFormModal({ isOpen: false, job: null, loading: false });
+      toastRef.current.success('Thành công', `Đã đóng tin tuyển dụng "${job?.title}"`);
+    } catch (error) {
+      console.error('Failed to close job:', error);
+      const message = extractErrorMessage(error, 'Không thể đóng tin tuyển dụng');
+      toastRef.current.error('Lỗi thao tác', message);
+      setCloseFormModal(prev => ({ ...prev, loading: false }));
+    }
   };
 
-  const filtered = search.trim()
-    ? jobs.filter(j =>
-        j.title.toLowerCase().includes(search.toLowerCase()) ||
-        j.companyName.toLowerCase().includes(search.toLowerCase()),
+  const handleForceDelete = async (id: string, reason: string) => {
+    setDeleteFormModal(prev => ({ ...prev, loading: true }));
+    try {
+      const job = jobs.find(j => j.id === id);
+      await service.forceDelete(id, reason);
+      await fetchJobs({
+        status: getFilterValue('status')
+      });
+      setDeleteFormModal({ isOpen: false, job: null, loading: false });
+      toastRef.current.success('Thành công', `Đã xóa tin tuyển dụng "${job?.title}"`);
+    } catch (error) {
+      console.error('Failed to delete job:', error);
+      const message = extractErrorMessage(error, 'Không thể xóa tin tuyển dụng');
+      toastRef.current.error('Lỗi thao tác', message);
+      setDeleteFormModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const openCloseForm = (job: AdminJob) => {
+    setCloseFormModal({
+      isOpen: true,
+      job,
+      loading: false
+    });
+  };
+
+  const openDeleteForm = (job: AdminJob) => {
+    setDeleteFormModal({
+      isOpen: true,
+      job,
+      loading: false
+    });
+  };
+
+  const handleFilterChange = useCallback((key: string, value: any) => {
+    setFilter(key, value);
+  }, [setFilter]);
+
+  const handleResetFilters = useCallback(() => {
+    resetAllFilters();
+    toastRef.current.info('Đã xóa bộ lọc', 'Đang tải lại tất cả dữ liệu');
+  }, [resetAllFilters]);
+
+  const handleRefresh = useCallback(() => {
+    fetchJobs({
+      status: getFilterValue('status')
+    });
+    toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
+  }, [fetchJobs, getFilterValue]);
+
+  // Form fields for close
+  const closeFormFields: FormField[] = [
+    {
+      name: 'reason',
+      label: 'Lý do đóng tin',
+      type: 'textarea',
+      required: true,
+      rows: 4,
+      placeholder: 'Nhập lý do đóng tin tuyển dụng...'
+    }
+  ];
+
+  // Form fields for delete
+  const deleteFormFields: FormField[] = [
+    {
+      name: 'reason',
+      label: 'Lý do xóa tin',
+      type: 'textarea',
+      required: true,
+      rows: 4,
+      placeholder: 'Nhập lý do xóa tin tuyển dụng...'
+    }
+  ];
+
+  // Detail fields
+  const getDetailFields = (): DetailField[] => {
+    if (!selectedJob) return [];
+    
+    return [
+      {
+        key: 'title',
+        label: 'Tiêu đề',
+        value: selectedJob.title,
+        copyable: true
+      },
+      {
+        key: 'company',
+        label: 'Công ty',
+        value: selectedJob.companyName,
+        copyable: true
+      },
+      {
+        key: 'status',
+        label: 'Trạng thái',
+        value: (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[selectedJob.status].color}`}>
+            {statusConfig[selectedJob.status].icon}
+            {statusConfig[selectedJob.status].label}
+          </span>
+        ),
+        type: 'badge'
+      },
+      {
+        key: 'level',
+        label: 'Cấp bậc',
+        value: selectedJob.level || 'Chưa có'
+      },
+      {
+        key: 'location',
+        label: 'Địa điểm',
+        value: selectedJob.location || 'Chưa có'
+      },
+      {
+        key: 'salary',
+        label: 'Mức lương',
+        value: formatCurrency(selectedJob.salaryMin, selectedJob.currency) + ' - ' + formatCurrency(selectedJob.salaryMax, selectedJob.currency)
+      },
+      {
+        key: 'deadline',
+        label: 'Hạn nộp',
+        value: selectedJob.deadline ? new Date(selectedJob.deadline).toLocaleDateString('vi-VN') : 'Chưa có',
+        type: 'date'
+      },
+      {
+        key: 'createdAt',
+        label: 'Ngày tạo',
+        value: new Date(selectedJob.createdAt).toLocaleString('vi-VN'),
+        type: 'date'
+      },
+      {
+        key: 'updatedAt',
+        label: 'Cập nhật lần cuối',
+        value: selectedJob.updatedAt ? new Date(selectedJob.updatedAt).toLocaleString('vi-VN') : '—',
+        type: 'date'
+      }
+    ];
+  };
+
+  // Get actions based on job status
+  const getActions = (record: AdminJob): ActionItem<AdminJob>[] => {
+    const actions: ActionItem<AdminJob>[] = [
+      {
+        key: 'view',
+        label: 'Xem chi tiết',
+        icon: <Eye className="w-4 h-4" />,
+        onClick: () => fetchJobDetail(record.id),
+        color: 'default'
+      }
+    ];
+
+    // Only show close/delete for non-closed/non-deleted jobs
+    if (record.status !== 'CLOSED' && record.status !== 'DELETED') {
+      actions.push({
+        key: 'close',
+        label: 'Đóng tin',
+        icon: <XCircle className="w-4 h-4" />,
+        onClick: () => openCloseForm(record),
+        color: 'warning'
+      });
+    }
+
+    // Only show delete for non-deleted jobs
+    if (record.status !== 'DELETED') {
+      actions.push({
+        key: 'delete',
+        label: 'Xóa tin',
+        icon: <Trash2 className="w-4 h-4" />,
+        onClick: () => openDeleteForm(record),
+        color: 'danger'
+      });
+    }
+    
+    return actions;
+  };
+
+  // Table columns
+  const columns: Column<AdminJob>[] = [
+    {
+      key: 'title',
+      title: 'Tiêu đề',
+      sortable: true,
+      width: '300px',
+      render: (value, record) => (
+        <div>
+          <div className="font-medium text-foreground">{value}</div>
+          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Building2 className="w-3 h-3" />
+            {record.companyName}
+          </div>
+        </div>
       )
-    : jobs;
-
-  const published = jobs.filter(j => j.status === "PUBLISHED").length;
-  const closed    = jobs.filter(j => j.status === "CLOSED").length;
-  const expired   = jobs.filter(j => j.status === "EXPIRED").length;
-
-  // ── Render ───────────────────────────────────────────────────────────────────
+    },
+    {
+      key: 'level',
+      title: 'Cấp bậc',
+      width: '120px',
+      render: (value) => value || '—'
+    },
+    {
+      key: 'location',
+      title: 'Địa điểm',
+      width: '150px',
+      render: (value) => (
+        <div className="flex items-center gap-1">
+          <MapPin className="w-3 h-3 text-muted-foreground" />
+          <span>{value || '—'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'salary',
+      title: 'Mức lương',
+      width: '150px',
+      render: (_, record) => formatCurrency(record.salaryMin, record.currency) + ' - ' + formatCurrency(record.salaryMax, record.currency)
+    },
+    {
+      key: 'deadline',
+      title: 'Hạn nộp',
+      width: '120px',
+      render: (value) => {
+        if (!value) return '—';
+        const deadline = new Date(value);
+        const isExpired = deadline < new Date();
+        return (
+          <div className={`flex items-center gap-1 ${isExpired ? 'text-red-500' : ''}`}>
+            <Calendar className="w-3 h-3" />
+            <span>{deadline.toLocaleDateString('vi-VN')}</span>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'status',
+      title: 'Trạng thái',
+      width: '130px',
+      render: (value: JobStatus) => {
+        const config = statusConfig[value];
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color}`}>
+            {config.icon}
+            {config.label}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'createdAt',
+      title: 'Ngày tạo',
+      width: '120px',
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString('vi-VN')
+    },
+    {
+      key: 'actions',
+      title: 'Thao tác',
+      width: '150px',
+      align: 'center',
+      render: (_, record) => (
+        <TableActions
+          record={record}
+          actions={getActions(record)}
+          showLabel={false}
+        />
+      )
+    }
+  ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý tin tuyển dụng</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Quản lý và kiểm soát các tin tuyển dụng trên hệ thống
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground">
+            Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> tin
+          </div>
+        </div>
+      </div>
 
-      {/* ── Stats ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard
-          icon={<Briefcase   size={18} className="text-blue-600"  />}
-          label="Tổng bài đăng" value={totalElements.toLocaleString()}
-          color="bg-blue-50"
-        />
-        <StatCard
-          icon={<CheckCircle size={18} className="text-green-600" />}
-          label="Đang đăng"     value={published}
-          color="bg-green-50"
-        />
-        <StatCard
-          icon={<Clock       size={18} className="text-amber-500" />}
-          label="Hết hạn"       value={expired}
-          color="bg-amber-50"
-        />
-        <StatCard
-          icon={<XCircle     size={18} className="text-gray-400"  />}
-          label="Đã đóng"       value={closed}
-          color="bg-gray-50"
+      {/* Admin Filter */}
+      <AdminFilter
+        config={{
+          searchKey: undefined,
+          statusKey: 'status',
+          customFilters: []
+        }}
+        filters={{
+          status: getFilterValue('status')
+        }}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        onRefresh={handleRefresh}
+        statusOptions={statusOptions}
+        searchPlaceholder=""
+        statusPlaceholder="Tất cả trạng thái"
+        showDateFilter={false}
+        loading={loading}
+      />
+
+      {/* Data Table */}
+      <div className="bg-background rounded-lg border border-border overflow-hidden">
+        <DataTable
+          data={jobs}
+          columns={columns}
+          loading={loading}
+          selectable
+          showPagination
+          defaultPageSize={10}
+          emptyMessage="Không có tin tuyển dụng"
+          emptyDescription="Chưa có tin tuyển dụng nào trong hệ thống"
+          onRefresh={handleRefresh}
         />
       </div>
 
-      {/* ── Filters + Search ───────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4
-        flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            placeholder="Tìm bài đăng, công ty..."
-            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl
-              outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
+      {/* Detail Modal */}
+      <DetailModel
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        title={`Chi tiết tin tuyển dụng - ${selectedJob?.title || ''}`}
+        fields={getDetailFields()}
+      />
 
-        <div className="flex gap-1.5 flex-wrap">
-          {STATUS_FILTERS.map(f => (
-            <button
-              key={f.value}
-              onClick={() => { setStatusFilter(f.value); setPage(0); }}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all
-                ${statusFilter === f.value
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+      {/* Form Modal for Close Job */}
+      <FormModel
+        isOpen={closeFormModal.isOpen}
+        onClose={() => setCloseFormModal({ isOpen: false, job: null, loading: false })}
+        onSubmit={(data) => {
+          if (closeFormModal.job) {
+            handleForceClose(closeFormModal.job.id, data.reason);
+          }
+        }}
+        title={`Đóng tin tuyển dụng - ${closeFormModal.job?.title || ''}`}
+        fields={closeFormFields}
+        initialData={{ reason: '' }}
+        submitText="Xác nhận đóng"
+        loading={closeFormModal.loading}
+      />
 
-        <span className="text-xs text-gray-400 ml-auto whitespace-nowrap">
-          {totalElements.toLocaleString()} bài
-        </span>
-      </div>
-
-      {/* ── Table ─────────────────────────────────────────────────── */}
-      {loading ? <TableSkeleton /> : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {filtered.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-2 text-gray-400">
-              <Briefcase size={32} strokeWidth={1.2} />
-              <p className="text-sm">Không có bài đăng nào</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-50 bg-gray-50/60">
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Bài đăng</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Công ty</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Trạng thái</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Hạn nộp</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Ngày tạo</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {filtered.map(job => (
-                    <tr key={job.id} className="hover:bg-gray-50/50 transition-colors">
-
-                      {/* Bài đăng */}
-                      <td className="px-5 py-3.5 max-w-[220px]">
-                        <p className="font-medium text-gray-900 truncate">{job.title}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {job.location ?? "—"}
-                          {job.level ? ` · ${job.level}` : ""}
-                        </p>
-                      </td>
-
-                      {/* Công ty */}
-                      <td className="px-4 py-3.5 text-xs text-gray-600 max-w-[160px]">
-                        <p className="truncate">{job.companyName}</p>
-                      </td>
-
-                      {/* Trạng thái */}
-                      <td className="px-4 py-3.5">
-                        <JobStatusBadge status={job.status} />
-                      </td>
-
-                      {/* Hạn nộp */}
-                      <td className="px-4 py-3.5 text-xs text-gray-400">
-                        {job.deadline
-                          ? new Date(job.deadline).toLocaleDateString("vi-VN")
-                          : "—"}
-                      </td>
-
-                      {/* Ngày tạo */}
-                      <td className="px-4 py-3.5 text-xs text-gray-400">
-                        {new Date(job.createdAt).toLocaleDateString("vi-VN")}
-                      </td>
-
-                      {/* Hành động */}
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-
-                          {/* Xem đơn ứng tuyển → sang trang applications lọc theo jobPostId */}
-                          <button
-                            onClick={() =>
-                              router.push(`/admin/applications?jobPostId=${job.id}&companyId=${job.companyId}`)
-                            }
-                            title="Xem đơn ứng tuyển"
-                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <FileText size={15} />
-                          </button>
-
-                          {/* Force-close — chỉ khi PUBLISHED */}
-                          {job.status === "PUBLISHED" && (
-                            <button
-                              onClick={() => setActionTarget({ job, action: "close" })}
-                              title="Force-close vi phạm"
-                              className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
-                            >
-                              <Lock size={15} />
-                            </button>
-                          )}
-
-                          {/* Force-delete — không áp dụng nếu đã DELETED */}
-                          {job.status !== "DELETED" && (
-                            <button
-                              onClick={() => setActionTarget({ job, action: "delete" })}
-                              title="Force-delete vi phạm"
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Pagination ─────────────────────────────────────────────── */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            current={page + 1}
-            total={totalPages}
-            onChange={p => setPage(p - 1)}
-          />
-        </div>
-      )}
-
-      {/* ── Confirm Modal ──────────────────────────────────────────── */}
-      {actionTarget && (
-        <ConfirmActionModal
-          job={actionTarget.job}
-          action={actionTarget.action}
-          onClose={() => setActionTarget(null)}
-          onConfirm={handleConfirm}
-        />
-      )}
+      {/* Form Modal for Delete Job */}
+      <FormModel
+        isOpen={deleteFormModal.isOpen}
+        onClose={() => setDeleteFormModal({ isOpen: false, job: null, loading: false })}
+        onSubmit={(data) => {
+          if (deleteFormModal.job) {
+            handleForceDelete(deleteFormModal.job.id, data.reason);
+          }
+        }}
+        title={`Xóa tin tuyển dụng - ${deleteFormModal.job?.title || ''}`}
+        fields={deleteFormFields}
+        initialData={{ reason: '' }}
+        submitText="Xác nhận xóa"
+        loading={deleteFormModal.loading}
+      />
     </div>
   );
 }

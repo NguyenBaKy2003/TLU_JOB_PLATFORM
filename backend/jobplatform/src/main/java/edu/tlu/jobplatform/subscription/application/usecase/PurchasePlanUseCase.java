@@ -57,7 +57,7 @@ public class PurchasePlanUseCase {
 
                 // 1. Tạo và lưu subscription PENDING — truyền yearly để activate dùng sau
                 CompanySubscription subscription = domainService.createPending(
-                                cmd.companyId(), plan, null, cmd.yearly()); // ✅ truyền yearly
+                                cmd.companyId(), plan, null, cmd.yearly()); // truyền yearly
                 CompanySubscription savedSubscription = subscriptionRepository.save(subscription);
 
                 // 2. Tạo Payment liên kết đúng subscriptionId đã persist

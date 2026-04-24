@@ -1,3 +1,4 @@
+// src/app/(cv)/cv/[id]/edit/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -10,7 +11,6 @@ import { CVEditTopBar } from "@/presentation/components/cv/edit/CVEditTopBar";
 import { CVSectionSidebar } from "@/presentation/components/cv/edit/CVSectionSidebar";
 import { CVEditorPanel } from "@/presentation/components/cv/edit/CVEditorPanel";
 import { CVPreviewPanel } from "@/presentation/components/cv/edit/CVPreviewPanel";
-
 
 const cvService = new CvService(new CvRepository());
 
@@ -27,6 +27,7 @@ export default function CVEditPage() {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0); // Tăng key để force preview reload
 
   // Load CV
   useEffect(() => {
@@ -46,9 +47,9 @@ export default function CVEditPage() {
     if (!cv) return;
     setSaving(true);
     try {
-      // Truyền cv hiện tại để service merge đủ title/templateId/visibility
       const updated = await cvService.updatePersonalInfo(cv.id, form, cv);
       setCv(updated);
+      setPreviewKey(prev => prev + 1); // Force preview reload
     } finally {
       setSaving(false);
     }
@@ -68,6 +69,7 @@ export default function CVEditPage() {
     setCv((prev) => prev ? { ...prev, sections: [...prev.sections, newSection] } : prev);
     setActiveSectionId(newSection.id);
     setActiveTab("section");
+    setPreviewKey(prev => prev + 1); // Force preview reload
   }, [cv]);
 
   const handleUpdateSection = useCallback(async (sectionId: string, payload: UpdateCVSectionPayload) => {
@@ -79,6 +81,7 @@ export default function CVEditPage() {
         ...prev,
         sections: prev.sections.map((s) => s.id === sectionId ? updated : s),
       } : prev);
+      setPreviewKey(prev => prev + 1); // Force preview reload
     } finally {
       setSaving(false);
     }
@@ -92,19 +95,26 @@ export default function CVEditPage() {
       setActiveSectionId(null);
       setActiveTab("personal");
     }
+    setPreviewKey(prev => prev + 1); // Force preview reload
   }, [cv, activeSectionId]);
 
   const handleReorderSections = useCallback(async (sectionIds: string[]) => {
     if (!cv) return;
-    // Optimistic update
     const reordered = sectionIds
       .map((sid) => cv.sections.find((s) => s.id === sid))
       .filter(Boolean) as CVSection[];
     setCv((prev) => prev ? { ...prev, sections: reordered } : prev);
     await cvService.reorderSections(cv.id, sectionIds);
+    setPreviewKey(prev => prev + 1); // Force preview reload
   }, [cv]);
 
   const handleToggleSectionVisibility = useCallback(async (sectionId: string, visible: boolean) => {
+    setCv((prev) => prev ? {
+      ...prev,
+      sections: prev.sections.map((s) => 
+        s.id === sectionId ? { ...s, visible } : s
+      ),
+    } : prev);
     await handleUpdateSection(sectionId, { visible });
   }, [handleUpdateSection]);
 
@@ -114,13 +124,22 @@ export default function CVEditPage() {
     if (!cv) return;
     const updated = await cvService.publish(cv.id);
     setCv(updated);
+    setPreviewKey(prev => prev + 1);
   }, [cv]);
 
   const handleExportPdf = useCallback(async () => {
     if (!cv) return;
     setExportingPdf(true);
     try {
-      const url = await cvService.exportPdf(cv.id);
+      const blob = await cvService.exportPdf(cv.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${cv.title || 'cv'}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export PDF failed:', err);
     } finally {
       setExportingPdf(false);
     }
@@ -132,6 +151,7 @@ export default function CVEditPage() {
     try {
       const updated = await cvService.importFromProfile(cv.id);
       setCv(updated);
+      setPreviewKey(prev => prev + 1);
     } finally {
       setSaving(false);
     }
@@ -146,7 +166,6 @@ export default function CVEditPage() {
 
   return (
     <div className="h-screen flex flex-col bg-[#F0EEE9] overflow-hidden">
-      {/* Top bar */}
       <CVEditTopBar
         cv={cv}
         saving={saving}
@@ -159,9 +178,7 @@ export default function CVEditPage() {
         onBack={() => router.push("/cv")}
       />
 
-      {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Section sidebar */}
         <CVSectionSidebar
           sections={cv.sections}
           activeSectionId={activeSectionId}
@@ -174,7 +191,6 @@ export default function CVEditPage() {
           onReorder={handleReorderSections}
         />
 
-        {/* Center: Editor panel */}
         <CVEditorPanel
           cv={cv}
           activeTab={activeTab}
@@ -185,9 +201,8 @@ export default function CVEditPage() {
           onImportFromProfile={handleImportFromProfile}
         />
 
-        {/* Right: Preview panel (collapsible) */}
         {showPreview && (
-          <CVPreviewPanel cv={cv} />
+          <CVPreviewPanel cv={cv} refreshKey={previewKey} />
         )}
       </div>
     </div>
