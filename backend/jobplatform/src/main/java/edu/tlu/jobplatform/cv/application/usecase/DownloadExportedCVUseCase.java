@@ -2,7 +2,7 @@ package edu.tlu.jobplatform.cv.application.usecase;
 
 import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
-import edu.tlu.jobplatform.cv.domain.repository.OnlineCVRepository;
+import edu.tlu.jobplatform.cv.domain.service.CVDomainService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.UUID;
 
+/**
+ * Tai file PDF da export tu S3 ve client.
+ * Dung cho GET /cv/{cvId}/view (inline) va GET /cv/{cvId}/download
+ * (attachment).
+ */
 @Service
 @RequiredArgsConstructor
 public class DownloadExportedCVUseCase {
 
-    private final OnlineCVRepository cvRepository;
-    private final FileStoragePort fileStorage;
+    private final CVDomainService cvDomainService;
+    private final FileStoragePort fileStoragePort;
 
     public record Result(
             InputStream inputStream,
@@ -27,22 +32,14 @@ public class DownloadExportedCVUseCase {
 
     @Transactional(readOnly = true)
     public Result execute(UUID candidateId, UUID cvId) {
-
-        OnlineCV cv = cvRepository.findById(cvId)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "CV không tồn tại.", "CV_NOT_FOUND"));
-
-        if (!cv.getCandidateId().equals(candidateId)) {
-            throw new BusinessRuleException(
-                    "Bạn không có quyền truy cập CV này.", "CV_ACCESS_DENIED");
-        }
+        OnlineCV cv = cvDomainService.loadAndVerifyOwnership(cvId, candidateId);
 
         if (cv.getExportedPdfUrl() == null || cv.getExportedPdfUrl().isBlank()) {
             throw new BusinessRuleException(
-                    "CV chưa được export. Vui lòng export trước.", "CV_NO_PDF");
+                    "CV chua duoc export. Vui long export truoc.", "CV_NO_PDF");
         }
 
-        FileStoragePort.FileResult file = fileStorage.download(cv.getExportedPdfUrl());
+        FileStoragePort.FileResult file = fileStoragePort.download(cv.getExportedPdfUrl());
 
         String fileName = sanitizeFileName(cv.getTitle()) + ".pdf";
 
@@ -57,7 +54,7 @@ public class DownloadExportedCVUseCase {
         if (title == null || title.isBlank())
             return "cv";
         return title.trim()
-                .replaceAll("[^a-zA-Z0-9À-ỹ\\s._-]", "")
-                .replaceAll("\\s+", "_");
+                .replaceAll("[^a-zA-Z0-9\s._-]", "")
+                .replaceAll("\s+", "_");
     }
 }

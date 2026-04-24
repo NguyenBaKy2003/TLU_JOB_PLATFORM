@@ -51,7 +51,7 @@ public class PdfTextExtractor {
     private String toPresignedUrl(String s3Url) {
         String path = URI.create(s3Url).getPath();
         String key = path.startsWith("/") ? path.substring(1) : path;
-        log.info("S3 key extracted: '{}'", key); // ✅ thêm dòng này
+        log.info("S3 key extracted: '{}'", key); // thêm dòng này
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(10))
@@ -59,7 +59,7 @@ public class PdfTextExtractor {
                 .build();
 
         String presignedUrl = s3Presigner.presignGetObject(presignRequest).url().toString();
-        log.info("Presigned URL: {}", presignedUrl.substring(0, 80) + "..."); // ✅ thêm dòng này
+        log.info("Presigned URL: {}", presignedUrl.substring(0, 80) + "..."); // thêm dòng này
         return presignedUrl;
     }
 
@@ -72,7 +72,7 @@ public class PdfTextExtractor {
         HttpResponse<InputStream> response = HTTP.send(
                 request, HttpResponse.BodyHandlers.ofInputStream());
 
-        log.info("PDF download status: {}", response.statusCode()); // ✅ thêm
+        log.info("PDF download status: {}", response.statusCode()); // thêm
 
         if (response.statusCode() != 200) {
             log.warn("Failed to download PDF: status={}", response.statusCode());
@@ -81,7 +81,7 @@ public class PdfTextExtractor {
 
         try (InputStream is = response.body()) {
             byte[] bytes = is.readAllBytes();
-            log.info("PDF bytes downloaded: {}", bytes.length); // ✅ thêm
+            log.info("PDF bytes downloaded: {}", bytes.length); // thêm
 
             PDDocument doc = Loader.loadPDF(bytes);
             if (doc.isEncrypted()) {
@@ -91,7 +91,7 @@ public class PdfTextExtractor {
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true);
             String text = stripper.getText(doc).trim();
-            log.info("PDF text extracted: {} chars", text.length()); // ✅ thêm
+            log.info("PDF text extracted: {} chars", text.length()); // thêm
             return text.length() > MAX_CHARS
                     ? text.substring(0, MAX_CHARS) + "...[truncated]"
                     : text;

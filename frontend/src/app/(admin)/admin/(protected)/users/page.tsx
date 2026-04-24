@@ -1,217 +1,399 @@
-"use client";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, UserCheck, UserX, Shield }           from "lucide-react";
-import { AdminUserService }                          from "@/application/services/AdminUserService";
-import { AdminUserRepository }                       from "@/infrastructure/repositories/AdminUserRepository";
-import { UserTable }                                 from "@/presentation/components/admin/users/UserTable";
-import { UserFilters }                               from "@/presentation/components/admin/users/UserFilters";
-import { UserDetailModal }                           from "@/presentation/components/admin/users/UserDetailModal";
-import { Pagination }                                from "@/presentation/components/common/Pagination";
-import { useToast }                                  from "@/presentation/components/ui/toast";
-import { extractErrorMessage }                       from "@/lib/extractErrorMessage";
-import type { AdminUser, AdminUserRole }             from "@/domain/models/AdminUser";
+'use client';
 
-const service = new AdminUserService(new AdminUserRepository());
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  DataTable,
+  Column,
+  ActionItem,
+  StatusBadge,
+  AdminFilter,
+  useFilter,
+  ConfirmModel,
+  TableActions,
+  FormModel,
+  FormField
+} from '@/presentation/components/common';
+import { AdminUserRepository } from '@/infrastructure/repositories/AdminUserRepository';
+import type { AdminUser, AdminUserFilters, AdminUserRole } from '@/domain/models/AdminUser';
+import { Shield, User, Building2, Crown, Lock, Unlock, Edit } from 'lucide-react';
+import { AdminUserService } from '@/application/services/AdminUserService';
+import { useToast } from '@/presentation/components/ui/toast';
+import { extractErrorMessage } from '@/lib/extractErrorMessage';
 
-// ── Stat card ──────────────────────────────────────────────────────────────────
+const roleOptions = [
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'SUPER_ADMIN', label: 'Super Admin' },
+  { value: 'CANDIDATE', label: 'Ứng viên' },
+  { value: 'EMPLOYER', label: 'Nhà tuyển dụng' }
+];
 
-function StatCard({ icon, label, value, color }: {
-  icon: React.ReactNode; label: string; value: number | string; color: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4
-      flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
+const roleFormOptions = [
+  { value: 'SUPER_ADMIN', label: 'Super Admin' },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'EMPLOYER', label: 'Nhà tuyển dụng' },
+  { value: 'CANDIDATE', label: 'Ứng viên' }
+];
 
-// ── Skeleton ───────────────────────────────────────────────────────────────────
+const statusOptions = [
+  { value: 'active', label: 'Hoạt động' },
+  { value: 'inactive', label: 'Khóa' }
+];
 
-function TableSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
-      overflow-hidden animate-pulse">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50">
-          <div className="w-8 h-8 bg-gray-100 rounded-xl shrink-0" />
-          <div className="flex-1 flex flex-col gap-1.5">
-            <div className="h-3 bg-gray-100 rounded w-32" />
-            <div className="h-2.5 bg-gray-100 rounded w-48" />
-          </div>
-          <div className="h-5 bg-gray-100 rounded-full w-20" />
-          <div className="h-5 bg-gray-100 rounded-full w-20" />
-          <div className="h-3 bg-gray-100 rounded w-20" />
-          <div className="h-3 bg-gray-100 rounded w-24" />
-          <div className="flex gap-1">
-            <div className="w-7 h-7 bg-gray-100 rounded-lg" />
-            <div className="w-7 h-7 bg-gray-100 rounded-lg" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Page ───────────────────────────────────────────────────────────────────────
-
-const PAGE_SIZE = 20;
+const roleConfig: Record<AdminUserRole, { icon: React.ReactNode; label: string; color: string }> = {
+  SUPER_ADMIN: {
+    icon: <Crown className="w-4 h-4" />,
+    label: 'Super Admin',
+    color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
+  },
+  ADMIN: {
+    icon: <Shield className="w-4 h-4" />,
+    label: 'Admin',
+    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
+  },
+  EMPLOYER: {
+    icon: <Building2 className="w-4 h-4" />,
+    label: 'Nhà tuyển dụng',
+    color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+  },
+  CANDIDATE: {
+    icon: <User className="w-4 h-4" />,
+    label: 'Ứng viên',
+    color: 'text-green-600 bg-green-100 dark:bg-green-900/30'
+  }
+};
 
 export default function AdminUsersPage() {
   const toast = useToast();
 
-  const [users,         setUsers]         = useState<AdminUser[]>([]);
+  // FIX: giữ toast trong ref để không làm fetchUsers recreate mỗi render
+  const toastRef = useRef(toast);
+  useEffect(() => {
+    toastRef.current = toast;
+  }, [toast]);
+
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [totalElements, setTotalElements] = useState(0);
-  const [totalPages,    setTotalPages]    = useState(1);
-  const [page,          setPage]          = useState(0);
-  const [keyword,       setKeyword]       = useState("");
-  const [role,          setRole]          = useState<AdminUserRole | "">("");
-  const [loading,       setLoading]       = useState(true);
-  const [togglingId,    setTogglingId]    = useState<string | null>(null);
-  const [selectedUser,  setSelectedUser]  = useState<AdminUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
-  // debounce keyword
-  const keywordRef  = useRef(keyword);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
-  const load = useCallback(async (p: number, kw: string, r: AdminUserRole | "") => {
+  const [roleFormModal, setRoleFormModal] = useState<{
+    isOpen: boolean;
+    user: AdminUser | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    user: null,
+    loading: false
+  });
+
+  const isFetching = useRef(false);
+
+  const service = new AdminUserService(new AdminUserRepository());
+
+  const filterConfigs = [
+    { key: 'keyword', type: 'input' as const, label: 'Tìm kiếm', placeholder: 'Tìm theo tên, email...' },
+    { key: 'role', type: 'select' as const, label: 'Vai trò', options: roleOptions },
+    { key: 'status', type: 'select' as const, label: 'Trạng thái', options: statusOptions }
+  ];
+
+  const { filters, setFilter, resetAllFilters, getFilterValue } = useFilter({
+    configs: filterConfigs,
+    syncWithUrl: true,
+    debounceMs: 500
+  });
+
+  // FIX: không có dependency nào dễ thay đổi — toast dùng qua ref
+  const fetchUsers = useCallback(async (filterValues: { keyword?: string; role?: string }) => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
     setLoading(true);
+
     try {
-      const res = await service.listUsers({ page: p, size: PAGE_SIZE, keyword: kw, role: r });
-      setUsers(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
+      const apiFilters: AdminUserFilters = {
+        page: 0,
+        size: 10,
+        keyword: filterValues.keyword || '',
+        role: filterValues.role || ''
+      };
+
+      const result = await service.listUsers(apiFilters);
+      setUsers(result.content);
+      setTotalElements(result.totalElements);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      const message = extractErrorMessage(error, 'Không thể tải danh sách người dùng');
+      toastRef.current.error('Lỗi tải dữ liệu', message);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
-  }, [toast]);
+  }, []); 
 
-  // Load khi page / role thay đổi
-  useEffect(() => { load(page, keywordRef.current, role); }, [page, role, load]);
+  useEffect(() => {
+    fetchUsers({
+      keyword: filters.keyword,
+      role: filters.role
+    });
+  }, [filters.keyword, filters.role]); 
 
-  // Debounce keyword
-  const handleKeyword = (v: string) => {
-    setKeyword(v);
-    keywordRef.current = v;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setPage(0);
-      load(0, v, role);
-    }, 400);
-  };
-
-  const handleRole = (v: AdminUserRole | "") => {
-    setRole(v);
-    setPage(0);
-  };
-
-  const handleReset = () => {
-    setKeyword("");
-    setRole("");
-    setPage(0);
-    keywordRef.current = "";
-    load(0, "", "");
-  };
-
-  // ── Toggle active ─────────────────────────────────────────────────────────
-
-  const handleToggle = useCallback(async (user: AdminUser) => {
-    setTogglingId(user.id);
+  const handleToggleActive = async (userId: string) => {
     try {
-      const updated = await service.toggleActive(user.id);
-      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
-      // Cập nhật modal nếu đang mở
-      setSelectedUser(prev => prev?.id === updated.id ? updated : prev);
-      toast.success(
-        updated.active ? "Đã mở khoá" : "Đã khoá",
-        `Tài khoản ${user.fullName} đã được ${updated.active ? "mở khoá" : "khoá"}.`,
-      );
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-    } finally {
-      setTogglingId(null);
+      const user = users.find(u => u.id === userId);
+      const action = user?.active ? 'khóa' : 'kích hoạt';
+      await service.toggleActive(userId);
+      await fetchUsers({
+        keyword: getFilterValue('keyword'),
+        role: getFilterValue('role')
+      });
+      setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      toastRef.current.success('Thành công', `Đã ${action} tài khoản "${user?.fullName}" thành công`);
+    } catch (error) {
+      console.error('Failed to toggle user status:', error);
+      const message = extractErrorMessage(error, 'Không thể thay đổi trạng thái tài khoản');
+      toastRef.current.error('Lỗi thao tác', message);
     }
-  }, [toast]);
+  };
 
-  // ── Change role ───────────────────────────────────────────────────────────
-
-  const handleChangeRole = useCallback(async (user: AdminUser, newRole: AdminUserRole) => {
+  const handleRoleChange = async (userId: string, newRole: AdminUserRole) => {
+    setRoleFormModal(prev => ({ ...prev, loading: true }));
     try {
-      const updated = await service.changeRole(user.id, newRole);
-      setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
-      setSelectedUser(prev => prev?.id === updated.id ? updated : prev);
-      toast.success("Đã cập nhật", `Role của ${user.fullName} đã được thay đổi.`);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-      throw e;
+      const user = users.find(u => u.id === userId);
+      await service.changeRole(userId, newRole);
+      await fetchUsers({
+        keyword: getFilterValue('keyword'),
+        role: getFilterValue('role')
+      });
+      setRoleFormModal({ isOpen: false, user: null, loading: false });
+      const roleLabel = roleFormOptions.find(r => r.value === newRole)?.label || newRole;
+      toastRef.current.success('Thành công', `Đã đổi vai trò của "${user?.fullName}" thành ${roleLabel}`);
+    } catch (error) {
+      console.error('Failed to change user role:', error);
+      const message = extractErrorMessage(error, 'Không thể thay đổi vai trò');
+      toastRef.current.error('Lỗi thao tác', message);
+      setRoleFormModal(prev => ({ ...prev, loading: false }));
     }
-  }, [toast]);
+  };
 
-  // ── Derived stats ─────────────────────────────────────────────────────────
+  const openRoleForm = (user: AdminUser) => {
+    setSelectedUser(user);
+    setRoleFormModal({ isOpen: true, user, loading: false });
+  };
 
-  const activeCount = users.filter(u => u.active).length;
-  const lockedCount = users.filter(u => !u.active).length;
-  const adminCount  = users.filter(u => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length;
+  // FIX: handleFilterChange và handleResetFilters không cần fetchUsers trong deps
+  const handleFilterChange = useCallback((key: string, value: any) => {
+    setFilter(key, value);
+  }, [setFilter]);
+
+  // FIX: chỉ reset filter — useEffect sẽ tự fetch lại khi filter thay đổi
+  const handleResetFilters = useCallback(() => {
+    resetAllFilters();
+    toastRef.current.info('Đã xóa bộ lọc', 'Đang tải lại tất cả dữ liệu');
+  }, [resetAllFilters]);
+
+  const handleRefresh = useCallback(() => {
+    fetchUsers({
+      keyword: getFilterValue('keyword'),
+      role: getFilterValue('role')
+    });
+    toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
+  }, [fetchUsers, getFilterValue]);
+
+  const roleFormFields: FormField[] = [
+    {
+      name: 'role',
+      label: 'Vai trò mới',
+      type: 'select',
+      required: true,
+      options: roleFormOptions,
+      placeholder: 'Chọn vai trò mới'
+    }
+  ];
+
+  const columns: Column<AdminUser>[] = [
+    {
+      key: 'fullName',
+      title: 'Họ tên',
+      sortable: true,
+      width: '200px',
+      render: (value, record) => (
+        <div>
+          <div className="font-medium text-foreground">{value}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{record.email}</div>
+        </div>
+      )
+    },
+    {
+      key: 'role',
+      title: 'Vai trò',
+      width: '150px',
+      render: (value: AdminUserRole) => {
+        const config = roleConfig[value];
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color}`}>
+            {config.icon}
+            {config.label}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'active',
+      title: 'Trạng thái',
+      width: '120px',
+      render: (value: boolean) => (
+        <StatusBadge
+          status={value ? 'active' : 'inactive'}
+          label={value ? 'Hoạt động' : 'Khóa'}
+          size="sm"
+        />
+      )
+    },
+    {
+      key: 'createdAt',
+      title: 'Ngày tạo',
+      width: '160px',
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString('vi-VN')
+    },
+    {
+      key: 'lastLoginAt',
+      title: 'Lần cuối đăng nhập',
+      width: '160px',
+      render: (value) => value ? new Date(value).toLocaleDateString('vi-VN') : 'Chưa đăng nhập'
+    },
+    {
+      key: 'actions',
+      title: 'Thao tác',
+      width: '100px',
+      align: 'center',
+      render: (_, record) => (
+        <TableActions
+          record={record}
+          actions={actions}
+          showLabel={false}
+        />
+      )
+    }
+  ];
+
+  const actions: ActionItem<AdminUser>[] = [
+    {
+      key: 'toggle',
+      label: (record) => record.active ? 'Khóa tài khoản' : 'Kích hoạt',
+      icon: (record) => record.active ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />,
+      onClick: (record) => {
+        setSelectedUser(record);
+        setConfirmModal({
+          isOpen: true,
+          title: record.active ? 'Khóa tài khoản' : 'Kích hoạt tài khoản',
+          message: record.active
+            ? `Bạn có chắc chắn muốn khóa tài khoản của "${record.fullName}"? Người dùng sẽ không thể đăng nhập.`
+            : `Bạn có chắc chắn muốn kích hoạt tài khoản của "${record.fullName}"? Người dùng sẽ có thể đăng nhập lại.`,
+          onConfirm: () => handleToggleActive(record.id)
+        });
+      },
+      color: (record) => record.active ? 'warning' : 'success'
+    },
+    {
+      key: 'role',
+      label: 'Đổi vai trò',
+      icon: <Edit className="w-4 h-4" />,
+      onClick: (record) => openRoleForm(record),
+      color: 'default'
+    }
+  ];
 
   return (
-    <div className="flex flex-col gap-6">
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={<Users     size={18} className="text-blue-600"  />} label="Tổng users"    value={totalElements.toLocaleString()} color="bg-blue-50"  />
-        <StatCard icon={<UserCheck size={18} className="text-green-600" />} label="Đang hoạt động" value={activeCount}                    color="bg-green-50" />
-        <StatCard icon={<UserX    size={18} className="text-red-500"   />} label="Bị khoá"        value={lockedCount}                    color="bg-red-50"   />
-        <StatCard icon={<Shield   size={18} className="text-purple-600"/>} label="Admin"          value={adminCount}                     color="bg-purple-50"/>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý người dùng</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Quản lý tài khoản, phân quyền và trạng thái người dùng
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground">
+            Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> người dùng
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <UserFilters
-        keyword={keyword} role={role}
-        totalElements={totalElements}
-        onKeyword={handleKeyword}
-        onRole={handleRole}
-        onReset={handleReset}
+      <AdminFilter
+        config={{
+          searchKey: 'keyword',
+          statusKey: 'status',
+          customFilters: [
+            { key: 'role', label: 'Vai trò', options: roleOptions }
+          ]
+        }}
+        filters={{
+          keyword: getFilterValue('keyword'),
+          status: getFilterValue('status'),
+          role: getFilterValue('role')
+        }}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        onRefresh={handleRefresh}
+        statusOptions={statusOptions}
+        searchPlaceholder="Tìm kiếm theo tên, email..."
+        statusPlaceholder="Tất cả trạng thái"
+        showDateFilter={false}
+        loading={loading}
       />
 
-      {/* Table */}
-      {loading
-        ? <TableSkeleton />
-        : <UserTable
-            users={users}
-            togglingId={togglingId}
-            onView={setSelectedUser}
-            onToggle={handleToggle}
-          />
-      }
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            current={page + 1}
-            total={totalPages}
-            onChange={p => setPage(p - 1)}
-          />
-        </div>
-      )}
-
-      {/* Detail modal */}
-      {selectedUser && (
-        <UserDetailModal
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
-          onToggle={handleToggle}
-          onChangeRole={handleChangeRole}
+      <div className="bg-background rounded-lg border border-border overflow-hidden">
+        <DataTable
+          data={users}
+          columns={columns}
+          loading={loading}
+          selectable
+          showPagination
+          defaultPageSize={10}
+          emptyMessage="Không có người dùng"
+          emptyDescription="Chưa có người dùng nào trong hệ thống"
+          onRefresh={handleRefresh}
         />
-      )}
+      </div>
+
+      <ConfirmModel
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.title.includes('Khóa') ? 'danger' : 'warning'}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+      />
+
+      <FormModel
+        isOpen={roleFormModal.isOpen}
+        onClose={() => setRoleFormModal({ isOpen: false, user: null, loading: false })}
+        onSubmit={(data) => {
+          if (roleFormModal.user) {
+            handleRoleChange(roleFormModal.user.id, data.role);
+          }
+        }}
+        title={`Đổi vai trò - ${roleFormModal.user?.fullName || ''}`}
+        fields={roleFormFields}
+        initialData={{ role: roleFormModal.user?.role || '' }}
+        submitText="Cập nhật"
+        loading={roleFormModal.loading}
+      />
     </div>
   );
 }

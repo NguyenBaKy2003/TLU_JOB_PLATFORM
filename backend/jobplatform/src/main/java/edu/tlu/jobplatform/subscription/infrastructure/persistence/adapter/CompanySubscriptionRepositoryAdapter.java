@@ -6,6 +6,9 @@ import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.*;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.mapper.SubscriptionMapper;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -19,6 +22,12 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
 
     private final CompanySubscriptionJpaRepo jpaRepo;
     private final SubscriptionMapper mapper;
+
+    @Override
+    public Page<CompanySubscription> findAll(Pageable pageable) {
+        return jpaRepo.findAll(pageable)
+                .map(mapper::toDomain);
+    }
 
     @Override
     public Optional<CompanySubscription> findById(UUID id) {

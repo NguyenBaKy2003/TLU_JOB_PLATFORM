@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.cv.application.usecase;
 
-import edu.tlu.jobplatform.cv.application.port.out.CVStoragePort;
+import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.repository.OnlineCVRepository;
 import edu.tlu.jobplatform.cv.domain.service.CVDomainService;
@@ -22,7 +22,7 @@ public class DeleteOnlineCVUseCase {
 
     private final OnlineCVRepository cvRepository;
     private final CVDomainService cvDomainService;
-    private final CVStoragePort cvStoragePort;
+    private final FileStoragePort fileStoragePort;
 
     @Transactional
     public void execute(UUID cvId, UUID candidateId) {
@@ -31,7 +31,7 @@ public class DeleteOnlineCVUseCase {
         // Xóa PDF trên S3 nếu có (best-effort, không throw nếu lỗi)
         if (cv.getExportedPdfUrl() != null) {
             try {
-                cvStoragePort.delete(cv.getExportedPdfUrl());
+                fileStoragePort.delete(cv.getExportedPdfUrl());
             } catch (Exception e) {
                 log.warn("Failed to delete PDF from storage: cvId={} url={} error={}",
                         cvId, cv.getExportedPdfUrl(), e.getMessage());

@@ -131,6 +131,9 @@ public class OnlineCVMapper {
                 .category(e.getCategory())
                 .premium(e.isPremium())
                 .htmlContent(e.getHtmlContent())
+                .active(e.isActive())
+                .createdAt(e.getCreatedAt())
+                .updatedAt(e.getUpdatedAt())
                 .build();
     }
 
@@ -151,6 +154,7 @@ public class OnlineCVMapper {
         e.setCategory(t.getCategory());
         e.setPremium(t.isPremium());
         e.setHtmlContent(t.getHtmlContent());
+        e.setIsActive(t.isActive());
     }
 
     // ── Helpers

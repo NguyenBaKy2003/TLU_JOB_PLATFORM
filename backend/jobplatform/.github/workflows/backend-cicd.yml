@@ -176,10 +176,10 @@ jobs:
             sleep 15
             curl -sf http://localhost:8080/actuator/health \
               | grep -q '"status":"UP"' \
-              && echo "✅ Healthy" \
-              || (echo "❌ Unhealthy" && docker logs jobplatform-backend-dev --tail 50 && exit 1)
+              && echo " Healthy" \
+              || (echo " Unhealthy" && docker logs jobplatform-backend-dev --tail 50 && exit 1)
 
             echo "▶ Cleanup old images..."
             docker image prune -f
 
-            echo "🚀 Deploy complete: ${{ needs.build-image.outputs.image-tag }}"
+            echo " Deploy complete: ${{ needs.build-image.outputs.image-tag }}"

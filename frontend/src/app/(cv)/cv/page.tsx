@@ -1,6 +1,8 @@
+// src/app/(cv)/cv/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CvService } from "@/application/services/CvService";
 import { CvRepository } from "@/infrastructure/repositories/CvRepository";
 import type { OnlineCV, CVTemplate } from "@/domain/models/Cv";
@@ -9,17 +11,30 @@ import { CVPageHeader } from "@/presentation/components/cv/CVPageHeader";
 import { CVEmptyState } from "@/presentation/components/cv/CVEmptyState";
 import { CVGrid } from "@/presentation/components/cv/CVGrid";
 import { CreateCVModal } from "@/presentation/components/cv/CreateCVModal";
+import { useAuth } from "@/application/contexts/AuthContext";
+import { CVAuthRequired } from "@/presentation/components/cv/CVAuthRequired";
 
 const cvService = new CvService(new CvRepository());
 
 export default function CVPage() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth(); // Hook auth của bạn
+  
   const [cvs, setCvs] = useState<OnlineCV[]>([]);
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Load data chỉ khi có quyền
   useEffect(() => {
+    if (authLoading) return;
+    
+    if (!isAuthenticated || user?.role !== "CANDIDATE") {
+      setLoading(false);
+      return;
+    }
+
     const load = async () => {
       try {
         const [cvList, tplList] = await Promise.all([
@@ -35,7 +50,19 @@ export default function CVPage() {
       }
     };
     load();
-  }, []);
+  }, [authLoading, isAuthenticated, user?.role]);
+
+  // Nếu đang check auth
+  if (authLoading) return <CVPageSkeleton />;
+
+  // Nếu chưa đăng nhập hoặc không phải CANDIDATE
+  if (!isAuthenticated || user?.role !== "CANDIDATE") {
+    return <CVAuthRequired isAuthenticated={isAuthenticated} 
+      userRole={user?.role}  />;
+  }
+
+  // Nếu đang load data
+  if (loading) return <CVPageSkeleton />;
 
   const handleCreate = async (title: string, templateId: string) => {
     setCreating(true);
@@ -94,8 +121,6 @@ export default function CVPage() {
       console.error("Failed to restore CV", err);
     }
   };
-
-  if (loading) return <CVPageSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#F7F6F3]">

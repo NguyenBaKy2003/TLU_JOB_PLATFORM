@@ -38,7 +38,7 @@ import java.util.UUID;
  * {frontendUrl}/auth/oauth2/callback?accessToken=...&refreshToken=...&expiresIn=900&portal=EMPLOYER
  *
  * Redirect lỗi:
- * {frontendUrl}/auth/oauth2/callback?error=PORTAL_ACCESS_DENIED&message=...
+ * {frontendUrl}/auth/oauth2/callback?error=PORTAL_ACCESS_DENIED
  */
 @Slf4j
 @Component
@@ -67,36 +67,26 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         User user = principal.getDomainUser();
 
         // ── 1. Đọc portalType từ session ─────────────────────────────────────
-        // Session được tạo bởi CustomAuthorizationRequestResolver lúc bắt đầu flow.
-        // Đọc trước khi cleanup để dùng cho cả portal check và redirect URL.
+        // Phải đọc TRƯỚC mọi cleanup để dùng cho cả portal check và redirect URL.
         String portalType = readPortalTypeFromSession(req);
         log.debug("OAuth2 success: email={} portal={} sessionId={}",
-                user.getEmail(), portalType, req.getSession(false) != null
-                        ? req.getSession(false).getId()
-                        : "null");
+                user.getEmail(), portalType,
+                req.getSession(false) != null ? req.getSession(false).getId() : "null");
 
         // ── 2. Kiểm tra account bị khóa ──────────────────────────────────────
         if (!user.isActive()) {
             log.warn("OAuth2 login blocked — account locked: {}", user.getEmail());
-            cleanupSession(req);
-            redirectError(req, res, "ACCOUNT_LOCKED",
-                    "Tài khoản đã bị khóa. Vui lòng liên hệ support.");
+            redirectError(req, res, "ACCOUNT_LOCKED", portalType);
+            cleanupSession(req); // cleanup SAU redirect
             return;
         }
 
         // ── 3. Kiểm tra portal access ─────────────────────────────────────────
-        // Nhất quán với LoginUseCase#validatePortalAccess:
-        // CANDIDATE chỉ vào trang Candidate, EMPLOYER chỉ vào trang Employer.
         if (!isPortalAllowed(user, portalType)) {
-            String hint = switch (user.getRole()) {
-                case CANDIDATE -> "Tài khoản này là ứng viên. Vui lòng đăng nhập tại trang ứng viên.";
-                case EMPLOYER -> "Tài khoản này là nhà tuyển dụng. Vui lòng đăng nhập tại trang nhà tuyển dụng.";
-                default -> "Tài khoản không có quyền truy cập trang này.";
-            };
             log.warn("OAuth2 portal mismatch: email={} role={} attemptedPortal={}",
                     user.getEmail(), user.getRole(), portalType);
-            cleanupSession(req);
-            redirectError(req, res, "PORTAL_ACCESS_DENIED", hint);
+            redirectError(req, res, "PORTAL_ACCESS_DENIED", portalType);
+            cleanupSession(req); // cleanup SAU redirect
             return;
         }
 
@@ -113,8 +103,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // ── 6. Cleanup session ───────────────────────────────────────────────
         cleanupSession(req);
 
-        log.info("OAuth2 login success: {} [{}] portal={}",
-                user.getEmail(), user.getId(), portalType);
+        log.info("OAuth2 login success: {} [{}] portal={}", user.getEmail(), user.getId(), portalType);
 
         // ── 7. Redirect về frontend ──────────────────────────────────────────
         String redirectUrl = UriComponentsBuilder
@@ -122,7 +111,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("expiresIn", jwtTokenProvider.getAccessTokenExpirySeconds())
-                .queryParam("portal", portalType) // frontend dùng để redirect đúng dashboard
+                .queryParam("portal", portalType)
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(req, res, redirectUrl);
@@ -135,7 +124,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
      * Fallback về "CANDIDATE" nếu session không tồn tại hoặc key bị thiếu.
      */
     private String readPortalTypeFromSession(HttpServletRequest req) {
-        HttpSession session = req.getSession(false); // false = không tạo session mới
+        HttpSession session = req.getSession(false);
         if (session != null) {
             Object value = session.getAttribute(
                     CustomAuthorizationRequestResolver.SESSION_KEY_PORTAL_TYPE);
@@ -171,26 +160,28 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         };
     }
 
-    /** Redirect về frontend login page với error params. */
+    /**
+     * Redirect về frontend login page với error code.
+     *
+     * @param attemptedPortal portal mà user đang cố vào — dùng để redirect
+     *                        về đúng trang login (không phải portal của role).
+     *
+     *                        FIX: nhận attemptedPortal trực tiếp thay vì đọc lại từ
+     *                        session
+     *                        (tránh bug do cleanupSession đã chạy trước).
+     *                        FIX: dùng đúng path frontend (/auth/login,
+     *                        /employer/auth/login).
+     */
     private void redirectError(HttpServletRequest req, HttpServletResponse res,
-            String errorCode, String message) throws IOException {
+            String errorCode, String attemptedPortal) throws IOException {
 
-        // Xác định trang login phù hợp dựa theo errorCode
         String loginPath = switch (errorCode) {
-            case "PORTAL_ACCESS_DENIED" -> {
-                // Redirect về đúng portal của user, không phải portal họ đang cố vào
-                HttpSession session = req.getSession(false);
-                String attempted = (session != null)
-                        ? (String) session.getAttribute(
-                                CustomAuthorizationRequestResolver.SESSION_KEY_PORTAL_TYPE)
-                        : "CANDIDATE";
-                // Nếu cố vào CANDIDATE nhưng là EMPLOYER → redirect về employer login
-                yield "CANDIDATE".equals(attempted)
-                        ? "/employer/login"
-                        : "/login";
-            }
-            case "ACCOUNT_LOCKED" -> "/login";
-            default -> "/login";
+            case "PORTAL_ACCESS_DENIED" ->
+                // Redirect về đúng portal mà user đang cố vào
+                // Route Next.js: /auth/employer/login (không phải /employer/auth/login)
+                "EMPLOYER".equals(attemptedPortal) ? "/auth/employer/login" : "/auth/login";
+            case "ACCOUNT_LOCKED" -> "/auth/login";
+            default -> "/auth/login";
         };
 
         String url = UriComponentsBuilder

@@ -5,6 +5,7 @@ import type {
   OnlineCV, OnlineCVDetail, CVTemplate, CVSection,
   CreateCVForm, PersonalInfoForm, UpdateCVSectionPayload,
   CVVisibility, SectionType,
+  PublicCVDetail,
 } from "@/domain/models/Cv";
 
 export class CvService {
@@ -128,12 +129,23 @@ export class CvService {
   duplicate(cvId: string): Promise<OnlineCVDetail> {
     return this.repo.duplicate(cvId);
   }
-
-  exportPdf(cvId: string): Promise<string> {
-    return this.repo.exportPdf(cvId);
-  }
-
+    exportPdf(cvId: string): Promise<Blob> {
+      return this.repo.exportPdf(cvId);
+    }
   importFromProfile(cvId: string): Promise<OnlineCVDetail> {
     return this.repo.importFromProfile(cvId);
   }
+
+    // Thêm
+    previewHtml(cvId: string): Promise<string> {
+      return this.repo.previewHtml(cvId);
+    }
+
+    viewPdf(cvId: string): Promise<Blob> {
+      return this.repo.viewPdf(cvId);
+    }
+      getBySlug(slug: string): Promise<PublicCVDetail> {
+    return this.repo.getBySlug(slug);
+  }
+
 }

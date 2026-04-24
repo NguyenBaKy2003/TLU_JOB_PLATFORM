@@ -1,283 +1,653 @@
-"use client";
-import { useState, useEffect, useCallback } from "react";
-import { Building2, Clock, CheckCircle, Ban }  from "lucide-react";
-import { AdminCompanyService }                           from "@/application/services/AdminCompanyService";
-import { AdminCompanyRepository }                        from "@/infrastructure/repositories/AdminCompanyRepository";
-import { CompanyTable }                                  from "@/presentation/components/admin/companies/CompanyTable";
-import { CompanyFilters }                                from "@/presentation/components/admin/companies/CompanyFilters";
-import { CompanyDetailModal }                            from "@/presentation/components/admin/companies/CompanyDetailModal";
-import { ReasonModal }                                   from "@/presentation/components/admin/companies/ReasonModal";
-import { Pagination }                                    from "@/presentation/components/common/Pagination";
-import { useToast }                                      from "@/presentation/components/ui/toast";
-import { extractErrorMessage }                           from "@/lib/extractErrorMessage";
-import type { AdminCompany, VerificationStatus }         from "@/domain/models/AdminCompany";
+'use client';
 
-const service = new AdminCompanyService(new AdminCompanyRepository());
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  DataTable,
+  Column,
+  ActionItem,
+  StatusBadge,
+  AdminFilter,
+  useFilter,
+  ConfirmModel,
+  TableActions,
+  FormModel,
+  FormField,
+  DetailModel,
+  DetailField
+} from '@/presentation/components/common';
+import { AdminCompanyRepository } from '@/infrastructure/repositories/AdminCompanyRepository';
+import type {
+  AdminCompany,
+  AdminCompanyFilters,
+  VerificationStatus
+} from '@/domain/models/AdminCompany';
+import { AdminCompanyService } from '@/application/services/AdminCompanyService';
+import { useToast } from '@/presentation/components/ui/toast';
+import { extractErrorMessage } from '@/lib/extractErrorMessage';
+import { Building2, Mail, Globe, MapPin, Briefcase, CheckCircle, XCircle, Clock, AlertCircle, Eye, Edit, Shield, Unlock } from 'lucide-react';
 
-// ── Stat card ──────────────────────────────────────────────────────────────────
+// Status options for filter
+const statusOptions = [
+  { value: 'UNVERIFIED', label: 'Chưa xác thực' },
+  { value: 'VERIFIED', label: 'Đã xác thực' },
+  { value: 'REJECTED', label: 'Từ chối' },
+  { value: 'SUSPENDED', label: 'Đã khóa' }
+];
 
-function StatCard({ icon, label, value, color }: {
-  icon: React.ReactNode; label: string; value: number | string; color: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4
-      flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
+// Status config for badge
+const statusConfig: Record<VerificationStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  UNVERIFIED: {
+    label: 'Chưa xác thực',
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    icon: <Clock className="w-3 h-3" />
+  },
+  VERIFIED: {
+    label: 'Đã xác thực',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    icon: <CheckCircle className="w-3 h-3" />
+  },
+  REJECTED: {
+    label: 'Từ chối',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    icon: <XCircle className="w-3 h-3" />
+  },
+  SUSPENDED: {
+    label: 'Đã khóa',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+    icon: <AlertCircle className="w-3 h-3" />
+  }
+};
 
-// ── Skeleton ───────────────────────────────────────────────────────────────────
-
-function TableSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
-      overflow-hidden animate-pulse">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50">
-          <div className="w-8 h-8 bg-gray-100 rounded-xl shrink-0" />
-          <div className="flex-1 flex flex-col gap-1.5">
-            <div className="h-3 bg-gray-100 rounded w-36" />
-            <div className="h-2.5 bg-gray-100 rounded w-44" />
-          </div>
-          <div className="h-3 bg-gray-100 rounded w-20" />
-          <div className="h-3 bg-gray-100 rounded w-16" />
-          <div className="h-5 bg-gray-100 rounded-full w-20" />
-          <div className="h-3 bg-gray-100 rounded w-20" />
-          <div className="flex gap-1">
-            <div className="w-7 h-7 bg-gray-100 rounded-lg" />
-            <div className="w-7 h-7 bg-gray-100 rounded-lg" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Reason modal state ─────────────────────────────────────────────────────────
-
-type ReasonModalState =
-  | { type: "reject";  company: AdminCompany }
-  | { type: "suspend"; company: AdminCompany }
-  | null;
-
-// ── Page ───────────────────────────────────────────────────────────────────────
-
-const PAGE_SIZE = 20;
+// Action button config
+const actionButtonConfig = {
+  UNVERIFIED: {
+    primaryAction: 'approve',
+    primaryLabel: 'Xác thực',
+    primaryIcon: <CheckCircle className="w-4 h-4" />,
+    primaryColor: 'success' as const,
+    secondaryAction: 'reject',
+    secondaryLabel: 'Từ chối',
+    secondaryIcon: <XCircle className="w-4 h-4" />,
+    secondaryColor: 'danger' as const
+  },
+  VERIFIED: {
+    primaryAction: 'suspend',
+    primaryLabel: 'Khóa',
+    primaryIcon: <Shield className="w-4 h-4" />,
+    primaryColor: 'warning' as const,
+    secondaryAction: null,
+    secondaryLabel: null,
+    secondaryIcon: null,
+    secondaryColor: null
+  },
+  SUSPENDED: {
+    primaryAction: 'unsuspend',
+    primaryLabel: 'Mở khóa',
+    primaryIcon: <Unlock className="w-4 h-4" />,
+    primaryColor: 'success' as const,
+    secondaryAction: null,
+    secondaryLabel: null,
+    secondaryIcon: null,
+    secondaryColor: null
+  },
+  REJECTED: {
+    primaryAction: null,
+    primaryLabel: null,
+    primaryIcon: null,
+    primaryColor: null,
+    secondaryAction: null,
+    secondaryLabel: null,
+    secondaryIcon: null,
+    secondaryColor: null
+  }
+};
 
 export default function AdminCompaniesPage() {
   const toast = useToast();
+  const toastRef = useRef(toast);
+  useEffect(() => {
+    toastRef.current = toast;
+  }, [toast]);
 
-  const [companies,     setCompanies]     = useState<AdminCompany[]>([]);
+  const [companies, setCompanies] = useState<AdminCompany[]>([]);
+  const [loading, setLoading] = useState(true);
   const [totalElements, setTotalElements] = useState(0);
-  const [totalPages,    setTotalPages]    = useState(1);
-  const [page,          setPage]          = useState(0);
-  const [status,        setStatus]        = useState<VerificationStatus | "">("");
-  const [loading,       setLoading]       = useState(true);
-  const [loadingId,     setLoadingId]     = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<AdminCompany | null>(null);
-  const [reasonModal,   setReasonModal]   = useState<ReasonModalState>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  const load = useCallback(async (p: number, s: VerificationStatus | "") => {
+  // Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'success';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => {}
+  });
+
+  // Reject Form Modal state
+  const [rejectFormModal, setRejectFormModal] = useState<{
+    isOpen: boolean;
+    company: AdminCompany | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    company: null,
+    loading: false
+  });
+
+  // Suspend Form Modal state
+  const [suspendFormModal, setSuspendFormModal] = useState<{
+    isOpen: boolean;
+    company: AdminCompany | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    company: null,
+    loading: false
+  });
+
+  const isFetching = useRef(false);
+
+  const service = new AdminCompanyService(new AdminCompanyRepository());
+
+  const filterConfigs = [
+    { key: 'status', type: 'select' as const, label: 'Trạng thái', options: statusOptions }
+  ];
+
+  const { filters, setFilter, resetAllFilters, getFilterValue } = useFilter({
+    configs: filterConfigs,
+    syncWithUrl: true,
+    debounceMs: 500
+  });
+
+  const fetchCompanies = useCallback(async (filterValues: { status?: string }) => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
     setLoading(true);
+
     try {
-      const res = await service.listCompanies({ page: p, size: PAGE_SIZE, status: s });
-      setCompanies(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
+      const apiFilters: AdminCompanyFilters = {
+        page: 0,
+        size: 10,
+        status: filterValues.status as VerificationStatus || ''
+      };
+
+      const result = await service.listCompanies(apiFilters);
+      setCompanies(result.content);
+      setTotalElements(result.totalElements);
+    } catch (error) {
+      console.error('Failed to fetch companies:', error);
+      const message = extractErrorMessage(error, 'Không thể tải danh sách công ty');
+      toastRef.current.error('Lỗi tải dữ liệu', message);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
-  }, [toast]);
-
-  useEffect(() => { load(page, status); }, [page, status, load]);
-
-  const handleStatus = (v: VerificationStatus | "") => {
-    setStatus(v);
-    setPage(0);
-  };
-
-  const handleReset = () => {
-    setStatus("");
-    setPage(0);
-  };
-
-  // ── Patch helper ─────────────────────────────────────────────────────────
-
-  const patch = (updated: AdminCompany) => {
-    setCompanies(prev => prev.map(c => c.id === updated.id ? updated : c));
-    setSelectedCompany(prev => prev?.id === updated.id ? updated : prev);
-  };
-
-  // ── Approve ───────────────────────────────────────────────────────────────
-
-  const handleApprove = useCallback(async (company: AdminCompany) => {
-    setLoadingId(company.id);
-    try {
-      const updated = await service.approve(company.id);
-      patch(updated);
-      toast.success("Đã duyệt", `Công ty ${company.name} đã được xác thực.`);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-    } finally {
-      setLoadingId(null);
-    }
-  }, [toast]);
-
-  // ── Reject (opens modal) ──────────────────────────────────────────────────
-
-  const handleReject = useCallback((company: AdminCompany) => {
-    setReasonModal({ type: "reject", company });
   }, []);
 
-  const confirmReject = async (reason: string) => {
-    if (!reasonModal || reasonModal.type !== "reject") return;
-    const updated = await service.reject(reasonModal.company.id, reason);
-    patch(updated);
-    toast.success("Đã từ chối", `Công ty ${reasonModal.company.name} đã bị từ chối.`);
-  };
+  // Fetch when filter changes
+  useEffect(() => {
+    fetchCompanies({
+      status: filters.status
+    });
+  }, [filters.status]);
 
-  // ── Suspend (opens modal) ─────────────────────────────────────────────────
-
-  const handleSuspend = useCallback((company: AdminCompany) => {
-    setReasonModal({ type: "suspend", company });
-  }, []);
-
-  const confirmSuspend = async (reason: string) => {
-    if (!reasonModal || reasonModal.type !== "suspend") return;
-    const updated = await service.suspend(reasonModal.company.id, reason);
-    patch(updated);
-    toast.success("Đã khoá", `Công ty ${reasonModal.company.name} đã bị khoá.`);
-  };
-
-  // ── Unsuspend ─────────────────────────────────────────────────────────────
-
-  const handleUnsuspend = useCallback(async (company: AdminCompany) => {
-    setLoadingId(company.id);
+  const fetchCompanyDetail = async (id: string) => {
     try {
-      const updated = await service.unsuspend(company.id);
-      patch(updated);
-      toast.success("Đã mở khoá", `Công ty ${company.name} đã được mở khoá.`);
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
-    } finally {
-      setLoadingId(null);
+      const detail = await service.getCompany(id);
+      setSelectedCompany(detail);
+      setDetailModalOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch company detail:', error);
+      const message = extractErrorMessage(error, 'Không thể tải chi tiết công ty');
+      toastRef.current.error('Lỗi', message);
     }
-  }, [toast]);
+  };
 
-  // ── Derived stats ─────────────────────────────────────────────────────────
+  const handleApprove = async (id: string) => {
+    try {
+      const company = companies.find(c => c.id === id);
+      await service.approve(id);
+      await fetchCompanies({
+        status: getFilterValue('status')
+      });
+      setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      toastRef.current.success('Thành công', `Đã xác thực công ty "${company?.name}" thành công`);
+    } catch (error) {
+      console.error('Failed to approve company:', error);
+      const message = extractErrorMessage(error, 'Không thể xác thực công ty');
+      toastRef.current.error('Lỗi thao tác', message);
+    }
+  };
 
-  const pendingCount   = companies.filter(c => c.verificationStatus === "UNVERIFIED").length;
-  const approvedCount  = companies.filter(c => c.verificationStatus === "VERIFIED").length;
-  const rejectedCount  = companies.filter(c => c.verificationStatus === "REJECTED").length;
-  const suspendedCount = companies.filter(c => c.verificationStatus === "SUSPENDED").length;
+  const handleReject = async (id: string, reason: string) => {
+    setRejectFormModal(prev => ({ ...prev, loading: true }));
+    try {
+      const company = companies.find(c => c.id === id);
+      await service.reject(id, reason);
+      await fetchCompanies({
+        status: getFilterValue('status')
+      });
+      setRejectFormModal({ isOpen: false, company: null, loading: false });
+      toastRef.current.success('Thành công', `Đã từ chối xác thực công ty "${company?.name}"`);
+    } catch (error) {
+      console.error('Failed to reject company:', error);
+      const message = extractErrorMessage(error, 'Không thể từ chối xác thực công ty');
+      toastRef.current.error('Lỗi thao tác', message);
+      setRejectFormModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleSuspend = async (id: string, reason: string) => {
+    setSuspendFormModal(prev => ({ ...prev, loading: true }));
+    try {
+      const company = companies.find(c => c.id === id);
+      await service.suspend(id, reason);
+      await fetchCompanies({
+        status: getFilterValue('status')
+      });
+      setSuspendFormModal({ isOpen: false, company: null, loading: false });
+      toastRef.current.success('Thành công', `Đã khóa công ty "${company?.name}"`);
+    } catch (error) {
+      console.error('Failed to suspend company:', error);
+      const message = extractErrorMessage(error, 'Không thể khóa công ty');
+      toastRef.current.error('Lỗi thao tác', message);
+      setSuspendFormModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleUnsuspend = async (id: string) => {
+    try {
+      const company = companies.find(c => c.id === id);
+      await service.unsuspend(id);
+      await fetchCompanies({
+        status: getFilterValue('status')
+      });
+      setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      toastRef.current.success('Thành công', `Đã mở khóa công ty "${company?.name}"`);
+    } catch (error) {
+      console.error('Failed to unsuspend company:', error);
+      const message = extractErrorMessage(error, 'Không thể mở khóa công ty');
+      toastRef.current.error('Lỗi thao tác', message);
+    }
+  };
+
+  const openApproveConfirm = (company: AdminCompany) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xác thực công ty',
+      message: `Bạn có chắc chắn muốn xác thực công ty "${company.name}"? Sau khi xác thực, công ty sẽ có thể đăng bài tuyển dụng.`,
+      type: 'success',
+      onConfirm: () => handleApprove(company.id)
+    });
+  };
+
+  const openRejectForm = (company: AdminCompany) => {
+    setRejectFormModal({
+      isOpen: true,
+      company,
+      loading: false
+    });
+  };
+
+  const openSuspendForm = (company: AdminCompany) => {
+    setSuspendFormModal({
+      isOpen: true,
+      company,
+      loading: false
+    });
+  };
+
+  const openUnsuspendConfirm = (company: AdminCompany) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Mở khóa công ty',
+      message: `Bạn có chắc chắn muốn mở khóa công ty "${company.name}"? Công ty sẽ có thể hoạt động trở lại.`,
+      type: 'success',
+      onConfirm: () => handleUnsuspend(company.id)
+    });
+  };
+
+  const handleFilterChange = useCallback((key: string, value: any) => {
+    setFilter(key, value);
+  }, [setFilter]);
+
+  const handleResetFilters = useCallback(() => {
+    resetAllFilters();
+    toastRef.current.info('Đã xóa bộ lọc', 'Đang tải lại tất cả dữ liệu');
+  }, [resetAllFilters]);
+
+  const handleRefresh = useCallback(() => {
+    fetchCompanies({
+      status: getFilterValue('status')
+    });
+    toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
+  }, [fetchCompanies, getFilterValue]);
+
+  // Form fields for reject
+  const rejectFormFields: FormField[] = [
+    {
+      name: 'reason',
+      label: 'Lý do từ chối',
+      type: 'textarea',
+      required: true,
+      rows: 4,
+      placeholder: 'Nhập lý do từ chối xác thực công ty...'
+    }
+  ];
+
+  // Form fields for suspend
+  const suspendFormFields: FormField[] = [
+    {
+      name: 'reason',
+      label: 'Lý do khóa',
+      type: 'textarea',
+      required: true,
+      rows: 4,
+      placeholder: 'Nhập lý do khóa công ty...'
+    }
+  ];
+
+  // Detail fields
+  const getDetailFields = (): DetailField[] => {
+    if (!selectedCompany) return [];
+    
+    return [
+      {
+        key: 'logo',
+        label: 'Logo',
+        value: selectedCompany.logoUrl ? (
+          <img src={selectedCompany.logoUrl} alt={selectedCompany.name} className="w-20 h-20 object-cover rounded-lg border" />
+        ) : 'Chưa có logo',
+        type: 'image'
+      },
+      {
+        key: 'name',
+        label: 'Tên công ty',
+        value: selectedCompany.name,
+        copyable: true
+      },
+      {
+        key: 'email',
+        label: 'Email',
+        value: selectedCompany.email,
+        copyable: true
+      },
+      {
+        key: 'website',
+        label: 'Website',
+        value: selectedCompany.website || 'Chưa có',
+        copyable: true
+      },
+      {
+        key: 'industry',
+        label: 'Ngành nghề',
+        value: selectedCompany.industry || 'Chưa có'
+      },
+      {
+        key: 'city',
+        label: 'Thành phố',
+        value: selectedCompany.city || 'Chưa có'
+      },
+      {
+        key: 'verificationStatus',
+        label: 'Trạng thái',
+        value: (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[selectedCompany.verificationStatus].color}`}>
+            {statusConfig[selectedCompany.verificationStatus].icon}
+            {statusConfig[selectedCompany.verificationStatus].label}
+          </span>
+        ),
+        type: 'badge'
+      },
+      {
+        key: 'rejectionReason',
+        label: 'Lý do từ chối',
+        value: selectedCompany.rejectionReason || '—',
+        type: 'text'
+      },
+      {
+        key: 'createdAt',
+        label: 'Ngày tạo',
+        value: new Date(selectedCompany.createdAt).toLocaleString('vi-VN'),
+        type: 'date'
+      },
+      {
+        key: 'updatedAt',
+        label: 'Cập nhật lần cuối',
+        value: selectedCompany.updatedAt ? new Date(selectedCompany.updatedAt).toLocaleString('vi-VN') : '—',
+        type: 'date'
+      }
+    ];
+  };
+
+  // Generate dynamic actions based on company status
+  const getActions = (record: AdminCompany): ActionItem<AdminCompany>[] => {
+    const actions: ActionItem<AdminCompany>[] = [
+      {
+        key: 'view',
+        label: 'Xem chi tiết',
+        icon: <Eye className="w-4 h-4" />,
+        onClick: () => fetchCompanyDetail(record.id),
+        color: 'default'
+      }
+    ];
+
+    const config = actionButtonConfig[record.verificationStatus];
+    
+    if (config.primaryAction && config.primaryLabel) {
+      actions.push({
+        key: config.primaryAction,
+        label: config.primaryLabel,
+        icon: config.primaryIcon,
+        onClick: () => {
+          if (config.primaryAction === 'approve') openApproveConfirm(record);
+          if (config.primaryAction === 'suspend') openSuspendForm(record);
+          if (config.primaryAction === 'unsuspend') openUnsuspendConfirm(record);
+        },
+        color: config.primaryColor
+      });
+    }
+    
+    if (config.secondaryAction && config.secondaryLabel) {
+      actions.push({
+        key: config.secondaryAction,
+        label: config.secondaryLabel,
+        icon: config.secondaryIcon,
+        onClick: () => {
+          if (config.secondaryAction === 'reject') openRejectForm(record);
+        },
+        color: config.secondaryColor
+      });
+    }
+    
+    return actions;
+  };
+
+  // Table columns
+  const columns: Column<AdminCompany>[] = [
+    {
+      key: 'logoUrl',
+      title: 'Logo',
+      width: '80px',
+      render: (value) => value ? (
+        <img src={value} alt="Logo" className="w-10 h-10 rounded-lg object-cover border" />
+      ) : (
+        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+          <Building2 className="w-5 h-5 text-muted-foreground" />
+        </div>
+      )
+    },
+    {
+      key: 'name',
+      title: 'Tên công ty',
+      sortable: true,
+      width: '250px',
+      render: (value, record) => (
+        <div>
+          <div className="font-medium text-foreground">{value}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{record.email}</div>
+        </div>
+      )
+    },
+    {
+      key: 'industry',
+      title: 'Ngành nghề',
+      width: '150px',
+      render: (value) => value || '—'
+    },
+    {
+      key: 'city',
+      title: 'Thành phố',
+      width: '120px',
+      render: (value) => value || '—'
+    },
+    {
+      key: 'verificationStatus',
+      title: 'Trạng thái',
+      width: '150px',
+      render: (value: VerificationStatus) => {
+        const config = statusConfig[value];
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color}`}>
+            {config.icon}
+            {config.label}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'createdAt',
+      title: 'Ngày tạo',
+      width: '120px',
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString('vi-VN')
+    },
+    {
+      key: 'actions',
+      title: 'Thao tác',
+      width: '180px',
+      align: 'center',
+      render: (_, record) => (
+        <TableActions
+          record={record}
+          actions={getActions(record)}
+          showLabel={false}
+        />
+      )
+    }
+  ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý công ty</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Quản lý và xác thực các công ty trên hệ thống
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground">
+            Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> công ty
+          </div>
+        </div>
+      </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard
-          icon={<Building2    size={18} className="text-blue-600"   />}
-          label="Tổng công ty" value={totalElements.toLocaleString()}
-          color="bg-blue-50"
-        />
-        <StatCard
-          icon={<Clock        size={18} className="text-amber-500"  />}
-          label="Chờ duyệt"   value={pendingCount}
-          color="bg-amber-50"
-        />
-        <StatCard
-          icon={<CheckCircle  size={18} className="text-green-600"  />}
-          label="Đã duyệt"    value={approvedCount}
-          color="bg-green-50"
-        />
-        <StatCard
-          icon={<Ban          size={18} className="text-red-500"    />}
-          label="Khoá / Từ chối" value={suspendedCount + rejectedCount}
-          color="bg-red-50"
+      {/* Admin Filter */}
+      <AdminFilter
+        config={{
+          searchKey: undefined,
+          statusKey: 'status',
+          customFilters: []
+        }}
+        filters={{
+          status: getFilterValue('status')
+        }}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        onRefresh={handleRefresh}
+        statusOptions={statusOptions}
+        searchPlaceholder=""
+        statusPlaceholder="Tất cả trạng thái"
+        showDateFilter={false}
+        loading={loading}
+      />
+
+      {/* Data Table */}
+      <div className="bg-background rounded-lg border border-border overflow-hidden">
+        <DataTable
+          data={companies}
+          columns={columns}
+          loading={loading}
+          selectable
+          showPagination
+          defaultPageSize={10}
+          emptyMessage="Không có công ty"
+          emptyDescription="Chưa có công ty nào trong hệ thống"
+          onRefresh={handleRefresh}
         />
       </div>
 
-      {/* Filters */}
-      <CompanyFilters
-        status={status}
-        totalElements={totalElements}
-        onStatus={handleStatus}
-        onReset={handleReset}
+      {/* Detail Modal */}
+      <DetailModel
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        title={`Chi tiết công ty - ${selectedCompany?.name || ''}`}
+        fields={getDetailFields()}
       />
 
-      {/* Table */}
-      {loading
-        ? <TableSkeleton />
-        : <CompanyTable
-            companies={companies}
-            loadingId={loadingId}
-            onView={setSelectedCompany}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onSuspend={handleSuspend}
-            onUnsuspend={handleUnsuspend}
-          />
-      }
+      {/* Confirm Modal for Approve/Unsuspend */}
+      <ConfirmModel
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+      />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            current={page + 1}
-            total={totalPages}
-            onChange={p => setPage(p - 1)}
-          />
-        </div>
-      )}
+      {/* Form Modal for Reject */}
+      <FormModel
+        isOpen={rejectFormModal.isOpen}
+        onClose={() => setRejectFormModal({ isOpen: false, company: null, loading: false })}
+        onSubmit={(data) => {
+          if (rejectFormModal.company) {
+            handleReject(rejectFormModal.company.id, data.reason);
+          }
+        }}
+        title={`Từ chối xác thực - ${rejectFormModal.company?.name || ''}`}
+        fields={rejectFormFields}
+        initialData={{ reason: '' }}
+        submitText="Xác nhận từ chối"
+        loading={rejectFormModal.loading}
+      />
 
-      {/* Detail modal */}
-      {selectedCompany && (
-        <CompanyDetailModal
-          company={selectedCompany}
-          actionLoading={loadingId === selectedCompany.id}
-          onClose={() => setSelectedCompany(null)}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onSuspend={handleSuspend}
-          onUnsuspend={handleUnsuspend}
-        />
-      )}
-
-      {/* Reason modal — reject */}
-      {reasonModal?.type === "reject" && (
-        <ReasonModal
-          title="Từ chối xác thực công ty"
-          description={`Nhập lý do từ chối công ty "${reasonModal.company.name}".`}
-          placeholder="VD: Giấy tờ không hợp lệ, thông tin không khớp..."
-          confirmLabel="Xác nhận từ chối"
-          confirmClass="bg-red-500 hover:bg-red-600"
-          onConfirm={confirmReject}
-          onClose={() => setReasonModal(null)}
-        />
-      )}
-
-      {/* Reason modal — suspend */}
-      {reasonModal?.type === "suspend" && (
-        <ReasonModal
-          title="Khoá công ty"
-          description={`Nhập lý do khoá công ty "${reasonModal.company.name}".`}
-          placeholder="VD: Vi phạm điều khoản sử dụng, nội dung sai sự thật..."
-          confirmLabel="Xác nhận khoá"
-          confirmClass="bg-orange-500 hover:bg-orange-600"
-          onConfirm={confirmSuspend}
-          onClose={() => setReasonModal(null)}
-        />
-      )}
+      {/* Form Modal for Suspend */}
+      <FormModel
+        isOpen={suspendFormModal.isOpen}
+        onClose={() => setSuspendFormModal({ isOpen: false, company: null, loading: false })}
+        onSubmit={(data) => {
+          if (suspendFormModal.company) {
+            handleSuspend(suspendFormModal.company.id, data.reason);
+          }
+        }}
+        title={`Khóa công ty - ${suspendFormModal.company?.name || ''}`}
+        fields={suspendFormFields}
+        initialData={{ reason: '' }}
+        submitText="Xác nhận khóa"
+        loading={suspendFormModal.loading}
+      />
     </div>
   );
 }
