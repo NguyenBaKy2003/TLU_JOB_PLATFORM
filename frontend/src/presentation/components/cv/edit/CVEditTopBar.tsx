@@ -17,6 +17,7 @@ interface Props {
   onTogglePreview: () => void;
   onPublish: () => void;
   onExportPdf: () => void;
+  onUpdateVisibility: (v: CVVisibility) => Promise<void>;
   onUpdateTitle: (title: string) => Promise<void>;
   onBack: () => void;
 }
@@ -29,7 +30,7 @@ const STATUS_PILL: Record<string, string> = {
 
 export function CVEditTopBar({
   cv, saving, exportingPdf, showPreview,
-  onTogglePreview, onPublish, onExportPdf, onUpdateTitle, onBack,
+  onTogglePreview, onPublish,onUpdateVisibility, onExportPdf, onUpdateTitle, onBack,
 }: Props) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(cv.title);
@@ -54,7 +55,6 @@ export function CVEditTopBar({
   useEffect(() => {
     if (editingTitle) inputRef.current?.focus();
   }, [editingTitle]);
-
   return (
     <header className="h-14 flex-shrink-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 gap-4 z-20">
       {/* Left: back + title */}
@@ -145,7 +145,18 @@ export function CVEditTopBar({
           }
           Xuất PDF
         </button>
-
+        {cv.status !== "PUBLISHED" && (
+          <select
+            value={cv.visibility}
+            onChange={(e) => onUpdateVisibility(e.target.value as CVVisibility)}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600
+              focus:outline-none focus:border-[#3D5A80] bg-white cursor-pointer"
+          >
+            <option value="PUBLIC">🌐 Công khai</option>
+            <option value="LINK_ONLY">🔗 Chỉ người có link</option>
+            <option value="PRIVATE">🔒 Riêng tư</option>
+          </select>
+        )}
         {/* Publish */}
         {cv.status !== "PUBLISHED" && (
           <button

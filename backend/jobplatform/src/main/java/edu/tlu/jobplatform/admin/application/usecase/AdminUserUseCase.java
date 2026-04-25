@@ -80,13 +80,20 @@ public class AdminUserUseCase {
             throw new BusinessRuleException(
                     "Không thể gán role SUPER_ADMIN qua API.", "FORBIDDEN");
 
+        UserRole oldRole = user.getRole();
+
         user.changeRole(newRole);
         User saved = userRepo.save(user);
         userCacheService.evict(userId);
 
-        // ← Tạo profile cho role mới nếu chưa có
+        // ← Xóa profile cũ
+        profileCreationService.removeProfileForRole(userId, oldRole);
+
+        // ← Tạo profile mới nếu chưa có
         profileCreationService.ensureProfileExists(saved);
-        log.info("User {} role changed to {} — profile ensured", userId, newRole);
+
+        log.info("User {} role changed {} → {} — old profile removed, new profile ensured",
+                userId, oldRole, newRole);
 
         return saved;
     }
