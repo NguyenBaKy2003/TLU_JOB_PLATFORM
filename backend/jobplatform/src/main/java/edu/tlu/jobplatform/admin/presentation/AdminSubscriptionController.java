@@ -5,6 +5,7 @@ import edu.tlu.jobplatform.admin.presentation.dto.request.ExtendExpiryRequest;
 import edu.tlu.jobplatform.admin.presentation.dto.request.GrantQuotaRequest;
 import edu.tlu.jobplatform.admin.presentation.dto.request.ReasonRequest;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
+import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,7 +47,7 @@ public class AdminSubscriptionController {
 
         @Operation(summary = "Danh sách tất cả subscriptions trong hệ thống")
         @GetMapping
-        public ResponseEntity<ApiResponse<Page<CompanySubscription>>> listAll(
+        public ResponseEntity<ApiResponse<PageResponse<CompanySubscription>>> listAll(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size,
                         @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -58,9 +58,9 @@ public class AdminSubscriptionController {
                                 : Sort.by(sortBy).descending();
 
                 Pageable pageable = PageRequest.of(page, size, sort);
+                PageResponse<CompanySubscription> result = adminSubscriptionUseCase.listAll(pageable);
 
-                return ResponseEntity.ok(
-                                ApiResponse.success(adminSubscriptionUseCase.listAll(pageable)));
+                return ResponseEntity.ok(ApiResponse.success(result));
         }
 
         @Operation(summary = "Lịch sử subscription của công ty")

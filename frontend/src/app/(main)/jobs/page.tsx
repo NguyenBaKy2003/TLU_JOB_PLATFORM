@@ -139,7 +139,6 @@ export default function JobsPage() {
               <select value={draftCity} onChange={e => setDraftCity(e.target.value)}
                 className="text-sm text-gray-800 focus:outline-none bg-transparent cursor-pointer w-36">
                 <option value="">Địa điểm</option>
-                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <ChevronDown size={13} className="text-gray-400 shrink-0" />
             </div>

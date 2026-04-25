@@ -106,4 +106,9 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepo.deleteById(id);
+    }
 }

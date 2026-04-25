@@ -139,7 +139,12 @@ async viewPdf(cvId: string): Promise<Blob> {
     const res = await api.get<ApiResponse<PublicCVDetail>>(`/public/${this.BASE}/${slug}`);
     return res.data.data;
   }
-
+  async getPublicHtml(slug: string): Promise<string> {
+    const res = await api.get<{ success: boolean; data: string }>(
+      `/public/cv/${slug}/html`
+    );
+    return res.data.data;
+  }
 
 
 }

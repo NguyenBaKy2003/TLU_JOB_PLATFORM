@@ -18,6 +18,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -98,7 +99,11 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             ITextRenderer renderer = new ITextRenderer();
             loadFonts(renderer, tempFonts);
-            renderer.setDocumentFromString(html);
+
+            // Parse HTML string → DOM Document với encoding UTF-8
+            org.w3c.dom.Document document = parseXhtml(html);
+            renderer.setDocument(document, null);
+
             renderer.layout();
             renderer.createPDF(out);
             return out.toByteArray();
@@ -107,9 +112,42 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
                 try {
                     Files.deleteIfExists(p);
                 } catch (IOException e) {
-                    log.debug("Failed to delete temp font file: {}", p);
+                    log.debug("Failed to delete temp font: {}", p);
                 }
             }
+        }
+    }
+
+    private org.w3c.dom.Document parseXhtml(String html) throws IOException {
+        try {
+            byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+
+            // Tắt validation để tránh lỗi DTD network fetch
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            factory.setFeature("http://xml.org/sax/features/validation", false);
+
+            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+
+            // Suppress warning "unknown entity" khi DTD bị tắt
+            builder.setErrorHandler(new org.xml.sax.ErrorHandler() {
+                public void warning(org.xml.sax.SAXParseException e) {
+                    log.debug("XHTML parse warning: {}", e.getMessage());
+                }
+
+                public void error(org.xml.sax.SAXParseException e) {
+                    log.warn("XHTML parse error: {}", e.getMessage());
+                }
+
+                public void fatalError(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXParseException {
+                    throw e;
+                }
+            });
+
+            return builder.parse(new java.io.ByteArrayInputStream(htmlBytes));
+        } catch (Exception e) {
+            throw new IOException("Failed to parse XHTML template: " + e.getMessage(), e);
         }
     }
 
@@ -123,8 +161,8 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
      */
     private void loadFonts(ITextRenderer renderer, List<Path> tempFonts) {
         String[] fontFiles = {
-                "fonts/Roboto-Regular.ttf",
-                "fonts/Roboto-Bold.ttf",
+                "fonts/NotoSans-Regular.ttf",
+                "fonts/NotoSans-Bold.ttf",
                 "fonts/DejaVuSans.ttf",
                 "fonts/DejaVuSans-Bold.ttf",
                 "fonts/DejaVuSans-Oblique.ttf",
@@ -140,16 +178,17 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
 
                 String fileName = fontPath.substring(fontPath.lastIndexOf('/') + 1);
                 Path tempFile = Files.createTempFile("font-", "-" + fileName);
-                tempFonts.add(tempFile); // ✅ đăng ký xóa sau, KHÔNG xóa ở đây
+                tempFonts.add(tempFile);
 
                 try (InputStream fontStream = resource.getInputStream()) {
                     Files.copy(fontStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
                 }
 
                 renderer.getFontResolver().addFont(
-                        tempFile.toAbsolutePath().toString(), true);
-
-                log.debug("Font loaded: {}", fontPath);
+                        tempFile.toAbsolutePath().toString(),
+                        com.lowagie.text.pdf.BaseFont.IDENTITY_H,
+                        true);
+                log.info("Font registered: {}", fontPath);
             } catch (Exception e) {
                 log.warn("Failed to load font {}: {}", fontPath, e.getMessage());
             }

@@ -75,4 +75,6 @@ export interface ICvRepository {
 
     /** GET /api/v1/public/cv/:slug */
   getBySlug(slug: string): Promise<PublicCVDetail>;
+
+  getPublicHtml(slug: string): Promise<string>;
 }

@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.cv.presentation;
 
+import edu.tlu.jobplatform.cv.application.service.CVRenderService;
 import edu.tlu.jobplatform.cv.application.usecase.GetPublicCVUseCase;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.presentation.dto.response.PublicCVResponse;
@@ -14,46 +15,40 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/public/cv")
 @RequiredArgsConstructor
-@Tag(name = "Public CV", description = "Xem CV công khai — không cần đăng nhập")
+@Tag(name = "Public CV")
 public class PublicCVController {
 
     private final GetPublicCVUseCase getPublicCVUseCase;
+    private final CVRenderService cvRenderService; // ← inject
 
-    // ── GET /public/cv/{slug} ─────────────────────────────────────────────────
-
-    @Operation(summary = "Xem CV public theo slug", description = """
-            Truy cập CV công khai qua slug duy nhất.
-            - CV phải ở trạng thái **PUBLISHED**
-            - Visibility phải là **PUBLIC** hoặc **LINK_ONLY**
-            - viewCount tăng tự động (async, không block response)
-            - Chỉ trả về các sections có `visible = true`
-            """)
+    @Operation(summary = "Xem CV public JSON theo slug")
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<PublicCVResponse>> getPublicCV(
             @PathVariable String slug,
             HttpServletRequest request) {
 
-        String viewerIp = extractClientIp(request);
-        OnlineCV cv = getPublicCVUseCase.execute(slug, viewerIp);
+        OnlineCV cv = getPublicCVUseCase.execute(slug, extractClientIp(request));
         return ResponseEntity.ok(ApiResponse.success(PublicCVResponse.from(cv)));
     }
 
-    // ── Helpers
+    @Operation(summary = "Xem HTML CV public theo slug")
+    @GetMapping("/{slug}/html")
+    public ResponseEntity<ApiResponse<String>> getPublicCVHtml(
+            @PathVariable String slug,
+            HttpServletRequest request) {
 
-    /**
-     * Lấy IP thực của client, xử lý trường hợp đứng sau proxy / load balancer.
-     */
+        OnlineCV cv = getPublicCVUseCase.execute(slug, extractClientIp(request));
+        String html = cvRenderService.render(cv); // ← dùng service
+        return ResponseEntity.ok(ApiResponse.success(html, "Thành công"));
+    }
+
     private String extractClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            // X-Forwarded-For có thể chứa nhiều IP cách nhau bởi dấu phẩy;
-            // IP đầu tiên là IP gốc của client.
+        if (forwardedFor != null && !forwardedFor.isBlank())
             return forwardedFor.split(",")[0].trim();
-        }
         String realIp = request.getHeader("X-Real-IP");
-        if (realIp != null && !realIp.isBlank()) {
+        if (realIp != null && !realIp.isBlank())
             return realIp.trim();
-        }
         return request.getRemoteAddr();
     }
 }

@@ -34,6 +34,7 @@ export class CvService {
       templateId: form.templateId,
     });
   }
+  
 
   /**
    * Cập nhật personalInfo của CV.
@@ -147,5 +148,8 @@ export class CvService {
       getBySlug(slug: string): Promise<PublicCVDetail> {
     return this.repo.getBySlug(slug);
   }
+  getPublicHtml(slug: string): Promise<string> {
+  return this.repo.getPublicHtml(slug);
+}
 
 }

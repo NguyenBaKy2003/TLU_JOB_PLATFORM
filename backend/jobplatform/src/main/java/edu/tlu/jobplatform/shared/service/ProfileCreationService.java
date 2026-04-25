@@ -8,6 +8,7 @@ import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.util.SlugUtils;
 import edu.tlu.jobplatform.user.domain.model.User;
+import edu.tlu.jobplatform.user.domain.model.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -219,5 +220,38 @@ public class ProfileCreationService {
         }
         createProfileForUser(user);
         return hasProfile(user);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void removeProfileForRole(UUID userId, UserRole oldRole) {
+        if (userId == null) {
+            log.warn("removeProfileForRole: userId is null, skipping");
+            return;
+        }
+
+        log.info("Removing profile for userId={} oldRole={}", userId, oldRole);
+
+        switch (oldRole) {
+            case CANDIDATE -> candidateProfileRepository.findByUserId(userId)
+                    .ifPresentOrElse(
+                            profile -> {
+                                candidateProfileRepository.deleteById(profile.getId());
+                                log.info("Deleted CandidateProfile id={} for userId={}", profile.getId(), userId);
+                            },
+                            () -> log.info("No CandidateProfile found for userId={}", userId));
+
+            case EMPLOYER -> companyRepository.findByOwnerId(userId)
+                    .ifPresentOrElse(
+                            profile -> {
+                                companyRepository.deleteById(profile.getId());
+                                log.info("Deleted CompanyProfile id={} for userId={}", profile.getId(), userId);
+                            },
+                            () -> log.info("No CompanyProfile found for userId={}", userId));
+
+            case ADMIN, SUPER_ADMIN ->
+                log.info("No profile to remove for role={}", oldRole);
+
+            default -> log.warn("Unknown role={} — nothing removed", oldRole);
+        }
     }
 }
