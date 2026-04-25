@@ -44,4 +44,6 @@ public interface CompanyRepository {
     List<CompanyProfile> findAllByOwnerIdIn(Collection<UUID> ownerIds);
 
     Page<CompanyProfile> findAll(Pageable pageable);
+
+    void deleteById(UUID id);
 }

@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CvService } from "@/application/services/CvService";
 import { CvRepository } from "@/infrastructure/repositories/CvRepository";
-import type { OnlineCVDetail, CVSection, UpdateCVSectionPayload } from "@/domain/models/Cv";
+import type { OnlineCVDetail, CVSection, UpdateCVSectionPayload, CVVisibility } from "@/domain/models/Cv";
 import { CVEditSkeleton } from "@/presentation/components/cv/edit/CVEditSkeleton";
 import { CVEditTopBar } from "@/presentation/components/cv/edit/CVEditTopBar";
 import { CVSectionSidebar } from "@/presentation/components/cv/edit/CVSectionSidebar";
@@ -157,6 +157,12 @@ export default function CVEditPage() {
     }
   }, [cv]);
 
+  const handleUpdateVisibility = useCallback(async (visibility: CVVisibility) => {
+  if (!cv) return;
+  const updated = await cvService.updateVisibility(cv.id, visibility, cv);
+  setCv(updated);
+}, [cv]);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (loading) return <CVEditSkeleton />;
@@ -175,6 +181,7 @@ export default function CVEditPage() {
         onPublish={handlePublish}
         onExportPdf={handleExportPdf}
         onUpdateTitle={handleUpdateTitle}
+        onUpdateVisibility={handleUpdateVisibility} 
         onBack={() => router.push("/cv")}
       />
 

@@ -43,28 +43,30 @@ export default function JobDetailPage() {
 
   const hasLoaded = useRef(false);
 
-  useEffect(() => {
-    if (hasLoaded.current || !id) return;
-    hasLoaded.current = true;
+useEffect(() => {
+  if (hasLoaded.current || !id) return;
+  hasLoaded.current = true;
 
-    (async () => {
-      setLoading(true);
-      try {
-        const [data, alreadyApplied] = await Promise.all([
-          jobService.getById(id),
-          appService.checkApplied(id).catch(() => false),
-        ]);
-        setJob(data);
-        setApplied(!!alreadyApplied);
-      } catch (e) {
-        const msg = extractErrorMessage(e, "Không tìm thấy tin tuyển dụng");
-        setError(msg);
-        toast.error("Không thể tải tin tuyển dụng", msg);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id]);
+  (async () => {
+    setLoading(true);
+    try {
+      const [data, alreadyApplied, alreadySaved] = await Promise.all([
+        jobService.getById(id),
+        appService.checkApplied(id).catch(() => false),
+        jobService.checkSaved(id).catch(() => false),  // ← thêm
+      ]);
+      setJob(data);
+      setApplied(!!alreadyApplied);
+      setSaved(!!alreadySaved);                         // ← thêm
+    } catch (e) {
+      const msg = extractErrorMessage(e, "Không tìm thấy tin tuyển dụng");
+      setError(msg);
+      toast.error("Không thể tải tin tuyển dụng", msg);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [id]);
 
   const handleSave = async () => {
     if (!job) return;
@@ -76,8 +78,9 @@ export default function JobDetailPage() {
         next ? "Đã lưu việc làm" : "Đã bỏ lưu việc làm",
         next ? "Bạn có thể xem lại trong mục Việc làm đã lưu." : "",
       );
-    } catch {
-      toast.error("Thao tác thất bại", "Vui lòng thử lại.");
+    } catch (e) {
+       const msg = extractErrorMessage(e, "Lưu tin thất bại");
+      toast.error("Lưu tin thất bại", msg);
     }
   };
 

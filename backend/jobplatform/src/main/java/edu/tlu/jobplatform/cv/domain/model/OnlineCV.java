@@ -54,6 +54,7 @@ public class OnlineCV {
         this.personalInfo = personalInfo;
         this.templateId = templateId;
         this.visibility = visibility;
+        this.exportedPdfUrl = null; // ← invalidate cache
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -73,6 +74,7 @@ public class OnlineCV {
                 .visible(true)
                 .build();
         sections.add(section);
+        this.exportedPdfUrl = null; // ← invalidate cache
         this.updatedAt = LocalDateTime.now();
         return section;
     }
@@ -83,6 +85,7 @@ public class OnlineCV {
         CVSection section = findSectionOrThrow(sectionId);
         section.updateContent(title, content);
         section.setVisible(visible);
+        this.exportedPdfUrl = null; // ← invalidate cache
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -95,6 +98,7 @@ public class OnlineCV {
                     "Section không tồn tại: " + sectionId, "SECTION_NOT_FOUND");
         }
         reindexSections();
+        this.exportedPdfUrl = null; // ← invalidate cache
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -119,6 +123,7 @@ public class OnlineCV {
             s.reorder(i);
         }
         sections.sort(Comparator.comparingInt(CVSection::getDisplayOrder));
+        this.exportedPdfUrl = null; // ← invalidate cache
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -142,6 +147,10 @@ public class OnlineCV {
         this.status = CVStatus.PUBLISHED;
         this.slug = slug;
         this.updatedAt = LocalDateTime.now();
+
+        if (this.visibility == null || this.visibility == CVVisibility.PRIVATE) {
+            this.visibility = CVVisibility.PUBLIC;
+        }
     }
 
     /** → ARCHIVED */

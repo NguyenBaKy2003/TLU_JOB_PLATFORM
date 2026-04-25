@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.admin.application.usecase;
 
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
+import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import edu.tlu.jobplatform.subscription.domain.repository.CompanySubscriptionRepository;
@@ -102,7 +103,8 @@ public class AdminSubscriptionUseCase {
     }
 
     @Transactional(readOnly = true)
-    public Page<CompanySubscription> listAll(Pageable pageable) {
-        return subscriptionRepo.findAll(pageable);
+    public PageResponse<CompanySubscription> listAll(Pageable pageable) {
+        Page<CompanySubscription> page = subscriptionRepo.findAll(pageable);
+        return PageResponse.from(page);
     }
 }

@@ -48,4 +48,6 @@ export interface IJobRepository {
 
   /** Xóa bài đăng */
   delete(id: string): Promise<void>;
+
+  checkSaved(jobPostId: string): Promise<boolean>;
 }

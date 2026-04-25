@@ -52,6 +52,15 @@ export class JobRepository implements IJobRepository {
     return this.get(`${this.BASE}/slug/${slug}`);
   }
 
+  async checkSaved(jobPostId: string): Promise<boolean> {
+  try {
+    const res = await api.get<ApiResponse<boolean>>(`/jobs/${jobPostId}/saved`);
+    return res.data.data;
+  } catch {
+    return false;
+  }
+}
+
   // ── Saved jobs ─────────────────────────────────────────────────────────────
 
   /** POST /api/v1/jobs/{id}/save — toggle, backend trả về Boolean */

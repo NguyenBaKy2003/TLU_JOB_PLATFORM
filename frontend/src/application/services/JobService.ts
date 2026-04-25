@@ -91,6 +91,10 @@ export class JobService {
     return this.repo.delete(id);
   }
 
+  checkSaved(jobPostId: string): Promise<boolean> {
+  return this.repo.checkSaved(jobPostId);
+}
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   /** Map JobPostForm → CreateJobPayload */
