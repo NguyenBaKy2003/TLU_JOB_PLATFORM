@@ -1,9 +1,9 @@
 package edu.tlu.jobplatform.cv.infrastructure.adapter;
 
-import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.candidate.domain.model.Education;
-import edu.tlu.jobplatform.candidate.domain.model.WorkExperience;
-import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.auth.candidate.domain.model.Education;
+import edu.tlu.jobplatform.auth.candidate.domain.model.WorkExperience;
+import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.cv.application.port.out.CandidateProfileQueryPort;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;

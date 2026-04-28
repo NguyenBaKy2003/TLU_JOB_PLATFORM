@@ -1,7 +1,7 @@
 package edu.tlu.jobplatform.shared.service;
 
-import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.CompanySize;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;

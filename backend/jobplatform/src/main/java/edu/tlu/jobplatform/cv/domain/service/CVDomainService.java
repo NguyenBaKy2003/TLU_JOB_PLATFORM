@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.cv.domain.service;
 
-import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
+import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.repository.OnlineCVRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;

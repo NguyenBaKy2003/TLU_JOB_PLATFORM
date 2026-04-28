@@ -8,6 +8,12 @@ import type {
   CreateReviewPayload,
   CompanyListParams,
   PageResponse,
+   TeamMember,
+  GalleryImage,
+  CompanyDocument,
+  CreateTeamMemberPayload,
+  UpdateTeamMemberPayload,
+  CompanyDocumentType,
 } from "@/domain/models/Company";
 
 export interface ICompanyRepository {
@@ -73,4 +79,43 @@ export interface ICompanyRepository {
 
   /** [ADMIN] Ẩn review */
   adminHideReview(reviewId: string): Promise<void>;
+
+
+
+  /** Danh sách thành viên đội ngũ (public - chỉ thấy visible=true) */
+  listTeamMembers(companyId: string): Promise<TeamMember[]>;
+
+  /** Thêm thành viên đội ngũ */
+  addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember>;
+
+  /** Cập nhật thành viên đội ngũ */
+  updateTeamMember(memberId: string, payload: UpdateTeamMemberPayload): Promise<TeamMember>;
+
+  /** Upload avatar cho thành viên */
+  uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember>;
+
+  /** Xoá thành viên đội ngũ */
+  deleteTeamMember(memberId: string): Promise<void>;
+
+  // ── Gallery ───────────────────────────────────────────────────────────────
+
+  /** Danh sách ảnh gallery */
+  listGallery(companyId: string): Promise<GalleryImage[]>;
+
+  /** Thêm ảnh vào gallery */
+  addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]>;
+
+  /** Xoá ảnh gallery */
+  deleteGalleryImage(imageId: string): Promise<void>;
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+
+  /** Danh sách tài liệu (chỉ owner/admin) */
+  listDocuments(): Promise<CompanyDocument[]>;
+
+  /** Upload tài liệu xác thực */
+  uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument>;
+
+  /** Xoá tài liệu (nếu cần) */
+  deleteDocument(documentId: string): Promise<void>;
 }
