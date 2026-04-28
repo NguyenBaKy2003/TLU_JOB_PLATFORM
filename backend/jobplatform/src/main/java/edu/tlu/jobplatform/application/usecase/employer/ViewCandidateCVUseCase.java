@@ -2,9 +2,9 @@ package edu.tlu.jobplatform.application.usecase.employer;
 
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
-import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
-import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
-import edu.tlu.jobplatform.candidate.domain.repository.CandidateCVRepository;
+import edu.tlu.jobplatform.shared.port.FileStoragePort;
+import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateCV;
+import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateCVRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;

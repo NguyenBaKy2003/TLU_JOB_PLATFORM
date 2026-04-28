@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.cv.application.usecase;
 
-import edu.tlu.jobplatform.candidate.application.port.out.FileStoragePort;
+import edu.tlu.jobplatform.shared.port.FileStoragePort;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.repository.OnlineCVRepository;
 import edu.tlu.jobplatform.cv.domain.service.CVDomainService;

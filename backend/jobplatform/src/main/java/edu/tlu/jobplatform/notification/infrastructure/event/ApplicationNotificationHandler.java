@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.notification.infrastructure.event;
 
-import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
