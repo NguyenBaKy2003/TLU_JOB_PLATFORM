@@ -9,6 +9,12 @@ import type {
   CreateReviewPayload,
   CompanyListParams,
   PageResponse,
+  TeamMember,
+  CreateTeamMemberPayload,
+  UpdateTeamMemberPayload,
+  GalleryImage,
+  CompanyDocument,
+  CompanyDocumentType,
 } from "@/domain/models/Company";
 
 export class CompanyService {
@@ -121,4 +127,71 @@ export class CompanyService {
   adminHideReview(reviewId: string): Promise<void> {
     return this.repo.adminHideReview(reviewId);
   }
+ // ── Team Members ─────────────────────────────────────────────────────────
+
+  listTeamMembers(companyId: string): Promise<TeamMember[]> {
+    return this.repo.listTeamMembers(companyId);
+  }
+
+  addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember> {
+    return this.repo.addTeamMember(payload);
+  }
+
+  updateTeamMember(memberId: string, payload: UpdateTeamMemberPayload): Promise<TeamMember> {
+    return this.repo.updateTeamMember(memberId, payload);
+  }
+
+  uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember> {
+    return this.repo.uploadTeamMemberAvatar(memberId, file);
+  }
+
+  deleteTeamMember(memberId: string): Promise<void> {
+    return this.repo.deleteTeamMember(memberId);
+  }
+
+  // ── Gallery ───────────────────────────────────────────────────────────────
+
+  listGallery(companyId: string): Promise<GalleryImage[]> {
+    return this.repo.listGallery(companyId);
+  }
+
+addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
+    return this.repo.addGalleryImage(file, caption);
+}
+
+  deleteGalleryImage(imageId: string): Promise<void> {
+    return this.repo.deleteGalleryImage(imageId);
+  }
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+
+  listDocuments(): Promise<CompanyDocument[]> {
+    return this.repo.listDocuments();
+  }
+
+  uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument> {
+    return this.repo.uploadDocument(type, file);
+  }
+
+  deleteDocument(documentId: string): Promise<void> {
+    return this.repo.deleteDocument(documentId);
+  }
+
+  // ── Helper: Kiểm tra xem user có thể thấy documents không ────────────────
+
+  /**
+   * Kiểm tra xem current user có thể xem documents của công ty không
+   * Dựa trên verification status hoặc role
+   */
+  canViewDocuments(company: CompanyProfile, currentUserId?: string): boolean {
+    // Admin xem được tất cả
+    
+    // Owner xem được của chính mình
+    if (currentUserId && company.ownerId === currentUserId) return true;
+    
+    // Public chỉ xem được nếu verified (không có documents)
+    return false;
+  }
+
+
 }

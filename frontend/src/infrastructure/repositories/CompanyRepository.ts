@@ -9,6 +9,12 @@ import type {
   CreateReviewPayload,
   CompanyListParams,
   PageResponse,
+  TeamMember,
+  CreateTeamMemberPayload,
+  UpdateTeamMemberPayload,
+  GalleryImage,
+  CompanyDocument,
+  CompanyDocumentType,
 } from "@/domain/models/Company";
 import api from "@/lib/axios";
 
@@ -155,4 +161,78 @@ export class CompanyRepository implements ICompanyRepository {
   async adminHideReview(reviewId: string): Promise<void> {
     await api.patch(`/admin/reviews/${reviewId}/hide`);
   }
+
+
+  async listTeamMembers(companyId: string): Promise<TeamMember[]> {
+      const company = await this.getById(companyId);
+      return company.teamMembers ?? [];
+  }
+
+  async addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember> {
+    // POST /api/v1/companies/team
+    return this.post(`/companies/team`, payload);
+  }
+
+  async updateTeamMember(memberId: string, payload: UpdateTeamMemberPayload): Promise<TeamMember> {
+    // PATCH /api/v1/companies/team/{memberId}
+    return this.patch(`/companies/team/${memberId}`, payload);
+  }
+
+  async uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember> {
+    // PATCH /api/v1/companies/team/{memberId}/avatar
+    return this.patchMultipart(`/companies/team/${memberId}/avatar`, file);
+  }
+
+  async deleteTeamMember(memberId: string): Promise<void> {
+    // DELETE /api/v1/companies/team/{memberId}
+    return this.del(`/companies/team/${memberId}`);
+  }
+
+  // ── Gallery ───────────────────────────────────────────────────────────────
+
+  async listGallery(companyId: string): Promise<GalleryImage[]> {
+    // GET /api/v1/companies/{companyId}/gallery
+    return this.get(`/companies/${companyId}/gallery`);
+  }
+
+async addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
+    const form = new FormData();
+    form.append("file", file);   
+    if (caption) form.append("caption", caption);
+
+    const res = await api.post<ApiResponse<GalleryImage[]>>(`/companies/gallery`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.data;
+}
+
+  async deleteGalleryImage(imageId: string): Promise<void> {
+    // DELETE /api/v1/companies/gallery/{imageId}
+    return this.del(`/companies/gallery/${imageId}`);
+  }
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+
+  async listDocuments(): Promise<CompanyDocument[]> {
+    // GET /api/v1/companies/documents
+    return this.get(`/companies/documents`);
+  }
+
+  async uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument> {
+    // POST /api/v1/companies/documents
+    const form = new FormData();
+    form.append("type", type);
+    form.append("file", file);
+    
+    const res = await api.post<ApiResponse<CompanyDocument>>(`/companies/documents`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.data;
+  }
+
+  async deleteDocument(documentId: string): Promise<void> {
+    // DELETE /api/v1/companies/documents/{documentId} (nếu backend có)
+    return this.del(`/companies/documents/${documentId}`);
+  }
+
 }

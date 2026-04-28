@@ -717,8 +717,6 @@ src/main/java/edu/tlu/jobplatform/
 └── websocket/
     ├── WsConnectedEvent.java
     └── WsDisconnectedEvent.java
-
-
         POST /api/applications
          │
          ▼
