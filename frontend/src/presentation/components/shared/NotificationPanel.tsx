@@ -14,25 +14,28 @@ interface Props {
 
 export function NotificationPanel({ onClose }: Props) {
   const { notifications, unreadCount } = useWebSocket();
-  const { user } = useAuth();
-  const router   = useRouter();
+  const { user }  = useAuth();
+  const router    = useRouter();
 
-  const isEmployer    = user?.role === "EMPLOYER";
-  const allNotifHref  = isEmployer ? "/employer/notifications" : "/candidate/notifications";
+  const isEmployer   = user?.role === "EMPLOYER";
+  const allNotifHref = isEmployer ? "/employer/notifications" : "/candidate/notifications";
 
   // ── Mark all as read ────────────────────────────────────────────────────────
-  // FIX: Gọi REST — backend sẽ push WS event /user/queue/all-read để
-  // WebSocketContext tự reset state. Không cần reset thủ công ở đây.
+  // Backend push /user/queue/all-read → WebSocketContext reset state tự động
   const markAllRead = async () => {
     try {
       await api.patch("/notifications/read-all");
+      // Không cần update state thủ công:
+      // WebSocketContext lắng nghe /user/queue/all-read và tự setUnreadCount(0)
     } catch {
       /* silent */
     }
   };
 
   // ── Mark single as read then navigate ───────────────────────────────────────
-  // FIX: dùng đúng field "read" (NotificationItem) thay vì "isRead"
+  // FIX: Optimistic update ngay lập tức nếu backend chưa push WS kịp.
+  // WebSocketContext cũng lắng nghe /user/queue/notification-read nên
+  // state sẽ đúng dù backend push hay không push WS event.
   const handleItemClick = async (
     notificationId: string,
     read: boolean,
@@ -40,6 +43,7 @@ export function NotificationPanel({ onClose }: Props) {
   ) => {
     if (!read) {
       try {
+        // Gọi REST — backend sẽ push /user/queue/notification-read qua WS
         await api.patch(`/notifications/${notificationId}/read`);
       } catch {
         /* silent */
@@ -101,15 +105,9 @@ export function NotificationPanel({ onClose }: Props) {
         ) : (
           notifications.map((n) => {
             const meta = TYPE_META[n.type as NotificationApiType];
-
-            // FIX: dùng đúng field "body" và "title" từ NotificationItem
             const displayText = n.title || n.body || "";
             const truncated   =
-              displayText.length > 80
-                ? displayText.slice(0, 80) + "…"
-                : displayText;
-
-            // FIX: dùng đúng field "read" và "link" từ NotificationItem
+              displayText.length > 80 ? displayText.slice(0, 80) + "…" : displayText;
             const isClickable = !n.read || !!n.link;
 
             return (

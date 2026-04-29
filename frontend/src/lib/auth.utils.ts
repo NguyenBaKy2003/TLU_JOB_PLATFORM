@@ -1,6 +1,6 @@
 import type { ApiResponse, AuthToken, LoginForm, RegisterForm } from "../types/auth.types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 // ── Token Storage ─────────────────────────────────────────────
 export const TokenStorage = {

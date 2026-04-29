@@ -10,6 +10,7 @@ import {
   Banknote, ClipboardList, BookmarkCheck,
 } from "lucide-react";
 import { useAuth } from "@/application/contexts/AuthContext";
+import { FaStream } from "react-icons/fa";
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
@@ -32,7 +33,9 @@ const EMPLOYER_NAV = [
   { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",     badgeKey: null           },
   { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/profile",       badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
+  { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },
   { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
+
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────

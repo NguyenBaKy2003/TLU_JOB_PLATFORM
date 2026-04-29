@@ -1,0 +1,10 @@
+version: "2"
+authtoken: 3Cyy1kmMZukRZaGA35weDpgU9Lx_6jMT1wtFnfPxCDRPw4pEM
+
+tunnels:
+  backend:
+    addr: 8080
+    proto: http
+  livekit:
+    addr: 7880
+    proto: http
