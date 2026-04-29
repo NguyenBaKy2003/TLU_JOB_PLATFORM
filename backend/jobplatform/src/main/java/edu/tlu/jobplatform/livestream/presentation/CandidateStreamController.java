@@ -1,0 +1,134 @@
+package edu.tlu.jobplatform.livestream.presentation;
+
+import edu.tlu.jobplatform.livestream.application.service.StreamViewerManager;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetSessionUseCase;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetStreamReplayUseCase;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetUpcomingStreamsUseCase;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.JoinLiveStreamUseCase;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.RespondToPollUseCase;
+import edu.tlu.jobplatform.livestream.application.usecase.candidate.SubmitQAQuestionUseCase;
+import edu.tlu.jobplatform.livestream.presentation.dto.request.*;
+import edu.tlu.jobplatform.livestream.presentation.dto.response.*;
+import edu.tlu.jobplatform.shared.response.ApiResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/streams")
+@RequiredArgsConstructor
+@Tag(name = "Stream - Candidate", description = "Tham gia và tương tác trong phiên livestream")
+public class CandidateStreamController {
+
+        private final JoinLiveStreamUseCase joinUseCase;
+        private final SubmitQAQuestionUseCase submitQAUseCase;
+        private final RespondToPollUseCase respondPollUseCase;
+        private final GetStreamReplayUseCase replayUseCase;
+        private final GetUpcomingStreamsUseCase upcomingUseCase;
+        private final GetSessionUseCase getSessionUseCase;
+        private final StreamViewerManager viewerManager;
+        // ── GET /api/v1/streams/upcoming ─────────────────────────
+        // Public — không cần auth
+        // Trả về: LIVE + SCHEDULED (trong 7 ngày tới)
+        // Sắp xếp: LIVE trước, SCHEDULED theo thời gian gần nhất
+
+        @Operation(summary = "Danh sách phiên stream cho Candidate", description = """
+                        Public endpoint - không yêu cầu authentication.
+
+                        Trả về danh sách phiên stream bao gồm:
+                        - Tất cả phiên đang LIVE (đang phát trực tiếp)
+                        - Phiên SCHEDULED trong 7 ngày tới
+
+                        Thứ tự sắp xếp:
+                        1. Phiên LIVE lên đầu
+                        2. Phiên SCHEDULED theo thời gian gần nhất
+                        """)
+        @GetMapping("/upcoming")
+        public ResponseEntity<ApiResponse<List<SessionResponse>>> getUpcoming() {
+                List<SessionResponse> sessions = upcomingUseCase.execute()
+                                .stream()
+                                .map(SessionResponse::from)
+                                .toList();
+                return ResponseEntity.ok(ApiResponse.success(sessions));
+        }
+
+        // ── POST /api/v1/streams/{sessionId}/join ─────────────────
+
+        @Operation(summary = "Tham gia xem stream", description = "Yêu cầu role CANDIDATE. Trả về LiveKit viewer token để kết nối LiveKit room.")
+        @PostMapping("/{sessionId}/join")
+        @PreAuthorize("hasRole('CANDIDATE')")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<ApiResponse<SessionJoinResponse>> joinStream(
+                        @PathVariable UUID sessionId) {
+
+                UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
+                JoinLiveStreamUseCase.Result result = joinUseCase.execute(sessionId, candidateId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                new SessionJoinResponse(
+                                                result.viewerToken(),
+                                                result.livekitUrl(),
+                                                result.currentViewerCount())));
+        }
+
+        // ── POST /api/v1/streams/{sessionId}/questions ────────────
+
+        @Operation(summary = "Đặt câu hỏi Q&A", description = "Yêu cầu role CANDIDATE. Gửi câu hỏi trong khi stream đang LIVE. Câu hỏi được broadcast tới host qua WebSocket.")
+        @PostMapping("/{sessionId}/questions")
+        @PreAuthorize("hasRole('CANDIDATE')")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<ApiResponse<Void>> submitQuestion(
+                        @PathVariable UUID sessionId,
+                        @Valid @RequestBody SubmitQARequest req) {
+
+                UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
+                submitQAUseCase.execute(new SubmitQAQuestionUseCase.Command(
+                                sessionId, candidateId, req.question()));
+                return ResponseEntity.ok(ApiResponse.success(null));
+        }
+
+        // ── GET /api/v1/streams/{sessionId} ──────────────────────
+
+        @Operation(summary = "Lấy thông tin chi tiết phiên stream", description = "Public endpoint. Trả về thông tin chi tiết của một phiên stream bao gồm cả interview slots.")
+        @GetMapping("/{sessionId}")
+        public ResponseEntity<ApiResponse<SessionResponse>> getSession(
+                        @PathVariable UUID sessionId) {
+
+                SessionResponse session = getSessionUseCase.execute(sessionId);
+                return ResponseEntity.ok(ApiResponse.success(session));
+        }
+
+        // ── POST /api/v1/streams/{sessionId}/polls/{pollEventId}/respond ──
+
+        @Operation(summary = "Trả lời poll", description = "Yêu cầu role CANDIDATE. Chọn một đáp án trong poll do employer tạo. Kết quả được cập nhật realtime.")
+        @PostMapping("/{sessionId}/polls/{pollEventId}/respond")
+        @PreAuthorize("hasRole('CANDIDATE')")
+        @SecurityRequirement(name = "bearerAuth")
+        public ResponseEntity<ApiResponse<Void>> respondPoll(
+                        @PathVariable UUID sessionId,
+                        @PathVariable UUID pollEventId,
+                        @Valid @RequestBody RespondPollRequest req) {
+
+                UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
+                respondPollUseCase.execute(new RespondToPollUseCase.Command(
+                                sessionId, candidateId, pollEventId, req.optionIndex()));
+                return ResponseEntity.ok(ApiResponse.success(null));
+        }
+
+        @Operation(summary = "Lấy số lượng người xem hiện tại", description = "Trả về số lượng người đang xem stream realtime")
+        @GetMapping("/{sessionId}/viewer-count")
+        public ResponseEntity<ApiResponse<Integer>> getCurrentViewerCount(
+                        @PathVariable UUID sessionId) {
+
+                int count = viewerManager.getCurrentViewerCount(sessionId);
+                return ResponseEntity.ok(ApiResponse.success(count));
+        }
+}

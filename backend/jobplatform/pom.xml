@@ -146,6 +146,13 @@
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
 
+        <!-- ─── LiveKit Server SDK ───────────────────────────────────── -->
+        <dependency>
+            <groupId>io.livekit</groupId>
+            <artifactId>livekit-server</artifactId>
+            <version>0.12.1</version>
+        </dependency>
+
         <!-- ── HTTP CLIENT ───────────────────────────────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

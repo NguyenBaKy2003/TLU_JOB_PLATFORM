@@ -24,7 +24,14 @@ public class WsPayload {
         UNREAD_BADGE, // cập nhật số badge trên icon
         // System
         PING,
-        ERROR
+        ERROR,
+
+        // ── Livestream (thêm mới) ──────────────────
+        STREAM_CHAT_MESSAGE, // tin nhắn chat trong phiên
+        STREAM_QA_QUESTION, // câu hỏi Q&A từ candidate → employer nhận
+        STREAM_POLL_CREATED, // employer tạo poll mới
+        STREAM_POLL_RESULT, // kết quả poll cập nhật realtime
+        STREAM_EVENT // system event: viewer join/leave, session end...
     }
 
     private final Type type;

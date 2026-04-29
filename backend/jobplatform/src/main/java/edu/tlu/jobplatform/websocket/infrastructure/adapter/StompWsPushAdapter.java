@@ -53,4 +53,14 @@ public class StompWsPushAdapter implements WsPushPort {
             default -> "/queue/system";
         };
     }
+
+    @Override
+    public void pushToTopic(String topicDestination, WsPayload payload) {
+        try {
+            messagingTemplate.convertAndSend(topicDestination, payload);
+            log.debug("WS broadcast: topic={} type={}", topicDestination, payload.getType());
+        } catch (Exception e) {
+            log.warn("WS broadcast failed: topic={} type={}", topicDestination, payload.getType());
+        }
+    }
 }
