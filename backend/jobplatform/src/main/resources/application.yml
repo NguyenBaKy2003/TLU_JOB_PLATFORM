@@ -111,7 +111,10 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 15MB
-
+livekit:
+  api-key: devkey # --dev mode dùng key này mặc định
+  api-secret: secret # --dev mode dùng secret này mặc định
+  url: ws://localhost:7880
 server:
   port: ${SERVER_PORT:8080}
   servlet:

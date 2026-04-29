@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { label: "Tìm Việc",  href: "/jobs",      key: "tim-viec"  },
   { label: "Công Ty",   href: "/companies", key: "cong-ty"   },
   { label: "Tạo CV",    href: "/cv",        key: "tao-cv"    },
+  { label: "Live Stream",    href: "/streams",        key: "streams"    },
 ];
 
 const CANDIDATE_DROPDOWN = [
@@ -33,13 +34,13 @@ const CANDIDATE_DROPDOWN = [
 ];
 
 const EMPLOYER_DROPDOWN = [
-  { label: "Dashboard",              href: "/employer/dashboard",  Icon: LayoutDashboard },
-  { label: "Quản lý tin tuyển dụng", href: "/employer/jobs",       Icon: FileText        },
+  { label: "Dashboard",              href: "/employer/dashboard",    Icon: LayoutDashboard },
+  { label: "Quản lý tin tuyển dụng", href: "/employer/jobs",         Icon: FileText        },
   { label: "Ứng viên",               href: "/employer/applications", Icon: Users           },
-  { label: "Đăng tin mới",           href: "/employer/jobs/new",   Icon: PlusCircle      },
-  { label: "Thống kê",               href: "/employer/analytics",  Icon: BarChart2       },
-  { label: "Hồ sơ công ty",          href: "/employer/profile",   Icon: Building2       },
-  { label: "Cài đặt",                href: "/employer/settings",   Icon: Settings        },
+  { label: "Đăng tin mới",           href: "/employer/jobs/new",     Icon: PlusCircle      },
+  { label: "Thống kê",               href: "/employer/analytics",    Icon: BarChart2       },
+  { label: "Hồ sơ công ty",          href: "/employer/profile",      Icon: Building2       },
+  { label: "Cài đặt",                href: "/employer/settings",     Icon: Settings        },
 ];
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
@@ -58,10 +59,22 @@ export function Header() {
   const router   = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
-  const { unreadCount } = useWebSocket();
+
+  // 🔥 FIX: Lấy cả notifications để subscribe đúng như SchoolRelief
+  const { unreadCount, notifications, isConnected } = useWebSocket();
 
   const activePage = resolveActivePage(pathname);
   const isEmployer = user?.role === "EMPLOYER";
+
+  // 🔥 FIX: Local state để force re-render khi WebSocket push dữ liệu mới
+  const [localUnreadCount, setLocalUnreadCount] = useState(0);
+
+  // 🔥 FIX: Sync realtime từ WebSocketContext vào local state
+  // Pattern giống SchoolRelief - đây là key để badge cập nhật ngay lập tức
+  useEffect(() => {
+    console.log("🔔 Header: unreadCount updated →", unreadCount, "| total:", notifications.length);
+    setLocalUnreadCount(unreadCount);
+  }, [unreadCount, notifications, isConnected]);
 
   const [scrolled,      setScrolled]      = useState(false);
   const [searchOpen,    setSearchOpen]    = useState(false);
@@ -196,14 +209,31 @@ export function Header() {
                     text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                 >
                   <Bell size={18} />
-                  {unreadCount > 0 && (
+
+                  {/* 🔥 FIX: Dùng localUnreadCount + key để trigger animation
+                      giống hệt SchoolRelief pattern */}
+                  {localUnreadCount > 0 && (
                     <span
+                      key={localUnreadCount} // 🔥 KEY quan trọng: re-mount → re-trigger animation
                       className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white
                         text-[9px] font-bold rounded-full flex items-center justify-center
                         border-2 border-white animate-pulse"
                     >
-                      {unreadCount > 9 ? "9+" : unreadCount}
+                      {localUnreadCount > 9 ? "9+" : localUnreadCount}
                     </span>
+                  )}
+
+                  {/* 🔥 THÊM MỚI: Connection status indicator như SchoolRelief */}
+                  {isConnected ? (
+                    <span
+                      className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white"
+                      title="Kết nối realtime"
+                    />
+                  ) : (
+                    <span
+                      className="absolute bottom-0 right-0 w-2 h-2 bg-red-400 rounded-full border border-white animate-pulse"
+                      title="Đang kết nối lại..."
+                    />
                   )}
                 </button>
 

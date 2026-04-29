@@ -11,4 +11,11 @@ public interface WsPushPort {
 
     /** Gửi tới tất cả participant trong một conversation */
     void pushToConversation(UUID conversationId, WsPayload payload);
+
+    // ── Thêm mới cho livestream ──────────────────────────────
+    /**
+     * Broadcast tới tất cả subscriber của một topic tùy ý.
+     * Dùng cho: /topic/streams/{sessionId}/chat|qa|poll|event
+     */
+    void pushToTopic(String topicDestination, WsPayload payload);
 }
