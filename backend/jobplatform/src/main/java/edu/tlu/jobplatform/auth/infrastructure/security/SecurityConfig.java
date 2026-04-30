@@ -91,6 +91,8 @@ public class SecurityConfig {
 
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
                                                 .requestMatchers("/api/v1/applications/**").permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/streams/*/leave")
+                                                .authenticated()
 
                                                 .anyRequest().authenticated())
 

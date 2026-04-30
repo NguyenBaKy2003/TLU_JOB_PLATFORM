@@ -11,4 +11,6 @@ public interface StreamAnalyticsRepository {
     Optional<StreamAnalytics> findBySessionId(UUID sessionId);
 
     boolean existsBySessionId(UUID sessionId);
+
+    void incrementTotalViewers(UUID sessionId);
 }

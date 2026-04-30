@@ -25,6 +25,9 @@ public class StreamAnalyticsJpaEntity extends BaseJpaEntity {
     @Column(name = "peak_viewer_count")
     private int peakViewerCount;
 
+    @Column(name = "total_viewer_count")
+    private int totalViewerCount;
+
     @Column(name = "total_watch_seconds")
     private long totalWatchSeconds;
 

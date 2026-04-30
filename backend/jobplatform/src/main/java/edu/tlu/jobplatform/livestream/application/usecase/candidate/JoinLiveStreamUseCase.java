@@ -22,7 +22,7 @@ public class JoinLiveStreamUseCase {
 
         private final LiveStreamSessionRepository sessionRepository;
         private final MediaServerPort mediaServerPort;
-        private final StreamViewerManager viewerManager; // Thay vì eventPublisher
+        private final StreamViewerManager viewerManager;
 
         @Value("${livekit.url:ws://localhost:7880}")
         private String livekitUrl;
@@ -44,12 +44,13 @@ public class JoinLiveStreamUseCase {
                                         "Phiên stream chưa bắt đầu hoặc đã kết thúc.",
                                         "SESSION_NOT_LIVE");
                 }
-                int viewerCount = viewerManager.viewerJoined(sessionId, candidateId);
 
+                int currentCount = viewerManager.viewerJoined(sessionId, candidateId);
                 String viewerToken = mediaServerPort.generateViewerToken(sessionId, candidateId);
-                log.info("[Join] candidateId={} joined sessionId={}, viewerCount={}",
-                                candidateId, sessionId, viewerCount);
 
-                return new Result(viewerToken, livekitUrl, viewerCount);
+                log.info("[Join] candidateId={} joined sessionId={}, currentCount={}",
+                                candidateId, sessionId, currentCount);
+
+                return new Result(viewerToken, livekitUrl, currentCount);
         }
 }
