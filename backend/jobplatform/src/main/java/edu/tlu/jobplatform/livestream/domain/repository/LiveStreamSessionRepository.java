@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface LiveStreamSessionRepository {
+
     LiveStreamSession save(LiveStreamSession session);
 
     Optional<LiveStreamSession> findById(UUID id);
@@ -28,4 +29,6 @@ public interface LiveStreamSessionRepository {
      * Sắp xếp: LIVE trước, sau đó SCHEDULED theo thời gian gần nhất
      */
     List<LiveStreamSession> findUpcomingAndLive(LocalDateTime from, LocalDateTime to);
+
+    void updateViewerCount(UUID sessionId, int count);
 }

@@ -1,15 +1,36 @@
 package edu.tlu.jobplatform.livestream.application.service;
 
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
+import edu.tlu.jobplatform.livestream.domain.repository.StreamAnalyticsRepository;
 import edu.tlu.jobplatform.livestream.infrastructure.realtime.StreamEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * In-memory viewer tracking cho livestream sessions.
+ *
+ * Design:
+ * - activeViewers : viewerId → sessionId (biết viewer đang ở session nào)
+ * - sessionCounts : sessionId → AtomicInteger (counter per-session, atomic)
+ * - sessionViewers : sessionId → Set<viewerId> (dedup — tránh count 2 lần cùng
+ * userId)
+ *
+ * Source of truth: viewer được tính khi join qua HTTP (JoinLiveStreamUseCase)
+ * HOẶC subscribe STOMP — dedup hoàn toàn theo viewerId, không đếm 2 lần.
+ *
+ * Thread safety:
+ * - ConcurrentHashMap cho tất cả map
+ * - AtomicInteger cho counter (increment/decrement atomic, không dùng merge)
+ * - Set<viewerId> per session là ConcurrentHashMap.newKeySet() (thread-safe)
+ * - updateViewerCount() trong DB dùng method riêng (không load aggregate)
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -17,113 +38,164 @@ public class StreamViewerManager {
 
     private final LiveStreamSessionRepository sessionRepository;
     private final StreamEventPublisher eventPublisher;
+    private final StreamAnalyticsRepository analyticsRepository;
 
-    // Track active viewers: viewerId -> sessionId
+    /** viewerId → sessionId — biết viewer đang xem session nào */
     private final Map<UUID, UUID> activeViewers = new ConcurrentHashMap<>();
 
-    // Track viewer count per session
-    private final Map<UUID, Integer> sessionViewerCount = new ConcurrentHashMap<>();
+    /** sessionId → AtomicInteger count */
+    private final Map<UUID, AtomicInteger> sessionCounts = new ConcurrentHashMap<>();
+
+    /** sessionId → Set<viewerId> — dedup per session */
+    private final Map<UUID, Set<UUID>> sessionViewerSets = new ConcurrentHashMap<>();
+
+    // ─── Public API ───────────────────────────────────────────────────────────
 
     /**
-     * Called when viewer joins
+     * Ghi nhận viewer tham gia session.
+     * Idempotent: gọi nhiều lần với cùng (viewerId, sessionId) chỉ tính 1 lần.
+     * Nếu viewer đang ở session khác, tự động rời trước.
+     *
+     * @return viewer count hiện tại sau khi join
      */
     public int viewerJoined(UUID sessionId, UUID viewerId) {
-        // Check if viewer was in another session
-        UUID previousSession = activeViewers.remove(viewerId);
+        UUID previousSession = activeViewers.get(viewerId);
         if (previousSession != null && !previousSession.equals(sessionId)) {
-            decrementSessionCount(previousSession);
+            removeFromSession(previousSession, viewerId);
         }
 
-        // Add to new session
+        Set<UUID> viewers = sessionViewerSets.computeIfAbsent(
+                sessionId, k -> ConcurrentHashMap.newKeySet());
+
+        boolean added = viewers.add(viewerId);
+        if (!added) {
+            activeViewers.put(viewerId, sessionId);
+            return getCurrentViewerCount(sessionId);
+        }
+
         activeViewers.put(viewerId, sessionId);
+        int newCount = sessionCounts
+                .computeIfAbsent(sessionId, k -> new AtomicInteger(0))
+                .incrementAndGet();
 
-        // Increment count
-        int newCount = incrementSessionCount(sessionId);
+        persistAndPublish(sessionId, newCount);
 
-        // Update database
-        updateDatabaseCount(sessionId, newCount);
+        // ← THÊM: chỉ tăng khi added == true (viewer mới thật sự)
+        try {
+            analyticsRepository.incrementTotalViewers(sessionId);
+        } catch (Exception e) {
+            log.warn("Failed to increment totalViewerCount for session {}", sessionId, e);
+        }
 
-        // Broadcast via existing StreamEventPublisher
-        eventPublisher.publishViewerCount(sessionId, newCount);
-
-        log.debug("Viewer {} joined session {}, count: {}", viewerId, sessionId, newCount);
+        log.debug("Viewer {} joined session {}, count={}", viewerId, sessionId, newCount);
         return newCount;
     }
 
     /**
-     * Called when viewer leaves
+     * Ghi nhận viewer rời session.
+     *
+     * @return viewer count hiện tại sau khi rời
      */
     public int viewerLeft(UUID sessionId, UUID viewerId) {
-        if (activeViewers.remove(viewerId, sessionId)) {
-            int newCount = decrementSessionCount(sessionId);
-
-            // Update database
-            updateDatabaseCount(sessionId, newCount);
-
-            // Broadcast via existing StreamEventPublisher
-            eventPublisher.publishViewerCount(sessionId, newCount);
-
-            log.debug("Viewer {} left session {}, count: {}", viewerId, sessionId, newCount);
-            return newCount;
-        }
-        return getCurrentViewerCount(sessionId);
+        activeViewers.remove(viewerId);
+        return removeFromSession(sessionId, viewerId);
     }
 
     /**
-     * Get current viewer count for a session
+     * Xử lý WebSocket disconnect — viewer bị ngắt kết nối không chủ động rời.
+     * Tra theo viewerId để tìm session đang xem.
+     */
+    public void viewerDisconnected(UUID viewerId) {
+        UUID sessionId = activeViewers.remove(viewerId);
+        if (sessionId == null)
+            return;
+        int newCount = removeFromSession(sessionId, viewerId);
+        log.debug("Viewer {} disconnected from session {}, count={}", viewerId, sessionId, newCount);
+    }
+
+    /**
+     * Lấy viewer count hiện tại từ in-memory (không query DB).
      */
     public int getCurrentViewerCount(UUID sessionId) {
-        return sessionViewerCount.getOrDefault(sessionId, 0);
-    }
-
-    private int incrementSessionCount(UUID sessionId) {
-        return sessionViewerCount.merge(sessionId, 1, Integer::sum);
-    }
-
-    private int decrementSessionCount(UUID sessionId) {
-        return sessionViewerCount.merge(sessionId, -1, (old, delta) -> {
-            int updated = old + delta;
-            return Math.max(0, updated);
-        });
-    }
-
-    private void updateDatabaseCount(UUID sessionId, int count) {
-        sessionRepository.findById(sessionId).ifPresent(session -> {
-            try {
-                // Sync database count with memory count
-                int currentDbCount = session.getViewerCount();
-                if (count != currentDbCount) {
-                    if (count > currentDbCount) {
-                        int diff = count - currentDbCount;
-                        for (int i = 0; i < diff; i++) {
-                            session.incrementViewerCount();
-                        }
-                    } else {
-                        int diff = currentDbCount - count;
-                        for (int i = 0; i < diff; i++) {
-                            session.decrementViewerCount();
-                        }
-                    }
-                    sessionRepository.save(session);
-                    log.debug("Updated database viewer count for session {}: {} -> {}",
-                            sessionId, currentDbCount, count);
-                }
-            } catch (Exception e) {
-                log.error("Failed to update viewer count for session {}", sessionId, e);
-            }
-        });
+        AtomicInteger counter = sessionCounts.get(sessionId);
+        return counter != null ? counter.get() : 0;
     }
 
     /**
-     * Clean up when session ends
+     * Dọn dẹp toàn bộ dữ liệu của session khi session kết thúc.
+     * Gọi sau khi session chuyển sang ENDED/CANCELLED.
+     *
+     * Không có race condition với viewerJoined vì:
+     * - Sau khi session ENDED, server không chấp nhận join mới
+     * - Các viewer đang xem sẽ nhận event và disconnect
      */
     public void cleanupSession(UUID sessionId) {
-        // Remove all viewers from this session
-        activeViewers.entrySet().removeIf(entry -> entry.getValue().equals(sessionId));
-        sessionViewerCount.remove(sessionId);
+        Set<UUID> viewers = sessionViewerSets.remove(sessionId);
+        if (viewers != null) {
+            viewers.forEach(viewerId -> activeViewers.remove(viewerId, sessionId) // chỉ remove nếu vẫn map đến session
+                                                                                  // này
+            );
+        }
+        sessionCounts.remove(sessionId);
 
-        // Final broadcast
-        eventPublisher.publishViewerCount(sessionId, 0);
-        log.info("Cleaned up session {}", sessionId);
+        // Publish count = 0 để client cập nhật UI
+        try {
+            eventPublisher.publishViewerCount(sessionId, 0);
+        } catch (Exception e) {
+            log.warn("Failed to publish cleanup event for session {}", sessionId, e);
+        }
+
+        log.info("Cleaned up viewer tracking for session {}", sessionId);
+    }
+
+    // ─── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Xóa viewer khỏi session set và giảm counter.
+     * Trả về count mới. Không thay đổi activeViewers map (caller tự xử lý).
+     */
+    private int removeFromSession(UUID sessionId, UUID viewerId) {
+        Set<UUID> viewers = sessionViewerSets.get(sessionId);
+        if (viewers == null || !viewers.remove(viewerId)) {
+            // Viewer không thực sự ở trong set này — không giảm count
+            return getCurrentViewerCount(sessionId);
+        }
+
+        AtomicInteger counter = sessionCounts.get(sessionId);
+        int newCount = counter != null
+                ? Math.max(0, counter.decrementAndGet())
+                : 0;
+
+        // Fix counter nếu bị âm (edge case)
+        if (counter != null && counter.get() < 0) {
+            counter.set(0);
+            newCount = 0;
+        }
+
+        persistAndPublish(sessionId, newCount);
+        return newCount;
+    }
+
+    /**
+     * Persist count vào DB (dùng updateViewerCount — không load aggregate)
+     * và publish realtime event.
+     *
+     * Fire-and-forget cho DB: lỗi DB không nên block luồng realtime.
+     */
+    private void persistAndPublish(UUID sessionId, int count) {
+        // Persist
+        try {
+            sessionRepository.updateViewerCount(sessionId, count);
+        } catch (Exception e) {
+            log.error("Failed to persist viewer count {} for session {}", count, sessionId, e);
+            // Không ném exception — in-memory vẫn đúng, DB sync sau
+        }
+
+        // Publish realtime
+        try {
+            eventPublisher.publishViewerCount(sessionId, count);
+        } catch (Exception e) {
+            log.error("Failed to publish viewer count event for session {}", sessionId, e);
+        }
     }
 }

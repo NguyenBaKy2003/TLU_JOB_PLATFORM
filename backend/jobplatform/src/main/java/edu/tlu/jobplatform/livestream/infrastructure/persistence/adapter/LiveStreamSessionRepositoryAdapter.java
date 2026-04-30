@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 // ─── LiveStreamSession Adapter ───────────────────────────────
 @Component
@@ -67,5 +68,11 @@ public class LiveStreamSessionRepositoryAdapter implements LiveStreamSessionRepo
                 .stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateViewerCount(UUID sessionId, int count) {
+        jpaRepository.updateViewerCount(sessionId, count);
     }
 }

@@ -2,17 +2,17 @@
 const nextConfig = {
   output: "standalone",
 
+  allowedDevOrigins: [
+    "http://192.168.0.101:3000",
+  ],
+
   env: {
     NEXT_PUBLIC_API_BASE_URL:
-      process.env.NEXT_PUBLIC_API_BASE_URL || "http://15.135.233.82/api/v1",
+      process.env.NEXT_PUBLIC_API_BASE_URL,
   },
 
   typescript: {
     ignoreBuildErrors: true,
-  },
-
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 
   images: {

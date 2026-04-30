@@ -15,6 +15,8 @@ public class StreamAnalytics {
     private final UUID id;
     private final UUID sessionId;
 
+    private int totalViewerCount;
+
     @Setter
     private int peakViewerCount;
     @Setter
@@ -42,6 +44,11 @@ public class StreamAnalytics {
         this.id = id;
         this.sessionId = sessionId;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void incrementTotalViewers() {
+        this.totalViewerCount++;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -96,5 +103,9 @@ public class StreamAnalytics {
     public void setDropOffHeatmap(List<HeatmapPoint> v) {
         this.dropOffHeatmap = new ArrayList<>(v);
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void restoreTotalViewerCount(int count) {
+        this.totalViewerCount = count;
     }
 }

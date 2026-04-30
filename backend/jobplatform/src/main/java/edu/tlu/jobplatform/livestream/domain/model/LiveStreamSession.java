@@ -44,6 +44,8 @@ public class LiveStreamSession {
         this.interviewSlots = new ArrayList<>();
     }
 
+    // ─── Factory methods ──────────────────────────────────────────────────────
+
     public static LiveStreamSession create(
             UUID companyId,
             UUID hostUserId,
@@ -135,6 +137,22 @@ public class LiveStreamSession {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * Sync viewer count trực tiếp từ in-memory manager.
+     * Thay thế hoàn toàn vòng lặp increment/decrement cũ — không ném exception,
+     * không phụ thuộc vào giá trị hiện tại của DB.
+     *
+     * @param count giá trị mới từ StreamViewerManager (đã được clamp >= 0)
+     */
+    public void syncViewerCount(int count) {
+        this.viewerCount = Math.max(0, count);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Chỉ dùng khi cần guard check maxViewers (ví dụ: lần đầu join qua HTTP).
+     * Trong flow realtime (WebSocket), dùng syncViewerCount() thay thế.
+     */
     public void incrementViewerCount() {
         if (viewerCount >= maxViewers) {
             throw new BusinessRuleException(
@@ -176,11 +194,12 @@ public class LiveStreamSession {
         return this.hostUserId.equals(userId);
     }
 
-    // Lombok @Getter tạo getInterviewSlots() trả về list gốc —
-    // override thủ công để trả về defensive copy.
+    /** Defensive copy — override getter do Lombok tạo ra trả về list gốc. */
     public List<InterviewSlot> getInterviewSlots() {
         return List.copyOf(interviewSlots);
     }
+
+    // ─── Private helpers ──────────────────────────────────────────────────────
 
     private InterviewSlot findSlot(UUID slotId) {
         return interviewSlots.stream()
