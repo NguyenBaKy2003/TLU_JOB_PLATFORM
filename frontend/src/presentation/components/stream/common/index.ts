@@ -6,7 +6,6 @@ export { ChatPanel } from "./ChatPanel";
 export { LoadingScreen } from "./LoadingScreen";
 export { ErrorScreen } from "./ErrorScreen";
 export { globalStyles } from "./globalStyles";
-export * from "./Icons";
 export type { ChatMessageData } from "./ChatPanel";
 
 

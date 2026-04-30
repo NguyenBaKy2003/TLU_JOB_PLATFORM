@@ -1,6 +1,6 @@
 // components/stream/employer/SpotlightPanel.tsx
 import React, { useState } from "react";
-import { IconPin, IconX } from "../common/Icons";
+import { Pin, X, Briefcase } from "lucide-react";
 
 interface SpotlightPanelProps {
   sessionId: string;
@@ -11,7 +11,6 @@ interface SpotlightPanelProps {
 }
 
 export function SpotlightPanel({
-  sessionId,
   onSpotlight,
   spotlighting,
   spotlightedJobs,
@@ -27,140 +26,47 @@ export function SpotlightPanel({
   };
 
   return (
-    <div style={{
-      padding: 20,
-      display: "flex",
-      flexDirection: "column",
-      gap: 16,
-      height: "100%",
-    }}>
-      {/* Header */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "12px 16px",
-        background: "linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(245, 158, 11, 0.08))",
-        border: "1px solid rgba(251, 191, 36, 0.15)",
-        borderRadius: 14,
-      }}>
-        <div style={{
-          width: 36, height: 36,
-          borderRadius: 10,
-          background: "linear-gradient(135deg, #f59e0b, #d97706)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          flexShrink: 0,
-          boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)",
-        }}>
-          <IconPin size={16} />
-        </div>
-        <div>
-          <p style={{
-            margin: 0,
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#fbbf24",
-            letterSpacing: "0.02em",
-          }}>
-            Spotlight Job
-          </p>
-          <p style={{
-            margin: "2px 0 0",
-            fontSize: 11,
-            color: "rgba(251, 191, 36, 0.6)",
-          }}>
-            Ghim vị trí tuyển dụng lên stream
-          </p>
+    <div className="flex flex-col gap-5 h-full bg-[#1e3a5f]">
+      {/* Header info */}
+      <div className="px-5 pt-5 pb-0">
+        <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shrink-0">
+            <Pin className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-300">Spotlight Job</p>
+            <p className="text-xs text-amber-400/60 mt-0.5">Ghim vị trí tuyển dụng lên stream</p>
+          </div>
         </div>
       </div>
 
       {/* Input area */}
-      <div>
-        <label style={{
-          display: "block",
-          fontSize: 11,
-          fontWeight: 600,
-          color: "rgba(255,255,255,0.3)",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          marginBottom: 8,
-        }}>
+      <div className="px-5">
+        <label className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2 block">
           Job Post ID
         </label>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="flex gap-2">
           <input
             value={jobId}
             onChange={e => setJobId(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSpotlight()}
             placeholder="Nhập ID bài đăng..."
-            style={{
-              flex: 1,
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.1)",
-              background: "rgba(255,255,255,0.04)",
-              fontSize: 13,
-              color: "#e2e8f0",
-              outline: "none",
-              fontFamily: "inherit",
-              transition: "all 0.2s",
-            }}
-            onFocus={e => {
-              e.currentTarget.style.borderColor = "#fbbf24";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(251, 191, 36, 0.1)";
-              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-            }}
-            onBlur={e => {
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-              e.currentTarget.style.boxShadow = "none";
-              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-            }}
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-sm text-white placeholder:text-white/25 outline-none focus:border-amber-500/50 focus:bg-white/15 transition-colors"
           />
           <button
             onClick={handleSpotlight}
             disabled={spotlighting || !jobId.trim()}
-            style={{
-              width: 42, height: 42,
-              borderRadius: 12,
-              border: "none",
-              background: jobId.trim() && !spotlighting
-                ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                : "rgba(255,255,255,0.05)",
-              color: jobId.trim() && !spotlighting
-                ? "#fff"
-                : "rgba(255,255,255,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: jobId.trim() && !spotlighting ? "pointer" : "default",
-              flexShrink: 0,
-              transition: "all 0.2s",
-              boxShadow: jobId.trim() && !spotlighting
-                ? "0 4px 15px rgba(245, 158, 11, 0.3)"
-                : "none",
-            }}
-            onMouseEnter={e => {
-              if (jobId.trim() && !spotlighting) {
-                e.currentTarget.style.transform = "scale(1.05)";
+            className={`w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0 transition-colors
+              ${jobId.trim() && !spotlighting
+                ? "bg-amber-500 text-white hover:bg-amber-400 cursor-pointer"
+                : "bg-white/10 text-white/20 cursor-default"
               }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = "scale(1)";
-            }}
+            `}
           >
             {spotlighting ? (
-              <div style={{
-                width: 14, height: 14,
-                border: "2px solid rgba(255,255,255,0.3)",
-                borderTop: "2px solid #fff",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }} />
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <IconPin size={16} />
+              <Pin className="w-4 h-4" />
             )}
           </button>
         </div>
@@ -168,105 +74,37 @@ export function SpotlightPanel({
 
       {/* Divider */}
       {spotlightedJobs.length > 0 && (
-        <div style={{
-          height: 1,
-          background: "linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)",
-          margin: "4px 0",
-        }} />
+        <div className="px-5">
+          <div className="h-px bg-white/10" />
+        </div>
       )}
 
       {/* Spotlighted jobs list */}
       {spotlightedJobs.length > 0 && (
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          flex: 1,
-          overflow: "auto",
-        }}>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 2px",
-          }}>
-            <p style={{
-              margin: 0,
-              fontSize: 11,
-              fontWeight: 600,
-              color: "rgba(255,255,255,0.3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}>
-              Đang ghim ({spotlightedJobs.length})
-            </p>
-          </div>
-
+        <div className="flex flex-col gap-2 px-5 pb-5 flex-1 overflow-auto">
+          <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider">
+            Đang ghim ({spotlightedJobs.length})
+          </p>
+          
           {spotlightedJobs.map((id, index) => (
             <div
               key={id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                background: "linear-gradient(135deg, rgba(251, 191, 36, 0.06), rgba(245, 158, 11, 0.06))",
-                border: "1px solid rgba(251, 191, 36, 0.15)",
-                borderRadius: 12,
-                padding: "10px 14px",
-                animation: `slideIn 0.3s ease ${index * 0.05}s both`,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1))";
-                e.currentTarget.style.borderColor = "rgba(251, 191, 36, 0.3)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "linear-gradient(135deg, rgba(251, 191, 36, 0.06), rgba(245, 158, 11, 0.06))";
-                e.currentTarget.style.borderColor = "rgba(251, 191, 36, 0.15)";
-              }}
+              className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 hover:bg-amber-500/15 transition-colors group"
             >
               {/* Number badge */}
-              <div style={{
-                width: 24, height: 24,
-                borderRadius: 7,
-                background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#fff",
-                flexShrink: 0,
-              }}>
+              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
                 {index + 1}
               </div>
 
               {/* Job info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 2,
-                }}>
-                  <IconPin size={10} />
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#fbbf24",
-                    fontFamily: "'SF Mono', 'Fira Code', monospace",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span className="text-sm font-medium text-amber-200 truncate">
                     {id}
                   </span>
                 </div>
-                <p style={{
-                  margin: 0,
-                  fontSize: 10,
-                  color: "rgba(251, 191, 36, 0.5)",
-                }}>
+                <p className="text-[11px] text-amber-400/50 mt-0.5 ml-5">
                   Đang hiển thị trên stream
                 </p>
               </div>
@@ -274,33 +112,28 @@ export function SpotlightPanel({
               {/* Remove button */}
               <button
                 onClick={() => onRemove(id)}
-                style={{
-                  width: 28, height: 28,
-                  borderRadius: 8,
-                  background: "rgba(239, 68, 68, 0.1)",
-                  border: "1px solid rgba(239, 68, 68, 0.2)",
-                  cursor: "pointer",
-                  color: "#f87171",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
-                  e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.4)";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                  e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.2)";
-                }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
                 title="Gỡ ghim"
               >
-                <IconX size={12} />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {spotlightedJobs.length === 0 && (
+        <div className="flex-1 flex flex-col items-center justify-center px-5 pb-5">
+          <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-3">
+            <Pin className="w-6 h-6 text-white/15" />
+          </div>
+          <p className="text-sm text-white/25 text-center">
+            Chưa có job nào được ghim
+          </p>
+          <p className="text-xs text-white/15 text-center mt-1">
+            Nhập ID và nhấn ghim để hiển thị
+          </p>
         </div>
       )}
     </div>

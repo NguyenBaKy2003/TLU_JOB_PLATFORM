@@ -10,10 +10,10 @@ import {
   Clock,
   Briefcase,
   Mic,
-  Filter,
   ChevronRight,
   TrendingUp,
   Zap,
+  Eye,
 } from "lucide-react";
 import type { LiveStreamSession, SessionType } from "@/domain/models/LiveStream";
 import { LiveStreamRepository } from "@/infrastructure/repositories/LiveStreamRepository";
@@ -47,13 +47,13 @@ function isLiveNow(session: LiveStreamSession) {
 
 function isSoon(session: LiveStreamSession) {
   const diff = new Date(session.scheduledAt).getTime() - Date.now();
-  return diff > 0 && diff < 2 * 3600000; // trong 2 giờ
+  return diff > 0 && diff < 2 * 3600000;
 }
 
 // ─── Live Badge ───────────────────────────────────────────────
 function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg shadow-red-500/20">
       <span className="relative flex h-1.5 w-1.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
@@ -63,7 +63,7 @@ function LiveBadge() {
   );
 }
 
-// ─── Session Card (large, for featured) ───────────────────────
+// ─── Featured Card ───────────────────────────────────────────
 function FeaturedCard({
   session,
   onClick,
@@ -77,46 +77,49 @@ function FeaturedCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 p-5 hover:border-white/10 transition-all hover:shadow-xl"
+      className="group w-full text-left relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-5 hover:shadow-lg hover:shadow-blue-500/20 transition-all"
     >
-      {/* Background texture */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none"
-        style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-white blur-3xl" />
+      </div>
 
-      <div className="relative z-10 flex flex-col gap-4">
+      <div className="relative flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
-            {isLive ? (
-              <LiveBadge />
-            ) : (
-              <span className="inline-flex items-center gap-1 text-amber-400 text-xs font-medium">
-                <Clock className="w-3 h-3" />
-                {formatScheduled(session.scheduledAt)}
+            <div className="flex items-center gap-2">
+              {isLive ? (
+                <LiveBadge />
+              ) : (
+                <span className="inline-flex items-center gap-1 text-amber-300 text-xs font-medium bg-white/10 px-2 py-0.5 rounded-full">
+                  <Clock className="w-3 h-3" />
+                  {formatScheduled(session.scheduledAt)}
+                </span>
+              )}
+              <span className="text-white/50 text-xs bg-white/10 px-2 py-0.5 rounded-full">
+                {session.sessionType === "JOB_FAIR" ? "Job Fair" : "Phỏng vấn"}
               </span>
-            )}
+            </div>
             <h3 className="font-bold text-white text-lg leading-tight">
               {session.title}
             </h3>
             {session.description && (
-              <p className="text-white/40 text-sm line-clamp-2 leading-relaxed">
+              <p className="text-white/50 text-sm line-clamp-2 leading-relaxed">
                 {session.description}
               </p>
             )}
           </div>
-          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
-            <TypeIcon className="w-5 h-5 text-white/60" />
+          <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
+            <TypeIcon className="w-5 h-5 text-white" />
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-white/5">
-          <div className="flex items-center gap-3 text-white/40 text-xs">
+        <div className="flex items-center justify-between pt-3 border-t border-white/10">
+          <div className="flex items-center gap-3 text-white/50 text-xs">
             <span className="flex items-center gap-1">
               <Users className="w-3 h-3" />
               {isLive ? `${session.viewerCount} đang xem` : `Tối đa ${session.maxViewers}`}
-            </span>
-            <span className="flex items-center gap-1">
-              <TypeIcon className="w-3 h-3" />
-              {session.sessionType === "JOB_FAIR" ? "Job Fair" : "Phỏng vấn"}
             </span>
             {session.sessionType === "INTERVIEW" && (
               <span className="flex items-center gap-1">
@@ -125,7 +128,7 @@ function FeaturedCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-white/60 text-xs font-medium group-hover:text-white transition-colors">
+          <div className="flex items-center gap-1 text-white/70 text-xs font-medium group-hover:text-white transition-colors">
             {isLive ? "Xem ngay" : "Chi tiết"}
             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </div>
@@ -135,7 +138,7 @@ function FeaturedCard({
   );
 }
 
-// ─── Session Card (compact, for list) ────────────────────────
+// ─── Stream Card ──────────────────────────────────────────────
 function StreamCard({
   session,
   onClick,
@@ -150,18 +153,22 @@ function StreamCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left bg-white rounded-2xl border border-slate-100 p-4 hover:shadow-md hover:border-slate-200 transition-all"
+      className="group w-full text-left bg-white rounded-2xl border border-slate-200 p-4 hover:border-blue-200 hover:shadow-sm transition-all"
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div
           className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
             isLive
-              ? "bg-red-50 group-hover:bg-red-100"
-              : "bg-slate-50 group-hover:bg-slate-100"
+              ? "bg-red-50"
+              : soon
+              ? "bg-amber-50"
+              : "bg-blue-50"
           }`}
         >
-          <TypeIcon className={`w-5 h-5 ${isLive ? "text-red-500" : "text-slate-500"}`} />
+          <TypeIcon className={`w-5 h-5 ${
+            isLive ? "text-red-500" : soon ? "text-amber-500" : "text-blue-500"
+          }`} />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -194,7 +201,7 @@ function StreamCard({
           </div>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
+        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
       </div>
     </button>
   );
@@ -213,9 +220,9 @@ function FilterPill({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+      className={`px-3.5 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
         active
-          ? "bg-slate-800 text-white"
+          ? "bg-blue-600 text-white shadow-sm"
           : "bg-white text-slate-500 border border-slate-200 hover:border-slate-300"
       }`}
     >
@@ -227,14 +234,14 @@ function FilterPill({
 // ─── Empty State ──────────────────────────────────────────────
 function EmptyState({ query }: { query: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mb-4">
-        <Radio className="w-7 h-7 text-slate-300" />
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="w-20 h-20 rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex items-center justify-center mb-5">
+        <Radio className="w-9 h-9 text-blue-300" />
       </div>
-      <p className="text-slate-600 font-medium mb-1">
+      <h3 className="text-slate-700 font-semibold text-lg mb-1">
         {query ? `Không tìm thấy "${query}"` : "Chưa có phiên stream"}
-      </p>
-      <p className="text-slate-400 text-sm">
+      </h3>
+      <p className="text-slate-400 text-sm max-w-xs">
         {query ? "Thử tìm kiếm với từ khoá khác" : "Quay lại sau để xem các phiên mới"}
       </p>
     </div>
@@ -256,7 +263,6 @@ export default function StreamMarketplacePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Derived
   const live = sessions.filter((s) => s.status === "LIVE");
   const filtered = sessions.filter((s) => {
     const matchQ =
@@ -267,44 +273,45 @@ export default function StreamMarketplacePage() {
     return matchQ && matchType;
   });
 
-  const featured = filtered.filter(
-    (s) => s.status === "LIVE" || isSoon(s)
-  );
-  const rest = filtered.filter(
-    (s) => s.status !== "LIVE" && !isSoon(s)
-  );
+  const featured = filtered.filter((s) => s.status === "LIVE" || isSoon(s));
+  const rest = filtered.filter((s) => s.status !== "LIVE" && !isSoon(s));
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-              <Radio className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">
+              <Radio className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-slate-800 text-sm">Live Tuyển Dụng</h1>
-              {live.length > 0 ? (
-                <p className="text-xs text-red-500 font-medium">
-                  {live.length} phiên đang diễn ra
-                </p>
-              ) : (
-                <p className="text-xs text-slate-400">
-                  {sessions.length} phiên sắp diễn ra
-                </p>
-              )}
+              <h1 className="font-bold text-slate-800 text-base">Live Tuyển Dụng</h1>
+              <p className="text-xs text-slate-400">
+                {live.length > 0
+                  ? `${live.length} phiên đang diễn ra`
+                  : `${sessions.length} phiên sắp diễn ra`}
+              </p>
             </div>
+            {live.length > 0 && (
+              <div className="ml-auto flex items-center gap-1.5 text-red-500 text-xs font-medium bg-red-50 px-2.5 py-1 rounded-full">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+                {live.length} live
+              </div>
+            )}
           </div>
 
           {/* Search */}
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm phiên stream..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:border-slate-400 focus:bg-white transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50 transition-all"
             />
           </div>
 
@@ -332,12 +339,11 @@ export default function StreamMarketplacePage() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
+            <div className="animate-pulse rounded-2xl bg-slate-100 h-40" />
+            {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`animate-pulse rounded-2xl border border-slate-100 p-4 ${
-                  i === 1 ? "h-40 bg-slate-200" : "h-20 bg-white"
-                }`}
+                className="animate-pulse rounded-2xl bg-white border border-slate-100 h-20"
               />
             ))}
           </div>
@@ -349,7 +355,7 @@ export default function StreamMarketplacePage() {
             {featured.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5" />
+                  <Zap className="w-3.5 h-3.5 text-blue-500" />
                   {live.length > 0 ? "Đang diễn ra & Sắp tới" : "Sắp diễn ra"}
                 </h2>
                 {featured.map((s) => (
@@ -366,7 +372,7 @@ export default function StreamMarketplacePage() {
             {rest.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5" />
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
                   Các phiên khác
                 </h2>
                 {rest.map((s) => (

@@ -77,11 +77,13 @@ public class CandidateStreamController {
 
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
                 JoinLiveStreamUseCase.Result result = joinUseCase.execute(sessionId, candidateId);
+
                 return ResponseEntity.ok(ApiResponse.success(
                                 new SessionJoinResponse(
                                                 result.viewerToken(),
                                                 result.livekitUrl(),
-                                                result.currentViewerCount())));
+                                                result.currentViewerCount(),
+                                                result.canPublish())));
         }
 
         @Operation(summary = "Rời phiên stream")

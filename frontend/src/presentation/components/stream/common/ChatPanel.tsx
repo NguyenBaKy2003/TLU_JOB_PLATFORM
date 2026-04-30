@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { IconChat, IconSend } from "./Icons";
+import { MessageCircle, Send } from "lucide-react";
 
 export interface ChatMessageData {
   id: string;
@@ -28,7 +28,7 @@ interface ChatPanelProps {
 
 export function ChatPanel({
   messages,
-  tabs = [{ key: "chat", label: "Chat", icon: <IconChat size={14} /> }],
+  tabs = [{ key: "chat", label: "Chat", icon: <MessageCircle className="w-3.5 h-3.5" /> }],
   activeTab = "chat",
   onTabChange,
   onSend,
@@ -58,50 +58,22 @@ export function ChatPanel({
   };
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", height: "100%",
-      background: isEmployer ? "transparent" : "#ffffff",
-      borderRadius: isEmployer ? 0 : 20,
-      overflow: "hidden",
-      boxShadow: isEmployer ? "none" : "0 4px 20px rgba(0,0,0,0.03)",
-    }}>
+    <div className="flex flex-col h-full bg-[#1e3a5f]">
       {/* Tabs */}
       {tabs.length > 1 && (
-        <div style={{
-          display: "flex",
-          background: isEmployer ? "rgba(255,255,255,0.02)" : "#f8fafc",
-          borderBottom: `1px solid ${isEmployer ? "rgba(255,255,255,0.06)" : "#f1f5f9"}`,
-          flexShrink: 0,
-          padding: "4px",
-          gap: 4,
-        }}>
+        <div className="flex p-1.5 gap-1 shrink-0 border-b border-white/10">
           {tabs.map(tab => {
             const isActive = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => onTabChange?.(tab.key)}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  padding: "10px 0",
-                  border: "none",
-                  background: isActive
-                    ? (isEmployer ? "rgba(59,130,246,0.2)" : "#ffffff")
-                    : "transparent",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: isActive
-                    ? (isEmployer ? "#60a5fa" : "#3b82f6")
-                    : (isEmployer ? "rgba(255,255,255,0.3)" : "#94a3b8"),
-                  transition: "all 0.2s",
-                  boxShadow: isActive && !isEmployer ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
-                }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-colors
+                  ${isActive
+                    ? "bg-white/15 text-white"
+                    : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                  }
+                `}
               >
                 {tab.icon}
                 {tab.label}
@@ -112,261 +84,103 @@ export function ChatPanel({
       )}
 
       {/* Messages */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "12px 16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        minHeight: 0,
-      }}>
+      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2 min-h-0">
         {filteredMessages.length === 0 && (
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            gap: 12,
-          }}>
-            <div style={{
-              width: 48, height: 48,
-              borderRadius: 14,
-              background: isEmployer
-                ? "rgba(255,255,255,0.04)"
-                : "linear-gradient(135deg, #f0f9ff, #e0e7ff)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: isEmployer ? "rgba(255,255,255,0.2)" : "#93c5fd",
-            }}>
-              <IconChat size={20} />
-            </div>
-            <p style={{
-              margin: 0,
-              fontSize: 13,
-              color: isEmployer ? "rgba(255,255,255,0.2)" : "#94a3b8",
-            }}>
-              Chưa có tin nhắn nào
-            </p>
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <MessageCircle className="w-6 h-6 text-white/20" />
+            <p className="text-[13px] text-white/30">Chưa có tin nhắn nào</p>
           </div>
         )}
 
         {filteredMessages.map(m => (
-          <div key={m.id} style={{ animation: "fadeUp 0.3s ease" }}>
-            <MessageBubble message={m} variant={variant} />
-          </div>
+          <MessageBubble key={m.id} message={m} />
         ))}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <div style={{
-        padding: "12px 16px",
-        borderTop: `1px solid ${isEmployer ? "rgba(255,255,255,0.06)" : "#f1f5f9"}`,
-        flexShrink: 0,
-        background: isEmployer ? "transparent" : "#f8fafc",
-      }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div className="px-4 py-3 border-t border-white/10 shrink-0">
+        <div className="flex gap-2 items-center">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder={placeholder}
             maxLength={maxLength}
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              borderRadius: 14,
-              border: isEmployer
-                ? "1px solid rgba(255,255,255,0.1)"
-                : "1.5px solid #e2e8f0",
-              background: isEmployer
-                ? "rgba(255,255,255,0.06)"
-                : "#ffffff",
-              fontSize: 13,
-              color: isEmployer ? "#e2e8f0" : "#334155",
-              outline: "none",
-              transition: "all 0.2s",
-              fontFamily: "inherit",
-            }}
-            onFocus={e => {
-              e.target.style.borderColor = isEmployer ? "#60a5fa" : "#3b82f6";
-              e.target.style.boxShadow = isEmployer
-                ? "0 0 0 3px rgba(96, 165, 250, 0.15)"
-                : "0 0 0 3px rgba(59, 130, 246, 0.1)";
-            }}
-            onBlur={e => {
-              e.target.style.borderColor = isEmployer
-                ? "rgba(255,255,255,0.1)"
-                : "#e2e8f0";
-              e.target.style.boxShadow = "none";
-            }}
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30 focus:bg-white/15 transition-colors"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || sending}
-            style={{
-              width: 40, height: 40,
-              borderRadius: 13,
-              border: "none",
-              background: input.trim() && !sending
-                ? "linear-gradient(135deg, #3b82f6, #8b5cf6)"
-                : (isEmployer ? "rgba(255,255,255,0.06)" : "#f1f5f9"),
-              color: input.trim() && !sending
-                ? "#ffffff"
-                : (isEmployer ? "rgba(255,255,255,0.2)" : "#94a3b8"),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: input.trim() && !sending ? "pointer" : "default",
-              transition: "all 0.2s",
-              flexShrink: 0,
-              boxShadow: input.trim() && !sending
-                ? "0 4px 12px rgba(59, 130, 246, 0.3)"
-                : "none",
-            }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors
+              ${input.trim() && !sending
+                ? "bg-blue-400 text-white hover:bg-blue-500"
+                : "bg-white/10 text-white/20 cursor-default"
+              }
+            `}
           >
             {sending ? (
-              <div style={{
-                width: 14, height: 14,
-                border: "2px solid rgba(255,255,255,0.3)",
-                borderTop: "2px solid currentColor",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }} />
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <IconSend size={15} />
+              <Send className="w-3.5 h-3.5" />
             )}
           </button>
         </div>
-        {maxLength > 300 && (
-          <p style={{
-            margin: "6px 0 0",
-            fontSize: 11,
-            color: isEmployer ? "rgba(255,255,255,0.2)" : "#94a3b8",
-            textAlign: "right",
-          }}>
-            {input.length}/{maxLength}
-          </p>
-        )}
       </div>
     </div>
   );
 }
 
-// ── Message Bubble (cập nhật) ──────────────────────────────────
-function MessageBubble({ message, variant }: { message: ChatMessageData; variant: string }) {
-  const isEmployer = variant === "employer";
+// ── Message Bubble ─────────────────────────────────────────────
+function MessageBubble({ message }: { message: ChatMessageData }) {
   const isQA = message.type === "Q_AND_A";
+  const isSystem = message.type === "SYSTEM";
+
+  // System message
+  if (isSystem) {
+    return (
+      <div className="flex justify-center">
+        <span className="text-[11px] text-white/40 bg-white/5 px-3 py-1 rounded-full">
+          {message.content}
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      display: "flex",
-      justifyContent: message.isMe && !isEmployer ? "flex-end" : "flex-start",
-    }}>
-      <div style={{
-        maxWidth: "80%",
-        borderRadius: message.isMe && !isEmployer
-          ? "18px 18px 6px 18px"
-          : "18px 18px 18px 6px",
-        padding: "10px 14px",
-        background: isEmployer
-          ? (isQA
-            ? "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1))"
-            : "rgba(255,255,255,0.06)")
-          : (message.isMe
-            ? "linear-gradient(135deg, #3b82f6, #8b5cf6)"
-            : (isQA
-              ? "linear-gradient(135deg, #fffbeb, #fef3c7)"
-              : "#f8fafc")),
-        border: isEmployer
-          ? (isQA ? "1px solid rgba(251, 191, 36, 0.3)" : "1px solid rgba(255,255,255,0.08)")
-          : (isQA && !message.isMe ? "1px solid #fde68a" : "1px solid #f1f5f9"),
-        boxShadow: message.isMe && !isEmployer
-          ? "0 4px 12px rgba(59, 130, 246, 0.25)"
-          : "0 1px 3px rgba(0,0,0,0.04)",
-      }}>
+    <div className={`flex ${message.isMe ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[80%] px-3.5 py-2.5 text-[13px] leading-relaxed break-words
+        ${message.isMe
+          ? "bg-blue-400 text-white rounded-2xl rounded-br-md"
+          : isQA
+            ? "bg-amber-500/15 border border-amber-500/25 rounded-2xl rounded-bl-md"
+            : "bg-white/10 border border-white/10 rounded-2xl rounded-bl-md"
+        }
+      `}>
         {/* Sender name */}
-        {(!message.isMe || isEmployer) && (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 6,
-          }}>
-            {/* Avatar placeholder */}
-            <div style={{
-              width: 22, height: 22,
-              borderRadius: 8,
-              background: isQA
-                ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                : "linear-gradient(135deg, #3b82f6, #6366f1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#fff",
-              flexShrink: 0,
-            }}>
-              {message.senderName.charAt(0).toUpperCase()}
-            </div>
-            <span style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: isEmployer
-                ? (isQA ? "#fbbf24" : "#e2e8f0")
-                : (isQA ? "#92400e" : "#475569"),
-            }}>
-              {message.senderName}
-            </span>
+        {!message.isMe && (
+          <p className={`text-[11px] font-semibold mb-1 flex items-center gap-1.5
+            ${isQA ? "text-amber-300" : "text-white/60"}
+          `}>
+            {message.senderName}
             {isQA && (
-              <span style={{
-                fontSize: 10,
-                background: isEmployer
-                  ? "rgba(251, 191, 36, 0.2)"
-                  : "rgba(245, 158, 11, 0.15)",
-                color: isEmployer ? "#fbbf24" : "#92400e",
-                padding: "2px 8px",
-                borderRadius: 10,
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-              }}>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
                 Q&A
               </span>
             )}
-          </div>
+          </p>
         )}
 
         {/* Content */}
-        <p style={{
-          margin: 0,
-          fontSize: 13,
-          color: isEmployer
-            ? "#e2e8f0"
-            : (message.isMe ? "#ffffff" : "#334155"),
-          lineHeight: 1.6,
-          wordBreak: "break-word",
-        }}>
+        <p className={`m-0 ${message.isMe ? "text-white" : "text-white/90"}`}>
           {message.content}
         </p>
 
         {/* Time */}
-        <p style={{
-          margin: "6px 0 0",
-          fontSize: 10,
-          color: isEmployer
-            ? "rgba(255,255,255,0.25)"
-            : (message.isMe ? "rgba(255,255,255,0.7)" : "#94a3b8"),
-          textAlign: message.isMe && !isEmployer ? "right" : "left",
-          letterSpacing: "0.03em",
-        }}>
-          {message.time.toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+        <p className={`text-[10px] mt-1.5 ${
+          message.isMe ? "text-white/60 text-right" : "text-white/30"
+        }`}>
+          {message.time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
         </p>
       </div>
     </div>

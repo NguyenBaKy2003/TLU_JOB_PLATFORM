@@ -1,6 +1,6 @@
 // components/stream/candidate/SpotlightBanner.tsx
 import React from "react";
-import { IconBriefcase, IconX } from "../common/Icons";
+import { Briefcase, X } from "lucide-react";
 
 interface SpotlightJob {
   jobPostId: string;
@@ -15,138 +15,32 @@ interface SpotlightBannerProps {
 
 export function SpotlightBanner({ job, onApply, onDismiss }: SpotlightBannerProps) {
   return (
-    <div style={{
-      margin: "0 16px",
-      background: "linear-gradient(135deg, #fffbeb, #fef3c7, #fde68a)",
-      border: "1px solid #fcd34d",
-      borderRadius: 18,
-      padding: "16px 18px",
-      display: "flex",
-      alignItems: "center",
-      gap: 14,
-      boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
-      animation: "fadeUp 0.3s ease",
-    }}>
-      {/* Icon */}
-      <div style={{
-        width: 44, height: 44,
-        borderRadius: 14,
-        background: "linear-gradient(135deg, #f59e0b, #d97706)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: "#fff",
-        boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)",
-      }}>
-        <IconBriefcase size={18} />
+    <div className="mx-4 bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 text-white">
+        <Briefcase className="w-4 h-4" />
       </div>
 
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          marginBottom: 4,
-        }}>
-          <span style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: "#92400e",
-            background: "rgba(146, 64, 14, 0.1)",
-            padding: "2px 8px",
-            borderRadius: 6,
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-          }}>
-            Đang tuyển
-          </span>
-          <span style={{
-            fontSize: 10,
-            color: "#a16207",
-          }}>
-            Spotlight
-          </span>
-        </div>
-        <p style={{
-          margin: 0,
-          fontSize: 14,
-          fontWeight: 700,
-          color: "#1c1917",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          letterSpacing: "0.01em",
-        }}>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-amber-800">
+          Vị trí đang tuyển
+        </p>
+        <p className="text-[13px] font-semibold text-stone-900 truncate">
           {job.title ?? `Job #${job.jobPostId.slice(0, 8)}`}
         </p>
-        <p style={{
-          margin: "2px 0 0",
-          fontSize: 11,
-          color: "#a16207",
-          fontFamily: "'SF Mono', 'Fira Code', monospace",
-        }}>
-          ID: {job.jobPostId.slice(0, 12)}...
-        </p>
       </div>
 
-      {/* Actions */}
-      <div style={{
-        display: "flex",
-        gap: 8,
-        flexShrink: 0,
-      }}>
+      <div className="flex gap-2 shrink-0">
         <button
           onClick={onApply}
-          style={{
-            background: "linear-gradient(135deg, #f59e0b, #d97706)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 12,
-            padding: "10px 20px",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.2s",
-            letterSpacing: "0.02em",
-            boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 6px 20px rgba(245, 158, 11, 0.4)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.3)";
-          }}
+          className="bg-amber-500 text-white border-none rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer hover:bg-amber-600"
         >
-          Ứng tuyển ngay
+          Ứng tuyển
         </button>
         <button
           onClick={onDismiss}
-          style={{
-            width: 36, height: 36,
-            borderRadius: 10,
-            background: "rgba(146, 64, 14, 0.08)",
-            border: "1px solid rgba(146, 64, 14, 0.15)",
-            cursor: "pointer",
-            color: "#92400e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.2s",
-            flexShrink: 0,
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(146, 64, 14, 0.15)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "rgba(146, 64, 14, 0.08)";
-          }}
-          title="Đóng"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-700 hover:bg-amber-100 cursor-pointer border-none bg-transparent"
         >
-          <IconX size={14} />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import edu.tlu.jobplatform.livestream.application.port.out.MediaServerPort;
 import edu.tlu.jobplatform.livestream.application.service.StreamViewerManager;
 import edu.tlu.jobplatform.livestream.domain.model.LiveStreamSession;
 import edu.tlu.jobplatform.livestream.domain.model.vo.SessionStatus;
+import edu.tlu.jobplatform.livestream.domain.model.vo.SessionType;
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
@@ -30,7 +31,8 @@ public class JoinLiveStreamUseCase {
         public record Result(
                         String viewerToken,
                         String livekitUrl,
-                        int currentViewerCount) {
+                        int currentViewerCount,
+                        boolean canPublish) {
         }
 
         @Transactional
@@ -45,12 +47,24 @@ public class JoinLiveStreamUseCase {
                                         "SESSION_NOT_LIVE");
                 }
 
+                // Phân biệt token dựa vào session type
+                String viewerToken;
+                boolean canPublish;
+
+                if (session.getSessionType() == SessionType.INTERVIEW) {
+                        // Interview: Candidate có quyền bật cam/mic
+                        viewerToken = mediaServerPort.generateSpeakerToken(sessionId, candidateId);
+                        canPublish = true;
+                } else {
+                        viewerToken = mediaServerPort.generateViewerToken(sessionId, candidateId);
+                        canPublish = false;
+                }
+
                 int currentCount = viewerManager.viewerJoined(sessionId, candidateId);
-                String viewerToken = mediaServerPort.generateViewerToken(sessionId, candidateId);
 
-                log.info("[Join] candidateId={} joined sessionId={}, currentCount={}",
-                                candidateId, sessionId, currentCount);
+                log.info("[Join] candidateId={} joined sessionId={}, type={}, canPublish={}, currentCount={}",
+                                candidateId, sessionId, session.getSessionType(), canPublish, currentCount);
 
-                return new Result(viewerToken, livekitUrl, currentCount);
+                return new Result(viewerToken, livekitUrl, currentCount, canPublish);
         }
 }

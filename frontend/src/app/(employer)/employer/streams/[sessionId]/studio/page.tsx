@@ -1,12 +1,11 @@
 // presentation/components/stream/employer/EmployerStudioPage.tsx
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  LiveKitRoom, ControlBar,
-} from "@livekit/components-react";
+import { LiveKitRoom, ControlBar } from "@livekit/components-react";
 import "@livekit/components-styles";
+import { MessageCircle, Pin, Square } from "lucide-react";
 import type { LiveStreamSession } from "@/domain/models/LiveStream";
 import { LiveStreamRepository } from "@/infrastructure/repositories/LiveStreamRepository";
 import { LiveStreamService } from "@/application/services/LiveStreamService";
@@ -16,8 +15,6 @@ import { ViewerCount } from "@/presentation/components/stream/common/ViewerCount
 import { ChatPanel, type ChatMessageData } from "@/presentation/components/stream/common/ChatPanel";
 import { LiveIndicator } from "@/presentation/components/stream/common/LiveIndicator";
 import { LoadingScreen } from "@/presentation/components/stream/common/LoadingScreen";
-import { globalStyles } from "@/presentation/components/stream/common/globalStyles";
-import { IconChat, IconPin, IconSquare } from "@/presentation/components/stream/common/Icons";
 import { ConfirmEndModal, SpotlightPanel, StartScreen } from "@/presentation/components/stream/employer";
 
 const service = new LiveStreamService(new LiveStreamRepository());
@@ -52,7 +49,6 @@ export default function EmployerStudioPage() {
   const [elapsed, setElapsed] = useState(0);
   const [spotlightedJobs, setSpotlightedJobs] = useState<string[]>([]);
 
-  // Load session
   useEffect(() => {
     const loadSession = async () => {
       try {
@@ -69,7 +65,6 @@ export default function EmployerStudioPage() {
     loadSession();
   }, [sessionId]);
 
-  // Start stream
   const handleStart = async () => {
     setStarting(true);
     try {
@@ -79,7 +74,6 @@ export default function EmployerStudioPage() {
     } finally { setStarting(false); }
   };
 
-  // Timer
   useEffect(() => {
     if (!token) return;
     const start = Date.now();
@@ -94,7 +88,6 @@ export default function EmployerStudioPage() {
       : `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
-  // Viewer count realtime
   useEffect(() => {
     const unsub = subscribeTopic(`/topic/stream/${sessionId}/events`, (event: any) => {
       if (event.type === "VIEWER_COUNT_UPDATE") setViewerCount(event.payload.count);
@@ -102,250 +95,168 @@ export default function EmployerStudioPage() {
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
-  // Chat messages
   useEffect(() => {
     const unsub = subscribeTopic(`/topic/streams/${sessionId}/chat`, (wsPayload: WsPayload<WsChatMessagePayload>) => {
       const d = wsPayload.data;
       setMessages(prev => {
         if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, {
-          id: d.id,
-          senderName: d.senderName,
-          content: d.content,
-          type: "CHAT",
-          time: new Date(d.sentAt),
-        }];
+        return [...prev, { id: d.id, senderName: d.senderName, content: d.content, type: "CHAT", time: new Date(d.sentAt) }];
       });
     });
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
-  // Q&A messages
   useEffect(() => {
     const unsub = subscribeTopic(`/topic/streams/${sessionId}/qa`, (wsPayload: WsPayload<WsQAQuestionPayload>) => {
       const d = wsPayload.data;
       setMessages(prev => {
         if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, {
-          id: d.id,
-          senderName: d.candidateName,
-          content: d.question,
-          type: "Q_AND_A",
-          time: new Date(d.askedAt),
-        }];
+        return [...prev, { id: d.id, senderName: d.candidateName, content: d.question, type: "Q_AND_A", time: new Date(d.askedAt) }];
       });
     });
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
-  // Send message
   const handleSendMessage = useCallback((content: string) => {
     setSending(true);
-    try {
-      publishMessage(`/app/streams/${sessionId}/chat`, { content });
-    } finally {
-      setSending(false);
-    }
+    try { publishMessage(`/app/streams/${sessionId}/chat`, { content }); }
+    finally { setSending(false); }
   }, [sessionId, publishMessage]);
 
-  // Spotlight job
   const handleSpotlight = useCallback(async (jobId: string) => {
     setSpotlighting(true);
-    try {
-      await service.spotlightJob(sessionId, { jobPostId: jobId });
-      setSpotlightedJobs(prev => [jobId, ...prev]);
-    } finally {
-      setSpotlighting(false);
-    }
+    try { await service.spotlightJob(sessionId, { jobPostId: jobId }); setSpotlightedJobs(prev => [jobId, ...prev]); }
+    finally { setSpotlighting(false); }
   }, [sessionId]);
 
-  // End stream
   const handleEnd = async () => {
     setEnding(true);
-    try {
-      await service.endStream(sessionId);
-      router.push(`/employer/streams/${sessionId}`);
-    } finally {
-      setEnding(false);
-      setShowEndConfirm(false);
-    }
+    try { await service.endStream(sessionId); router.push(`/employer/streams/${sessionId}`); }
+    finally { setEnding(false); setShowEndConfirm(false); }
   };
 
-  // Loading state
   if (!session) return <LoadingScreen />;
-
-  // Start screen
   if (!token) return <StartScreen session={session} onStart={handleStart} starting={starting} />;
 
+  const messageCount = messages.length;
+
   return (
-    <>
-      <style>{globalStyles}</style>
-        <div style={{ 
-    minHeight: "100svh",
-    background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 30%, #1e3a8a 100%)",
-    display: "flex",
-    flexDirection: "column",
-  }}>
-        {/* Top bar */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)",
-          flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-            <LiveIndicator style={{
-              background: "rgba(239,68,68,0.15)",
-              border: "1px solid rgba(239,68,68,0.3)",
-              color: "#ef4444",
-              borderRadius: 20,
-            }} />
-            <span style={{
-              fontFamily: "monospace", fontSize: 13,
-              color: "rgba(255,255,255,0.4)", fontWeight: 600,
-            }}>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Top bar */}
+      <div className="flex items-center gap-3 px-5 py-2.5 bg-white border-b border-slate-200 shrink-0">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <LiveIndicator className="bg-red-500" />
+          
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="font-mono text-[13px] font-semibold text-slate-700">
               {formatElapsed(elapsed)}
             </span>
-            <span style={{
-              fontSize: 13, color: "rgba(255,255,255,0.25)",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {session.title}
-            </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <ViewerCount count={viewerCount} variant="dark" />
-            <button
-              onClick={() => setShowEndConfirm(true)}
-              disabled={ending}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 7,
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.25)",
-                color: "#f87171", borderRadius: 10, padding: "7px 14px",
-                fontSize: 13, fontWeight: 600, cursor: "pointer",
-              }}
-            >
-              <IconSquare size={14} />
-              Kết thúc
-            </button>
-          </div>
+
+          <span className="text-[13px] font-medium text-slate-500 truncate">
+            {session.title}
+          </span>
         </div>
 
-        {/* Main layout */}
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* Video side */}
-          <div style={{
-            flex: 1, padding: 16,
-            display: "flex", flexDirection: "column", minWidth: 0,
-          }}>
-            <LiveKitRoom
-              serverUrl={livekitUrl}
-              token={token}
-              connect
-              video
-              audio
-              style={{ flex: 1, display: "flex", flexDirection: "column" ,gap: 12 }}
-            >
-              <div style={{ flex: 1, minHeight: 0 }}>
-                <VideoArea viewerCount={viewerCount} showControls />
-              </div>
-              <div style={{ flexShrink: 0 }}>
-                <ControlBar style={{
-                  background: "rgba(255,255,255,0.04)", borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.08)", padding: "8px 16px",
-                }} />
-              </div>
-            </LiveKitRoom>
-          </div>
-
-          {/* Right panel */}
-          <div style={{
-            width: 300, flexShrink: 0,
-            borderLeft: "1px solid rgba(255,255,255,0.05)",
-            display: "flex", flexDirection: "column",
-            background: "#fffff",
-          }}>
-            {/* Panel tabs */}
-            <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              {(["chat", "spotlight"] as const).map(t => (
-                <button
-                  key={t}
-                  onClick={() => setActiveTab(t)}
-                  style={{
-                    flex: 1, display: "flex", alignItems: "center",
-                    justifyContent: "center", gap: 6,
-                    padding: "12px 0", border: "none",
-                    background: "none", cursor: "pointer",
-                    fontSize: 12, fontWeight: 600,
-                    color: activeTab === t ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)",
-                    borderBottom: activeTab === t
-                      ? "2px solid rgba(255,255,255,0.35)"
-                      : "2px solid transparent",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {t === "chat" ? (
-                    <>
-                      <IconChat size={14} />
-                      Chat &amp; Q&amp;A
-                      {messages.length > 0 && (
-                        <span style={{
-                          background: "rgba(255,255,255,0.12)",
-                          color: "rgba(255,255,255,0.7)",
-                          fontSize: 10, padding: "1px 7px", borderRadius: 20,
-                        }}>
-                          {messages.length}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <IconPin size={14} />
-                      Spotlight
-                      {spotlightedJobs.length > 0 && (
-                        <span style={{
-                          background: "rgba(234,179,8,0.2)",
-                          color: "#fbbf24",
-                          fontSize: 10, padding: "1px 7px", borderRadius: 20,
-                        }}>
-                          {spotlightedJobs.length}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ flex: 1, overflow: "hidden" }}>
-              {activeTab === "chat" ? (
-                <ChatPanel
-                  messages={messages}
-                  onSend={handleSendMessage}
-                  sending={sending}
-                  variant="employer"
-                  placeholder="Nhắn tin với khán giả..."
-                />
-              ) : (
-                <SpotlightPanel
-                  sessionId={sessionId}
-                  onSpotlight={handleSpotlight}
-                  spotlighting={spotlighting}
-                  spotlightedJobs={spotlightedJobs}
-                  onRemove={id => setSpotlightedJobs(p => p.filter(j => j !== id))}
-                />
-              )}
-            </div>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <ViewerCount count={viewerCount} variant="dark" />
+          
+          <button
+            onClick={() => setShowEndConfirm(true)}
+            disabled={ending}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-500 text-[13px] font-semibold hover:bg-red-100 disabled:opacity-50"
+          >
+            <Square className="w-3.5 h-3.5 fill-current" />
+            Kết thúc
+          </button>
         </div>
-
-        {showEndConfirm && (
-          <ConfirmEndModal
-            onConfirm={handleEnd}
-            onCancel={() => setShowEndConfirm(false)}
-          />
-        )}
       </div>
-    </>
+
+      {/* Main layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Video side */}
+        <div className="flex-1 p-5 flex flex-col min-w-0 gap-4">
+          <LiveKitRoom
+            serverUrl={livekitUrl}
+            token={token}
+            connect video audio
+            className="flex-1 flex flex-col gap-4"
+          >
+            <div className="flex-1 min-h-0">
+              <VideoArea viewerCount={viewerCount} showControls />
+            </div>
+            <div className="shrink-0">
+              <ControlBar className="!bg-white !rounded-xl !border !border-slate-200 !px-5 !py-2.5" />
+            </div>
+          </LiveKitRoom>
+        </div>
+
+        {/* Right panel */}
+        <div className="w-[340px] shrink-0 border-l border-slate-200 flex flex-col bg-white">
+          {/* Tabs */}
+          <div className="flex p-2 gap-1 border-b border-slate-200 shrink-0">
+            {(["chat", "spotlight"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveTab(t)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
+                  ${activeTab === t 
+                    ? "bg-slate-100 text-slate-800" 
+                    : "bg-transparent text-slate-400 hover:text-slate-600"
+                  }`}
+              >
+                {t === "chat" ? (
+                  <>
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Chat
+                    {messageCount > 0 && (
+                      <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[18px] text-center">
+                        {messageCount}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Pin className="w-3.5 h-3.5" />
+                    Jobs
+                    {spotlightedJobs.length > 0 && (
+                      <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[18px] text-center">
+                        {spotlightedJobs.length}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Panel content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === "chat" ? (
+              <ChatPanel
+                messages={messages}
+                onSend={handleSendMessage}
+                sending={sending}
+                variant="employer"
+                placeholder="Nhắn tin với khán giả..."
+              />
+            ) : (
+              <SpotlightPanel
+                sessionId={sessionId}
+                onSpotlight={handleSpotlight}
+                spotlighting={spotlighting}
+                spotlightedJobs={spotlightedJobs}
+                onRemove={id => setSpotlightedJobs(p => p.filter(j => j !== id))}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showEndConfirm && (
+        <ConfirmEndModal onConfirm={handleEnd} onCancel={() => setShowEndConfirm(false)} />
+      )}
+    </div>
   );
 }
