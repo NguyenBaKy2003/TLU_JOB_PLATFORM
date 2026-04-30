@@ -11,5 +11,6 @@ public enum StreamEventType {
     INTERVIEW_INVITE, // Employer mời candidate vào interview slot
     VIEWER_JOIN, // Candidate tham gia
     VIEWER_LEAVE, // Candidate rời
-    SYSTEM // Thông báo hệ thống (stream started, ended...)
+    SYSTEM, // Thông báo hệ thống (stream started, ended...)
+    SESSION_ENDED // Phiên live kết thúc
 }
