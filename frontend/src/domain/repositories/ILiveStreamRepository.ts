@@ -39,6 +39,8 @@ export interface ILiveStreamRepository {
 
   /** GET /api/v1/streams/upcoming — Danh sách phiên sắp diễn ra (public) */
   getUpcomingStreams(): Promise<LiveStreamSession[]>;
+  /** POST /api/v1/streams/{id}/leave — Candidate rời phiên stream */
+  leaveStream(sessionId: string): Promise<void>;           // ← THÊM
 
   /** POST /api/v1/streams/{id}/questions — Gửi câu hỏi Q&A */
   submitQuestion(sessionId: string, question: string): Promise<void>;

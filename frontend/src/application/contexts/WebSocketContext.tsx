@@ -28,12 +28,6 @@ export interface IncomingMessage {
   createdAt: string
 }
 
-export interface StreamViewerCount {
-  sessionId: string
-  viewerCount: number
-  timestamp: string
-}
-
 interface WebSocketContextType {
   isConnected: boolean
   notifications: NotificationItem[]
@@ -45,15 +39,17 @@ interface WebSocketContextType {
   subscribeToNewNotification: (handler: (n: NotificationItem) => void) => () => void
   subscribeToAllRead: (handler: () => void) => () => void
   subscribeToNotificationDeleted: (handler: (id: string) => void) => () => void
-  // ── Stream helpers ──────────────────────────────────────────
+  /**
+   * Subscribe một STOMP topic tùy ý.
+   * - Connected: subscribe ngay
+   * - Chưa connected: đăng ký pending, auto re-subscribe khi connect/reconnect
+   *
+   * Cleanup function trả về: hủy subscription hiện tại,
+   * KHÔNG xóa khỏi pending (để re-subscribe sau reconnect vẫn hoạt động).
+   * Pending chỉ bị clear khi disconnect() chủ động.
+   */
   subscribeTopic: (topic: string, handler: (body: any) => void) => () => void
   publishMessage: (destination: string, body: object) => void
-  // ── Stream viewer count helpers ────────────────────────────
-  subscribeToViewerCount: (
-    sessionId: string,
-    handler: (viewerCount: number) => void
-  ) => () => void
-  getViewerCount: (sessionId: string) => Promise<number>
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined)
@@ -61,52 +57,57 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 function mapRawNotification(raw: any): NotificationItem {
   return {
     notificationId: raw.notificationId ?? raw.id ?? "",
-    type:           raw.type,
-    title:          raw.title ?? "",
-    body:           raw.body ?? raw.message ?? "",
-    link:           raw.link ?? null,
-    read:           raw.read === true || raw.isRead === true,
-    readAt:         raw.readAt ?? null,
-    createdAt:      raw.createdAt ?? new Date().toISOString(),
+    type: raw.type,
+    title: raw.title ?? "",
+    body: raw.body ?? raw.message ?? "",
+    link: raw.link ?? null,
+    read: raw.read === true || raw.isRead === true,
+    readAt: raw.readAt ?? null,
+    createdAt: raw.createdAt ?? new Date().toISOString(),
   }
 }
 
 function mapRestNotification(raw: any): NotificationItem {
   return {
     notificationId: raw.id ?? raw.notificationId ?? "",
-    type:           raw.type,
-    title:          raw.title ?? "",
-    body:           raw.body ?? "",
-    link:           raw.link ?? null,
-    read:           raw.read === true,
-    readAt:         raw.readAt ?? null,
-    createdAt:      raw.createdAt ?? "",
+    type: raw.type,
+    title: raw.title ?? "",
+    body: raw.body ?? "",
+    link: raw.link ?? null,
+    read: raw.read === true,
+    readAt: raw.readAt ?? null,
+    createdAt: raw.createdAt ?? "",
   }
 }
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  const [isConnected,   setIsConnected]   = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
-  const [unreadCount,   setUnreadCount]   = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
 
-  const messageHandlersRef      = useRef<Set<(msg: IncomingMessage) => void>>(new Set())
-  const newNotifHandlersRef     = useRef<Set<(n: NotificationItem) => void>>(new Set())
-  const allReadHandlersRef      = useRef<Set<() => void>>(new Set())
+  const messageHandlersRef = useRef<Set<(msg: IncomingMessage) => void>>(new Set())
+  const newNotifHandlersRef = useRef<Set<(n: NotificationItem) => void>>(new Set())
+  const allReadHandlersRef = useRef<Set<() => void>>(new Set())
   const notifDeletedHandlersRef = useRef<Set<(id: string) => void>>(new Set())
-  
-  // Stream viewer count handlers
-  const viewerCountHandlersRef = useRef<Map<string, Set<(count: number) => void>>>(new Map())
 
-  const clientRef            = useRef<Client | null>(null)
-  const reconnectTimeoutRef  = useRef<NodeJS.Timeout | null>(null)
+  const clientRef = useRef<Client | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const reconnectAttemptsRef = useRef(0)
-  const connectRef           = useRef<() => void>(() => {})
+  const connectRef = useRef<() => void>(() => { })
   const MAX_RECONNECT_ATTEMPTS = 5
 
-  // Lưu các pending subscription để re-subscribe sau khi reconnect
+  /**
+   * pending: topic → handler (registry để re-subscribe sau reconnect)
+   * KHÔNG xóa khi component unmount, CHỈ xóa khi disconnect() chủ động.
+   */
   const pendingSubscriptionsRef = useRef<Map<string, (body: any) => void>>(new Map())
-  const pendingViewerSubscriptionsRef = useRef<Map<string, Set<(count: number) => void>>>(new Map())
+
+  /**
+   * active: topic → STOMP unsubscribe function (cleanup subscription hiện tại)
+   * Bị clear khi onDisconnect và khi disconnect() chủ động.
+   */
+  const activeSubscriptionsRef = useRef<Map<string, () => void>>(new Map())
 
   const emitNewNotification = useCallback((n: NotificationItem) => {
     newNotifHandlersRef.current.forEach(h => h(n))
@@ -160,90 +161,40 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user])
 
-  // ── Stream viewer count helpers ────────────────────────────
-  const getViewerCount = useCallback(async (sessionId: string): Promise<number> => {
-    try {
-      const response = await api.get(`/streams/${sessionId}`)
-      return response.data.data?.viewerCount || 0
-    } catch (error) {
-      console.error("Failed to get viewer count:", error)
-      return 0
-    }
-  }, [])
-
-  const subscribeToViewerCount = useCallback(
-    (sessionId: string, handler: (viewerCount: number) => void): (() => void) => {
-      const topic = `/topic/streams/${sessionId}/viewers`
-      
-      // Lưu handler vào ref để quản lý
-      if (!viewerCountHandlersRef.current.has(sessionId)) {
-        viewerCountHandlersRef.current.set(sessionId, new Set())
-      }
-      viewerCountHandlersRef.current.get(sessionId)!.add(handler)
-      
-      // Lưu vào pending subscriptions để re-subscribe khi reconnect
-      if (!pendingViewerSubscriptionsRef.current.has(sessionId)) {
-        pendingViewerSubscriptionsRef.current.set(sessionId, new Set())
-      }
-      pendingViewerSubscriptionsRef.current.get(sessionId)!.add(handler)
-
-      // Tạo wrapper handler để emit cho tất cả handlers của session này
-      const wrapperHandler = (body: any) => {
-        const data = body.data || body
-        const count = data.viewerCount || data.count || 0
-        viewerCountHandlersRef.current.get(sessionId)?.forEach(h => h(count))
-      }
-
-      let subscription: any = null
-      if (clientRef.current?.connected) {
-        subscription = clientRef.current.subscribe(topic, (msg: IMessage) => {
-          wrapperHandler(JSON.parse(msg.body))
-        })
-      }
-
-      // Return cleanup function
-      return () => {
-        const handlers = viewerCountHandlersRef.current.get(sessionId)
-        if (handlers) {
-          handlers.delete(handler)
-          if (handlers.size === 0) {
-            viewerCountHandlersRef.current.delete(sessionId)
-            pendingViewerSubscriptionsRef.current.delete(sessionId)
-            if (subscription) {
-              subscription.unsubscribe()
-            }
-          }
-        }
-      }
-    },
-    [],
-  )
-
-  // ── subscribeTopic: cho phép page bất kỳ subscribe topic tùy ý ──────────────
   const subscribeTopic = useCallback(
     (topic: string, handler: (body: any) => void): (() => void) => {
-      // Lưu vào pending để re-subscribe khi reconnect
+      // Luôn cập nhật pending với handler mới nhất (tránh stale closure)
       pendingSubscriptionsRef.current.set(topic, handler)
 
       if (clientRef.current?.connected) {
+        // Hủy active subscription cũ nếu có (tránh duplicate)
+        const existingUnsub = activeSubscriptionsRef.current.get(topic)
+        if (existingUnsub) existingUnsub()
+
         const sub = clientRef.current.subscribe(topic, (msg: IMessage) => {
-          handler(JSON.parse(msg.body))
+          // Đọc từ pending để luôn gọi handler mới nhất
+          const currentHandler = pendingSubscriptionsRef.current.get(topic)
+          if (currentHandler) currentHandler(JSON.parse(msg.body))
         })
-        return () => {
+
+        const unsub = () => {
           sub.unsubscribe()
-          pendingSubscriptionsRef.current.delete(topic)
+          activeSubscriptionsRef.current.delete(topic)
+          // KHÔNG xóa khỏi pendingSubscriptionsRef
         }
+        activeSubscriptionsRef.current.set(topic, unsub)
+        return unsub
       }
 
-      // Chưa connected — cleanup chỉ xóa khỏi pending
+      // Chưa connected — onConnect sẽ subscribe sau
       return () => {
-        pendingSubscriptionsRef.current.delete(topic)
+        activeSubscriptionsRef.current.delete(topic)
+        // KHÔNG xóa khỏi pendingSubscriptionsRef
       }
     },
-    [],
+    [], // stable — không có deps thay đổi theo render
   )
 
-  // ── publishMessage: publish STOMP message từ bất kỳ component nào ───────────
   const publishMessage = useCallback((destination: string, body: object) => {
     if (!clientRef.current?.connected) {
       console.warn("⚠️ [WebSocket] Not connected, cannot publish to", destination)
@@ -264,13 +215,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    const wsUrl      = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080"
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080"
     const wsEndpoint = `${wsUrl}/api/v1/ws`
 
     const client = new Client({
       webSocketFactory: () => new SockJS(wsEndpoint),
-      connectHeaders:   { Authorization: `Bearer ${token}` },
-      reconnectDelay:   5000,
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
@@ -279,7 +230,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         setIsConnected(true)
         reconnectAttemptsRef.current = 0
 
-        // ── Notification subscriptions ─────────────────────────────────────
         client.subscribe("/user/queue/messages", (message: IMessage) => {
           const incoming: IncomingMessage = JSON.parse(message.body)
           messageHandlersRef.current.forEach(h => h(incoming))
@@ -302,12 +252,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         client.subscribe("/topic/notifications", (message: IMessage) => {
           handleNewNotif(JSON.parse(message.body))
         })
-
         client.subscribe("/user/queue/unread-count", (message: IMessage) => {
           const count = parseInt(message.body, 10)
           if (!isNaN(count)) setUnreadCount(count)
         })
-
         client.subscribe("/user/queue/notification-read", (message: IMessage) => {
           let readId: string
           try {
@@ -325,7 +273,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           )
           setUnreadCount(prev => Math.max(0, prev - 1))
         })
-
         client.subscribe("/user/queue/all-read", () => {
           setNotifications(prev =>
             prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() }))
@@ -333,7 +280,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           setUnreadCount(0)
           emitAllRead()
         })
-
         client.subscribe("/user/queue/notification-deleted", (message: IMessage) => {
           const deletedId = message.body.replace(/"/g, "")
           setNotifications(prev => {
@@ -344,28 +290,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           emitNotificationDeleted(deletedId)
         })
 
-        // ── Re-subscribe các pending topic (stream pages) ──────────────────
-        pendingSubscriptionsRef.current.forEach((handler, topic) => {
+        // Re-subscribe tất cả pending topics sau connect/reconnect
+        // Đọc handler từ pendingSubscriptionsRef để luôn dùng handler mới nhất
+        pendingSubscriptionsRef.current.forEach((_, topic) => {
           console.log("🔄 [WebSocket] Re-subscribing topic:", topic)
-          client.subscribe(topic, (msg: IMessage) => {
-            handler(JSON.parse(msg.body))
+          const sub = client.subscribe(topic, (msg: IMessage) => {
+            const currentHandler = pendingSubscriptionsRef.current.get(topic)
+            if (currentHandler) currentHandler(JSON.parse(msg.body))
           })
-        })
-
-        // ── Re-subscribe các pending viewer count subscriptions ────────────
-        pendingViewerSubscriptionsRef.current.forEach((handlers, sessionId) => {
-          const topic = `/topic/streams/${sessionId}/viewers`
-          console.log("🔄 [WebSocket] Re-subscribing viewer count for session:", sessionId)
-          
-          const wrapperHandler = (body: any) => {
-            const data = body.data || body
-            const count = data.viewerCount || data.count || 0
-            handlers.forEach(h => h(count))
-          }
-          
-          client.subscribe(topic, (msg: IMessage) => {
-            wrapperHandler(JSON.parse(msg.body))
-          })
+          activeSubscriptionsRef.current.set(topic, () => sub.unsubscribe())
         })
 
         loadInitialNotifications()
@@ -384,6 +317,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       onDisconnect: () => {
         console.log("🔌 [WebSocket] Disconnected")
         setIsConnected(false)
+        // Active subs đã dead — clear để tránh gọi unsubscribe trên dead connection
+        activeSubscriptionsRef.current.clear()
 
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30_000)
@@ -436,44 +371,44 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     setNotifications([])
     setUnreadCount(0)
     reconnectAttemptsRef.current = 0
-    
-    // Clear all handlers
-    viewerCountHandlersRef.current.clear()
-    pendingViewerSubscriptionsRef.current.clear()
+    // Disconnect chủ động → clear cả hai map
     pendingSubscriptionsRef.current.clear()
+    activeSubscriptionsRef.current.clear()
   }, [])
 
+  // Dùng connectRef thay vì connect trực tiếp để effect không re-run
+  // khi connect reference thay đổi (do deps bên trong thay đổi)
   useEffect(() => {
     if (user) {
       loadInitialNotifications()
-      connect()
+      connectRef.current()
       return () => { disconnect() }
     } else {
       disconnect()
     }
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, loadInitialNotifications, disconnect])
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && user && !isConnected) {
-        connect()
+        connectRef.current()
         loadInitialNotifications()
       }
     }
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [user, isConnected, connect, loadInitialNotifications])
+  }, [user, isConnected, loadInitialNotifications])
 
   useEffect(() => {
     const handleTokenChange = () => {
       if (user && clientRef.current?.connected) {
         disconnect()
-        setTimeout(() => connect(), 1_000)
+        setTimeout(() => connectRef.current(), 1_000)
       }
     }
     window.addEventListener("tokenChanged", handleTokenChange)
     return () => window.removeEventListener("tokenChanged", handleTokenChange)
-  }, [user, connect, disconnect])
+  }, [user, disconnect])
 
   const value: WebSocketContextType = {
     isConnected,
@@ -488,8 +423,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     subscribeToNotificationDeleted,
     subscribeTopic,
     publishMessage,
-    subscribeToViewerCount,
-    getViewerCount,
   }
 
   return (

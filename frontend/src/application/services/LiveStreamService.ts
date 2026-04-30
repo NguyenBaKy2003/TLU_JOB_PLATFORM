@@ -51,6 +51,9 @@ export class LiveStreamService {
   joinStream(sessionId: string): Promise<JoinSessionResponse> {
     return this.repo.joinStream(sessionId);
   }
+  leaveStream(sessionId: string): Promise<void> {
+    return this.repo.leaveStream(sessionId);
+}
 
   getUpcomingStreams(): Promise<LiveStreamSession[]> {
     return this.repo.getUpcomingStreams();

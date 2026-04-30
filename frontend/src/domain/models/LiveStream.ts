@@ -49,6 +49,7 @@ export interface JoinSessionResponse {
   viewerToken: string;
   livekitUrl: string;
   currentViewerCount: number;
+  canPublish: boolean;
 }
 
 export interface SpotlightJobRequest {

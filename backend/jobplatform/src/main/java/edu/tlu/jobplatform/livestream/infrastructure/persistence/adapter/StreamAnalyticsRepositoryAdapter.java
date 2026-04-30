@@ -6,6 +6,7 @@ import edu.tlu.jobplatform.livestream.infrastructure.persistence.mapper.LiveStre
 import edu.tlu.jobplatform.livestream.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -32,5 +33,11 @@ public class StreamAnalyticsRepositoryAdapter implements StreamAnalyticsReposito
     @Override
     public boolean existsBySessionId(UUID sessionId) {
         return jpaRepository.existsBySessionId(sessionId);
+    }
+
+    @Override
+    @Transactional
+    public void incrementTotalViewers(UUID sessionId) {
+        jpaRepository.incrementTotalViewers(sessionId);
     }
 }

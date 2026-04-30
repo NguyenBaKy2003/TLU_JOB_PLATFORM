@@ -125,6 +125,7 @@ public class LiveStreamMapper {
         return StreamAnalyticsJpaEntity.builder()
                 .sessionId(domain.getSessionId())
                 .peakViewerCount(domain.getPeakViewerCount())
+                .totalViewerCount(domain.getTotalViewerCount())
                 .totalWatchSeconds(domain.getTotalWatchSeconds())
                 .applyClickCount(domain.getApplyClickCount())
                 .cvViewCount(domain.getCvViewCount())
@@ -138,6 +139,7 @@ public class LiveStreamMapper {
         StreamAnalytics analytics = StreamAnalytics.createFor(jpa.getSessionId());
         analytics.setPeakViewerCount(jpa.getPeakViewerCount());
         analytics.setTotalWatchSeconds(jpa.getTotalWatchSeconds());
+        analytics.restoreTotalViewerCount(jpa.getTotalViewerCount());
         analytics.setApplyClickCount(jpa.getApplyClickCount());
         analytics.setCvViewCount(jpa.getCvViewCount());
         analytics.setPollResponseCount(jpa.getPollResponseCount());

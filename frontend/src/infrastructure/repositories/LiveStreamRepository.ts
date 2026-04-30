@@ -76,6 +76,10 @@ export class LiveStreamRepository implements ILiveStreamRepository {
     return res.data.data;
   }
 
+    async leaveStream(sessionId: string): Promise<void> {
+        await api.post(`${this.BASE}/${sessionId}/leave`);
+    }
+
   async getUpcomingStreams(): Promise<LiveStreamSession[]> {
     const res = await api.get<ApiResponse<LiveStreamSession[]>>(
       `${this.BASE}/upcoming`
