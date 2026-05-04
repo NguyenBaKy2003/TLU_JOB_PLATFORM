@@ -12,20 +12,20 @@ import {
 import type { User }    from "@/domain/models/User";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 
-// ─── Props ─
+// ─── Props ───────────────────────────────────────────────────────────────────
 
 interface Props {
-  title?:       string;
-  subtitle?:    string;
+  title?:        string;
+  subtitle?:     string;
   onMenuToggle?: () => void;
-  adminUser:    User;                  // nhận từ AdminLayoutClient
-  onLogout:     () => Promise<void>;  // adminLogout từ AdminAuthContext
+  adminUser:     User;
+  onLogout:      () => Promise<void>;
 }
 
-// ─── NotificationPanel ────
+// ─── NotificationPanel ───────────────────────────────────────────────────────
 
 function NotificationPanel({ onClose }: { onClose: () => void }) {
-  const { notifications, unreadCount } = useWebSocket();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useWebSocket();
 
   const TYPE_COLOR: Record<string, string> = {
     MESSAGE:      "bg-pink-100 text-pink-600",
@@ -52,6 +52,8 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl
       border border-gray-100 shadow-xl z-50 overflow-hidden">
+
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">Thông báo</span>
@@ -62,13 +64,18 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
           )}
         </div>
         {unreadCount > 0 && (
-          <button className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600
-            hover:bg-blue-50 rounded-lg transition-colors font-medium">
+          <button
+            onClick={markAllAsRead}
+            className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600
+              hover:bg-blue-50 rounded-lg transition-colors font-medium"
+            title="Đánh dấu tất cả đã đọc"
+          >
             <CheckCheck size={12} /> Đánh dấu đã đọc
           </button>
         )}
       </div>
 
+      {/* List */}
       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-gray-400">
@@ -76,36 +83,58 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
             <p className="text-xs">Chưa có thông báo nào</p>
           </div>
         ) : (
-          notifications.map(n => (
-            <div key={n.notificationId}
-              className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors
-                ${n.isRead ? "hover:bg-gray-50" : "bg-blue-50/40 hover:bg-blue-50"}`}>
-              <div className="shrink-0 mt-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full
-                  ${n.isRead ? "bg-transparent" : "bg-blue-500"}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs leading-relaxed mb-1
-                  ${n.isRead ? "text-gray-500" : "text-gray-800 font-medium"}`}>
-                  {n.message.length > 80 ? n.message.slice(0, 80) + "…" : n.message}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full
-                    ${TYPE_COLOR[n.type] ?? TYPE_COLOR.SYSTEM}`}>
-                    {TYPE_LABEL[n.type] ?? "Hệ thống"}
-                  </span>
-                  <span className="text-[10px] text-gray-400">{timeAgo(n.createdAt)}</span>
+          notifications.map(n => {
+            const displayText = n.title || n.body || "";
+            const truncated   = displayText.length > 80
+              ? displayText.slice(0, 80) + "…"
+              : displayText;
+            const isClickable = !n.read;
+
+            return (
+              <div
+                key={n.notificationId}
+                onClick={() => { if (!n.read) markAsRead(n.notificationId); }}
+                role={isClickable ? "button" : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onKeyDown={(e) => {
+                  if (isClickable && (e.key === "Enter" || e.key === " "))
+                    markAsRead(n.notificationId);
+                }}
+                className={`flex items-start gap-3 px-4 py-3 transition-colors
+                  ${isClickable ? "cursor-pointer" : "cursor-default"}
+                  ${n.read ? "hover:bg-gray-50" : "bg-blue-50/40 hover:bg-blue-50"}`}
+              >
+                <div className="shrink-0 mt-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full transition-colors
+                    ${n.read ? "bg-transparent" : "bg-blue-500"}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs leading-relaxed mb-1
+                    ${n.read ? "text-gray-500" : "text-gray-800 font-medium"}`}>
+                    {truncated}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full
+                      ${TYPE_COLOR[n.type] ?? TYPE_COLOR.SYSTEM}`}>
+                      {TYPE_LABEL[n.type] ?? "Hệ thống"}
+                    </span>
+                    <span className="text-[10px] text-gray-400">{timeAgo(n.createdAt)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
+      {/* Footer */}
       <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
-        <Link href="/admin/notifications" onClick={onClose}
+        <Link
+          href="/admin/notifications"
+          onClick={onClose}
           className="flex items-center justify-center gap-1.5 text-xs font-medium
-            text-blue-600 hover:text-blue-700 transition-colors">
+            text-blue-600 hover:text-blue-700 transition-colors"
+        >
           Xem tất cả <ExternalLink size={11} />
         </Link>
       </div>
@@ -113,12 +142,12 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── AdminHeader ──────────
+// ─── AdminHeader ─────────────────────────────────────────────────────────────
 
 export function AdminHeader({
   title = "Dashboard", subtitle, onMenuToggle, adminUser, onLogout,
 }: Props) {
-  const router         = useRouter();
+  const router          = useRouter();
   const { unreadCount } = useWebSocket();
 
   const [menuOpen,   setMenuOpen]   = useState(false);
@@ -126,8 +155,8 @@ export function AdminHeader({
   const [search,     setSearch]     = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  const menuRef  = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
+  const menuRef   = useRef<HTMLDivElement>(null);
+  const notifRef  = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -143,7 +172,7 @@ export function AdminHeader({
 
   const handleLogout = async () => {
     setMenuOpen(false);
-    await onLogout(); // gọi adminLogout — chỉ clear adminAccessToken + adminRefreshToken
+    await onLogout();
     router.replace("/admin/login");
   };
 
@@ -153,9 +182,11 @@ export function AdminHeader({
 
       {/* Left */}
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={onMenuToggle}
+        <button
+          onClick={onMenuToggle}
           className="md:hidden w-9 h-9 flex items-center justify-center text-gray-500
-            hover:bg-gray-50 rounded-xl transition-colors shrink-0">
+            hover:bg-gray-50 rounded-xl transition-colors shrink-0"
+        >
           <Menu size={20} />
         </button>
         {!showSearch && (
@@ -188,9 +219,11 @@ export function AdminHeader({
 
         {/* Search — mobile */}
         {!showSearch ? (
-          <button onClick={() => setShowSearch(true)}
+          <button
+            onClick={() => setShowSearch(true)}
             className="sm:hidden w-9 h-9 flex items-center justify-center text-gray-500
-              hover:bg-gray-50 rounded-xl transition-colors">
+              hover:bg-gray-50 rounded-xl transition-colors"
+          >
             <Search size={18} />
           </button>
         ) : (
@@ -205,8 +238,10 @@ export function AdminHeader({
               className="flex-1 text-sm bg-transparent focus:outline-none
                 text-gray-800 placeholder-gray-400"
             />
-            <button onClick={() => setShowSearch(false)}
-              className="text-sm font-medium text-red-600 shrink-0">
+            <button
+              onClick={() => setShowSearch(false)}
+              className="text-sm font-medium text-red-600 shrink-0"
+            >
               Huỷ
             </button>
           </div>
@@ -223,11 +258,15 @@ export function AdminHeader({
           <button
             onClick={() => { setNotifOpen(v => !v); setMenuOpen(false); }}
             className="relative w-9 h-9 flex items-center justify-center text-gray-500
-              hover:bg-gray-50 rounded-xl transition-colors">
+              hover:bg-gray-50 rounded-xl transition-colors"
+          >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white
-                text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">
+              <span
+                key={unreadCount}
+                className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white
+                  text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse"
+              >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -240,7 +279,8 @@ export function AdminHeader({
           <button
             onClick={() => { setMenuOpen(v => !v); setNotifOpen(false); }}
             className="flex items-center gap-1.5 px-1 py-1 rounded-xl
-              hover:bg-gray-50 transition-colors">
+              hover:bg-gray-50 transition-colors"
+          >
             <div className="text-right hidden lg:block">
               <p className="text-xs font-semibold text-gray-800 leading-tight">
                 {adminUser.fullName}
@@ -267,20 +307,24 @@ export function AdminHeader({
           {menuOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl
               border border-gray-100 shadow-lg py-1 z-50">
-              {/* Mobile-only user info */}
               <div className="px-4 py-2.5 border-b border-gray-50 lg:hidden">
                 <p className="text-xs font-semibold text-gray-800">{adminUser.fullName}</p>
                 <p className="text-[10px] text-gray-400">{adminUser.email}</p>
               </div>
-              <Link href="/admin/settings" onClick={() => setMenuOpen(false)}
+              <Link
+                href="/admin/settings"
+                onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-2.5 px-4 py-2.5 text-sm
-                  text-gray-700 hover:bg-gray-50">
+                  text-gray-700 hover:bg-gray-50"
+              >
                 <Settings size={15} className="text-gray-400" /> Cài đặt
               </Link>
               <hr className="my-1 border-gray-100" />
-              <button onClick={handleLogout}
+              <button
+                onClick={handleLogout}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
-                  text-red-500 hover:bg-red-50">
+                  text-red-500 hover:bg-red-50"
+              >
                 <LogOut size={15} /> Đăng xuất
               </button>
             </div>

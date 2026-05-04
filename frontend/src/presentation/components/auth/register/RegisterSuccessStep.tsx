@@ -81,14 +81,14 @@ export function RegisterSuccessStep({ token, onboarding }: Props) {
         );
       }
 
-      setTimeout(() => router.replace("/home"), 2000);
+      setTimeout(() => router.replace("/"), 2000);
     } catch (err: any) {
       setStatus("error");
       toast.error(
         "Lưu thông tin thất bại",
         "Bạn có thể cập nhật hồ sơ sau trong phần Cài đặt.",
       );
-      setTimeout(() => router.replace("/home"), 2500);
+      setTimeout(() => router.replace("/"), 2500);
     }
   };
 

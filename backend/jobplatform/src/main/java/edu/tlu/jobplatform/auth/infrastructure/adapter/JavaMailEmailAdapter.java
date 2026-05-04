@@ -53,4 +53,20 @@ public class JavaMailEmailAdapter implements EmailPort {
     public void sendOtpEmail(String toEmail, String otp) {
         emailService.sendVerificationOtp(toEmail, toEmail, otp);
     }
+
+    @Override
+    public void sendEmailChangeConfirmation(String toOldEmail, String recipientName,
+            String newEmail, String confirmLink) {
+        emailService.sendEmailChangeConfirmation(toOldEmail, recipientName, newEmail, confirmLink);
+    }
+
+    @Override
+    public void sendEmailChangedNotification(String toOldEmail, String recipientName, String newEmail) {
+        emailService.sendEmailChangedNotification(toOldEmail, recipientName, newEmail);
+    }
+
+    @Override
+    public void sendAccountDeletedNotification(String toEmail, String recipientName) {
+        emailService.sendAccountDeletedNotification(toEmail, recipientName);
+    }
 }

@@ -179,4 +179,9 @@ public class User {
             this.avatarUrl = avatarUrl;
         }
     }
+
+    /** Cập nhật email sau khi xác nhận token. */
+    public void updateEmail(String newEmail) {
+        this.email = newEmail;
+    }
 }

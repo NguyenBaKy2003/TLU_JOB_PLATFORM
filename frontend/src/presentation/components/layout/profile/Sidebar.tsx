@@ -122,7 +122,7 @@ function SidebarContent({
     router.replace("/auth/login");
   };
 
-  const homeHref   = isEmployer ? "/employer/dashboard" : "/home";
+  const homeHref   = isEmployer ? "/employer/dashboard" : "/";
   const brandLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
 
   const getBadge = (key: NavItem["badgeKey"]): number | undefined => {

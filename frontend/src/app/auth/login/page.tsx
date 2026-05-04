@@ -52,7 +52,7 @@ export default function LoginPage() {
   // ── Nếu đã đăng nhập → redirect về đúng dashboard theo role ──────────────
   useEffect(() => {
     if (authLoading || !user) return;
-    router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/home");
+    router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/");
   }, [user, authLoading, router]);
 
   const handleSubmit = useCallback(async (email: string, password: string) => {
@@ -63,8 +63,9 @@ export default function LoginPage() {
       setAccessToken(token.accessToken);
       setRefreshToken(token.refreshToken);
       setUserFromToken(token.user);
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn đến với JobPlatform.");
+      router.push("/");
 
-      router.push("/home");
     } catch (err: any) {
       toast.error(
         "Đăng nhập thất bại",
