@@ -7,7 +7,7 @@ import { CandidateProfile,
          UpdateProfilePayload } from "@/domain/models/Candidate";
 import { SectionKey } from "./types/SectionKey";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 // Map API enum → label hiển thị
 const LEVEL_OPTIONS: { value: string; label: string }[] = [
@@ -23,7 +23,7 @@ const LEVEL_OPTIONS: { value: string; label: string }[] = [
 const levelLabel = (v: string) =>
   LEVEL_OPTIONS.find((o) => o.value === v)?.label ?? v;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 interface DraftLang { name: string; level: string; }
 
@@ -34,7 +34,7 @@ interface Props {
   onSave:  (section: SectionKey, payload: UpdateProfilePayload) => Promise<void>;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export default function LanguagesSection({ profile, saving, error, onSave }: Props) {
   const [editing, setEditing] = useState(false);
@@ -51,7 +51,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
     }
   }, [profile.languages, editing]);
 
-  // ── Actions ─────────────────────────────────────────────────────────────
+  // ── Actions ─────────
 
   const addLang = () => {
     const trimmed = name.trim();
@@ -77,7 +77,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
     setEditing(false);
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Render ───────────
 
   return (
     <SectionWrapper

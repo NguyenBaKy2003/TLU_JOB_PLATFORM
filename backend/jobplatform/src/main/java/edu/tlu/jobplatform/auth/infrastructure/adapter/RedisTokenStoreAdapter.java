@@ -15,14 +15,15 @@ import java.util.UUID;
  * Adapter: implement TokenStorePort bằng Redis.
  *
  * Key design:
+ * 
  * <pre>
  *   refresh:{userId}:{tokenId}  → JWT refresh token (TTL 30 ngày)
  *   blacklist:{jti}             → "1"               (TTL = remaining của access token)
  * </pre>
  *
  * Tại sao dùng userId trong key?
- *   → KEYS refresh:{userId}:* cho phép xóa toàn bộ session của 1 user
- *   → Tránh collision, dễ debug khi cần inspect Redis
+ * → KEYS refresh:{userId}:* cho phép xóa toàn bộ session của 1 user
+ * → Tránh collision, dễ debug khi cần inspect Redis
  *
  * StringRedisTemplate bean được khai báo trong shared/config/RedisConfig.
  */
@@ -33,7 +34,7 @@ public class RedisTokenStoreAdapter implements TokenStorePort {
 
     private final StringRedisTemplate redis;
 
-    private static final String NS_REFRESH   = "refresh:";
+    private static final String NS_REFRESH = "refresh:";
     private static final String NS_BLACKLIST = "blacklist:";
 
     @Override
@@ -44,7 +45,7 @@ public class RedisTokenStoreAdapter implements TokenStorePort {
     @Override
     public Optional<String> find(UUID userId, String tokenId) {
         return Optional.ofNullable(
-            redis.opsForValue().get(refreshKey(userId, tokenId)));
+                redis.opsForValue().get(refreshKey(userId, tokenId)));
     }
 
     @Override
@@ -71,7 +72,7 @@ public class RedisTokenStoreAdapter implements TokenStorePort {
         return Boolean.TRUE.equals(redis.hasKey(NS_BLACKLIST + jti));
     }
 
-    // ── Helper ────────────────────────────────────────────────────
+    // ── Helper ────────
 
     private String refreshKey(UUID userId, String tokenId) {
         return NS_REFRESH + userId + ":" + tokenId;

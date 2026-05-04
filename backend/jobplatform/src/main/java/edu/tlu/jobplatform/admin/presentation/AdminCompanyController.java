@@ -105,7 +105,7 @@ public class AdminCompanyController {
                 buildAdminResponse(company), "Công ty đã được mở khoá."));
     }
 
-    // ── Helper ────────────────────────────────────────────────
+    // ── Helper ────
 
     private CompanyResponse buildAdminResponse(CompanyProfile company) {
         UUID id = company.getId();

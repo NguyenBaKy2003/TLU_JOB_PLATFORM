@@ -3,7 +3,7 @@
 #  Next.js | Node.js 20 | Standalone output
 # ════════════════════════════════════════════════════════════════
 
-# ── Stage 1: Builder ──────────────────────────────────────────────
+# ── Stage 1: Builder ─
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# ── Stage 2: Runtime ──────────────────────────────────────────────
+# ── Stage 2: Runtime ─
 FROM node:20-alpine AS runtime
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

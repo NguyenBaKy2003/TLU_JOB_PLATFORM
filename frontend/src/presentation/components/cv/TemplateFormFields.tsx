@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Upload, Eye, Code2, Loader2, RefreshCw } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ──
 
 export interface TemplateFormData {
   name: string;
@@ -25,7 +25,7 @@ interface Props {
   onRequestPreview?: () => void;
 }
 
-// ── Field wrapper ─────────────────────────────────────────────────────────────
+// ── Field wrapper ─────────
 
 function Field({
   label, hint, children,
@@ -48,7 +48,7 @@ function Field({
 const INPUT =
   "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-900/40";
 
-// ── HTML Preview pane ─────────────────────────────────────────────────────────
+// ── HTML Preview pane ─────
 
 function HtmlPreviewPane({
   html,
@@ -119,7 +119,7 @@ function HtmlPreviewPane({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ────────
 
 export function TemplateFormFields({
   data,

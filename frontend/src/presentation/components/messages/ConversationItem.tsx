@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import type { ConversationSummary } from "@/domain/models/Message";
 
-// ── Avatar ────────────────────────────────────────────────────────────────────
+// ── Avatar ─
 function Avatar({ name, src }: { name: string; src?: string | null }) {
   const COLORS = [
     "from-red-400 to-red-600",
@@ -28,7 +28,7 @@ function Avatar({ name, src }: { name: string; src?: string | null }) {
   );
 }
 
-// ── Time format ──────────────────────────────────────────────────────────────
+// ── Time format ──────────
 function timeAgo(iso?: string | null): string {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
@@ -43,7 +43,7 @@ function timeAgo(iso?: string | null): string {
   return `${Math.floor(hrs / 24)} ngày`;
 }
 
-// ── Props ────────────────────────────────────────────────────────────────────
+// ── Props ─
 interface Props {
   conv: ConversationSummary;
   role: "EMPLOYER" | "CANDIDATE";
@@ -52,7 +52,7 @@ interface Props {
   flash?: boolean;
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ────────────
 export function ConversationItem({
   conv,
   role,

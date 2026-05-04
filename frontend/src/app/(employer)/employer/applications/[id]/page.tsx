@@ -84,7 +84,7 @@ export default function EmployerApplicationDetailPage() {
     }
   };
 
-  // ── CV actions ──────────────────────────────────────────────────────────────
+  // ── CV actions ──────────
   // Không truyền cvId → backend dùng cvUrl của application
   const handleViewCV = async () => {
     if (!detail) return;
@@ -145,7 +145,7 @@ export default function EmployerApplicationDetailPage() {
       <div className="max-w-3xl mx-auto px-4 pb-10">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-5">
 
-          {/* ── Candidate info ──────────────────────────────────────────────── */}
+          {/* ── Candidate info ─── */}
           {detail.candidate && (
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
               {detail.candidate.avatarUrl ? (
@@ -182,7 +182,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           )}
 
-          {/* ── Status + Update ─────────────────────────────────────────────── */}
+          {/* ── Status + Update ── */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <ApplicationStatusBadge status={detail.status} />
 
@@ -220,7 +220,7 @@ export default function EmployerApplicationDetailPage() {
 
         
 
-          {/* ── Meta info ───────────────────────────────────────────────────── */}
+          {/* ── Meta info ─ */}
           <div className="grid grid-cols-2 gap-3">
             <InfoItem
               label="Ngày nộp"
@@ -234,10 +234,10 @@ export default function EmployerApplicationDetailPage() {
             )}
           </div>
 
-          {/* ── AI Score ────────────────────────────────────────────────────── */}
+          {/* ── AI Score ── */}
           {detail.aiScore && <AIScorePanel score={detail.aiScore} />}
 
-          {/* ── Interview info ──────────────────────────────────────────────── */}
+          {/* ── Interview info ─── */}
           {detail.interviewScheduledAt && (
             <div className="bg-purple-50 border border-purple-100 p-4 rounded-2xl">
               <p className="text-sm font-semibold text-purple-700 flex items-center gap-1.5 mb-2">
@@ -257,7 +257,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           )}
 
-          {/* ── CV actions ──────────────────────────────────────────────────── */}
+          {/* ── CV actions  */}
           {/* Dùng service.viewCVAsEmployer / downloadCVAsEmployer thay vì href trực tiếp
               → backend stream qua /employer/applications/{id}/cv/view|download
               → tránh lộ S3 URL, qua auth middleware của Spring Security */}
@@ -296,7 +296,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           </div>
 
-          {/* ── Status timeline ─────────────────────────────────────────────── */}
+          {/* ── Status timeline ── */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               Lịch sử trạng thái

@@ -45,7 +45,7 @@ public class AuthController {
         @Value("${app.base-url:http://localhost:8080}")
         private String baseUrl;
 
-        // ── POST /api/v1/auth/register ────────────────────────────────────────────
+        // ── POST /api/v1/auth/register
 
         @Operation(summary = "Đăng ký tài khoản", description = """
                         Tạo tài khoản mới. Role mặc định là **CANDIDATE** nếu không truyền.
@@ -127,7 +127,7 @@ public class AuthController {
                                 "Nếu email này hợp lệ và chưa xác thực, bạn sẽ nhận được mã OTP mới trong vài phút."));
         }
 
-        // ── POST /api/v1/auth/login ───────────────────────────────────────────────
+        // ── POST /api/v1/auth/login ───
 
         @Operation(summary = "Đăng nhập", description = "Đăng nhập bằng email/password. Trả về JWT access token (15p) và refresh token (30 ngày).")
         @ApiResponses({
@@ -150,7 +150,7 @@ public class AuthController {
                                 ApiResponse.success(TokenResponse.from(token), "Đăng nhập thành công."));
         }
 
-        // ── POST /api/v1/auth/refresh ─────────────────────────────────────────────
+        // ── POST /api/v1/auth/refresh ─
 
         @Operation(summary = "Làm mới access token", description = "Dùng refresh token để lấy access token mới. Không cần đăng nhập lại.")
         @PostMapping("/refresh")
@@ -220,7 +220,7 @@ public class AuthController {
                                 "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại."));
         }
 
-        // ── POST /api/v1/auth/logout ──────────────────────────────────────────────
+        // ── POST /api/v1/auth/logout ──
 
         @Operation(summary = "Đăng xuất thiết bị hiện tại")
         @SecurityRequirement(name = "bearerAuth")
@@ -309,7 +309,7 @@ public class AuthController {
                                 : authHeader.trim();
         }
 
-        // ── Inner DTOs ────────────────────────────────────────────────────────────
+        // ── Inner DTOs ────────────────
 
         public record RegisterResponse(UUID userId, String email, String role) {
         }

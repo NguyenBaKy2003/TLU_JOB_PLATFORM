@@ -130,7 +130,7 @@ export default function EmployerLayoutClient({
   );
 }
 
-// ─── Helper functions ─────────────────────────────────────────
+// ─── Helper functions ───────────
 function getPageTitle(pathname: string | null): string | undefined {
   if (!pathname) return undefined;
 

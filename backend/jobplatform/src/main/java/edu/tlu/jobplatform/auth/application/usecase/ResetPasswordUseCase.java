@@ -112,7 +112,7 @@ public class ResetPasswordUseCase {
                     "Mật khẩu phải có ít nhất 1 chữ số.", "WEAK_PASSWORD");
     }
 
-    // ── Command ───────────────────────────────────────────────────
+    // ── Command ───────
 
     /**
      * @param userId      UUID của user (từ query param link email)

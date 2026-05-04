@@ -7,7 +7,7 @@ import type { OnlineCVDetail, CVSection, PersonalInfoForm, UpdateCVSectionPayloa
 import { EMPTY_PERSONAL_INFO_FORM, SECTION_TYPE_LABELS } from "@/domain/models/Cv";
 import { EditorTab } from "@/app/(cv)/cv/[id]/edit/page";
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Helpers ─
 
 function FormField({
   label, value, onChange, type = "text", placeholder, hint,
@@ -41,7 +41,7 @@ function FormField({
   );
 }
 
-// ── Personal Info Form ────────────────────────────────────────────────────────
+// ── Personal Info Form ────
 
 function PersonalInfoEditor({
   cv,
@@ -184,7 +184,7 @@ function PersonalInfoEditor({
   );
 }
 
-// ── Section Content Editor ────────────────────────────────────────────────────
+// ── Section Content Editor 
 
 function SectionEditor({
   section,
@@ -345,7 +345,7 @@ function SectionEditor({
   );
 }
 
-// ── Main panel ────────────────────────────────────────────────────────────────
+// ── Main panel ────────────
 
 interface Props {
   cv: OnlineCVDetail;

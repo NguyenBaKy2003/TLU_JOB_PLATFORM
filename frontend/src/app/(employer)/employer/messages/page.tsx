@@ -28,7 +28,7 @@ export default function EmployerMessagesPage() {
   // Sync activeIdRef với state
   useEffect(() => { activeIdRef.current = activeId }, [activeId]);
 
-  // ── Load inbox ─────────────────────────────────────────────────────────────
+  // ── Load inbox ─────────
 
   const loadInbox = useCallback(async () => {
     setLoading(true); setError(null);
@@ -46,7 +46,7 @@ export default function EmployerMessagesPage() {
     loadInbox();
   }, [loadInbox]);
 
-  // ── WebSocket: nhận tin mới → cập nhật inbox real-time ────────────────────
+  // ── WebSocket: nhận tin mới → cập nhật inbox real-time ─────
 
   useEffect(() => {
     const unsubscribe = subscribeToMessages((incoming: IncomingMessage) => {
@@ -89,7 +89,7 @@ export default function EmployerMessagesPage() {
     return unsubscribe;
   }, [subscribeToMessages, loadInbox]);
 
-  // ── Select conversation ────────────────────────────────────────────────────
+  // ── Select conversation 
 
   const handleSelect = useCallback((id: string) => {
     setActiveId(id);
@@ -102,7 +102,7 @@ export default function EmployerMessagesPage() {
 
   const activeConv = conversations.find(c => c.id === activeId) ?? null;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────────
 
   return (
     <div className="flex h-[calc(100vh-65px)] -m-4 sm:-m-6 overflow-hidden

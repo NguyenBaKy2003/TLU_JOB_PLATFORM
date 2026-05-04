@@ -79,7 +79,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
       className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
   border-b border-gray-100 sticky top-0 z-20 shrink-0"
     >
-      {/* ── Left ──────────────────────────────────────────────────────────── */}
+      {/* ── Left ──────── */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onMenuToggle}
@@ -103,7 +103,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
         )}
       </div>
 
-      {/* ── Right ─────────────────────────────────────────────────────────── */}
+      {/* ── Right ─────── */}
       <div className="flex items-center gap-1.5 sm:gap-2.5">
 
         {/* Search — desktop */}
@@ -164,7 +164,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           {isEmployer ? "Nhà tuyển dụng" : "Ứng viên"}
         </span>
 
-        {/* ── Notification bell ─────────────────────────────────────────── */}
+        {/* ── Notification bell ───────────── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
@@ -197,7 +197,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           <MessageSquare size={18} />
         </Link>
 
-        {/* ── User menu ─────────────────────────────────────────────────── */}
+        {/* ── User menu ────── */}
         {user && (
           <div className="relative " ref={userMenuRef}>
             <button

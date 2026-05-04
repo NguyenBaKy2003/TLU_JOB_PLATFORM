@@ -42,8 +42,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException ex) {
         log.warn("Domain exception [{}]: {}", ex.getErrorCode(), ex.getMessage());
         return ResponseEntity
-            .status(ex.getHttpStatus())
-            .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode(), traceId()));
+                .status(ex.getHttpStatus())
+                .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode(), traceId()));
     }
 
     // ── Validation Exceptions ──────────────────────────────────────
@@ -52,6 +52,7 @@ public class GlobalExceptionHandler {
      * Lỗi @Valid trên @RequestBody — trả về map field → message.
      *
      * Response:
+     * 
      * <pre>
      * {
      *   "success"  : false,
@@ -66,15 +67,15 @@ public class GlobalExceptionHandler {
 
         Map<String, String> errors = new LinkedHashMap<>();
         for (var error : ex.getBindingResult().getAllErrors()) {
-            String field   = ((FieldError) error).getField();
+            String field = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
             errors.put(field, message);
         }
 
         log.debug("Validation errors: {}", errors);
         return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ApiResponse.errorWithData(errors, "Dữ liệu không hợp lệ", "VALIDATION_ERROR"));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.errorWithData(errors, "Dữ liệu không hợp lệ", "VALIDATION_ERROR"));
     }
 
     /**
@@ -85,13 +86,13 @@ public class GlobalExceptionHandler {
             ConstraintViolationException ex) {
 
         String message = ex.getConstraintViolations().stream()
-            .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
-            .findFirst()
-            .orElse("Dữ liệu không hợp lệ");
+                .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
+                .findFirst()
+                .orElse("Dữ liệu không hợp lệ");
 
         return ResponseEntity
-            .badRequest()
-            .body(ApiResponse.error(message, "VALIDATION_ERROR", traceId()));
+                .badRequest()
+                .body(ApiResponse.error(message, "VALIDATION_ERROR", traceId()));
     }
 
     // ── Spring Security Exceptions ─────────────────────────────────
@@ -100,59 +101,59 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
         log.warn("Access denied: {}", ex.getMessage());
         return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(ApiResponse.error(
-                "Bạn không có quyền thực hiện thao tác này", "FORBIDDEN", traceId()));
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(
+                        "Bạn không có quyền thực hiện thao tác này", "FORBIDDEN", traceId()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(ApiResponse.error(
-                "Email hoặc mật khẩu không đúng", "INVALID_CREDENTIALS", traceId()));
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(
+                        "Email hoặc mật khẩu không đúng", "INVALID_CREDENTIALS", traceId()));
     }
 
-    // ── HTTP Exceptions ────────────────────────────────────────────
+    // ── HTTP Exceptions
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotReadable(
             HttpMessageNotReadableException ex) {
         return ResponseEntity
-            .badRequest()
-            .body(ApiResponse.error(
-                "Request body không hợp lệ hoặc bị thiếu", "INVALID_BODY", traceId()));
+                .badRequest()
+                .body(ApiResponse.error(
+                        "Request body không hợp lệ hoặc bị thiếu", "INVALID_BODY", traceId()));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Void>> handleMissingParam(
             MissingServletRequestParameterException ex) {
         return ResponseEntity
-            .badRequest()
-            .body(ApiResponse.error(
-                "Thiếu tham số bắt buộc: " + ex.getParameterName(), "MISSING_PARAM", traceId()));
+                .badRequest()
+                .body(ApiResponse.error(
+                        "Thiếu tham số bắt buộc: " + ex.getParameterName(), "MISSING_PARAM", traceId()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex) {
         return ResponseEntity
-            .badRequest()
-            .body(ApiResponse.error(
-                "Tham số '" + ex.getName() + "' không đúng kiểu dữ liệu",
-                "TYPE_MISMATCH", traceId()));
+                .badRequest()
+                .body(ApiResponse.error(
+                        "Tham số '" + ex.getName() + "' không đúng kiểu dữ liệu",
+                        "TYPE_MISMATCH", traceId()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse<Void>> handleFileTooLarge(
             MaxUploadSizeExceededException ex) {
         return ResponseEntity
-            .status(HttpStatus.PAYLOAD_TOO_LARGE)
-            .body(ApiResponse.error(
-                "File quá lớn. Kích thước tối đa cho phép là 10MB", "FILE_TOO_LARGE", traceId()));
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error(
+                        "File quá lớn. Kích thước tối đa cho phép là 10MB", "FILE_TOO_LARGE", traceId()));
     }
 
-    // ── Fallback ───────────────────────────────────────────────────
+    // ── Fallback ───────
 
     /**
      * Bắt mọi exception chưa được handle.
@@ -163,13 +164,13 @@ public class GlobalExceptionHandler {
         String tid = traceId();
         log.error("Unexpected error [traceId={}]: {}", tid, ex.getMessage(), ex);
         return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.error(
-                "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
-                "INTERNAL_ERROR", tid));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(
+                        "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                        "INTERNAL_ERROR", tid));
     }
 
-    // ── Helper ────────────────────────────────────────────────────
+    // ── Helper ────────
 
     private String traceId() {
         String id = MDC.get("traceId");

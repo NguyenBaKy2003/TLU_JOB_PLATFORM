@@ -21,12 +21,12 @@ import {
 import { CandidateApplyCard } from "@/presentation/components/job-detail/CandidateApplyCard";
 import { ApplyModal }         from "@/presentation/components/job-detail/ApplyModal";
 
-// ── Singletons ────────────────────────────────────────────────────────────────
+// ── Singletons ────────────
 
 const jobService = new JobService(new JobRepository());
 const appService = new ApplicationService(new ApplicationRepository());
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function JobDetailPage() {
   const { id }  = useParams<{ id: string }>();
@@ -106,7 +106,7 @@ useEffect(() => {
     }
   };
 
-  // ── States ────────────────────────────────────────────────────────────────
+  // ── States ────────────
 
   if (loading) return <JobDetailSkeleton />;
 
@@ -123,7 +123,7 @@ useEffect(() => {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────────
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,7 +148,7 @@ useEffect(() => {
 
         <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
 
-          {/* ── Left: content ─────────────────────────────────── */}
+          {/* ── Left: content ───── */}
           <div className="w-full flex-1 min-w-0 flex flex-col gap-4 sm:gap-5">
             <JobHeroCard
               job={job}
@@ -172,7 +172,7 @@ useEffect(() => {
             <JobDescriptionCards job={job} />
           </div>
 
-          {/* ── Right: sidebar (desktop only) ─────────────────── */}
+          {/* ── Right: sidebar (desktop only) ──── */}
           <div className="hidden lg:flex w-72 shrink-0 sticky top-4 flex-col gap-4">
             <CandidateApplyCard
               job={job}

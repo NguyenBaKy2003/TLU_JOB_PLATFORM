@@ -10,7 +10,7 @@ import type {
 export class AdminSubscriptionService {
   constructor(private readonly repo: IAdminSubscriptionRepository) {}
 
-  // ── Plans ────────────────────────────────────────────────────────────────
+  // ── Plans ────────────
 
   getAllPlans(): Promise<SubscriptionPlan[]> {
     return this.repo.adminGetAllPlans();
@@ -30,7 +30,7 @@ export class AdminSubscriptionService {
     return this.repo.adminTogglePlan(plan.id, plan.active);
   }
 
-  // ── Subscriptions ────────────────────────────────────────────────────────
+  // ── Subscriptions ────
 
   listSubscriptions(
     page = 0,
@@ -40,7 +40,7 @@ export class AdminSubscriptionService {
     return this.repo.adminListSubscriptions(page, size, status);
   }
 
-  // ── Formatting ───────────────────────────────────────────────────────────
+  // ── Formatting ───────
 
   formatPrice(amount: number): string {
     if (amount === 0) return "Miễn phí";

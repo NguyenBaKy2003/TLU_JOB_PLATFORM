@@ -43,7 +43,7 @@ public class StreamAISummaryBatchJob {
         processSingle(recording);
     }
 
-    // ─── Private ─────────────────────────────────────────────
+    // ─── Private ─
 
     private void processSingle(StreamRecording recording) {
         try {

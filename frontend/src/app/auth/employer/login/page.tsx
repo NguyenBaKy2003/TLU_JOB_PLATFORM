@@ -31,7 +31,7 @@ export default function EmployerLoginPage() {
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ──────────────────────
+  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ───────
   useEffect(() => {
     const error = searchParams.get("error");
     if (!error) return;

@@ -28,7 +28,7 @@ import {
  * Admin logout → AdminAuthContext tự gọi endpoint với adminAccessToken.
  */
 export interface IAuthRepository {
-  // ── Registration & Login ─────────────────────────────────────────────────
+  // ── Registration & Login ────
 
   /** POST /auth/register */
   signup(data: SignupData): Promise<RegisterResult>;
@@ -39,12 +39,12 @@ export interface IAuthRepository {
   /** OAuth2 callback */
   loginWithOAuth(data: OAuthUserData): Promise<AuthResult>;
 
-  // ── Token Management ─────────────────────────────────────────────────────
+  // ── Token Management ─
 
   /** POST /auth/refresh */
   refreshToken(refreshToken: string): Promise<AuthToken>;
 
-  // ── Logout (user only) ────────────────────────────────────────────────────
+  // ── Logout (user only) 
 
   /** POST /auth/logout — đăng xuất thiết bị hiện tại, chỉ dùng user token */
   logout(accessToken: string): Promise<void>;
@@ -52,7 +52,7 @@ export interface IAuthRepository {
   /** POST /auth/logout-all — đăng xuất tất cả thiết bị, chỉ dùng user token */
   logoutAll(accessToken: string): Promise<void>;
 
-  // ── Profile ───────────────────────────────────────────────────────────────
+  // ── Profile ───────────
 
   /** GET /users/me */
   getCurrentUser(): Promise<User | null>;
@@ -60,7 +60,7 @@ export interface IAuthRepository {
   /** PUT /users/:id */
   updateProfile(userId: string, updates: UpdateProfileData): Promise<User>;
 
-  // ── OAuth2 URL ────────────────────────────────────────────────────────────
+  // ── OAuth2 URL ────────
 
   /**
    * GET /auth/oauth2/url/{provider}?portal={portal}
@@ -78,17 +78,17 @@ export interface IAuthRepository {
 
   getFacebookOAuthUrl(): Promise<string>;
 
-  // ── Password Reset ────────────────────────────────────────────────────────
+  // ── Password Reset ────
 
   requestPasswordReset(data: PasswordResetRequest): Promise<void>;
   verifyPasswordReset(data: PasswordResetVerify): Promise<void>;
 
-  // ── Password Change ───────────────────────────────────────────────────────
+  // ── Password Change ───
 
   requestPasswordChange(data: PasswordChangeRequest): Promise<void>;
   verifyPasswordChange(data: PasswordChangeVerify): Promise<void>;
 
-  // ── Email Verification ────────────────────────────────────────────────────
+  // ── Email Verification 
 
   verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse>;
   resendVerificationEmail(email: string): Promise<void>;

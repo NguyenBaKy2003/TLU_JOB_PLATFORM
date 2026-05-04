@@ -10,13 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-/**
- * Adapter kết nối Job domain → Subscription domain.
- * Sprint 3: Inject use cases thật thay vì mock.
- *
- * Job domain KHÔNG biết gì về subscription package trực tiếp.
- * Chỉ biết QuotaServicePort (interface của nó).
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -33,7 +26,12 @@ public class SubscriptionQuotaAdapter implements QuotaServicePort {
 
     @Override
     public void consumeQuota(UUID companyId) {
-        consumeQuotaUseCase.execute(companyId);
+        consumeQuotaUseCase.execute(companyId, ConsumeQuotaUseCase.QuotaType.JOB_POST);
+    }
+
+    @Override
+    public void consumeFeaturedQuota(UUID companyId) {
+        consumeQuotaUseCase.execute(companyId, ConsumeQuotaUseCase.QuotaType.FEATURED_JOB);
     }
 
     @Override

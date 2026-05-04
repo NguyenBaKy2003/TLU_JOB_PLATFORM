@@ -31,7 +31,7 @@ import { ApiResponse } from "@/types/auth.types";
  * Admin token do AdminAuthContext tự quản lý qua fetch thuần.
  */
 export class AuthRepository implements IAuthRepository {
-  // ── Registration & Login ───────────────────────────────────────────────────
+  // ── Registration & Login ──────
 
   async signup(data: SignupData): Promise<RegisterResult> {
     const res = await api.post("/auth/register", {
@@ -56,7 +56,7 @@ export class AuthRepository implements IAuthRepository {
     return token;
   }
 
-  // ── Token Management ───────────────────────────────────────────────────────
+  // ── Token Management ───
 
   async refreshToken(refreshToken: string): Promise<AuthToken> {
     const res   = await api.post("/auth/refresh", null, {
@@ -68,7 +68,7 @@ export class AuthRepository implements IAuthRepository {
     return token;
   }
 
-  // ── Logout (user token only) ───────────────────────────────────────────────
+  // ── Logout (user token only) ──
 
   async logout(accessToken: string): Promise<void> {
     await api.post("/auth/logout", null, {
@@ -84,7 +84,7 @@ export class AuthRepository implements IAuthRepository {
     clearTokens();
   }
 
-  // ── Profile ────────────────────────────────────────────────────────────────
+  // ── Profile ────────────
 
   async getCurrentUser(): Promise<User | null> {
     try {
@@ -100,7 +100,7 @@ export class AuthRepository implements IAuthRepository {
     return res.data.data as User;
   }
 
-  // ── OAuth2 URL ─────────────────────────────────────────────────────────────
+  // ── OAuth2 URL ─────────
 
   /**
    * Lấy OAuth2 authorization URL cho provider + portal cụ thể.
@@ -129,7 +129,7 @@ export class AuthRepository implements IAuthRepository {
     return res.url;
   }
 
-  // ── Password Reset ─────────────────────────────────────────────────────────
+  // ── Password Reset ─────
 
   async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
     await api.post("/auth/forgot-password", data);
@@ -139,7 +139,7 @@ export class AuthRepository implements IAuthRepository {
     await api.post("/auth/reset-password", data);
   }
 
-  // ── Password Change ────────────────────────────────────────────────────────
+  // ── Password Change ────
 
   async requestPasswordChange(data: PasswordChangeRequest): Promise<void> {
     await api.post("/auth/password/change/request", data);
@@ -149,7 +149,7 @@ export class AuthRepository implements IAuthRepository {
     await api.post("/auth/password/change/verify", data);
   }
 
-  // ── Email Verification ─────────────────────────────────────────────────────
+  // ── Email Verification ─
 
   async verifyEmail(data: VerifyEmailRequest): Promise<AuthTokenResponse> {
     const res = await api.post<ApiResponse<AuthTokenResponse>>(

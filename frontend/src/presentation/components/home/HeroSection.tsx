@@ -1,167 +1,209 @@
-// src/app/(main)/home/_components/HeroSection.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter }           from "next/navigation";
-import { Search, MapPin, Zap } from "lucide-react";
-import { CITIES, POPULAR_SEARCHES } from "@/app/(main)/home/_constants";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, MapPin, Sparkles, ArrowRight, Zap, Briefcase, Star } from "lucide-react";
+import { CITIES, POPULAR_SEARCHES } from "./constants";
+import { FloatingElements } from "./FloatingElements";
 
 const ROTATING_WORDS = [
-  "Phù hợp nhất",
-  "Đúng lĩnh vực",
-  "Lương tốt nhất",
-  "Gần nhà bạn",
+  { text: "CHẤT LƯỢNG", gradient: "from-blue-400 to-cyan-400" },
+  { text: "PHÙ HỢP", gradient: "from-purple-400 to-pink-400" },
+  { text: "UY TÍN", gradient: "from-emerald-400 to-teal-400" },
+  { text: "NHANH CHÓNG", gradient: "from-orange-400 to-amber-400" },
 ];
 
 export function HeroSection() {
-  const router              = useRouter();
+  const router = useRouter();
   const [keyword, setKeyword] = useState("");
-  const [city,    setCity]    = useState("");
-  const [wIdx,    setWIdx]    = useState(0);
-  const [fading,  setFading]  = useState(false);
+  const [location, setLocation] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        setWIdx(i => (i + 1) % ROTATING_WORDS.length);
-        setFading(false);
-      }, 300);
+    const interval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
     }, 2500);
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (keyword) params.set("keyword", keyword);
-    if (city)    params.set("city",    city);
+    if (location) params.set("location", location);
     router.push(`/jobs?${params.toString()}`);
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center
-      overflow-hidden bg-gradient-to-br from-white via-sky-50 to-blue-100 pt-16">
-
-      {/* Grid background */}
-      <div className="absolute inset-0 pointer-events-none"
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f0f1e] via-[#1a1a2e] to-[#16213e]">
+      <FloatingElements />
+      
+      {/* Animated gradient orbs */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-3xl animate-pulse delay-500" />
+      
+      {/* Grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-5"
         style={{
-          backgroundImage:
-            "linear-gradient(rgba(14,165,233,.06) 1px,transparent 1px)," +
-            "linear-gradient(90deg,rgba(14,165,233,.06) 1px,transparent 1px)",
-          backgroundSize: "60px 60px",
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
         }}
       />
 
-      {/* Glow blobs */}
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full
-        bg-sky-300/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-[600px] h-[600px] rounded-full
-        bg-blue-400/20 blur-3xl pointer-events-none" />
-
-      {/* Floating dots */}
-      <div className="absolute top-1/4 right-[8%] w-4 h-4 rounded-full bg-amber-400/70
-        animate-bounce [animation-duration:3s]" />
-      <div className="absolute top-1/3 left-[6%] w-2.5 h-2.5 rounded-full bg-sky-400/60
-        animate-bounce [animation-duration:4s] [animation-delay:.5s]" />
-      <div className="absolute bottom-1/4 left-[12%] w-3 h-3 rounded-full bg-blue-300/50
-        animate-bounce [animation-duration:3.5s] [animation-delay:1s]" />
-
-      {/* Content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-
+      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full
-          border border-amber-400/40 bg-amber-50 text-amber-600 text-xs font-semibold
-          mb-8 animate-[fadeInDown_0.6s_ease] shadow-sm">
-          <Zap size={12} className="fill-amber-500" />
-          Nền tảng tuyển dụng thông minh #1 Việt Nam
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
+        >
+          <Sparkles className="w-4 h-4 text-yellow-400" />
+          <span className="text-white/80 text-sm font-medium">Nền tảng tuyển dụng #1 Việt Nam</span>
+        </motion.div>
 
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-800
-          leading-[1.05] tracking-tight mb-4 animate-[fadeInUp_0.7s_ease_0.1s_both]">
-          Khám phá việc làm<br />
-          <span className={`text-amber-500 transition-opacity duration-300 ${
-            fading ? "opacity-0" : "opacity-100"
-          }`}>
-            {ROTATING_WORDS[wIdx]}
-          </span>
-        </h1>
-
-        <p className="text-lg text-slate-500 max-w-xl mx-auto mb-10
-          animate-[fadeInUp_0.7s_ease_0.2s_both]">
-          Hơn 18,000 cơ hội từ những công ty hàng đầu đang chờ bạn.
-          Tìm việc nhanh, nộp đơn thông minh.
-        </p>
-
-        {/* Search box */}
-        <div className="flex flex-col sm:flex-row gap-0 max-w-2xl mx-auto
-          bg-white border border-slate-200 rounded-2xl overflow-hidden
-          shadow-xl shadow-blue-100/60 animate-[fadeInUp_0.7s_ease_0.3s_both]">
-
-          {/* Keyword input */}
-          <div className="flex items-center gap-3 flex-1 px-5 py-4
-            border-b sm:border-b-0 sm:border-r border-slate-100">
-            <Search size={16} className="text-slate-400 shrink-0" />
-            <input
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSearch()}
-              placeholder="Tên công việc, kỹ năng..."
-              className="flex-1 bg-transparent text-slate-700 placeholder:text-slate-300
-                text-sm focus:outline-none"
-            />
-          </div>
-
-          {/* City select */}
-          <div className="flex items-center gap-2 px-5 py-4 sm:w-44">
-            <MapPin size={15} className="text-slate-400 shrink-0" />
-            <select
-              value={city}
-              onChange={e => setCity(e.target.value)}
-              className="bg-transparent text-slate-600 text-sm focus:outline-none
-                cursor-pointer flex-1 appearance-none"
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+        >
+          Tìm Việc Làm{" "}
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={wordIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className={`bg-gradient-to-r ${ROTATING_WORDS[wordIndex].gradient} bg-clip-text text-transparent inline-block`}
             >
-              <option value="" className="bg-white">Địa điểm</option>
-              {CITIES.map(c => (
-                <option key={c} value={c} className="bg-white">{c}</option>
-              ))}
-            </select>
-          </div>
+              {ROTATING_WORDS[wordIndex].text}
+            </motion.span>
+          </AnimatePresence>
+          <br />
+          <span className="text-white/90">Cùng Joblin</span>
+        </motion.h1>
 
-          {/* Search button */}
-          <button
-            onClick={handleSearch}
-            className="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-900
-              font-bold text-sm transition-colors shrink-0 flex items-center
-              justify-center gap-2"
-          >
-            <Search size={16} /> Tìm kiếm
-          </button>
-        </div>
+        {/* Description */}
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-white/50 text-lg mb-10 max-w-2xl mx-auto leading-relaxed"
+        >
+          Kết nối trực tiếp với nhà tuyển dụng qua livestream, 
+          phỏng vấn realtime và tìm kiếm công việc phù hợp nhất với bạn.
+        </motion.p>
+
+        {/* Search Box */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
+            <div className="relative flex flex-col sm:flex-row bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
+              <div className="flex-1 flex items-center gap-3 px-5 py-4 border-b sm:border-b-0 sm:border-r border-white/10">
+                <Search className="w-5 h-5 text-white/60" />
+                <input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  placeholder="Tên công việc, kỹ năng..."
+                  className="flex-1 outline-none bg-transparent text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="flex items-center gap-2 px-5 py-4 border-b sm:border-b-0 sm:border-r border-white/10">
+                <MapPin className="w-5 h-5 text-white/60" />
+                <select
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="flex-1 outline-none bg-transparent text-white cursor-pointer"
+                >
+                  <option value="" className="bg-[#1a1a2e]">Địa điểm</option>
+                  {CITIES.map((city) => (
+                    <option key={city} value={city} className="bg-[#1a1a2e]">{city}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={handleSearch}
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 group"
+              >
+                <span>Tìm kiếm</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Popular searches */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-5
-          animate-[fadeInUp_0.7s_ease_0.4s_both]">
-          <span className="text-slate-400 text-xs">Phổ biến:</span>
-          {POPULAR_SEARCHES.map(tag => (
-            <button key={tag}
-              onClick={() => { setKeyword(tag); handleSearch(); }}
-              className="px-3 py-1.5 text-xs text-slate-500 border border-slate-200
-                rounded-full hover:border-amber-400/60 hover:text-amber-600
-                hover:bg-amber-50 transition-all bg-white">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex flex-wrap items-center justify-center gap-2 mt-8"
+        >
+          <span className="text-white/40 text-sm">Phổ biến:</span>
+          {POPULAR_SEARCHES.map((tag, i) => (
+            <button
+              key={i}
+              onClick={() => setKeyword(tag)}
+              className="px-3 py-1.5 text-sm text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all duration-200"
+            >
               {tag}
             </button>
           ))}
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col
-        items-center gap-2 animate-bounce [animation-duration:2s]">
-        <div className="w-5 h-8 border border-slate-300 rounded-full flex items-start
-          justify-center p-1">
-          <div className="w-1 h-2 bg-slate-400 rounded-full animate-[scrollDot_2s_ease_infinite]" />
-        </div>
+        {/* Trust indicators */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex flex-wrap items-center justify-center gap-6 mt-12"
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 border-2 border-[#1a1a2e] flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">U{i}</span>
+                </div>
+              ))}
+            </div>
+            <span className="text-white/60 text-sm">+420,000 người dùng</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-white/60 text-sm ml-2">4.9/5 từ 10,000+ đánh giá</span>
+          </div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        >
+          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
+            <motion.div
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1.5 h-1.5 bg-white/50 rounded-full mt-2"
+            />
+          </div>
+        </motion.div>
       </div>
     </section>
   );

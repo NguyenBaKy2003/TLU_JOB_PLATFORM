@@ -1,11 +1,29 @@
 // src/presentation/components/companies/StarRating.tsx
 import { Star } from "lucide-react";
 
-export function StarRating({ value }: { value: number }) {
+interface StarRatingProps {
+  value: number;
+  size?: "sm" | "md" | "lg";
+  showValue?: boolean;
+}
+
+export function StarRating({ value, size = "md", showValue = true }: StarRatingProps) {
+  const sizes = {
+    sm: { star: 12, text: "text-xs" },
+    md: { star: 14, text: "text-sm" },
+    lg: { star: 16, text: "text-base" }
+  };
+  
+  const currentSize = sizes[size];
+  
   return (
     <div className="flex items-center gap-1">
-      <Star size={13} className="text-yellow-400 fill-yellow-400" />
-      <span className="text-xs font-semibold text-yellow-600">{value.toFixed(1)}</span>
+      <Star className="text-amber-400 fill-amber-400" size={currentSize.star} />
+      {showValue && (
+        <span className={`font-semibold text-gray-700 ${currentSize.text}`}>
+          {value.toFixed(1)}
+        </span>
+      )}
     </div>
   );
 }

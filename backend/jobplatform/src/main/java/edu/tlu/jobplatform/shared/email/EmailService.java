@@ -45,7 +45,7 @@ public class EmailService {
         this.templateEngine = templateEngine;
     }
 
-    // ── Public API ────────────────────────────────────────────────
+    // ── Public API ────
 
     /**
      * Gửi link đặt lại mật khẩu.
@@ -107,7 +107,7 @@ public class EmailService {
                         "expireMinutes", "10"));
     }
 
-    // ── Core send ─────────────────────────────────────────────────
+    // ── Core send ─────
 
     /**
      * Render template Thymeleaf → HTML → gửi MimeMessage.

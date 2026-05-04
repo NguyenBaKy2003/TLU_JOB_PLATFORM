@@ -5,9 +5,9 @@ import type {
   UpdateCVTemplateRequest 
 } from "@/domain/models/AdminTemplates";
 
-// ─────────────────────────────────────────────────────────────
+// ─────────
 // Repository Interface (Port) — domain không phụ thuộc infra
-// ─────────────────────────────────────────────────────────────
+// ─────────
 
 export interface IAdminCVTemplateRepository {
   /** GET /api/v1/admin/cv-templates */

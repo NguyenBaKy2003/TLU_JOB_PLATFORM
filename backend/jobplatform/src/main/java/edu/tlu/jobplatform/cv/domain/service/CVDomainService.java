@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.cv.domain.service;
 
-import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateCV;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.repository.OnlineCVRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
@@ -53,7 +53,7 @@ public class CVDomainService {
         }
     }
 
-    // ── Ownership ─────────────────────────────────────────────
+    // ── Ownership ─
 
     public OnlineCV loadAndVerifyOwnership(UUID cvId, UUID candidateId) {
         OnlineCV cv = cvRepository.findById(cvId)
@@ -110,7 +110,7 @@ public class CVDomainService {
         return slug;
     }
 
-    // ── Helpers ───────────────────────────────────────────────
+    // ── Helpers ───
 
     private static final Pattern NON_LATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");

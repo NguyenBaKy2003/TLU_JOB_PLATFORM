@@ -21,11 +21,11 @@ import java.util.Locale;
  * Listener chỉ còn nhiệm vụ format và gửi — không query DB nữa.
  *
  * Pattern:
- *   @TransactionalEventListener(AFTER_COMMIT) — chỉ chạy sau khi transaction
- *   commit thành công, tránh gửi email khi UseCase bị rollback.
+ * @TransactionalEventListener(AFTER_COMMIT) — chỉ chạy sau khi transaction
+ * commit thành công, tránh gửi email khi UseCase bị rollback.
  *
- *   @Async("aiTaskExecutor") — không block thread của UseCase,
- *   email fail không ảnh hưởng response trả về client.
+ * @Async("aiTaskExecutor") — không block thread của UseCase,
+ * email fail không ảnh hưởng response trả về client.
  */
 @Slf4j
 @Component
@@ -34,23 +34,23 @@ public class InterviewScheduledEventListener {
 
     private final EmailService emailService;
 
-    private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("HH:mm - EEEE, dd/MM/yyyy", new Locale("vi"));
+    private static final DateTimeFormatter DISPLAY_FMT = DateTimeFormatter.ofPattern("HH:mm - EEEE, dd/MM/yyyy",
+            new Locale("vi"));
 
     @Async("aiTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(InterviewScheduledEvent event) {
         log.debug("Handling InterviewScheduledEvent: applicationId={}", event.getApplicationId());
         try {
-            String toEmail       = event.getCandidateEmail();
+            String toEmail = event.getCandidateEmail();
             String candidateName = resolveCandidateName(event);
-            String companyName   = resolveCompanyName(event);
-            String jobTitle      = resolveJobTitle(event);
-            String scheduledAt   = formatInterviewAt(event.getInterviewAt());
+            String companyName = resolveCompanyName(event);
+            String jobTitle = resolveJobTitle(event);
+            String scheduledAt = formatInterviewAt(event.getInterviewAt());
 
             if (toEmail == null) {
                 log.warn("Cannot send interview email — candidateEmail not found: applicationId={}. " +
-                         "Kiểm tra ApplicationDomainEventPublisher.publishInterviewScheduled()",
+                        "Kiểm tra ApplicationDomainEventPublisher.publishInterviewScheduled()",
                         event.getApplicationId());
                 return;
             }
@@ -62,8 +62,7 @@ public class InterviewScheduledEventListener {
                     companyName,
                     scheduledAt,
                     event.getLocation(),
-                    event.getNote()
-            );
+                    event.getNote());
 
             log.info("Interview email sent: applicationId={} to={}",
                     event.getApplicationId(), toEmail);
@@ -75,7 +74,7 @@ public class InterviewScheduledEventListener {
         }
     }
 
-    // ── Resolve helpers ───────────────────────────────────────────────────────
+    // ── Resolve helpers ───────────
 
     /**
      * candidateName đã được publisher set sẵn.
@@ -104,13 +103,14 @@ public class InterviewScheduledEventListener {
         return (title != null && !title.isBlank()) ? title : "Vị trí ứng tuyển";
     }
 
-    // ── Format helper ─────────────────────────────────────────────────────────
+    // ── Format helper ─────────────
 
     /**
      * "2026-04-25T10:29:00" → "10:29 - Thứ Sáu, 25/04/2026"
      */
     private String formatInterviewAt(String interviewAt) {
-        if (interviewAt == null) return "Chưa xác định";
+        if (interviewAt == null)
+            return "Chưa xác định";
         try {
             return LocalDateTime.parse(interviewAt).format(DISPLAY_FMT);
         } catch (Exception e) {

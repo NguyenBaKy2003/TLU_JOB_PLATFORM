@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { OnlineCVDetail, CVSection, SectionType } from "@/domain/models/Cv";
 
-// ── Markdown-lite renderer ────────────────────────────────────────────────────
+// ── Markdown-lite renderer 
 
 function renderMd(raw: string): string {
   return raw
@@ -39,7 +39,7 @@ function MD({ content }: { content: string }) {
   );
 }
 
-// ── Section icons ─────────────────────────────────────────────────────────────
+// ── Section icons ─────────
 
 const SECTION_ICONS: Partial<Record<SectionType, React.ReactNode>> = {
   SUMMARY:     <User className="w-3.5 h-3.5" />,
@@ -53,7 +53,7 @@ const SECTION_ICONS: Partial<Record<SectionType, React.ReactNode>> = {
   CUSTOM:      <FileText className="w-3.5 h-3.5" />,
 };
 
-// ── Contact row ───────────────────────────────────────────────────────────────
+// ── Contact row ───────────
 
 function ContactItem({ icon, text, href }: { icon: React.ReactNode; text: string; href?: string }) {
   const cls = "flex items-center gap-2 text-[13px] text-[#4A5568] hover:text-[#3D5A80] transition-colors";
@@ -70,7 +70,7 @@ function ContactItem({ icon, text, href }: { icon: React.ReactNode; text: string
   );
 }
 
-// ── Top action bar ────────────────────────────────────────────────────────────
+// ── Top action bar ────────
 
 function ActionBar({ cv }: { cv: OnlineCVDetail }) {
   const [copied, setCopied] = useState(false);
@@ -126,7 +126,7 @@ function ActionBar({ cv }: { cv: OnlineCVDetail }) {
   );
 }
 
-// ── CV Section ────────────────────────────────────────────────────────────────
+// ── CV Section ────────────
 
 function CVSectionBlock({ section }: { section: CVSection }) {
   if (!section.visible) return null;
@@ -154,7 +154,7 @@ function CVSectionBlock({ section }: { section: CVSection }) {
   );
 }
 
-// ── Main renderer ─────────────────────────────────────────────────────────────
+// ── Main renderer ─────────
 
 interface Props {
   cv: OnlineCVDetail;

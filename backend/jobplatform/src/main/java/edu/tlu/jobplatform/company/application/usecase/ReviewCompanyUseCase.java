@@ -94,7 +94,7 @@ public class ReviewCompanyUseCase {
         reviewRepository.deleteById(reviewId);
     }
 
-    // ── Commands ──────────────────────────────────────────────
+    // ── Commands ──
 
     public record CreateCommand(
             UUID companyId,

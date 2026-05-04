@@ -90,9 +90,9 @@ export class JobRepository implements IJobRepository {
   }
 
   /** POST /api/v1/jobs/{id}/publish */
-  async publish(id: string): Promise<JobPostDetail> {
-    return this.post(`${this.BASE}/${id}/publish`);
-  }
+async publish(id: string, featured = false): Promise<JobPostDetail> {
+  return this.post(`${this.BASE}/${id}/publish`, { featured });
+}
 
   /** POST /api/v1/jobs/{id}/close */
   async close(id: string): Promise<JobPostDetail> {

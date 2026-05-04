@@ -16,7 +16,7 @@ import { useToast }                      from "@/presentation/components/ui/toas
 
 const service = new CompanySubscriptionService(new CompanySubscriptionRepository());
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────────
 
 function PlanSkeleton() {
   return (
@@ -30,7 +30,7 @@ function PlanSkeleton() {
   );
 }
 
-// ── Pending order banner ──────────────────────────────────────────────────────
+// ── Pending order banner ──
 
 function PendingOrderBanner({
   orderId,
@@ -61,14 +61,14 @@ function PendingOrderBanner({
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 function extractOrderId(message: string): string | null {
   const match = message.match(/:\s*([A-Z0-9-]+)\./);
   return match?.[1] ?? null;
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function SubscriptionPage() {
   const toast = useToast();
@@ -84,7 +84,7 @@ export default function SubscriptionPage() {
 
   const hasLoaded = useRef(false);
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // ── Load ──────────────
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -110,7 +110,7 @@ export default function SubscriptionPage() {
     loadData();
   }, [loadData]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────────
 
   const handleSelectPlan = (planId: string) => {
     const plan = plans.find(p => p.id === planId);
@@ -141,17 +141,17 @@ export default function SubscriptionPage() {
     }
   }, [selectedId, yearly, toast]);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // ── Derived ───────────
 
   const selectedPlan  = plans.find(p => p.id === selectedId) ?? null;
   const currentPlanId = currentSub?.planId ?? null;
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <div className="mx-auto">
 
-      {/* ── Pending order banner ──────────────────────────── */}
+      {/* ── Pending order banner ───────────── */}
       {pendingOrderId && (
         <PendingOrderBanner
           orderId={pendingOrderId}
@@ -161,7 +161,7 @@ export default function SubscriptionPage() {
 
       <div className="flex flex-col xl:flex-row gap-6 items-start">
 
-        {/* ── Left: plans ──────────────────────────────────── */}
+        {/* ── Left: plans ────── */}
         <div className="flex-1 min-w-0">
 
           {/* Billing toggle */}
@@ -218,7 +218,7 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {/* ── Right: current subscription ──────────────────── */}
+        {/* ── Right: current subscription ───── */}
         <div className="w-full xl:w-72 xl:shrink-0 xl:sticky xl:top-6">
           {currentSub ? (
             <CurrentSubscriptionCard sub={currentSub} quota={quota} />
@@ -235,7 +235,7 @@ export default function SubscriptionPage() {
 
       </div>
 
-      {/* ── Payment confirmation modal ────────────────────── */}
+      {/* ── Payment confirmation modal ─────── */}
       {showModal && selectedPlan && (
         <PaymentModal
           plan={selectedPlan}

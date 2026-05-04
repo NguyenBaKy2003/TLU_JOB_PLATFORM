@@ -11,7 +11,7 @@ import {
 export class AiService {
   constructor(private readonly repo: IAiRepository) {}
 
-  // ── Chatbot ───────────────────────────────────────────────────
+  // ── Chatbot ──────
 
   async sendMessage(
     content: string,
@@ -36,7 +36,7 @@ export class AiService {
     return this.repo.deleteSession(sessionId);
   }
 
-  // ── AI Features ───────────────────────────────────────────────
+  // ── AI Features ──
 
   async rescoreApplication(applicationId: string): Promise<string> {
     if (!applicationId) throw new Error("Application ID không hợp lệ");

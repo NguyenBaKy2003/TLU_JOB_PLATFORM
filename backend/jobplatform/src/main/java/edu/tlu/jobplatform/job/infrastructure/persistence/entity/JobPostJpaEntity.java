@@ -81,13 +81,13 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(name = "work_location_address", length = 500)
     private String workLocationAddress;
 
-    // ── Điều kiện ─────────────────────────────────────────────
+    // ── Điều kiện ─
     @Column(name = "experience_years")
     private Integer experienceYears;
 
     private Integer vacancies;
 
-    // ── Thời hạn ──────────────────────────────────────────────
+    // ── Thời hạn ──
     private LocalDate deadline;
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
@@ -96,7 +96,7 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
 
-    // ── Trạng thái ────────────────────────────────────────────
+    // ── Trạng thái
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private JobStatus status;
@@ -108,8 +108,11 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(name = "application_count", nullable = false)
     @Builder.Default
     private int applicationCount = 0;
+    @Column(name = "featured", nullable = false)
+    @Builder.Default
+    private boolean featured = false;
 
-    // ── Skills ────────────────────────────────────────────────
+    // ── Skills ────
     @OneToMany(mappedBy = "jobPostId", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<JobPostSkillJpaEntity> skills = new ArrayList<>();

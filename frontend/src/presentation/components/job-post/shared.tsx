@@ -1,7 +1,7 @@
 // src/presentation/components/job-post/shared.tsx
 // Tái sử dụng pattern từ FilterSidebar, JobExpectationSection, BenefitsSection
 
-// ── Input ─────────────────────────────────────────────────────────────────────
+// ── Input ──
 export const inputCls =
   "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
@@ -31,7 +31,7 @@ export function FormSelect({ label, required, children, ...props }: React.Select
   );
 }
 
-// ── Checkbox (reused from FilterSidebar pattern) ──────────────────────────────
+// ── Checkbox (reused from FilterSidebar pattern) 
 export function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <label className="flex items-center gap-2.5 cursor-pointer group">
@@ -50,7 +50,7 @@ export function Checkbox({ checked, onChange, label }: { checked: boolean; onCha
   );
 }
 
-// ── Radio (reused from PersonalInfoSection pattern) ───────────────────────────
+// ── Radio (reused from PersonalInfoSection pattern) ────────────
 export function Radio({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
   return (
     <label className="flex items-center gap-2.5 cursor-pointer group" onClick={onChange}>
@@ -73,7 +73,7 @@ export function TagChip({ label, onRemove }: { label: string; onRemove: () => vo
   );
 }
 
-// ── Section card (reused from SectionCard) ────────────────────────────────────
+// ── Section card (reused from SectionCard) ──────
 export function PostSection({ icon, title, onEdit, children }: {
   icon: React.ReactNode; title: string; onEdit?: () => void; children: React.ReactNode;
 }) {

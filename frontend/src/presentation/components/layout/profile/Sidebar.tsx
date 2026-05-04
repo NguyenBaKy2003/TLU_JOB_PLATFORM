@@ -12,7 +12,7 @@ import {
 import { useAuth } from "@/application/contexts/AuthContext";
 import { FaStream } from "react-icons/fa";
 
-// ─── Nav config ───────────────────────────────────────────────────────────────
+// ─── Nav config ───────────
 
 const CANDIDATE_NAV = [
   { label: "Hồ sơ của tôi",     icon: <User size={18} />,             href: "/candidate/profile",           badgeKey: null           },
@@ -38,7 +38,7 @@ const EMPLOYER_NAV = [
 
 ];
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Props ─
 
 interface Props {
   collapsed:          boolean;
@@ -49,7 +49,7 @@ interface Props {
   activeHref?:        string;   // ← thêm (optional, fallback về usePathname)
 }
 
-// ─── NavLink ──────────────────────────────────────────────────────────────────
+// ─── NavLink ──────────────
 
 type NavItem = {
   label:    string;
@@ -98,7 +98,7 @@ function NavLink({
   );
 }
 
-// ─── Sidebar content ──────────────────────────────────────────────────────────
+// ─── Sidebar content ──────
 
 function SidebarContent({
   collapsed, onToggle, onClose, isMobile, notificationCount, activeHref,
@@ -234,7 +234,7 @@ function SidebarContent({
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+// ─── Main export ──────────
 
 export default function Sidebar({
   collapsed, onToggle, mobileOpen, onMobileClose, notificationCount, activeHref,

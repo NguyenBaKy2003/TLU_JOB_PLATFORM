@@ -27,7 +27,7 @@ interface ApiResponse<T> {
 
 export class CompanyRepository implements ICompanyRepository {
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -57,7 +57,7 @@ export class CompanyRepository implements ICompanyRepository {
     await api.delete(url);
   }
 
-  // ── Public ─────────────────────────────────────────────────────────────────
+  // ── Public ─────────────
 
   /** GET /api/v1/companies — Danh sách công ty đã xác thực */
   async listVerified(params?: CompanyListParams): Promise<PageResponse<CompanyProfile>> {
@@ -74,7 +74,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.get(`/companies/slug/${slug}`);
   }
 
-  // ── Employer ───────────────────────────────────────────────────────────────
+  // ── Employer ───────────
 
   /** GET /api/v1/companies/my — Hồ sơ công ty của tôi (EMPLOYER) */
   async getMyCompany(): Promise<CompanyProfile> {
@@ -107,7 +107,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.patchMultipart(`/companies/cover`, file);
   }
 
-  // ── Reviews ────────────────────────────────────────────────────────────────
+  // ── Reviews ────────────
 
   /** GET /api/v1/companies/{companyId}/reviews — Danh sách review (public) */
   async listReviews(
@@ -128,7 +128,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/${companyId}/reviews/${reviewId}`);
   }
 
-  // ── Admin ──────────────────────────────────────────────────────────────────
+  // ── Admin ──────────────
 
   /** GET /api/v1/admin/companies?status=... — Danh sách theo trạng thái (ADMIN) */
   async adminList(
@@ -188,7 +188,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/team/${memberId}`);
   }
 
-  // ── Gallery ───────────────────────────────────────────────────────────────
+  // ── Gallery ───────────
 
   async listGallery(companyId: string): Promise<GalleryImage[]> {
     // GET /api/v1/companies/{companyId}/gallery
@@ -211,7 +211,7 @@ async addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
     return this.del(`/companies/gallery/${imageId}`);
   }
 
-  // ── Documents ─────────────────────────────────────────────────────────────
+  // ── Documents ─────────
 
   async listDocuments(): Promise<CompanyDocument[]> {
     // GET /api/v1/companies/documents

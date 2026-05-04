@@ -13,48 +13,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Aggregate Root của Job domain.
- * Đây là bài đăng tuyển dụng — chứa toàn bộ thông tin JD.
- *
- * Vòng đời: DRAFT → PUBLISHED → (CLOSED | EXPIRED) → PUBLISHED (gia hạn)
- */
 @Getter
 @Builder
 public class JobPost {
 
     private final UUID id;
     private final UUID companyId;
-    private final UUID postedBy; // employerId
+    private final UUID postedBy;
 
-    // ── Nội dung JD ───────────────────────────────────────────
     private String title;
     private String slug;
     private String description;
     private String requirements;
     private String benefits;
-    private String jobType; // FULL_TIME, PART_TIME, CONTRACT, INTERN
-    private String level; // INTERN, JUNIOR, MIDDLE, SENIOR, LEAD, MANAGER
-    private String category; // Ngành nghề
+    private String jobType;
+    private String level;
+    private String category;
 
-    // ── Điều kiện ─────────────────────────────────────────────
     private Salary salary;
     private WorkLocation workLocation;
     private Integer experienceYears;
-    private Integer vacancies; // Số lượng tuyển
+    private Integer vacancies;
 
-    // ── Thời hạn ──────────────────────────────────────────────
-    private LocalDate deadline; // Hạn nộp CV
+    private LocalDate deadline;
     private LocalDateTime publishedAt;
     private LocalDateTime closedAt;
     private LocalDateTime expiredAt;
 
-    // ── Trạng thái ────────────────────────────────────────────
     private JobStatus status;
+    private boolean featured; // ← MỚI
     private int viewCount;
     private int applicationCount;
 
-    // ── Skills ────────────────────────────────────────────────
     @Builder.Default
     private List<JobPostSkill> skills = new ArrayList<>();
 
@@ -63,10 +53,6 @@ public class JobPost {
 
     // ── Business Methods ──────────────────────────────────────
 
-    /**
-     * Publish bài đăng — chuyển từ DRAFT/CLOSED/EXPIRED → PUBLISHED.
-     * Quota đã được kiểm tra và trừ trước khi gọi method này.
-     */
     public void publish() {
         status.assertCanTransitionTo(JobStatus.PUBLISHED);
         this.status = JobStatus.PUBLISHED;
@@ -74,7 +60,6 @@ public class JobPost {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Đóng bài đăng thủ công */
     public void close() {
         status.assertCanTransitionTo(JobStatus.CLOSED);
         this.status = JobStatus.CLOSED;
@@ -82,7 +67,6 @@ public class JobPost {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Hệ thống tự động đánh dấu hết hạn */
     public void markExpired() {
         status.assertCanTransitionTo(JobStatus.EXPIRED);
         this.status = JobStatus.EXPIRED;
@@ -90,14 +74,21 @@ public class JobPost {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Soft delete */
     public void delete() {
         status.assertCanTransitionTo(JobStatus.DELETED);
         this.status = JobStatus.DELETED;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Cập nhật nội dung — chỉ khi đang DRAFT/CLOSED/EXPIRED */
+    /**
+     * Đánh dấu bài đăng là nổi bật.
+     * Chỉ gọi sau khi consumeFeaturedQuota thành công.
+     */
+    public void markFeatured() {
+        this.featured = true;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void updateContent(String title, String slug, String description,
             String requirements, String benefits,
             String jobType, String level, String category,
@@ -128,23 +119,19 @@ public class JobPost {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Tăng view count */
     public void incrementView() {
         this.viewCount++;
     }
 
-    /** Tăng application count khi có CV mới */
     public void incrementApplications() {
         this.applicationCount++;
     }
 
-    /** Kiểm tra bài đăng có thể nhận CV không */
     public boolean isAcceptingApplications() {
         return status == JobStatus.PUBLISHED
                 && (deadline == null || !LocalDate.now().isAfter(deadline));
     }
 
-    /** Full text để AI tạo embedding */
     public String toFullText() {
         return String.join("\n\n",
                 "Vị trí: " + title,

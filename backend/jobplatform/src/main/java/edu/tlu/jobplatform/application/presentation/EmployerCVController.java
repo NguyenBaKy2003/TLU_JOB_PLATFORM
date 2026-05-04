@@ -81,7 +81,7 @@ public class EmployerCVController {
         return streamResponse(result, "attachment");
     }
 
-    // ── Helper ────────────────────────────────────────────────
+    // ── Helper ────
 
     private ResponseEntity<InputStreamResource> streamResponse(
             ViewCandidateCVUseCase.Result result, String disposition) {

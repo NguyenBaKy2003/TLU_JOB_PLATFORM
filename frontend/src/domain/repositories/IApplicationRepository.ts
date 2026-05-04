@@ -13,7 +13,7 @@ import type {
 
 export interface IApplicationRepository {
 
-  // ── Candidate ────────────────────────────────────────────────
+  // ── Candidate ───
 
   submit(req: SubmitApplicationRequest): Promise<Application>;
   withdraw(applicationId: string): Promise<Application>;
@@ -23,7 +23,7 @@ export interface IApplicationRepository {
   acceptOffer(applicationId: string): Promise<Application>;
   declineOffer(applicationId: string, reason?: string): Promise<Application>;
 
-  // ── Employer ─────────────────────────────────────────────────
+  // ── Employer ────
 
   getByJobPost(
     jobPostId: string,

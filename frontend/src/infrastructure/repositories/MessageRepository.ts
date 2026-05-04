@@ -16,7 +16,7 @@ export class MessageRepository implements IMessageRepository {
 
   private readonly BASE = "/messages";
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -32,7 +32,7 @@ export class MessageRepository implements IMessageRepository {
     await api.patch(url);
   }
 
-  // ── Conversations ──────────────────────────────────────────────────────────
+  // ── Conversations ──────
 
   async getInbox(page = 0, size = 20): Promise<MessagePage> {
     // Backend trả về GetConversationsUseCase.Result
@@ -44,7 +44,7 @@ export class MessageRepository implements IMessageRepository {
     return this.post(`${this.BASE}/conversations`, payload);
   }
 
-  // ── Messages ───────────────────────────────────────────────────────────────
+  // ── Messages ───────────
 
   async getMessages(
     conversationId: string,

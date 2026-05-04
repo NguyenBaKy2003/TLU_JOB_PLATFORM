@@ -158,7 +158,7 @@ public class CompanyResponse {
                 .build();
     }
 
-    // ── Helpers ───────────────────────────────────────────────
+    // ── Helpers ───
 
     private static CompanyResponseBuilder base(CompanyProfile c) {
         return CompanyResponse.builder()

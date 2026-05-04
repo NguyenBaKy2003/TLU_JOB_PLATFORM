@@ -53,7 +53,7 @@ export default function EmployerNotificationsPage() {
   // ✅ Dùng ref để tránh load 2 lần ở StrictMode
   const hasLoaded = useRef(false)
 
-  // ─── Load danh sách từ API ──────────────────────────────────────────────────
+  // ─── Load danh sách từ API ─────
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -72,7 +72,7 @@ export default function EmployerNotificationsPage() {
     load()
   }, [load])
 
-  // ─── WS: Notification mới ───────────────────────────────────────────────────
+  // ─── WS: Notification mới ──────
   // ✅ Dùng event-based subscription — không bị lệch do snapshot array giới hạn 10 items
   useEffect(() => {
     return subscribeToNewNotification((newNotif) => {
@@ -84,7 +84,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [subscribeToNewNotification])
 
-  // ─── WS: All-read (đọc từ tab/thiết bị khác) ────────────────────────────────
+  // ─── WS: All-read (đọc từ tab/thiết bị khác) ──
   // ✅ Đồng bộ trạng thái isRead khi server broadcast all-read
   useEffect(() => {
     return subscribeToAllRead(() => {
@@ -92,7 +92,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [subscribeToAllRead])
 
-  // ─── WS: Notification bị xóa ────────────────────────────────────────────────
+  // ─── WS: Notification bị xóa ───
   useEffect(() => {
     return subscribeToNotificationDeleted((deletedId) => {
       setItems(prev => prev.filter(n => n.notificationId !== deletedId))
@@ -106,7 +106,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [subscribeToNotificationDeleted])
 
-  // ─── Actions ────────────────────────────────────────────────────────────────
+  // ─── Actions ────────────
   const markOneRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n =>
       n.notificationId === id ? { ...n, read: true, readAt: new Date().toISOString() } : n
@@ -135,7 +135,7 @@ export default function EmployerNotificationsPage() {
     })
   }, [])
 
-  // ─── Derived state ───────────────────────────────────────────────────────────
+  // ─── Derived state ───────
   const filtered = service.filterByTab(
     items.map(n => ({ ...n, isStarred: starred.has(n.notificationId) })),
     tab,
@@ -154,7 +154,7 @@ export default function EmployerNotificationsPage() {
   const tabCount = (key: NotificationTab) =>
     key === "ALL" ? items.length : items.filter(n => typeToTab(n.type) === key).length
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Render ──────────────
   return (
     <div className="mx-auto">
       <div className="mb-6">

@@ -16,7 +16,7 @@ import {
   UserCredentials,
 } from "@/domain/models/User";
 
-// ─── Validation helpers ───────────────────────────────────────────────────────
+// ─── Validation helpers ───
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
@@ -40,7 +40,7 @@ function assertOtpCode(code: string): void {
   }
 }
 
-// ─── AuthService ──────────────────────────────────────────────────────────────
+// ─── AuthService ──────────
 
 /**
  * AuthService — application layer.
@@ -57,13 +57,13 @@ function assertOtpCode(code: string): void {
 export class AuthService {
   constructor(private readonly authRepository: IAuthRepository) {}
 
-  // ── Session ───────────────────────────────────────────────────────────────
+  // ── Session ───────────
 
   async getCurrentUser(): Promise<User | null> {
     return this.authRepository.getCurrentUser();
   }
 
-  // ── Registration & Login ──────────────────────────────────────────────────
+  // ── Registration & Login ─────
 
   async signup(data: SignupData): Promise<RegisterResult> {
     assertValidEmail(data.email);
@@ -88,14 +88,14 @@ export class AuthService {
     return this.authRepository.loginWithOAuth(data);
   }
 
-  // ── Token ─────────────────────────────────────────────────────────────────
+  // ── Token ─────────────
 
   async refreshToken(refreshToken: string): Promise<AuthToken> {
     if (!refreshToken) throw new Error("Refresh token không hợp lệ");
     return this.authRepository.refreshToken(refreshToken);
   }
 
-  // ── Logout (user token only) ──────────────────────────────────────────────
+  // ── Logout (user token only) ─
 
   async logout(accessToken: string): Promise<void> {
     return this.authRepository.logout(accessToken);
@@ -105,7 +105,7 @@ export class AuthService {
     return this.authRepository.logoutAll(accessToken);
   }
 
-  // ── OAuth2 URL ────────────────────────────────────────────────────────────
+  // ── OAuth2 URL ────────
 
   /**
    * Lấy Google OAuth2 URL cho portal cụ thể.
@@ -128,7 +128,7 @@ export class AuthService {
     return this.authRepository.getFacebookOAuthUrl();
   }
 
-  // ── Profile ───────────────────────────────────────────────────────────────
+  // ── Profile ───────────
 
   async updateProfile(userId: string, updates: UpdateProfileData): Promise<User> {
     if (!userId) throw new Error("User ID không hợp lệ");
@@ -138,7 +138,7 @@ export class AuthService {
     return this.authRepository.updateProfile(userId, updates);
   }
 
-  // ── Password Reset ────────────────────────────────────────────────────────
+  // ── Password Reset ────
 
   async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
     return this.authRepository.requestPasswordReset(data);
@@ -149,7 +149,7 @@ export class AuthService {
     return this.authRepository.verifyPasswordReset(data);
   }
 
-  // ── Password Change ───────────────────────────────────────────────────────
+  // ── Password Change ───
 
   async requestPasswordChange(data: PasswordChangeRequest): Promise<void> {
     if (!data.oldPassword?.trim()) throw new Error("Vui lòng nhập mật khẩu cũ");
@@ -166,7 +166,7 @@ export class AuthService {
     return this.authRepository.verifyPasswordChange(data);
   }
 
-  // ── Email Verification ────────────────────────────────────────────────────
+  // ── Email Verification 
 
   async verifyEmail(email: string, code: string): Promise<AuthTokenResponse> {
     assertValidEmail(email);

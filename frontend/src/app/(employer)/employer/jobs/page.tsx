@@ -13,7 +13,7 @@ import { useToast }                   from "@/presentation/components/ui/toast";
 import { SettingsModal }              from "@/presentation/components/settings/SettingsModal";
 import { Pagination } from "@/presentation/components/common/Pagination";
 
-// ── Singleton ─────────────────────────────────────────────────────────────────
+// ── Singleton ─────────────
 
 const service = new JobService(new JobRepository());
 
@@ -27,7 +27,7 @@ const STATUS_TABS: { value: JobStatus | "ALL"; label: string }[] = [
 
 const PER_PAGE = 10;
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────────
 
 function TableSkeleton() {
   return (
@@ -53,7 +53,7 @@ function TableSkeleton() {
   );
 }
 
-// ── Delete confirm modal ──────────────────────────────────────────────────────
+// ── Delete confirm modal ──
 
 function DeleteConfirmModal({ onConfirm, onCancel, loading }: {
   onConfirm: () => void; onCancel: () => void; loading: boolean;
@@ -86,7 +86,7 @@ function DeleteConfirmModal({ onConfirm, onCancel, loading }: {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function EmployerJobsPage() {
   const toast = useToast();
@@ -103,7 +103,7 @@ export default function EmployerJobsPage() {
 
   const hasLoaded = useRef(false);
 
-  // ── Load all jobs ─────────────────────────────────────────────────────────
+  // ── Load all jobs ─────
 
   const loadJobs = useCallback(async () => {
     setLoading(true); setError(null);
@@ -123,7 +123,7 @@ export default function EmployerJobsPage() {
     loadJobs();
   }, [loadJobs]);
 
-  // ── Filter + paginate ─────────────────────────────────────────────────────
+  // ── Filter + paginate ─
 
   const filtered = allJobs
     .filter(j => activeTab === "ALL" || j.status === activeTab)
@@ -142,7 +142,7 @@ export default function EmployerJobsPage() {
     setPage(0);
   };
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  // ── Actions ───────────
 
   const handlePublish = useCallback(async (id: string) => {
     setActing(id);
@@ -179,13 +179,13 @@ export default function EmployerJobsPage() {
     } finally { setDeleting(false); }
   }, [deleteId, toast]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
 
       <div className="flex flex-col gap-5">
 
-        {/* ── Header: title + create button ──────────────────── */}
+        {/* ── Header: title + create button ───── */}
         <div className="flex items-center justify-between gap-4">
           <div />
           <Link href="/employer/jobs/new"
@@ -198,10 +198,10 @@ export default function EmployerJobsPage() {
 
           
 
-        {/* ── Stats row ───────────────────────────────────────── */}
+        {/* ── Stats row ─────────── */}
         {!loading && <JobStatsRow jobs={allJobs} />}
 
-        {/* ── Filters: tabs + search ──────────────────────────── */}
+        {/* ── Filters: tabs + search ───────────── */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           {/* Status tabs */}
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto shrink-0">
@@ -240,7 +240,7 @@ export default function EmployerJobsPage() {
           </div>
         </div>
 
-        {/* ── Result count ─────────────────────────────────────── */}
+        {/* ── Result count ───────── */}
         {!loading && (
           <p className="text-xs text-gray-500 -mt-2">
             Hiển thị <strong className="text-gray-700">{paged.length}</strong> /
@@ -248,7 +248,7 @@ export default function EmployerJobsPage() {
           </p>
         )}
 
-        {/* ── Table ───────────────────────────────────────────── */}
+        {/* ── Table  */}
         {loading ? (
           <TableSkeleton />
         ) : error ? (
@@ -293,14 +293,14 @@ export default function EmployerJobsPage() {
           />
         )}
 
-        {/* ── Pagination ───────────────────────────────────────── */}
+        {/* ── Pagination ─────────── */}
         {!loading && totalPages > 1 && (
           <div className="flex justify-center">
             <Pagination current={page + 1} total={totalPages}
               onChange={p => setPage(p - 1)} />
           </div>
         )}
- {/* ── Delete confirm modal ─────────────────────────────── */}
+ {/* ── Delete confirm modal ─ */}
       {deleteId && (
         <DeleteConfirmModal
           onConfirm={confirmDelete}

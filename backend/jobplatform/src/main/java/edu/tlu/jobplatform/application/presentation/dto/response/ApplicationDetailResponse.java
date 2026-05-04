@@ -35,23 +35,23 @@ public class ApplicationDetailResponse {
     // ── Candidate info (populated từ UserRepository) ──────────
     private final CandidateInfo candidate;
 
-    // ── Interview ─────────────────────────────────────────────
+    // ── Interview ─
     private final LocalDateTime interviewScheduledAt;
     private final String interviewLocation;
     private final String interviewNote;
 
-    // ── AI Score ──────────────────────────────────────────────
+    // ── AI Score ──
     private final boolean aiScoreCalculated;
     private final AIScoreDto aiScore;
 
-    // ── Metadata ──────────────────────────────────────────────
+    // ── Metadata ──
     private final LocalDateTime appliedAt;
     private final LocalDateTime updatedAt;
     private final List<StatusLogDto> statusHistory;
 
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
     // Factory methods
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
 
     /** Không có candidate info (dùng khi candidate tự xem đơn của mình) */
     public static ApplicationDetailResponse from(Application a) {
@@ -91,9 +91,9 @@ public class ApplicationDetailResponse {
         return build(a, logs, candidateInfo, jobInfo, companyInfo);
     }
 
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
     // Private builder — single source of truth
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
 
     private static ApplicationDetailResponse build(Application a,
             List<ApplicationStatusLog> logs,
@@ -136,9 +136,9 @@ public class ApplicationDetailResponse {
                 .statusHistory(history).build();
     }
 
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
     // Nested DTOs
-    // ─────────────────────────────────────────────────────────
+    // ─────────────
 
     @Getter
     @Builder

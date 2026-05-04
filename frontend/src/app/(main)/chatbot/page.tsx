@@ -121,7 +121,7 @@ export default function ChatbotPage() {
   return (
     <div className="flex h-[calc(100vh-64px)] bg-gray-50 overflow-hidden">
 
-      {/* ── Sidebar ─────────────────────────────────────────── */}
+      {/* ── Sidebar ───────────── */}
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
@@ -158,7 +158,7 @@ export default function ChatbotPage() {
         />
       </aside>
 
-      {/* ── Main chat area ───────────────────────────────────── */}
+      {/* ── Main chat area ─────── */}
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Header */}

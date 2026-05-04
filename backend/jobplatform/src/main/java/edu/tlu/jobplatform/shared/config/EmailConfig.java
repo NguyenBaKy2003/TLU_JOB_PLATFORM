@@ -55,7 +55,7 @@ public class EmailConfig {
     @Value("${spring.mail.password}")
     private String password;
 
-    // ── JavaMailSender ─────────────────────────────────────────────
+    // ── JavaMailSender ─
 
     @Bean
     public JavaMailSender javaMailSender() {

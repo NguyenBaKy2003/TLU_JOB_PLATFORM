@@ -10,7 +10,7 @@ import {
 }                                  from "@/domain/models/Candidate";
 import { SectionKey } from "./types/SectionKey";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const LEVELS = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
 
@@ -20,7 +20,7 @@ const LEVEL_LABELS: Record<string, string> = {
   ADVANCED:     "Nâng cao",
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 interface DraftSkill {
   name:       string;
@@ -35,7 +35,7 @@ interface Props {
   onSave:  (section: SectionKey, payload: UpdateProfilePayload) => Promise<void>;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────
 
 /**
  * Dedup theo name (case-insensitive), giữ phần tử đầu tiên.
@@ -52,7 +52,7 @@ function dedup(skills: DraftSkill[]): DraftSkill[] {
   });
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export default function SkillsSection({ profile, saving, error, onSave }: Props) {
   const [editing, setEditing] = useState(false);
@@ -67,7 +67,7 @@ export default function SkillsSection({ profile, saving, error, onSave }: Props)
   const [input, setInput] = useState("");
   const [level, setLevel] = useState<string>("INTERMEDIATE");
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ────────────
 
   const addSkill = (name: string) => {
     const trimmed = name.trim();
@@ -114,7 +114,7 @@ export default function SkillsSection({ profile, saving, error, onSave }: Props)
     setEditing(false);
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────────
 
   return (
     <SectionWrapper

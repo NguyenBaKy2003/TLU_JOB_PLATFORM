@@ -10,7 +10,7 @@ import type {
 
 export interface IMessageRepository {
 
-  // ── Conversations ─────────────────────────────────────────────────────────
+  // ── Conversations ─────
 
   /** GET /api/v1/messages/conversations — inbox của user hiện tại */
   getInbox(page?: number, size?: number): Promise<MessagePage>;
@@ -18,7 +18,7 @@ export interface IMessageRepository {
   /** POST /api/v1/messages/conversations — employer tạo conversation với candidate */
   startConversation(payload: StartConversationPayload): Promise<ConversationSummary>;
 
-  // ── Messages ──────────────────────────────────────────────────────────────
+  // ── Messages ──────────
 
   /** GET /api/v1/messages/conversations/{id} — lịch sử tin nhắn */
   getMessages(

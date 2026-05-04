@@ -7,7 +7,7 @@ import type { CompanyProfile,
               UpdateCompanyPayload,
               CompanySize }            from "@/domain/models/Company";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants ─────────────
 
 const SIZE_OPTIONS: { value: CompanySize; label: string }[] = [
   { value: "STARTUP",     label: "Startup (< 10)"    },
@@ -22,7 +22,7 @@ const inputCls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl b
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
-// ── Draft ─────────────────────────────────────────────────────────────────────
+// ── Draft ──
 
 interface Draft {
   name: string; industry: string; website: string;
@@ -46,7 +46,7 @@ function toDraft(p: CompanyProfile): Draft {
   };
 }
 
-// ── ReadRow ───────────────────────────────────────────────────────────────────
+// ── ReadRow 
 
 function ReadRow({ label, value }: { label: string; value: string }) {
   return (
@@ -68,7 +68,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ──
 
 interface Props {
   profile: CompanyProfile;
@@ -77,7 +77,7 @@ interface Props {
   onSave:  (payload: UpdateCompanyPayload) => Promise<void>;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────────
 
 export function BasicInfoSection({ profile, saving, error, onSave }: Props) {
   const [editing, setEditing] = useState(false);

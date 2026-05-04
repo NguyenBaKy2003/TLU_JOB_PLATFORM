@@ -127,7 +127,7 @@ public class EmployerStreamController {
                 return ResponseEntity.ok(ApiResponse.success(slot));
         }
 
-        // ── Helper ────────────────────────────────────────────────
+        // ── Helper ────
 
         private List<InterviewSlot> buildSlots(CreateSessionRequest req) {
                 if (req.interviewSlots() == null || req.interviewSlots().isEmpty())

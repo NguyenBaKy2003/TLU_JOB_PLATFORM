@@ -90,17 +90,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return;
         }
 
-        // ── 4. Ghi nhận đăng nhập ────────────────────────────────────────────
+        // ── 4. Ghi nhận đăng nhập
         user.recordLogin();
         userRepository.save(user);
 
-        // ── 5. Tạo token pair ────────────────────────────────────────────────
+        // ── 5. Tạo token pair ────
         String tokenId = UUID.randomUUID().toString();
         String accessToken = jwtTokenProvider.generateAccessToken(user, tokenId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user, tokenId);
         tokenStore.save(user.getId(), tokenId, refreshToken, REFRESH_TTL);
 
-        // ── 6. Cleanup session ───────────────────────────────────────────────
+        // ── 6. Cleanup session ───
         cleanupSession(req);
 
         log.info("OAuth2 login success: {} [{}] portal={}", user.getEmail(), user.getId(), portalType);
@@ -117,7 +117,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         getRedirectStrategy().sendRedirect(req, res, redirectUrl);
     }
 
-    // ── Session helpers ───────────────────────────────────────────────────────
+    // ── Session helpers ───────────
 
     /**
      * Đọc portalType từ session.
@@ -145,7 +145,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
     }
 
-    // ── Business logic helpers ────────────────────────────────────────────────
+    // ── Business logic helpers ────
 
     /**
      * Nhất quán với LoginUseCase#validatePortalAccess.

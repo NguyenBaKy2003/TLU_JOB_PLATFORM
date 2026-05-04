@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { XCircle, RefreshCw, MessageCircle, ArrowLeft, AlertTriangle } from "lucide-react";
 
-// ── Reason map ────────────────────────────────────────────────────────────────
+// ── Reason map ────────────
 
 const REASON_MAP: Record<string, { title: string; desc: string }> = {
   "07": { title: "Giao dịch bị nghi ngờ gian lận", desc: "Ngân hàng từ chối giao dịch do phát hiện dấu hiệu bất thường. Vui lòng liên hệ ngân hàng hoặc thử thẻ khác." },
@@ -33,7 +33,7 @@ function resolveReason(raw: string | null): { title: string; desc: string } {
   );
 }
 
-// ── Tip item ──────────────────────────────────────────────────────────────────
+// ── Tip item ──────────────
 
 function Tip({ text }: { text: string }) {
   return (
@@ -44,7 +44,7 @@ function Tip({ text }: { text: string }) {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function PaymentFailurePage() {
   const searchParams = useSearchParams();
@@ -62,7 +62,7 @@ export default function PaymentFailurePage() {
 
       <div className="max-w-md w-full space-y-4">
 
-        {/* ── Main card ──────────────────────────────────────────────────── */}
+        {/* ── Main card  */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 px-8 py-10 text-center">
 
           {/* Icon */}
@@ -91,7 +91,7 @@ export default function PaymentFailurePage() {
           )}
         </div>
 
-        {/* ── Tips card ──────────────────────────────────────────────────── */}
+        {/* ── Tips card  */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
             Gợi ý xử lý
@@ -104,7 +104,7 @@ export default function PaymentFailurePage() {
           </ul>
         </div>
 
-        {/* ── Actions ────────────────────────────────────────────────────── */}
+        {/* ── Actions ── */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/employer/subscription"

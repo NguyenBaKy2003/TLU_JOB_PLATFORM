@@ -1,7 +1,7 @@
 // infrastructure/adapter/ParticipantQueryAdapter.java
 package edu.tlu.jobplatform.message.infrastructure.adapter;
 
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.message.application.port.out.ParticipantQueryPort;
 import edu.tlu.jobplatform.message.presentation.dto.response.ParticipantInfo;

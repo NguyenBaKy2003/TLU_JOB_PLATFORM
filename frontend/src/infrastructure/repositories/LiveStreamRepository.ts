@@ -19,7 +19,7 @@ interface ApiResponse<T> {
 export class LiveStreamRepository implements ILiveStreamRepository {
   private readonly BASE = "/streams";
 
-  // ─── Employer Endpoints ───────────────────────────────────────
+  // ─── Employer Endpoints ─────────
 
   async createSession(req: CreateSessionRequest): Promise<LiveStreamSession> {
     const res = await api.post<ApiResponse<LiveStreamSession>>(this.BASE, req);
@@ -67,7 +67,7 @@ export class LiveStreamRepository implements ILiveStreamRepository {
     return res.data.data;
   }
 
-  // ─── Candidate Endpoints ──────────────────────────────────────
+  // ─── Candidate Endpoints ────────
 
   async joinStream(sessionId: string): Promise<JoinSessionResponse> {
     const res = await api.post<ApiResponse<JoinSessionResponse>>(

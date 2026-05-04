@@ -84,7 +84,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
     }
   };
 
-  // ── CV actions ─────────────────────────────────────────────────────────────
+  // ── CV actions ─────────
   // Dùng service thay vì href trực tiếp → request đi qua auth middleware backend,
   // không lộ S3 URL ra ngoài.
   const handleViewCV = async () => {
@@ -126,7 +126,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
       <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-lg bg-white shadow-2xl
         flex flex-col overflow-hidden">
 
-        {/* ── Header ────────────────────────────────────────────────────────── */}
+        {/* ── Header ────── */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
           <h3 className="text-sm font-semibold text-gray-800">Chi tiết đơn ứng tuyển</h3>
           <button
@@ -137,7 +137,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
           </button>
         </div>
 
-        {/* ── Body ──────────────────────────────────────────────────────────── */}
+        {/* ── Body ──────── */}
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
 
           {/* Loading skeleton */}
@@ -151,7 +151,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
 
           {!loading && detail && (
             <>
-              {/* ── Candidate card ────────────────────────────────────────── */}
+              {/* ── Candidate card ──────────── */}
               {detail.candidate && (
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
                   {detail.candidate.avatarUrl ? (
@@ -192,7 +192,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Status + update ───────────────────────────────────────── */}
+              {/* ── Status + update ─────────── */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">Trạng thái:</span>
@@ -231,7 +231,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 )}
               </div>
 
-              {/* ── Status note (employer only) ───────────────────────────── */}
+              {/* ── Status note (employer only) ────────────── */}
               {role === "employer" && allowedNext.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-400">
@@ -247,7 +247,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Meta ─────────────────────────────────────────────────── */}
+              {/* ── Meta ────── */}
               <div className="grid grid-cols-2 gap-2">
                 <InfoItem
                   label="Ngày nộp"
@@ -258,10 +258,10 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 )}
               </div>
 
-              {/* ── AI Score ─────────────────────────────────────────────── */}
+              {/* ── AI Score ── */}
               {detail.aiScore && <AIScorePanel score={detail.aiScore} />}
 
-              {/* ── Interview ────────────────────────────────────────────── */}
+              {/* ── Interview ─ */}
               {detail.interviewScheduledAt && (
                 <div className="p-4 bg-purple-50 border border-purple-100 rounded-2xl">
                   <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
@@ -281,7 +281,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Cover letter ──────────────────────────────────────────── */}
+              {/* ── Cover letter ────────────── */}
               {detail.coverLetter && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
@@ -293,7 +293,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── CV actions ────────────────────────────────────────────── */}
+              {/* ── CV actions ─ */}
               {/* FIX: Dùng service thay vì <a href={cvUrl}> trực tiếp.
                   Request đi qua /employer/applications/{id}/cv/view|download
                   → được kiểm tra auth 2 lớp ở backend (employer owner + application thuộc company).
@@ -333,7 +333,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               </div>
 
-              {/* ── Status timeline ───────────────────────────────────────── */}
+              {/* ── Status timeline ─────────── */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
                   Lịch sử trạng thái
@@ -344,7 +344,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
           )}
         </div>
 
-        {/* ── Footer ────────────────────────────────────────────────────────── */}
+        {/* ── Footer ────── */}
         <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex justify-end">
           <button
             onClick={onClose}

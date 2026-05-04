@@ -2,7 +2,7 @@ import type { ApiResponse, AuthToken, LoginForm, RegisterForm } from "../types/a
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-// ── Token Storage ─────────────────────────────────────────────
+// ── Token Storage 
 export const TokenStorage = {
   setTokens(accessToken: string, refreshToken: string): void {
     if (typeof window === "undefined") return;
@@ -27,7 +27,7 @@ export const TokenStorage = {
   },
 };
 
-// ── API Calls ─────────────────────────────────────────────────
+// ── API Calls ────
 export async function loginWithEmail(
   form: LoginForm
 ): Promise<ApiResponse<AuthToken>> {

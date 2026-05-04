@@ -1,68 +1,64 @@
-// src/app/(main)/home/_components/TestimonialsSection.tsx
 "use client";
-import { TESTIMONIALS } from "@/app/(main)/home/_constants";
-import { Star }        from "lucide-react";
+import { motion } from "framer-motion";
+import { Star, Quote } from "lucide-react";
 import { useInView } from "./useInView";
+import { TESTIMONIALS } from "./constants";
 
 export function TestimonialsSection() {
-  const { ref, visible } = useInView();
+  const { ref, inView } = useInView();
 
   return (
-    <section ref={ref} className="py-24 bg-sky-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-
-        {/* Header */}
-        <div className={`text-center mb-14 transition-all duration-700 ${
-          visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-        }`}>
-          <p className="text-amber-500 text-xs font-bold uppercase tracking-[3px] mb-3">
-            Câu chuyện thành công
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-800">
-            Hàng ngàn người đã tin tưởng Joblin
+    <section ref={ref} className="py-20 bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e]">
+      <div className="max-w-6xl mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-600/20 border border-amber-500/30 mb-4">
+            <span className="text-amber-400 text-xs font-semibold">KHÁCH HÀNG NÓI GÌ</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Niềm tin từ người dùng
           </h2>
-        </div>
+          <p className="text-white/50 max-w-2xl mx-auto">
+            Hàng ngàn người dùng đã tin tưởng và thành công cùng Joblin
+          </p>
+        </motion.div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {TESTIMONIALS.map((t, i) => (
-            <div key={i}
-              className={`relative flex flex-col gap-4 p-6 rounded-2xl
-                border border-slate-200 bg-white hover:bg-sky-50
-                hover:border-blue-200 hover:shadow-md shadow-sm
-                transition-all duration-700 ${
-                  visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-              style={{ transitionDelay: `${i * 120}ms` }}>
-
-              {/* Quote mark */}
-              <span className="text-5xl text-blue-200 font-serif leading-none select-none">
-                "
-              </span>
-
-              <p className="text-slate-500 text-sm leading-relaxed -mt-3 flex-1">
-                {t.quote}
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-                <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.color}
-                  flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                  {t.avatar}
-                </div>
-                <div>
-                  <p className="text-slate-700 text-sm font-semibold">{t.name}</p>
-                  <p className="text-slate-400 text-[11px]">{t.role}</p>
-                </div>
-              </div>
-
-              {/* Stars */}
-              <div className="flex gap-0.5 absolute top-5 right-5">
-                {Array.from({ length: 5 }).map((_, j) => (
-                  <Star key={j} size={11} className="text-amber-400 fill-amber-400" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {TESTIMONIALS.map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -5 }}
+              className="group relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300"
+            >
+              <Quote className="absolute top-4 right-4 w-8 h-8 text-white/5 group-hover:text-white/10 transition" />
+              
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, j) => (
+                  <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-            </div>
+              
+              <p className="text-white/70 text-sm leading-relaxed mb-6 line-clamp-4">
+                "{item.quote}"
+              </p>
+              
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                  {item.avatar}
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold">{item.name}</h4>
+                  <p className="text-white/40 text-sm">{item.role}</p>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
       </div>

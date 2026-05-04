@@ -33,17 +33,17 @@ public class CompanyProfile {
     private String email;
     private String phone;
 
-    // ── Địa chỉ ───────────────────────────────────────────────
+    // ── Địa chỉ ───
     private String address;
     private String city;
     private String country;
 
-    // ── Phân loại ─────────────────────────────────────────────
+    // ── Phân loại ─
     private String industry; // Lĩnh vực (IT, Finance...)
     private CompanySize size; // Quy mô nhân sự
     private Integer foundedYear;
 
-    // ── Media ─────────────────────────────────────────────────
+    // ── Media ─────
     private String logoUrl;
     private String coverImageUrl;
 
@@ -53,7 +53,7 @@ public class CompanyProfile {
     private LocalDateTime verifiedAt;
     private UUID verifiedBy; // adminId
 
-    // ── Metadata ──────────────────────────────────────────────
+    // ── Metadata ──
     private boolean active;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;

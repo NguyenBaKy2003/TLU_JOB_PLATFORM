@@ -34,7 +34,7 @@ public class VerifyCompanyUseCase {
     private final CompanyVerificationService verificationService;
     private final ApplicationEventPublisher eventPublisher;
 
-    // ── Approve ───────────────────────────────────────────────
+    // ── Approve ───
 
     @Transactional
     public CompanyProfile approve(UUID companyId) {
@@ -59,7 +59,7 @@ public class VerifyCompanyUseCase {
         return saved;
     }
 
-    // ── Reject ────────────────────────────────────────────────
+    // ── Reject ────
 
     @Transactional
     public CompanyProfile reject(UUID companyId, String reason) {
@@ -76,7 +76,7 @@ public class VerifyCompanyUseCase {
         return saved;
     }
 
-    // ── Suspend ───────────────────────────────────────────────
+    // ── Suspend ───
 
     @Transactional
     public CompanyProfile suspend(UUID companyId) {

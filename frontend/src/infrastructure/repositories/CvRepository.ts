@@ -16,7 +16,7 @@ export class CvRepository implements ICvRepository {
 
   private readonly BASE = "/cv";
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -42,7 +42,7 @@ export class CvRepository implements ICvRepository {
     await api.delete(url);
   }
 
-  // ── CRUD CV ───────────────────────────────────────────────────────────────
+  // ── CRUD CV ───────────
 
   async listMyCVs(): Promise<OnlineCV[]> {
     return this.get<OnlineCV[]>(this.BASE);
@@ -64,7 +64,7 @@ export class CvRepository implements ICvRepository {
     return this.del(`${this.BASE}/${cvId}`);
   }
 
-  // ── Sections ──────────────────────────────────────────────────────────────
+  // ── Sections ──────────
 
   async addSection(cvId: string, payload: UpdateCVSectionPayload): Promise<CVSection> {
     return this.post<CVSection>(`${this.BASE}/${cvId}/sections`, payload);
@@ -82,7 +82,7 @@ export class CvRepository implements ICvRepository {
     return this.patch<OnlineCVDetail>(`${this.BASE}/${cvId}/sections/reorder`, payload);
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────
 
   async publish(cvId: string): Promise<OnlineCVDetail> {
     return this.post<OnlineCVDetail>(`${this.BASE}/${cvId}/publish`);
@@ -128,7 +128,7 @@ async viewPdf(cvId: string): Promise<Blob> {
     return this.post<OnlineCVDetail>(`${this.BASE}/${cvId}/import-from-profile`);
   }
 
-  // ── Templates ─────────────────────────────────────────────────────────────
+  // ── Templates ─────────
 
   async listTemplates(): Promise<CVTemplate[]> {
     return this.get<CVTemplate[]>(`${this.BASE}/templates`);

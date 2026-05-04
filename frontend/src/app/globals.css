@@ -153,7 +153,7 @@
   }
 }
 
-/* ── Tiptap Rich Editor ───────────────────────────────────────────────────── */
+/* ── Tiptap Rich Editor ─ */
 /* Đặt ngoài @layer để có specificity cao hơn Tailwind preflight              */
 
 .tiptap {
@@ -279,4 +279,40 @@
 
 .zoom-in {
   animation: zoom-in 0.2s ease-out;
+}
+
+
+/* Thêm vào globals.css */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.company-card {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+/* Custom scrollbar cho company list */
+.company-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.company-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.company-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.company-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

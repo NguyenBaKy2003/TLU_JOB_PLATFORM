@@ -34,7 +34,7 @@ public class AuthToken {
     /** Thông tin user tóm tắt — frontend không cần gọi thêm /api/me */
     private final UserSummary user;
 
-    // ── Factory method ────────────────────────────────────────────
+    // ── Factory method
 
     public static AuthToken of(String accessToken, String refreshToken,
             long expiresIn, UserSummary user) {

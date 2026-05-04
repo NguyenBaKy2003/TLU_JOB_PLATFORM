@@ -191,7 +191,7 @@ export default function ProfilePage() {
     [profile],
   );
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // ── Loading ───────────
 
   if (loading) {
     return (
@@ -211,7 +211,7 @@ export default function ProfilePage() {
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
+  // ── Error ─────────────
 
   if (error || !profile) {
     return (
@@ -225,14 +225,14 @@ export default function ProfilePage() {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────────
 
   return (
  
 
       <div className="flex flex-col lg:flex-row gap-4  lg:gap-6 items-start">
 
-        {/* ── Left: profile sections ─────────────────────────────────── */}
+        {/* ── Left: profile sections ───── */}
         <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
           <ProfileHero
             firstName={profile.firstName ?? undefined}
@@ -256,7 +256,7 @@ export default function ProfilePage() {
           <BenefitsSection      profile={profile} saving={!!saving.benefits}        error={sectionErrors.benefits}        onSave={updateProfile} />
         </div>
 
-        {/* ── Right: sidebar cards ───────────────────────────────────── */}
+        {/* ── Right: sidebar cards ─────── */}
         {/*
           Mobile:  full width, below sections (order doesn't matter, natural flow)
           Desktop: fixed w-72, sticky top-4 so cards stay visible while scrolling

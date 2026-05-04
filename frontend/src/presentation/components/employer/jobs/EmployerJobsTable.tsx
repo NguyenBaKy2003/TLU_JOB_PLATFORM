@@ -8,7 +8,7 @@ import { JobActionMenu }   from "./JobActionMenu";
 import type { JobPost }    from "@/domain/models/Job";
 import { JOB_TYPE_LABELS } from "@/domain/models/Job";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 
 function daysLeft(deadline: string): number {
@@ -22,7 +22,7 @@ function formatDate(dateStr: string | null): string {
     { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ──
 
 interface Props {
   jobs:      JobPost[];
@@ -31,7 +31,7 @@ interface Props {
   onDelete:  (id: string) => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────────
 
 export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props) {
   if (jobs.length === 0) return null;

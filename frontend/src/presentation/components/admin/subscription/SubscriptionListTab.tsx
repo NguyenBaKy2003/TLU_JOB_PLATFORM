@@ -12,7 +12,7 @@ const STATUS_STYLES: Record<string, string> = {
   PENDING:   "bg-blue-50   text-blue-600   border-blue-200",
 };
 
-// ── Row ───────────────────────────────────────────────────────────────────────
+// ── Row ────
 
 function SubRow({ sub, formatPrice }: {
   sub: AdminSubscriptionRow; formatPrice: (n: number) => string;
@@ -47,7 +47,7 @@ function SubRow({ sub, formatPrice }: {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────────
 
 function SubSkeleton() {
   return (
@@ -63,7 +63,7 @@ function SubSkeleton() {
   );
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ──
 
 interface Props {
   subs:        AdminSubscriptionRow[];
@@ -77,7 +77,7 @@ interface Props {
   onPageChange:   (p: number) => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────────
 
 export function SubscriptionListTab({
   subs, loading, totalSubs, subsPages, subsPage,
