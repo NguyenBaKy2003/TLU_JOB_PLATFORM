@@ -43,7 +43,7 @@ function getCountdown(iso: string) {
   return `${m} phút nữa`;
 }
 
-// ─── Countdown Badge ──────────────────────────────────────────
+// ─── Countdown Badge ────────────
 function CountdownBadge({ scheduledAt }: { scheduledAt: string }) {
   const [countdown, setCountdown] = useState(getCountdown(scheduledAt));
 
@@ -61,7 +61,7 @@ function CountdownBadge({ scheduledAt }: { scheduledAt: string }) {
   );
 }
 
-// ─── Info Block ───────────────────────────────────────────────
+// ─── Info Block ──
 function InfoBlock({ icon: Icon, label, children }: {
   icon: React.ElementType;
   label: string;
@@ -80,7 +80,7 @@ function InfoBlock({ icon: Icon, label, children }: {
   );
 }
 
-// ─── Interview Slot List ──────────────────────────────────────
+// ─── Interview Slot List ────────
 function SlotList({ slots }: { slots: LiveStreamSession["interviewSlots"] }) {
   const open = slots.filter((s) => s.status === "OPEN");
   if (open.length === 0) {
@@ -110,7 +110,7 @@ function SlotList({ slots }: { slots: LiveStreamSession["interviewSlots"] }) {
   );
 }
 
-// ─── Main Detail Page ─────────────────────────────────────────
+// ─── Main Detail Page ───────────
 export default function CandidateStreamDetailPage() {
   const params = useParams<{ sessionId: string }>();
   const router = useRouter();

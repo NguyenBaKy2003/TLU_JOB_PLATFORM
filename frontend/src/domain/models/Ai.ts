@@ -1,4 +1,4 @@
-// ─── Chat Models ──────────────────────────────────────────────────────────────
+// ─── Chat Models ──────────
 
 export type MessageRole = "USER" | "ASSISTANT";
 
@@ -18,7 +18,7 @@ export interface ChatSession {
   messages?: ChatMessage[];
 }
 
-// ─── AI Score Models ──────────────────────────────────────────────────────────
+// ─── AI Score Models ──────
 
 export interface AiScore {
   overallScore: number;
@@ -30,7 +30,7 @@ export interface AiScore {
   summary: string;
 }
 
-// ─── JD Optimization Models ───────────────────────────────────────────────────
+// ─── JD Optimization Models ──────
 
 export interface JdOptimizationResult {
   improvedTitle: string;
@@ -40,7 +40,7 @@ export interface JdOptimizationResult {
   qualityScore: number;
 }
 
-// ─── Request Payloads ─────────────────────────────────────────────────────────
+// ─── Request Payloads ─────
 
 export interface SendMessagePayload {
   sessionId?: string | null;

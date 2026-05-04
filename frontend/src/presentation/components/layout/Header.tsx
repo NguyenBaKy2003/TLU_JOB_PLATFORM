@@ -12,11 +12,11 @@ import { useAuth }      from "@/application/contexts/AuthContext";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { NotificationPanel } from "@/presentation/components/shared/NotificationPanel";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types 
 
 type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants ───────────
 
 const NAV_ITEMS = [
   { label: "Trang chủ", href: "/",          key: "trang-chu" },
@@ -43,7 +43,7 @@ const EMPLOYER_DROPDOWN = [
   { label: "Cài đặt",                href: "/employer/settings",     Icon: Settings        },
 ];
 
-// ─── Helper ──────────────────────────────────────────────────────────────────
+// ─── Helper ──────────────
 
 function resolveActivePage(pathname: string): ActivePage {
   if (pathname === "/")                   return "trang-chu";
@@ -53,7 +53,7 @@ function resolveActivePage(pathname: string): ActivePage {
   return "trang-chu";
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Component ───────────
 
 export function Header() {
   const router   = useRouter();
@@ -200,7 +200,7 @@ export function Header() {
               )}
             </div>
 
-            {/* ── Notification bell (logged-in only) ───────────────────── */}
+            {/* ── Notification bell (logged-in only) ────── */}
             {isAuthenticated && (
               <div className="relative" ref={notifRef}>
                 <button
@@ -245,7 +245,7 @@ export function Header() {
 
             <div className="w-px h-6 bg-gray-200 mx-2" />
 
-            {/* ── Logged in ────────────────────────────────────────────── */}
+            {/* ── Logged in ─ */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Switch role link */}
@@ -350,7 +350,7 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              /* ── Not logged in ─────────────────────────────────────────── */
+              /* ── Not logged in ───────────── */
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/login"

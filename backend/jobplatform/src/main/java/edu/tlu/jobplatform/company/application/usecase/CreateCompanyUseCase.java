@@ -76,7 +76,7 @@ public class CreateCompanyUseCase {
         return saved;
     }
 
-    // ── Helper ────────────────────────────────────────────────
+    // ── Helper ────
 
     private String generateUniqueSlug(String name) {
         String base = SlugUtils.slugify(name);
@@ -89,7 +89,7 @@ public class CreateCompanyUseCase {
         return slug;
     }
 
-    // ── Command ───────────────────────────────────────────────
+    // ── Command ───
 
     public record Command(
             UUID ownerId,

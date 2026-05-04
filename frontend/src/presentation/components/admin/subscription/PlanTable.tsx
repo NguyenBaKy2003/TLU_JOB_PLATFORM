@@ -3,7 +3,7 @@
 import { Pencil, Power, Infinity, CheckCircle2, XCircle } from "lucide-react";
 import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 
-// ── Cells ─────────────────────────────────────────────────────────────────────
+// ── Cells ──
 
 function LimitCell({ value }: { value: number }) {
   return value === -1
@@ -19,7 +19,7 @@ function FeatureIcon({ enabled }: { enabled: boolean }) {
     : <XCircle      size={16} className="text-gray-300 mx-auto" />;
 }
 
-// ── Row ───────────────────────────────────────────────────────────────────────
+// ── Row ────
 
 function PlanRow({ plan, onEdit, onToggle, formatPrice, toggling }: {
   plan:        SubscriptionPlan;
@@ -104,7 +104,7 @@ function PlanRow({ plan, onEdit, onToggle, formatPrice, toggling }: {
   );
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────────
+// ── Table ──
 
 interface Props {
   plans:       SubscriptionPlan[];

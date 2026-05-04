@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.tlu.jobplatform.ai.domain.model.CvAnalysisRequest;
 import edu.tlu.jobplatform.ai.domain.model.CvAnalysisResult;
 import edu.tlu.jobplatform.ai.domain.port.CvAnalysisPort;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;

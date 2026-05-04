@@ -21,7 +21,7 @@ export class CompanyService {
 
   constructor(private readonly repo: ICompanyRepository) {}
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public ────────────
 
   /** Danh sách công ty đã xác thực — dùng trên trang /companies */
   listVerified(params?: CompanyListParams): Promise<PageResponse<CompanyProfile>> {
@@ -38,7 +38,7 @@ export class CompanyService {
     return this.repo.getBySlug(slug);
   }
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  // ── Employer ──────────
 
   /** Hồ sơ công ty của employer đang đăng nhập */
   getMyCompany(): Promise<CompanyProfile> {
@@ -71,7 +71,7 @@ export class CompanyService {
     return this.repo.uploadCover(file);
   }
 
-  // ── Reviews ───────────────────────────────────────────────────────────────
+  // ── Reviews ───────────
 
   /** Danh sách review của công ty — dùng trên tab "Tổng quan" */
   listReviews(
@@ -92,7 +92,7 @@ export class CompanyService {
     return this.repo.deleteReview(companyId, reviewId);
   }
 
-  // ── Admin ─────────────────────────────────────────────────────────────────
+  // ── Admin ─────────────
 
   /** [ADMIN] Danh sách công ty chờ duyệt */
   adminListPending(page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
@@ -127,7 +127,7 @@ export class CompanyService {
   adminHideReview(reviewId: string): Promise<void> {
     return this.repo.adminHideReview(reviewId);
   }
- // ── Team Members ─────────────────────────────────────────────────────────
+ // ── Team Members ─────
 
   listTeamMembers(companyId: string): Promise<TeamMember[]> {
     return this.repo.listTeamMembers(companyId);
@@ -149,7 +149,7 @@ export class CompanyService {
     return this.repo.deleteTeamMember(memberId);
   }
 
-  // ── Gallery ───────────────────────────────────────────────────────────────
+  // ── Gallery ───────────
 
   listGallery(companyId: string): Promise<GalleryImage[]> {
     return this.repo.listGallery(companyId);
@@ -163,7 +163,7 @@ addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
     return this.repo.deleteGalleryImage(imageId);
   }
 
-  // ── Documents ─────────────────────────────────────────────────────────────
+  // ── Documents ─────────
 
   listDocuments(): Promise<CompanyDocument[]> {
     return this.repo.listDocuments();
@@ -177,7 +177,7 @@ addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
     return this.repo.deleteDocument(documentId);
   }
 
-  // ── Helper: Kiểm tra xem user có thể thấy documents không ────────────────
+  // ── Helper: Kiểm tra xem user có thể thấy documents không ─
 
   /**
    * Kiểm tra xem current user có thể xem documents của công ty không

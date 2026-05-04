@@ -25,7 +25,7 @@ import type {
 
 const service = new CompanySubscriptionService(new CompanySubscriptionRepository());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -51,7 +51,7 @@ function daysUntil(iso: string | null | undefined): number {
   return Math.max(0, Math.ceil(ms / 86_400_000));
 }
 
-// ── Animated checkmark ────────────────────────────────────────────────────────
+// ── Animated checkmark ────
 
 function AnimatedCheck() {
   return (
@@ -68,7 +68,7 @@ function AnimatedCheck() {
   );
 }
 
-// ── Quota bar ─────────────────────────────────────────────────────────────────
+// ── Quota bar ─────────────
 
 function QuotaBar({
   label,
@@ -105,7 +105,7 @@ function QuotaBar({
   );
 }
 
-// ── Feature badge ─────────────────────────────────────────────────────────────
+// ── Feature badge ─────────
 
 function FeatureBadge({
   active,
@@ -130,7 +130,7 @@ function FeatureBadge({
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────────
 
 function Skeleton({ className }: { className?: string }) {
   return (
@@ -138,7 +138,7 @@ function Skeleton({ className }: { className?: string }) {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -174,7 +174,7 @@ export default function PaymentSuccessPage() {
     }
   }, []);
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Loading state ─────
 
   if (loading) {
     return (
@@ -187,7 +187,7 @@ export default function PaymentSuccessPage() {
     );
   }
 
-  // ── Error / no sub ────────────────────────────────────────────────────────
+  // ── Error / no sub ────
 
   if (error || !sub) {
     return (
@@ -216,7 +216,7 @@ export default function PaymentSuccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 px-4 py-12">
 
-      {/* ── Decorative blobs ───────────────────────────────────────────────── */}
+      {/* ── Decorative blobs ──── */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-emerald-100 opacity-40 blur-3xl" />
         <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-blue-100 opacity-40 blur-3xl" />
@@ -224,7 +224,7 @@ export default function PaymentSuccessPage() {
 
       <div className="max-w-2xl mx-auto space-y-5">
 
-        {/* ── Header card ──────────────────────────────────────────────────── */}
+        {/* ── Header card  */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 px-8 py-10 text-center">
           <AnimatedCheck />
 
@@ -243,7 +243,7 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        {/* ── Receipt card ─────────────────────────────────────────────────── */}
+        {/* ── Receipt card ────── */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
 
           {/* Header strip */}
@@ -287,7 +287,7 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        {/* ── Quota card ───────────────────────────────────────────────────── */}
+        {/* ── Quota card ─ */}
         {quota && (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-sm font-bold text-gray-800 mb-4">
@@ -316,7 +316,7 @@ export default function PaymentSuccessPage() {
           </div>
         )}
 
-        {/* ── Features card ────────────────────────────────────────────────── */}
+        {/* ── Features card ───── */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-sm font-bold text-gray-800 mb-4">
             Tính năng đi kèm
@@ -335,7 +335,7 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        {/* ── Actions ──────────────────────────────────────────────────────── */}
+        {/* ── Actions ──── */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/employer/jobs/new"
@@ -352,7 +352,7 @@ export default function PaymentSuccessPage() {
           </Link>
         </div>
 
-        {/* ── Footer note ──────────────────────────────────────────────────── */}
+        {/* ── Footer note  */}
         <p className="text-center text-xs text-gray-400 pb-4">
           Hóa đơn đã được lưu trong hệ thống. Liên hệ{" "}
           <a href="mailto:support@jobplatform.vn" className="text-blue-500 hover:underline">
@@ -366,7 +366,7 @@ export default function PaymentSuccessPage() {
   );
 }
 
-// ── ReceiptRow ────────────────────────────────────────────────────────────────
+// ── ReceiptRow ────────────
 
 function ReceiptRow({
   label,

@@ -12,7 +12,7 @@ export class CvService {
 
   constructor(readonly repo: ICvRepository) {}
 
-  // ── Queries ───────────────────────────────────────────────────────────────
+  // ── Queries ───────────
 
   listMyCVs(): Promise<OnlineCV[]> {
     return this.repo.listMyCVs();
@@ -26,7 +26,7 @@ export class CvService {
     return this.repo.listTemplates();
   }
 
-  // ── CV CRUD ───────────────────────────────────────────────────────────────
+  // ── CV CRUD ───────────
 
   createFromForm(form: CreateCVForm): Promise<OnlineCVDetail> {
     return this.repo.create({
@@ -94,7 +94,7 @@ export class CvService {
     return this.repo.delete(cvId);
   }
 
-  // ── Sections ──────────────────────────────────────────────────────────────
+  // ── Sections ──────────
 
   addSection(cvId: string, type: SectionType, title: string): Promise<CVSection> {
     const payload: UpdateCVSectionPayload = { type, title, content: "", visible: true };
@@ -113,7 +113,7 @@ export class CvService {
     return this.repo.reorderSections(cvId, { sectionIds });
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────
 
   publish(cvId: string): Promise<OnlineCVDetail> {
     return this.repo.publish(cvId);

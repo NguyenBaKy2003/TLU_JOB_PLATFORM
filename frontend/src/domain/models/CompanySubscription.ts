@@ -1,18 +1,18 @@
 // src/domain/models/CompanySubscription.ts
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// ── Enums ──
 
 export type SubscriptionStatus = "ACTIVE" | "EXPIRED" | "CANCELLED" | "FAILED" | "PENDING";
 export type PaymentStatus      = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
 
-// ── Value objects ─────────────────────────────────────────────────────────────
+// ── Value objects ─────────
 
 export interface Quota {
   limit: number;   // -1 = unlimited
   used:  number;
 }
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// ── Domain models ─────────
 
 export interface SubscriptionPlan {
   id:               string;
@@ -60,7 +60,7 @@ export interface QuotaResult {
   daysRemaining:   number;
 }
 
-// ── Payment ───────────────────────────────────────────────────────────────────
+// ── Payment 
 
 export interface Payment {
   id:                    string;
@@ -84,14 +84,14 @@ export interface PurchaseResult {
   orderCode:  string;
 }
 
-// ── Payloads ──────────────────────────────────────────────────────────────────
+// ── Payloads ──────────────
 
 export interface PurchasePayload {
   planId:  string;
   yearly:  boolean;
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ── UI helpers ────────────
 
 export const PLAN_HIGHLIGHTS: Record<string, string[]> = {
   FREE:       ["5 tin đăng / tháng", "Tìm kiếm cơ bản", "Hỗ trợ email"],

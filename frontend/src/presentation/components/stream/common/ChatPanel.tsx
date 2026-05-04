@@ -131,7 +131,7 @@ export function ChatPanel({
   );
 }
 
-// ── Message Bubble ─────────────────────────────────────────────
+// ── Message Bubble 
 function MessageBubble({ message }: { message: ChatMessageData }) {
   const isQA = message.type === "Q_AND_A";
   const isSystem = message.type === "SYSTEM";

@@ -144,7 +144,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
   );
 }
 
-// ── Template card ──────────────────────────────────────────────────────────────
+// ── Template card ──────────
 
 function TemplateCard({
   template,

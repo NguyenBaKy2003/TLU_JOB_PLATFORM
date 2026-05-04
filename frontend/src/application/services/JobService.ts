@@ -10,7 +10,7 @@ export class JobService {
 
   constructor(private readonly repo: IJobRepository) {}
 
-  // ── Public / candidate ────────────────────────────────────────────────────
+  // ── Public / candidate 
 
   listPublished(page = 0, size = 12): Promise<PageResponse<JobPost>> {
     return this.repo.listPublished(page, size);
@@ -44,11 +44,10 @@ export class JobService {
    * Tạo bài đăng từ form state.
    * Chuyển string → number, lọc empty string, build payload đúng kiểu backend.
    */
-  createFromForm(form: JobPostForm, publish: boolean): Promise<JobPostDetail> {
+  createFromForm(form: JobPostForm, publish: boolean, featured = false): Promise<JobPostDetail> {
     const payload = this._buildCreatePayload(form);
     if (publish) {
-      // Tạo draft trước, rồi publish ngay
-      return this.repo.create(payload).then(job => this.repo.publish(job.id));
+      return this.repo.create(payload).then(job => this.repo.publish(job.id, featured));
     }
     return this.repo.create(payload);
   }
@@ -57,13 +56,14 @@ export class JobService {
    * Cập nhật bài đăng từ form state.
    * Nếu publish=true và job đang là draft → publish sau khi update.
    */
-  updateFromForm(id: string, form: JobPostForm, publish: boolean): Promise<JobPostDetail> {
+  updateFromForm(id: string, form: JobPostForm, publish: boolean, featured = false): Promise<JobPostDetail> {
     const payload = this._buildUpdatePayload(form);
     if (publish) {
-      return this.repo.update(id, payload).then(job => this.repo.publish(job.id));
+      return this.repo.update(id, payload).then(job => this.repo.publish(job.id, featured));
     }
     return this.repo.update(id, payload);
   }
+
 
   /** Tạo trực tiếp từ payload đã build sẵn */
   create(payload: CreateJobPayload): Promise<JobPostDetail> {
@@ -79,8 +79,8 @@ export class JobService {
     return this.repo.getMyJobs(page, size);
   }
 
-  publish(id: string): Promise<JobPostDetail> {
-    return this.repo.publish(id);
+  publish(id: string, featured = false): Promise<JobPostDetail> {
+    return this.repo.publish(id, featured);
   }
 
   close(id: string): Promise<JobPostDetail> {

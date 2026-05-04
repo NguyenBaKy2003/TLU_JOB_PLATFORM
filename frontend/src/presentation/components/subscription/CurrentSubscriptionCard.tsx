@@ -46,7 +46,7 @@ interface Props {
 }
 
 export function CurrentSubscriptionCard({ sub, quota }: Props) {
-  // ── Expiry ────────────────────────────────────────────────────────────────
+  // ── Expiry ────────────
   // expiresAt có thể không có trong một số response → fallback graceful
   const expiresAt    = sub.expiresAt ? new Date(sub.expiresAt) : null;
   const daysRemaining =
@@ -62,7 +62,7 @@ export function CurrentSubscriptionCard({ sub, quota }: Props) {
   const featuredJobQuota = quota?.featuredJobQuota ?? sub.featuredJobQuota ?? null;
   const cvViewQuota     = quota?.cvViewQuota     ?? sub.cvViewQuota     ?? null;
 
-  // ── Status label ──────────────────────────────────────────────────────────
+  // ── Status label ──────
   const statusMap: Record<string, { label: string; className: string }> = {
     ACTIVE:   { label: "Đang hoạt động", className: "bg-green-50 text-green-700 border-green-200" },
     EXPIRED:  { label: "Đã hết hạn",     className: "bg-red-50   text-red-600   border-red-200"   },
@@ -77,7 +77,7 @@ export function CurrentSubscriptionCard({ sub, quota }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
 
-      {/* ── Header ─────────────────────────────────────────── */}
+      {/* ── Header ───────────── */}
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Gói đang sử dụng</p>
@@ -88,7 +88,7 @@ export function CurrentSubscriptionCard({ sub, quota }: Props) {
         </div>
       </div>
 
-      {/* ── Expiry ─────────────────────────────────────────── */}
+      {/* ── Expiry ───────────── */}
       <div className={`flex items-center gap-2 mb-5 px-3 py-2.5 rounded-xl ${
         isExpiringSoon
           ? "bg-red-50 border border-red-100"
@@ -115,14 +115,14 @@ export function CurrentSubscriptionCard({ sub, quota }: Props) {
         </div>
       </div>
 
-      {/* ── Quota bars ─────────────────────────────────────── */}
+      {/* ── Quota bars ───────── */}
       <div className="flex flex-col gap-4">
         <QuotaBar label="Tin đăng"    icon={<Zap size={12} />}       quota={jobPostQuota} />
         <QuotaBar label="Tin nổi bật" icon={<BarChart2 size={12} />} quota={featuredJobQuota} />
         <QuotaBar label="Lượt xem CV" icon={<Eye size={12} />}       quota={cvViewQuota} />
       </div>
 
-      {/* ── Features ───────────────────────────────────────── */}
+      {/* ── Features ─────────── */}
       <div className="flex gap-4 mt-5 pt-4 border-t border-gray-50">
         <div className={`flex items-center gap-1.5 text-xs font-medium ${
           sub.aiFeatures ? "text-blue-600" : "text-gray-300 line-through"

@@ -9,7 +9,7 @@ import {
   X, 
 } from "lucide-react";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types ───
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center';
@@ -38,7 +38,7 @@ export interface ToastContextType {
   dismissAll: () => void;
 }
 
-// ── Context ────────────────────────────────────────────────────────────────────
+// ── Context ─
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
@@ -50,7 +50,7 @@ export const useToast = () => {
   return context;
 };
 
-// ── Config ─────────────────────────────────────────────────────────────────────
+// ── Config ──
 
 const toastConfig: Record<ToastType, {
   icon: ReactNode;
@@ -109,7 +109,7 @@ const toastConfig: Record<ToastType, {
   },
 };
 
-// ── Position Styles ────────────────────────────────────────────────────────────
+// ── Position Styles ────────
 
 const positionStyles: Record<ToastPosition, string> = {
   'top-right': 'top-4 right-4',
@@ -119,7 +119,7 @@ const positionStyles: Record<ToastPosition, string> = {
   'top-center': 'top-4 left-1/2 -translate-x-1/2',
 };
 
-// ── Individual Toast Component ─────────────────────────────────────────────────
+// ── Individual Toast Component ────
 
 function ToastItem({ 
   toast, 
@@ -240,7 +240,7 @@ function ToastItem({
   );
 }
 
-// ── Toast Provider ─────────────────────────────────────────────────────────────
+// ── Toast Provider ─────────
 
 export interface ToastProviderProps {
   children: ReactNode;
@@ -353,7 +353,7 @@ export function ToastProvider({
   );
 }
 
-// ── Standalone Toast Component (for non-context usage) ─────────────────────────
+// ── Standalone Toast Component (for non-context usage) ──────────
 
 export interface ToastProps {
   type?: ToastType;

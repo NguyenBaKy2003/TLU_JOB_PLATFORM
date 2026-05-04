@@ -12,7 +12,6 @@ import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.util.SlugUtils;
-import edu.tlu.jobplatform.subscription.application.usecase.CheckQuotaUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,33 +30,23 @@ public class CreateJobPostUseCase {
 
     private final JobPostRepository jobPostRepository;
     private final CompanyRepository companyRepository;
-    private final CheckQuotaUseCase checkQuotaUseCase;
+    // CheckQuotaUseCase đã bỏ — quota chỉ trừ khi publish
 
     @Transactional
     public JobPost execute(Command cmd) {
+
         CompanyProfile company = companyRepository.findById(cmd.companyId())
                 .orElseThrow(() -> ResourceNotFoundException.of("Company", cmd.companyId()));
-        if (cmd.title() == null || cmd.title().isBlank())
 
-            throw new BusinessRuleException("Tiêu đề bài đăng không được để trống.", "JOB_TITLE_REQUIRED");
+        if (cmd.title() == null || cmd.title().isBlank())
+            throw new BusinessRuleException(
+                    "Tiêu đề bài đăng không được để trống.", "JOB_TITLE_REQUIRED");
+
         if (company.getVerificationStatus() != VerificationStatus.VERIFIED)
             throw new BusinessRuleException(
                     "Công ty chưa được xác thực. Không thể đăng tin tuyển dụng.",
                     "COMPANY_NOT_VERIFIED");
 
-        // ── Guard 2: kiểm tra subscription + quota (một lần query) ───────────
-        CheckQuotaUseCase.Result quota = checkQuotaUseCase.execute(cmd.companyId());
-
-        if (!quota.hasActiveSubscription())
-            throw new BusinessRuleException(
-                    "Bạn chưa có gói dịch vụ active. Vui lòng mua gói để đăng tin.",
-                    "NO_ACTIVE_SUBSCRIPTION");
-
-        if (!quota.canPostJob())
-            throw new BusinessRuleException(
-                    "Bạn đã dùng hết lượt đăng tin trong gói hiện tại ("
-                            + quota.jobsRemaining() + " lượt còn lại).",
-                    "JOB_QUOTA_EXCEEDED");
         String slug = generateUniqueSlug(cmd.title());
         UUID jobId = UUID.randomUUID();
 
@@ -92,6 +81,7 @@ public class CreateJobPostUseCase {
                 .deadline(cmd.deadline())
                 .skills(skills)
                 .status(JobStatus.DRAFT)
+                .featured(false) // ← luôn false khi tạo DRAFT
                 .viewCount(0)
                 .applicationCount(0)
                 .createdAt(LocalDateTime.now())

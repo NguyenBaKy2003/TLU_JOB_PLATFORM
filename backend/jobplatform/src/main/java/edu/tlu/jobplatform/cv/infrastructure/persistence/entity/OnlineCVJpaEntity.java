@@ -61,7 +61,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "pi_website", length = 300)
     private String piWebsite;
 
-    // ── Status & visibility ───────────────────────────────────────────────────
+    // ── Status & visibility ───────
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

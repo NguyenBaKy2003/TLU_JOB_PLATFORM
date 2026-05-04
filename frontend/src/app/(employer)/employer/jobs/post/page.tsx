@@ -43,13 +43,13 @@ export default function PostingJobPage() {
     toast.success("Đã lưu", "Tin tuyển dụng đã được lưu thành công.");
   }, [form, toast]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <DashboardLayout activeHref="/jobs/post" topbarTitle="Đăng Tin Tuyển Dụng">
       <div className="max-w-2xl mx-auto flex flex-col gap-5 pb-10">
 
-        {/* ── 1. Giới thiệu công việc ────────────────────────────── */}
+        {/* ── 1. Giới thiệu công việc  */}
         <PostSection icon={<Briefcase size={16} />} title="Giới thiệu công việc">
           <div className="flex flex-col gap-4">
             <FormInput label="Chức danh công việc" required placeholder="Thiết kế giao diện người dùng (UI Designer)"
@@ -65,7 +65,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 2. Hình thức làm việc ──────────────────────────────── */}
+        {/* ── 2. Hình thức làm việc ── */}
         <PostSection icon={<MonitorSmartphone size={16} />} title="Hình thức làm việc">
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
@@ -84,7 +84,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 3. Địa điểm làm việc ──────────────────────────────── */}
+        {/* ── 3. Địa điểm làm việc ── */}
         <PostSection icon={<MapPin size={16} />} title="Địa điểm làm việc">
           <div className="grid grid-cols-2 gap-4">
             <FormInput label="Quốc gia" required value={form.country} onChange={e => set("country", e.target.value)} />
@@ -98,7 +98,7 @@ export default function PostingJobPage() {
           )}
         </PostSection>
 
-        {/* ── 4. Mức lương & Phúc lợi ──────────────────────────── */}
+        {/* ── 4. Mức lương & Phúc lợi ───────────── */}
         <PostSection icon={<DollarSign size={16} />} title="Mức lương & Phúc lợi">
           <div className="flex flex-col gap-4">
             <div>
@@ -135,7 +135,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 5. Phúc lợi mong muốn ────────────────────────────── */}
+        {/* ── 5. Phúc lợi mong muốn  */}
         <PostSection icon={<Heart size={16} />} title="Phúc lợi mong muốn">
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
@@ -152,7 +152,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 6. Điều kiện ứng tuyển ───────────────────────────── */}
+        {/* ── 6. Điều kiện ứng tuyển ────────────── */}
         <PostSection icon={<UserCheck size={16} />} title="Điều kiện ứng tuyển">
           <div className="flex flex-col gap-5">
             {/* Age */}
@@ -186,7 +186,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 7. Kinh nghiệm làm việc ──────────────────────────── */}
+        {/* ── 7. Kinh nghiệm làm việc ───────────── */}
         <PostSection icon={<ClipboardList size={16} />} title="Kinh nghiệm làm việc">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
@@ -217,7 +217,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 8. Yêu cầu bổ sung ───────────────────────────────── */}
+        {/* ── 8. Yêu cầu bổ sung ─── */}
         <PostSection icon={<ClipboardList size={16} />} title="Yêu cầu bổ sung">
           <div className="flex flex-col gap-4">
             <Checkbox label="Yêu cầu kiểm tra lý lịch"
@@ -245,7 +245,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 9. Kỹ năng ───────────────────────────────────────── */}
+        {/* ── 9. Kỹ năng ─────────── */}
         <PostSection icon={<Wrench size={16} />} title="Kỹ năng">
           <div className="flex flex-col gap-5">
             {/* Ngôn ngữ */}
@@ -304,7 +304,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 10. Mô tả công việc ──────────────────────────────── */}
+        {/* ── 10. Mô tả công việc ── */}
         <PostSection icon={<FileText size={16} />} title="Mô tả công việc">
           <div className="flex flex-col gap-4">
             <FormInput label="Ngày & Giờ làm việc" required placeholder="Thứ Hai - Thứ Sáu 8:30 đến 17:30 PM"
@@ -341,7 +341,7 @@ export default function PostingJobPage() {
           </div>
         </PostSection>
 
-        {/* ── Save button ───────────────────────────────────────── */}
+        {/* ── Save button ─────────── */}
         <button
           onClick={handleSave}
           className="w-full py-3.5 bg-blue-500 text-white text-sm font-semibold rounded-2xl

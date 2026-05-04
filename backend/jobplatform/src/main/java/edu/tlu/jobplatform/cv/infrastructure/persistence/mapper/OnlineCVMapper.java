@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 public class OnlineCVMapper {
 
-    // ── OnlineCV ──────────────────────────────────────────────────────────────
+    // ── OnlineCV ──────────────────
 
     /** JPA Entity → Domain Model (bao gồm sections) */
     public OnlineCV toDomain(OnlineCVJpaEntity e) {
@@ -91,7 +91,7 @@ public class OnlineCVMapper {
         }
     }
 
-    // ── CVSection ─────────────────────────────────────────────────────────────
+    // ── CVSection ─────────────────
 
     public CVSection sectionToDomain(CVSectionJpaEntity e) {
         if (e == null)
@@ -119,7 +119,7 @@ public class OnlineCVMapper {
         return e;
     }
 
-    // ── CVTemplate ────────────────────────────────────────────────────────────
+    // ── CVTemplate ────────────────
 
     public CVTemplate templateToDomain(CVTemplateJpaEntity e) {
         if (e == null)

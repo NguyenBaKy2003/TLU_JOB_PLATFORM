@@ -35,7 +35,7 @@ public class User {
     private LocalDateTime lockedUntil;
     private final LocalDateTime createdAt;
 
-    // ── Business Rules ────────────────────────────────────────────
+    // ── Business Rules
 
     /**
      * Kiểm tra user có thể đăng nhập không.
@@ -120,7 +120,7 @@ public class User {
         this.active = false;
     }
 
-    // ── Activate ──────────────────────────────────────────────────────
+    // ── Activate ──────────
     public void activate() {
         this.active = true;
     }

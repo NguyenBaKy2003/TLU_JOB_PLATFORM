@@ -19,7 +19,7 @@ import {
   clearTokens,
 } from "@/lib/auth-helpers";
 
-// ─── Context type ─────────────────────────────────────────────────────────────
+// ─── Context type ─────────
 
 interface AuthContextType {
   user:             User | null | undefined; // undefined = chưa load | null = chưa đăng nhập
@@ -31,12 +31,12 @@ interface AuthContextType {
   logoutAll:        () => Promise<void>;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const REFRESH_BEFORE_EXPIRY_S = 60;
 const MAX_BACKOFF_MS          = 30_000;
 
-// ─── JWT helpers ──────────────────────────────────────────────────────────────
+// ─── JWT helpers ──────────
 
 function getSecondsUntilExpiry(token: string): number {
   try {
@@ -48,15 +48,15 @@ function getSecondsUntilExpiry(token: string): number {
   }
 }
 
-// ─── Singleton service ────────────────────────────────────────────────────────
+// ─── Singleton service ────
 
 const authService = new AuthService(new AuthRepository());
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context ──────────────
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Provider ─────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user,    setUser]    = useState<User | null | undefined>(undefined);
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const retryCountRef   = useRef(0);
   const silentRefreshRef = useRef<() => Promise<void>>(async () => {});
 
-  // ── cancelTimer ──────────────────────────────────────────────────────────
+  // ── cancelTimer ──────
 
   const cancelTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ── scheduleRefresh ───────────────────────────────────────────────────────
+  // ── scheduleRefresh ───
 
   const scheduleRefresh = useCallback(() => {
     cancelTimer();
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     timerRef.current = setTimeout(() => silentRefreshRef.current(), delay);
   }, [cancelTimer]);
 
-  // ── silentRefresh ─────────────────────────────────────────────────────────
+  // ── silentRefresh ─────
 
   const silentRefresh = useCallback(async () => {
     const refreshToken = getRefreshToken();
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { silentRefreshRef.current = silentRefresh; }, [silentRefresh]);
 
-  // ── setUserFromToken ──────────────────────────────────────────────────────
+  // ── setUserFromToken ──
 
   const setUserFromToken = useCallback(
     (tokenUser: AuthTokenUser) => {
@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [scheduleRefresh],
   );
 
-  // ── refreshUser ───────────────────────────────────────────────────────────
+  // ── refreshUser ───────
 
   const refreshUser = useCallback(async () => {
     if (isRefreshing.current) return;
@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [scheduleRefresh]);
 
-  // ── logout — chỉ clear user tokens ───────────────────────────────────────
+  // ── logout — chỉ clear user tokens ─────────
 
   const logout = useCallback(async () => {
     cancelTimer();
@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [cancelTimer]);
 
-  // ── logoutAll — chỉ clear user tokens ────────────────────────────────────
+  // ── logoutAll — chỉ clear user tokens ──────
 
   const logoutAll = useCallback(async () => {
     cancelTimer();
@@ -203,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [cancelTimer]);
 
-  // ── Initial load ──────────────────────────────────────────────────────────
+  // ── Initial load ──────
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  // ── tokenChanged event (OAuth2 / tab khác) ────────────────────────────────
+  // ── tokenChanged event (OAuth2 / tab khác) ──
 
   useEffect(() => {
     const handle = () => refreshUser();
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("tokenChanged", handle);
   }, [refreshUser]);
 
-  // ── visibilitychange ──────────────────────────────────────────────────────
+  // ── visibilitychange ──
 
   useEffect(() => {
     const handle = () => {
@@ -244,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => cancelTimer(), [cancelTimer]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <AuthContext.Provider

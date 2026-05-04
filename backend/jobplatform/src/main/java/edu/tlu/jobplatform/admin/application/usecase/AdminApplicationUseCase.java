@@ -84,7 +84,7 @@ public class AdminApplicationUseCase {
         return logRepo.findByApplicationId(applicationId);
     }
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // ── Commands ──────────────────
 
     /**
      * Admin override status — bypass transition validation, ghi log đầy đủ.

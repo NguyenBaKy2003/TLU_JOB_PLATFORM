@@ -7,7 +7,7 @@ import type {
 
 export interface IJobRepository {
 
-  // ── Public / candidate ────────────────────────────────────────────────────
+  // ── Public / candidate 
 
   /** Danh sách việc làm đang PUBLISHED */
   listPublished(page?: number, size?: number): Promise<PageResponse<JobPost>>;
@@ -41,7 +41,7 @@ export interface IJobRepository {
   getMyJobs(page?: number, size?: number): Promise<PageResponse<JobPost>>;
 
   /** Publish bài đăng */
-  publish(id: string): Promise<JobPostDetail>;
+  publish(id: string, featured?: boolean): Promise<JobPostDetail>;
 
   /** Đóng bài đăng */
   close(id: string): Promise<JobPostDetail>;

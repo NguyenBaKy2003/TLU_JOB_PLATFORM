@@ -53,7 +53,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .orElseGet(() -> mapper.toPaymentDomain(jpaRepo.save(mapper.toPaymentNewEntity(payment))));
     }
 
-    // ── Employer ──────────────────────────────────────────────
+    // ── Employer ──
 
     @Override
     public Page<Payment> findByCompanyId(UUID companyId, Pageable pageable) {
@@ -68,7 +68,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
-    // ── Admin ─────────────────────────────────────────────────
+    // ── Admin ─────
 
     @Override
     public Page<Payment> search(UUID companyId, PaymentStatus status, String gateway,

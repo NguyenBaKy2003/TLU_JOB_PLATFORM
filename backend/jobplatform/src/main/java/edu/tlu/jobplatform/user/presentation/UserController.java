@@ -96,9 +96,9 @@ public class UserController {
                                 ApiResponse.success("Tài khoản đã được vô hiệu hoá."));
         }
 
-        // ────────────────────────────────────────────────────────────
+        // ────────────────
         // Admin endpoints
-        // ────────────────────────────────────────────────────────────
+        // ────────────────
 
         // ── GET /api/users/{id} ───────────────────────────────────────
 
@@ -140,7 +140,7 @@ public class UserController {
                                 ApiResponse.success("Tài khoản đã được vô hiệu hoá."));
         }
 
-        // ── Helper ────────────────────────────────────────────────────
+        // ── Helper ────────
 
         private UpdateUserUseCase.Command toCommand(UpdateUserRequest req) {
                 return new UpdateUserUseCase.Command(

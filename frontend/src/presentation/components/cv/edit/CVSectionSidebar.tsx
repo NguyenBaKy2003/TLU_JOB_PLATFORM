@@ -9,7 +9,7 @@ import {
 import type { CVSection, SectionType } from "@/domain/models/Cv";
 import { SECTION_TYPE_LABELS } from "@/domain/models/Cv";
 
-// ── Section type icon mapping ─────────────────────────────────────────────────
+// ── Section type icon mapping ────
 
 const SECTION_ICONS: Record<SectionType, React.ReactNode> = {
   SUMMARY:     <User className="w-3.5 h-3.5" />,
@@ -35,7 +35,7 @@ const SECTION_COLORS: Record<SectionType, string> = {
   CUSTOM:      "bg-gray-100 text-gray-600",
 };
 
-// ── Add Section Picker ────────────────────────────────────────────────────────
+// ── Add Section Picker ────
 
 const ALL_SECTION_TYPES = Object.keys(SECTION_TYPE_LABELS) as SectionType[];
 
@@ -94,7 +94,7 @@ function AddSectionPicker({ onAdd }: AddSectionPickerProps) {
   );
 }
 
-// ── Section Row ───────────────────────────────────────────────────────────────
+// ── Section Row ───────────
 
 interface SectionRowProps {
   section: CVSection;
@@ -169,7 +169,7 @@ function SectionRow({
   );
 }
 
-// ── Main Sidebar ──────────────────────────────────────────────────────────────
+// ── Main Sidebar ──────────
 
 interface Props {
   sections: CVSection[];

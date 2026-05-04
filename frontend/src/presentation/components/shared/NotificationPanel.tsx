@@ -20,7 +20,7 @@ export function NotificationPanel({ onClose }: Props) {
   const isEmployer   = user?.role === "EMPLOYER";
   const allNotifHref = isEmployer ? "/employer/notifications" : "/candidate/notifications";
 
-  // ── Mark all as read ────────────────────────────────────────────────────────
+  // ── Mark all as read ────
   // Backend push /user/queue/all-read → WebSocketContext reset state tự động
   const markAllRead = async () => {
     try {
@@ -32,7 +32,7 @@ export function NotificationPanel({ onClose }: Props) {
     }
   };
 
-  // ── Mark single as read then navigate ───────────────────────────────────────
+  // ── Mark single as read then navigate ─────────
   // FIX: Optimistic update ngay lập tức nếu backend chưa push WS kịp.
   // WebSocketContext cũng lắng nghe /user/queue/notification-read nên
   // state sẽ đúng dù backend push hay không push WS event.
@@ -55,7 +55,7 @@ export function NotificationPanel({ onClose }: Props) {
     }
   };
 
-  // ── Time helper ─────────────────────────────────────────────────────────────
+  // ── Time helper ─────────
   function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
     const m    = Math.floor(diff / 60_000);
@@ -71,7 +71,7 @@ export function NotificationPanel({ onClose }: Props) {
       className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl
         border border-gray-100 shadow-xl z-50 overflow-hidden"
     >
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ─────── */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">Thông báo</span>
@@ -95,7 +95,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── List ────────────────────────────────────────────────────────────── */}
+      {/* ── List ────────── */}
       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-gray-400">
@@ -162,7 +162,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      {/* ── Footer ──────── */}
       <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
         <Link
           href={allNotifHref}

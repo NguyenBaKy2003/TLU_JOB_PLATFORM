@@ -1,7 +1,7 @@
 package edu.tlu.jobplatform.shared.service;
 
-import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.CompanySize;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
@@ -48,7 +48,7 @@ public class ProfileCreationService {
         }
     }
 
-    // ── Candidate ─────────────────────────────────────────────────────────────
+    // ── Candidate ─────────────────
 
     private void createCandidateProfile(User user) {
         if (candidateProfileRepository.existsByUserId(user.getId())) {
@@ -131,7 +131,7 @@ public class ProfileCreationService {
                 saved.getId(), user.getId(), saved.getSlug());
     }
 
-    // ── Slug generators ───────────────────────────────────────────────────────
+    // ── Slug generators ───────────
 
     /**
      * Sinh profileUrl unique cho CandidateProfile.

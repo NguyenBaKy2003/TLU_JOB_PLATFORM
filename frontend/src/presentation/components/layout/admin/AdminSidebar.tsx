@@ -11,7 +11,7 @@ import {
   BookOpen,
 } from "lucide-react";
 
-// ─── Nav config ───────────────────────────────────────────────────────────────
+// ─── Nav config ───────────
 
 const ADMIN_NAV = [
   {
@@ -47,7 +47,7 @@ const ADMIN_NAV = [
   },
 ];
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Props ─
 
 interface Props {
   activeHref?:        string;
@@ -59,7 +59,7 @@ interface Props {
   onLogout:           () => Promise<void>; // từ AdminAuthContext qua AdminLayoutClient
 }
 
-// ─── NavLink ──────────────────────────────────────────────────────────────────
+// ─── NavLink ──────────────
 
 function NavLink({ label, icon, href, active, collapsed, badge, onClick }: {
   label:     string;
@@ -98,7 +98,7 @@ function NavLink({ label, icon, href, active, collapsed, badge, onClick }: {
   );
 }
 
-// ─── SidebarContent ───────────────────────────────────────────────────────────
+// ─── SidebarContent ───────
 
 function SidebarContent({
   activeHref, collapsed, onToggle, onClose, isMobile, notificationCount, onLogout,
@@ -199,7 +199,7 @@ function SidebarContent({
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+// ─── Main export ──────────
 
 export default function AdminSidebar({
   activeHref, collapsed, onToggle, mobileOpen, onMobileClose, notificationCount, onLogout,

@@ -1,10 +1,10 @@
 "use client";
 
-// ─────────────────────────────────────────────────────────────
+// ─────────
 // Shared UI primitives dùng chung cho toàn bộ auth flow
-// ─────────────────────────────────────────────────────────────
+// ─────────
 
-// ── Spinner ────────────────────────────────────────────────────
+// ── Spinner 
 export function Spinner({ className = "text-white" }: { className?: string }) {
   return (
     <svg
@@ -29,7 +29,7 @@ export function Spinner({ className = "text-white" }: { className?: string }) {
   );
 }
 
-// ── Google Icon ────────────────────────────────────────────────
+// ── Google Icon ───
 export function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" className="flex-shrink-0">
@@ -53,7 +53,7 @@ export function GoogleIcon() {
   );
 }
 
-// ── FormInput ──────────────────────────────────────────────────
+// ── FormInput ─────
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
@@ -129,7 +129,7 @@ export function FormInput({
   );
 }
 
-// ── StepBar ────────────────────────────────────────────────────
+// ── StepBar 
 interface StepBarProps {
   steps: string[];
   current: number;
@@ -154,7 +154,7 @@ export function StepBar({ steps, current }: StepBarProps) {
   );
 }
 
-// ── Divider ────────────────────────────────────────────────────
+// ── Divider 
 export function Divider({ label = "HOẶC" }: { label?: string }) {
   return (
     <div className="flex items-center gap-3 my-4">
@@ -165,7 +165,7 @@ export function Divider({ label = "HOẶC" }: { label?: string }) {
   );
 }
 
-// ── GoogleButton ───────────────────────────────────────────────
+// ── GoogleButton ──
 export function GoogleButton({
   onClick,
   loading = false,
@@ -188,7 +188,7 @@ export function GoogleButton({
   );
 }
 
-// ── SubmitButton ───────────────────────────────────────────────
+// ── SubmitButton ──
 export function SubmitButton({
   loading = false,
   disabled = false,
@@ -210,7 +210,7 @@ export function SubmitButton({
   );
 }
 
-// ── PasswordInput ──────────────────────────────────────────────
+// ── PasswordInput ─
 import { useState } from "react";
 import { Eye, EyeClosed } from "lucide-react";
 

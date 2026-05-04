@@ -1,4 +1,4 @@
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// ─── Enums ─
 
 export type JobSearchStatus =
   | "ACTIVELY_LOOKING"
@@ -18,7 +18,7 @@ export type SocialPlatform =
   | "PORTFOLIO"
   | "BEHANCE";
 
-// ─── Sub-models ───────────────────────────────────────────────────────────────
+// ─── Sub-models ───────────
 
 export interface Skill {
   name: string;
@@ -73,7 +73,7 @@ export interface Benefit {
   name: string;
 }
 
-// ─── Candidate Profile ────────────────────────────────────────────────────────
+// ─── Candidate Profile ────
 
 export interface CandidateProfile {
   id: string;
@@ -104,7 +104,7 @@ export interface CandidateProfile {
   updatedAt: string;
 }
 
-// ─── CV ───────────────────────────────────────────────────────────────────────
+// ─── CV ────
 
 export interface CandidateCV {
   id: string;
@@ -117,7 +117,7 @@ export interface CandidateCV {
   updatedAt: string;
 }
 
-// ─── Request Payloads ─────────────────────────────────────────────────────────
+// ─── Request Payloads ─────
 
 export interface UpdateProfilePayload {
   firstName?: string;

@@ -1,7 +1,7 @@
-// ─────────────────────────────────────────────────────────────
+// ─────────
 // Domain Model: CVTemplate
 // Maps 1-1 với CVTemplateJpaEntity / CVTemplate.java ở backend
-// ─────────────────────────────────────────────────────────────
+// ─────────
 
 export type TemplateCategory = "professional" | "creative" | "simple";
 
@@ -21,7 +21,7 @@ export interface CVTemplate {
   updatedAt: string | null;
 }
 
-// ── Value objects dùng khi tạo / cập nhật ────────────────────
+// ── Value objects dùng khi tạo / cập nhật ─────
 
 export interface CreateTemplateData {
   name: string;

@@ -41,7 +41,7 @@ export default function CVEditPage() {
     });
   }, [id, router]);
 
-  // ── Personal Info ──────────────────────────────────────────────────────────
+  // ── Personal Info ──────
 
   const handleSavePersonalInfo = useCallback(async (form: Parameters<typeof cvService.updatePersonalInfo>[1]) => {
     if (!cv) return;
@@ -61,7 +61,7 @@ export default function CVEditPage() {
     setCv(updated);
   }, [cv]);
 
-  // ── Sections ───────────────────────────────────────────────────────────────
+  // ── Sections ───────────
 
   const handleAddSection = useCallback(async (type: Parameters<typeof cvService.addSection>[1], title: string) => {
     if (!cv) return;
@@ -118,7 +118,7 @@ export default function CVEditPage() {
     await handleUpdateSection(sectionId, { visible });
   }, [handleUpdateSection]);
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  // ── Lifecycle ──────────
 
   const handlePublish = useCallback(async () => {
     if (!cv) return;
@@ -163,7 +163,7 @@ export default function CVEditPage() {
   setCv(updated);
 }, [cv]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────────
 
   if (loading) return <CVEditSkeleton />;
   if (!cv) return null;

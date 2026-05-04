@@ -1,4 +1,4 @@
-// ─── Backend enum (source of truth) ──────────────────────────────────────────
+// ─── Backend enum (source of truth) ────────────
 
 export type NotificationApiType =
   | "NEW_APPLICATION_RECEIVED"
@@ -13,11 +13,11 @@ export type NotificationApiType =
   | "SYSTEM_ANNOUNCEMENT"
   | "NEW_MESSAGE";
 
-// ─── Frontend tab filter (UI only) ───────────────────────────────────────────
+// ─── Frontend tab filter (UI only) ─────────────
 
 export type NotificationTab = "ALL" | "NEW_JOB" | "MESSAGE" | "APPLY_RESULT" | "SYSTEM";
 
-// ─── Domain model ─────────────────────────────────────────────────────────────
+// ─── Domain model ─────────
 
 export interface NotificationItem {
   notificationId: string;
@@ -36,7 +36,7 @@ export interface NotificationResult {
   unreadCount:   number;
 }
 
-// ─── Map backend type → tab ───────────────────────────────────────────────────
+// ─── Map backend type → tab ──────
 
 export function typeToTab(type: NotificationApiType): NotificationTab {
   switch (type) {
@@ -54,7 +54,7 @@ export function typeToTab(type: NotificationApiType): NotificationTab {
   }
 }
 
-// ─── Map backend type → badge metadata ───────────────────────────────────────
+// ─── Map backend type → badge metadata ─────────
 
 export const TYPE_META: Record<
   NotificationApiType,

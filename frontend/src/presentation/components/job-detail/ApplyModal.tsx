@@ -7,11 +7,11 @@ import { CandidateService }        from "@/application/services/CandidateService
 import { CandidateRepository }     from "@/infrastructure/repositories/CandidateRepository";
 import type { CandidateCV }        from "@/domain/models/Candidate";
 
-// ─── Service singleton ────────────────────────────────────────────────────────
+// ─── Service singleton ────
 
 const candidateService = new CandidateService(new CandidateRepository());
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Props ─
 
 interface ApplyModalProps {
   jobTitle:  string;
@@ -23,7 +23,7 @@ interface ApplyModalProps {
   onSubmit:  (cvUrl: string, coverLetter: string, expectedSalary: string) => Promise<void>;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────
 
 function displayTitle(raw: string): string {
   // Bỏ UUID prefix nếu có: "uuid_uuid_RealName" → "RealName"
@@ -34,7 +34,7 @@ function displayTitle(raw: string): string {
   return raw.replace(/_/g, " ");
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
   const [cvList,         setCvList]         = useState<CandidateCV[]>([]);
@@ -48,7 +48,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
   const [submitting,     setSubmitting]     = useState(false);
   const [submitError,    setSubmitError]    = useState<string | null>(null);
 
-  // ── Load CV list on mount ──────────────────────────────────────────────────
+  // ── Load CV list on mount ─────
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -70,7 +70,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Submit ─────────────
   const handleSubmit = async () => {
     if (!selectedCvId) {
       setSubmitError("Vui lòng chọn CV để ứng tuyển.");
@@ -110,7 +110,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6
         animate-in fade-in slide-in-from-bottom-4 duration-200">
 
-        {/* ── Header ──────────────────────────────────────────────────────── */}
+        {/* ── Header ──── */}
         <div className="flex items-start justify-between mb-5">
           <div>
             <h2 className="text-base font-bold text-gray-900">Ứng tuyển vị trí</h2>
@@ -127,7 +127,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
 
         <div className="flex flex-col gap-4">
 
-          {/* ── Chọn CV ─────────────────────────────────────────────────── */}
+          {/* ── Chọn CV ────── */}
           <div>
             <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
               Chọn CV <span className="text-red-500">*</span>
@@ -216,7 +216,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             )}
           </div>
 
-          {/* ── Mức lương kỳ vọng ───────────────────────────────────────── */}
+          {/* ── Mức lương kỳ vọng ─────────── */}
           <div>
             <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
               Mức lương kỳ vọng
@@ -231,7 +231,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             />
           </div>
 
-          {/* ── Thư giới thiệu ──────────────────────────────────────────── */}
+          {/* ── Thư giới thiệu ────────────── */}
           <div>
             <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
               Thư giới thiệu
@@ -246,7 +246,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             />
           </div>
 
-          {/* ── Submit error ─────────────────────────────────────────────── */}
+          {/* ── Submit error ── */}
           {submitError && (
             <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-xl
               border border-red-100">
@@ -254,7 +254,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             </p>
           )}
 
-          {/* ── Actions ──────────────────────────────────────────────────── */}
+          {/* ── Actions  */}
           <div className="flex gap-2 pt-1">
             <button
               onClick={onClose}

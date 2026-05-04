@@ -11,25 +11,25 @@ interface Step {
 
 function calcCompletion(p: CompanyProfile): { percentage: number; steps: Step[]; completedSteps: Step[] } {
   const checks: Step[] = [
-    // ── Thông tin cơ bản (40%) ──────────────────────────────────────────────
+    // ── Thông tin cơ bản (40%) ─
     { label: "Tên công ty",           done: !!(p.name),                          percent: 10 },
     { label: "Lĩnh vực hoạt động",    done: !!(p.industry),                     percent: 5 },
     { label: "Mô tả công ty",         done: !!(p.description && p.description.length > 50), percent: 15 },
     { label: "Quy mô công ty",        done: !!(p.size && p.size !== "UNKNOWN"), percent: 5 },
     { label: "Năm thành lập",         done: !!(p.foundedYear),                  percent: 5 },
     
-    // ── Thông tin liên hệ (20%) ─────────────────────────────────────────────
+    // ── Thông tin liên hệ (20%) 
     { label: "Email liên hệ",         done: !!(p.email),                        percent: 5 },
     { label: "Số điện thoại",         done: !!(p.phone),                        percent: 5 },
     { label: "Địa chỉ",               done: !!(p.address),                      percent: 5 },
     { label: "Thành phố & Quốc gia",  done: !!(p.city && p.country),            percent: 5 },
     
-    // ── Hình ảnh & Website (20%) ────────────────────────────────────────────
+    // ── Hình ảnh & Website (20%) ──────────────
     { label: "Website công ty",       done: !!(p.website),                      percent: 5 },
     { label: "Logo công ty",          done: !!(p.logoUrl),                      percent: 10 },
     { label: "Ảnh bìa",               done: !!(p.coverImageUrl),                percent: 5 },
     
-    // ── Nội dung mở rộng (20%) ──────────────────────────────────────────────
+    // ── Nội dung mở rộng (20%) ─
     { label: "Đội ngũ lãnh đạo",      done: !!(p.teamMembers && p.teamMembers.length > 0), percent: 10,
       description: "Thêm ít nhất 1 thành viên" },
     { label: "Thư viện ảnh",          done: !!(p.gallery && p.gallery.length >= 3), percent: 10,

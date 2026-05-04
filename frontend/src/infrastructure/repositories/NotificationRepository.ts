@@ -7,7 +7,7 @@ import type {
 
 export class NotificationRepository {
 
-  // ─── Normalize raw API response → NotificationItem ────────────────────────
+  // ─── Normalize raw API response → NotificationItem ─────────
   // Đây là source of truth duy nhất cho việc map field từ backend.
   // Backend REST trả về field "read" (boolean) và "id" (không phải notificationId).
   private map(raw: any): NotificationItem {
@@ -26,7 +26,7 @@ export class NotificationRepository {
     };
   }
 
-  // ─── List paginated ────────────────────────────────────────────────────────
+  // ─── List paginated ────
   async list(page = 0, size = 20): Promise<NotificationResult> {
     const res  = await api.get("/notifications", { params: { page, size } });
     const data = res.data.data; // { notifications: [], unreadCount: N }
@@ -38,25 +38,25 @@ export class NotificationRepository {
     };
   }
 
-  // ─── Recent (dùng cho header bell dropdown) ────────────────────────────────
+  // ─── Recent (dùng cho header bell dropdown) ──
   async recent(): Promise<NotificationItem[]> {
     const res     = await api.get("/notifications/recent");
     const raw: any[] = res.data.data ?? [];
     return raw.map(n => this.map(n));
   }
 
-  // ─── Unread count ──────────────────────────────────────────────────────────
+  // ─── Unread count ──────
   async unreadCount(): Promise<number> {
     const res = await api.get("/notifications/unread-count");
     return res.data.data?.unreadCount ?? 0;
   }
 
-  // ─── Mark one read ─────────────────────────────────────────────────────────
+  // ─── Mark one read ─────
   async markOneRead(id: string): Promise<void> {
     await api.patch(`/notifications/${id}/read`);
   }
 
-  // ─── Mark all read ─────────────────────────────────────────────────────────
+  // ─── Mark all read ─────
   // Returns số lượng đã được đánh dấu (từ backend)
   async markAllRead(): Promise<number> {
     const res = await api.patch("/notifications/read-all");

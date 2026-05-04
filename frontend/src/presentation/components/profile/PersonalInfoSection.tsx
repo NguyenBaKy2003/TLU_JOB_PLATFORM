@@ -20,7 +20,7 @@ const MARITAL_LABEL: Record<string, string> = {
   WIDOWED:  "Góa",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-components ───────
 
 function InputField({ label, value, onChange, placeholder, type = "text", disabled }: {
   label: string; value: string; onChange: (v: string) => void;
@@ -77,7 +77,7 @@ function ReadField({ label, value, isLink }: { label: string; value: string; isL
   );
 }
 
-// ─── Draft ────────────────────────────────────────────────────────────────────
+// ─── Draft ─
 
 interface Draft {
   firstName: string; lastName: string; email: string;
@@ -98,7 +98,7 @@ function profileToDraft(p: CandidateProfile): Draft {
   };
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Props ─
 
 interface Props {
   profile: CandidateProfile;
@@ -107,7 +107,7 @@ interface Props {
   onSave:  (section: SectionKey, payload: UpdateProfilePayload) => Promise<void>;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export default function PersonalInfoSection({ profile, saving, error, onSave }: Props) {
   const [editing, setEditing] = useState(false);

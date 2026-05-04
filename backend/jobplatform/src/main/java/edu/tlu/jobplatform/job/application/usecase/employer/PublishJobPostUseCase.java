@@ -15,19 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-/**
- * UseCase: Publish bài đăng tuyển dụng.
- *
- * Flow:
- * 1. Load bài đăng, kiểm tra ownership
- * 2. Domain service validate nội dung đủ để publish
- * 3. Kiểm tra quota còn không
- * 4. Trừ quota
- * 5. Chuyển status → PUBLISHED
- * 6. Fire JobPublishedEvent → Search + AI index
- *
- * Bước 4+5 trong cùng 1 transaction — nếu save thất bại, quota không bị trừ.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,30 +25,52 @@ public class PublishJobPostUseCase {
     private final QuotaServicePort quotaService;
     private final JobEventPublisher eventPublisher;
 
+    /**
+     * Flow:
+     * 1. Load + ownership check
+     * 2. Validate nội dung JD
+     * 3. Trừ job post quota
+     * 4. Nếu featured → trừ featured quota
+     * (exception ở bước 4 → rollback toàn bộ transaction kể cả bước 3)
+     * 5. Publish + đánh dấu featured nếu có
+     * 6. Save + fire event
+     */
     @Transactional
-    public JobPost execute(UUID jobPostId) {
+    public JobPost execute(Command cmd) {
 
-        JobPost job = jobPostRepository.findById(jobPostId)
-                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
+        JobPost job = jobPostRepository.findById(cmd.jobPostId())
+                .orElseThrow(() -> ResourceNotFoundException.of("JobPost", cmd.jobPostId()));
 
-        // Chỉ owner mới được publish
         if (!SecurityUtils.isOwnerOrAdmin(job.getPostedBy()))
-            throw new BusinessRuleException("Bạn không có quyền publish bài đăng này.", "FORBIDDEN");
+            throw new BusinessRuleException(
+                    "Bạn không có quyền publish bài đăng này.", "FORBIDDEN");
 
-        // Validate nội dung JD
         domainService.validateForPublish(job);
 
-        // Kiểm tra và trừ quota (throw QuotaExceededException nếu hết)
+        // Trừ quota đăng tin thường — throw nếu hết
         quotaService.consumeQuota(job.getCompanyId());
 
-        // Publish
+        // Trừ quota featured nếu cần — throw nếu hết (rollback cả bước trên)
+        if (cmd.featured()) {
+            quotaService.consumeFeaturedQuota(job.getCompanyId());
+            job.markFeatured();
+        }
+
         job.publish();
         JobPost saved = jobPostRepository.save(job);
-
-        // Fire event → Search index + AI embedding (async)
         eventPublisher.publishJobPublished(saved);
 
-        log.info("JobPost published: {} [company={}]", jobPostId, job.getCompanyId());
+        log.info("JobPost published: {} [company={}, featured={}]",
+                cmd.jobPostId(), job.getCompanyId(), cmd.featured());
         return saved;
+    }
+
+    /** Backward-compatible: publish không featured */
+    @Transactional
+    public JobPost execute(UUID jobPostId) {
+        return execute(new Command(jobPostId, false));
+    }
+
+    public record Command(UUID jobPostId, boolean featured) {
     }
 }

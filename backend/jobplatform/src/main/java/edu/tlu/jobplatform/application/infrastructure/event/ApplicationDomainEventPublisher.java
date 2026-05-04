@@ -2,8 +2,8 @@ package edu.tlu.jobplatform.application.infrastructure.event;
 
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
-import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.event.application.ApplicationStatusChangedEvent;
@@ -57,7 +57,7 @@ public class ApplicationDomainEventPublisher {
                 log.debug("ApplicationSubmittedEvent fired: {}", app.getId());
         }
 
-        // ── publishStatusChanged ──────────────────────────────────────────────────
+        // ── publishStatusChanged ──────
 
         public void publishStatusChanged(Application app, ApplicationStatus prevStatus) {
                 eventPublisher.publishEvent(new ApplicationStatusChangedEvent(
@@ -71,7 +71,7 @@ public class ApplicationDomainEventPublisher {
                 log.debug("ApplicationStatusChangedEvent fired: {} → {}", prevStatus, app.getStatus());
         }
 
-        // ── publishInterviewScheduled ─────────────────────────────────────────────
+        // ── publishInterviewScheduled ─
 
         /**
          * Resolve candidateEmail, candidateName, companyName TRONG transaction

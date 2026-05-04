@@ -1,8 +1,8 @@
 package edu.tlu.jobplatform.application.domain.service;
 
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse.CandidateInfo;
-import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

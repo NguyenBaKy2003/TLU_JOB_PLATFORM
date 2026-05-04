@@ -1,9 +1,9 @@
-# ════════════════════════════════════════════════════════════════
+# 
 #  Dockerfile — JobPlatform Backend
 #  Spring Boot | Java 21 | Eclipse Temurin
-# ════════════════════════════════════════════════════════════════
+# 
 
-# ── Stage 1: Builder ─────────────────────────────────────────────
+# ── Stage 1: Builder ─
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /build
@@ -23,7 +23,7 @@ RUN ./mvnw package -B -q \
     -DskipTests \
     -Dspring-boot.repackage.excludeDevtools=true
 
-# ── Stage 2: Runtime ─────────────────────────────────────────────
+# ── Stage 2: Runtime ─
 FROM eclipse-temurin:21-jre-alpine AS runtime
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

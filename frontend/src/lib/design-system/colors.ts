@@ -8,7 +8,7 @@
  *   colors.error[500]     → "#DC0000"
  */
 
-// ─── Primary (Blue) ───────────────────────────────────────────────────────────
+// ─── Primary (Blue) ───────
 
 const primary = {
   50:  "#EEF5FF",
@@ -23,7 +23,7 @@ const primary = {
   900: "#002F6E",
 } as const;
 
-// ─── Neutral (Gray) ───────────────────────────────────────────────────────────
+// ─── Neutral (Gray) ───────
 
 const neutral = {
   50:  "#F8F8F8",
@@ -37,7 +37,7 @@ const neutral = {
   800: "#282828",
 } as const;
 
-// ─── Error (Red) ──────────────────────────────────────────────────────────────
+// ─── Error (Red) ──────────
 
 const error = {
   100: "#FFEEEE",
@@ -46,7 +46,7 @@ const error = {
   800: "#840000",
 } as const;
 
-// ─── Success (Green) ──────────────────────────────────────────────────────────
+// ─── Success (Green) ──────
 
 const success = {
   100: "#EEFFFD",
@@ -55,7 +55,7 @@ const success = {
   800: "#034203",
 } as const;
 
-// ─── Warning (Yellow) ─────────────────────────────────────────────────────────
+// ─── Warning (Yellow) ─────
 
 const warning = {
   100: "#FFEBB2",
@@ -63,7 +63,7 @@ const warning = {
   800: "#805E00",
 } as const;
 
-// ─── Info (Teal/Cyan) ─────────────────────────────────────────────────────────
+// ─── Info (Teal/Cyan) ─────
 
 const info = {
   100: "#E4FFF9",
@@ -72,7 +72,7 @@ const info = {
   800: "#044747",
 } as const;
 
-// ─── Semantic aliases ─────────────────────────────────────────────────────────
+// ─── Semantic aliases ─────
 // Dùng trong code thay vì hardcode hex
 
 export const semantic = {
@@ -124,7 +124,7 @@ export const semantic = {
   infoText:         info[800],
 } as const;
 
-// ─── Export ───────────────────────────────────────────────────────────────────
+// ─── Export 
 
 export const colors = {
   primary,

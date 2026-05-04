@@ -75,7 +75,7 @@ export default function JobReviewPage() {
     <DashboardLayout activeHref="/jobs/post" topbarTitle="Đăng Tin Tuyển Dụng">
       <div className="max-w-2xl mx-auto flex flex-col gap-5 pb-10">
 
-        {/* ── 1. Giới thiệu ────────────────────────────────────── */}
+        {/* ── 1. Giới thiệu ──────── */}
         <PostSection icon={<Briefcase size={16} />} title="Giới thiệu công việc" onEdit={goEdit("intro")}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
             <ReadField label="Chức danh công việc" value={job.title} />
@@ -86,17 +86,17 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 2. Hình thức ────────────────────────────────────── */}
+        {/* ── 2. Hình thức ──────── */}
         <PostSection icon={<MonitorSmartphone size={16} />} title="Hình thức làm việc" onEdit={goEdit("workType")}>
           <TagRow items={job.workTypes} />
         </PostSection>
 
-        {/* ── 3. Địa điểm ──────────────────────────────────────  */}
+        {/* ── 3. Địa điểm ────────  */}
         <PostSection icon={<MapPin size={16} />} title="Địa điểm làm việc" onEdit={goEdit("location")}>
           <TagRow items={[job.locationFull]} />
         </PostSection>
 
-        {/* ── 4. Lương ─────────────────────────────────────────  */}
+        {/* ── 4. Lương ───────────  */}
         <PostSection icon={<DollarSign size={16} />} title="Mức lương & Phúc lợi" onEdit={goEdit("salary")}>
           <div className="flex flex-col gap-3">
             <p className="text-sm font-medium text-gray-800">{job.salary}</p>
@@ -108,12 +108,12 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 5. Phúc lợi ─────────────────────────────────────── */}
+        {/* ── 5. Phúc lợi ───────── */}
         <PostSection icon={<Heart size={16} />} title="Phúc lợi mong muốn" onEdit={goEdit("benefits")}>
           <TagRow items={job.benefits} />
         </PostSection>
 
-        {/* ── 6. Điều kiện ─────────────────────────────────────── */}
+        {/* ── 6. Điều kiện ───────── */}
         <PostSection icon={<UserCheck size={16} />} title="Điều kiện ứng tuyển" onEdit={goEdit("conditions")}>
           <div className="flex flex-col gap-3">
             <TagRow items={[job.minAge]} />
@@ -124,7 +124,7 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 7. Kinh nghiệm ───────────────────────────────────── */}
+        {/* ── 7. Kinh nghiệm ─────── */}
         <PostSection icon={<ClipboardList size={16} />} title="Kinh nghiệm làm việc" onEdit={goEdit("experience")}>
           <div className="flex flex-col gap-3">
             <TagRow items={[job.experience]} />
@@ -132,7 +132,7 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 8. Yêu cầu bổ sung ───────────────────────────────── */}
+        {/* ── 8. Yêu cầu bổ sung ─── */}
         <PostSection icon={<ClipboardList size={16} />} title="Yêu cầu bổ sung" onEdit={goEdit("additional")}>
           <div className="flex flex-col gap-3">
             <TagRow items={job.additionalReqs} />
@@ -140,7 +140,7 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 9. Kỹ năng ───────────────────────────────────────── */}
+        {/* ── 9. Kỹ năng ─────────── */}
         <PostSection icon={<Wrench size={16} />} title="Kỹ năng" onEdit={goEdit("skills")}>
           <div className="flex flex-col gap-2">
             {job.skills.map((s, i) => (
@@ -151,7 +151,7 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── 10. Mô tả ────────────────────────────────────────── */}
+        {/* ── 10. Mô tả ──────────── */}
         <PostSection icon={<FileText size={16} />} title="Mô tả công việc" onEdit={goEdit("description")}>
           <div className="flex flex-col gap-3">
             <TagRow items={[job.workSchedule]} />
@@ -160,7 +160,7 @@ export default function JobReviewPage() {
           </div>
         </PostSection>
 
-        {/* ── Save ─────────────────────────────────────────────── */}
+        {/* ── Save ── */}
         <button
           onClick={handleSave}
           className="w-full py-3.5 bg-blue-500 text-white text-sm font-semibold rounded-2xl

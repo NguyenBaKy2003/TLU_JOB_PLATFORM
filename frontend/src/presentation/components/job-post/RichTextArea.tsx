@@ -12,7 +12,7 @@ import {
   Undo, Redo, RemoveFormatting,
 } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ──
 
 interface RichTextAreaProps {
   label?:       string;
@@ -27,7 +27,7 @@ interface RichTextAreaProps {
   hint?:        string;
 }
 
-// ── Toolbar button ────────────────────────────────────────────────────────────
+// ── Toolbar button ────────
 
 function ToolbarBtn({
   onClick, active, title, children, disabled,
@@ -59,7 +59,7 @@ function Sep() {
   return <div className="w-px h-4 bg-gray-200 mx-1 shrink-0" />;
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Component ────────
 
 export function RichTextArea({
   label, required, placeholder, value, onChange,

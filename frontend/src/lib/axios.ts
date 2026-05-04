@@ -26,7 +26,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// ── Xác định redirect target dựa theo pathname hiện tại ──────────────────────
+// ── Xác định redirect target dựa theo pathname hiện tại ───────
 function getLoginRedirect(): string {
   if (typeof window === "undefined") return "/auth/login";
   return window.location.pathname.startsWith("/admin")
@@ -55,7 +55,7 @@ const refreshAccessToken = async (): Promise<string> => {
   }
 };
 
-// ── Request Interceptor ───────────────────────────────────────────────────────
+// ── Request Interceptor ───
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     if (config.headers?.Authorization) return config;
@@ -91,7 +91,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// ── Response Interceptor ──────────────────────────────────────────────────────
+// ── Response Interceptor ──
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {

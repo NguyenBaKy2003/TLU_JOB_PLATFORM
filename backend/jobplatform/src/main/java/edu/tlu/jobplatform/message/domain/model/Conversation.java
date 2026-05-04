@@ -29,7 +29,7 @@ public class Conversation {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business rules ────────────────────────────────────────────────────────
+    // ── Business rules ────────────
 
     public boolean canSendMessage() {
         return this.status == ConversationStatus.ACTIVE;

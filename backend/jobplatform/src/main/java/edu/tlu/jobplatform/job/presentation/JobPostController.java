@@ -12,6 +12,7 @@ import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.presentation.dto.request.CreateJobPostRequest;
+import edu.tlu.jobplatform.job.presentation.dto.request.PublishJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.request.UpdateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
@@ -113,11 +114,17 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs/{id}/publish")
         @PreAuthorize("hasRole('EMPLOYER')")
-        public ResponseEntity<ApiResponse<JobPostDetailResponse>> publish(@PathVariable UUID id) {
-                JobPost job = publishUseCase.execute(id);
-                return ResponseEntity.ok(
-                                ApiResponse.success(JobPostDetailResponse.from(job),
-                                                "Bài đăng đã được publish thành công."));
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> publish(
+                        @PathVariable UUID id,
+                        @RequestBody(required = false) PublishJobPostRequest req) {
+
+                boolean featured = req != null && req.featured();
+                JobPost job = publishUseCase.execute(new PublishJobPostUseCase.Command(id, featured));
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                JobPostDetailResponse.from(job),
+                                featured ? "Bài đăng đã được publish dưới dạng tin nổi bật."
+                                                : "Bài đăng đã được publish thành công."));
         }
 
         @Operation(summary = "Cập nhật bài đăng")
@@ -188,7 +195,7 @@ public class JobPostController {
                 return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã được xóa."));
         }
 
-        // ── Helpers ───────────────────────────────────────────────
+        // ── Helpers ───
         private UUID resolveCompanyId() {
                 UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
                 return companyRepository.findByOwnerId(ownerId)

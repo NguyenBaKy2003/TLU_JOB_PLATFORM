@@ -14,7 +14,7 @@ import {
   clearAdminTokens,
 } from "@/lib/auth-helpers";
 
-// ─── Context type ─────────────────────────────────────────────────────────────
+// ─── Context type ─────────
 
 interface AdminAuthContextType {
   adminUser:         User | null | undefined;
@@ -24,7 +24,7 @@ interface AdminAuthContextType {
   adminLogout:       () => Promise<void>;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const REFRESH_BEFORE_EXPIRY_S = 60;
 const MAX_BACKOFF_MS          = 30_000;
@@ -33,7 +33,7 @@ const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
 ).replace(/\/$/, "");
 
-// ─── JWT helpers ──────────────────────────────────────────────────────────────
+// ─── JWT helpers ──────────
 
 function getSecondsUntilExpiry(token: string): number {
   try {
@@ -80,11 +80,11 @@ async function fetchAdminRefresh(refreshToken: string): Promise<{
   }
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context ──────────────
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Provider ─────────────
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [adminUser,    setAdminUser]    = useState<User | null | undefined>(undefined);
@@ -96,7 +96,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const retryCount      = useRef(0);
   const silentRefreshRef = useRef<() => Promise<void>>(async () => {});
 
-  // ── cancelTimer ──────────────────────────────────────────────────────────
+  // ── cancelTimer ──────
 
   const cancelTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -105,7 +105,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ── scheduleRefresh ───────────────────────────────────────────────────────
+  // ── scheduleRefresh ───
 
   const scheduleRefresh = useCallback(() => {
     cancelTimer();
@@ -118,7 +118,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     timerRef.current = setTimeout(() => silentRefreshRef.current(), delay);
   }, [cancelTimer]);
 
-  // ── silentRefresh ─────────────────────────────────────────────────────────
+  // ── silentRefresh ─────
 
   const silentRefresh = useCallback(async () => {
     const rt = getAdminRefreshToken();
@@ -145,7 +145,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { silentRefreshRef.current = silentRefresh; }, [silentRefresh]);
 
-  // ── setAdminFromToken ─────────────────────────────────────────────────────
+  // ── setAdminFromToken ─
 
   const setAdminFromToken = useCallback((
     tokenUser:    AuthTokenUser,
@@ -176,7 +176,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     scheduleRefresh();
   }, [scheduleRefresh]);
 
-  // ── refreshAdminUser ──────────────────────────────────────────────────────
+  // ── refreshAdminUser ──
 
   const refreshAdminUser = useCallback(async () => {
     if (isRefreshing.current) return;
@@ -204,7 +204,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [scheduleRefresh]);
 
-  // ── adminLogout — chỉ clear admin tokens ─────────────────────────────────
+  // ── adminLogout — chỉ clear admin tokens ───
 
   const adminLogout = useCallback(async () => {
     cancelTimer();
@@ -221,7 +221,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setAdminUser(null);
   }, [cancelTimer]);
 
-  // ── Initial load ──────────────────────────────────────────────────────────
+  // ── Initial load ──────
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -236,7 +236,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     refreshAdminUser();
   }, [refreshAdminUser]);
 
-  // ── visibilitychange ──────────────────────────────────────────────────────
+  // ── visibilitychange ──
 
   useEffect(() => {
     const handle = () => {
@@ -254,7 +254,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => cancelTimer(), [cancelTimer]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <AdminAuthContext.Provider value={{

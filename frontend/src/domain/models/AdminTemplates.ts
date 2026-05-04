@@ -1,9 +1,9 @@
 // D:\TLU_JOB_PLATFORM\frontend\src\domain\models\AdminTemplates.ts
 
-// ─────────────────────────────────────────────────────────────
+// ─────────
 // Domain Models cho Admin CV Templates
 // Mapping từ CVTemplateMapper.java và AdminCVTemplateResponse.java
-// ─────────────────────────────────────────────────────────────
+// ─────────
 
 /**
  * Category của CV Template - khớp với backend enum

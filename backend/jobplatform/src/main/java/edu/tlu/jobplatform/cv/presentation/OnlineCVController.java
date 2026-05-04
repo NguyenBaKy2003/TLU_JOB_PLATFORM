@@ -47,7 +47,7 @@ public class OnlineCVController {
         private final ImportFromProfileUseCase importFromProfileUseCase;
         private final PreviewCVUseCase previewCVUseCase;
         private final DownloadExportedCVUseCase downloadExportedCVUseCase;
-        // ── GET /api/v1/cv ────────────────────────────────────────────────────────
+        // ── GET /api/v1/cv ────────────
 
         @Operation(summary = "Danh sách CV của tôi")
         @GetMapping
@@ -59,7 +59,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success(list));
         }
 
-        // ── POST /api/v1/cv ───────────────────────────────────────────────────────
+        // ── POST /api/v1/cv ───────────
 
         @Operation(summary = "Tạo CV mới", description = """
                         Tạo CV mới ở trạng thái DRAFT từ template được chọn.
@@ -76,7 +76,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được tạo thành công."));
         }
 
-        // ── GET /api/v1/cv/{cvId} ─────────────────────────────────────────────────
+        // ── GET /api/v1/cv/{cvId} ─────
 
         @Operation(summary = "Chi tiết CV (để chỉnh sửa)")
         @GetMapping("/{cvId}")
@@ -88,7 +88,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success(OnlineCVDetailResponse.from(cv)));
         }
 
-        // ── PUT /api/v1/cv/{cvId} ─────────────────────────────────────────────────
+        // ── PUT /api/v1/cv/{cvId} ─────
 
         @Operation(summary = "Cập nhật metadata CV", description = """
                         Cập nhật: tiêu đề, thông tin cá nhân, template, visibility.
@@ -107,7 +107,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/cv/{cvId} ──────────────────────────────────────────────
+        // ── DELETE /api/v1/cv/{cvId} ──
 
         @Operation(summary = "Xóa CV", description = "Xóa hoàn toàn CV và file PDF trên S3 (nếu có).")
         @DeleteMapping("/{cvId}")
@@ -291,7 +291,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success(renderedHtml, "Thành công"));
         }
 
-        // ── GET /api/v1/cv/{cvId}/view ────────────────────────────────────────────
+        // ── GET /api/v1/cv/{cvId}/view
 
         @Operation(summary = "Xem CV PDF (inline)", description = """
                         Hiển thị PDF trực tiếp trong browser.

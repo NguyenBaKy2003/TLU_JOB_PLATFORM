@@ -17,7 +17,7 @@ interface ApiResponse<T> {
 
 export class AiRepository implements IAiRepository {
 
-  // ── Chatbot ───────────────────────────────────────────────────
+  // ── Chatbot ──────
 
   async sendMessage(payload: SendMessagePayload): Promise<ChatMessage & { sessionId: string }> {
     const res = await api.post<ApiResponse<ChatMessage & { sessionId: string }>>(
@@ -44,7 +44,7 @@ export class AiRepository implements IAiRepository {
     await api.delete(`/chatbot/sessions/${sessionId}`);
   }
 
-  // ── AI Features ───────────────────────────────────────────────
+  // ── AI Features ──
 
   async rescoreApplication(applicationId: string): Promise<string> {
     const res = await api.post<ApiResponse<string>>(

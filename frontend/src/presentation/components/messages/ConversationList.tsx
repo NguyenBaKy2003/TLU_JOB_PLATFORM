@@ -4,7 +4,7 @@ import { Search, RefreshCw } from "lucide-react";
 import { ConversationItem } from "./ConversationItem";
 import type { ConversationSummary } from "@/domain/models/Message";
 
-// ── Skeleton ─────────────────────────────────────────────────────────────────
+// ── Skeleton ─────────────
 function ConvSkeleton() {
   return (
     <div className="flex items-start gap-3 px-4 py-3 animate-pulse">
@@ -20,7 +20,7 @@ function ConvSkeleton() {
   );
 }
 
-// ── Props ────────────────────────────────────────────────────────────────────
+// ── Props ─
 interface Props {
   conversations: ConversationSummary[];
   loading: boolean;
@@ -33,7 +33,7 @@ interface Props {
   role: "EMPLOYER" | "CANDIDATE"; // ✅ NEW
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ────────────
 export function ConversationList({
   conversations,
   loading,

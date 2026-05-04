@@ -1,7 +1,7 @@
 // src/domain/repositories/IAdminSubscriptionRepository.ts
 import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 
-// ── Payload sent to backend when creating / updating a plan ──────────────────
+// ── Payload sent to backend when creating / updating a plan ───
 // Prices are plain numbers; Spring's Jackson will deserialize into BigDecimal.
 export interface PlanPayload {
   code: string;
@@ -17,7 +17,7 @@ export interface PlanPayload {
   durationDays: number;
 }
 
-// ── Row returned by the admin subscriptions list endpoint ────────────────────
+// ── Row returned by the admin subscriptions list endpoint ─────
 export interface AdminSubscriptionRow {
   id: string;
   companyId: string;
@@ -29,14 +29,14 @@ export interface AdminSubscriptionRow {
   amount: number;
 }
 
-// ── Page wrapper ─────────────────────────────────────────────────────────────
+// ── Page wrapper ─────────
 export interface PageResult<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
 }
 
-// ── Repository contract ───────────────────────────────────────────────────────
+// ── Repository contract ───
 export interface IAdminSubscriptionRepository {
   /** GET /api/v1/admin/subscription-plans — all plans, including inactive */
   adminGetAllPlans(): Promise<SubscriptionPlan[]>;

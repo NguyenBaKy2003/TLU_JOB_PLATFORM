@@ -47,7 +47,7 @@ export const APPLICATION_STATUS_STYLES: Record<ApplicationStatus, string> = {
   CANCELLED:           "bg-gray-100   text-gray-400   border-gray-200",
 };
 
-// ── Nested DTOs ────────────────────────────────────────────────────────────────
+// ── Nested DTOs ────────────
 
 export interface CandidateInfo {
   id:        string;
@@ -98,7 +98,7 @@ export interface CompanyInfo {
   city?:    string | null;
 }
 
-// ── Domain models ──────────────────────────────────────────────────────────────
+// ── Domain models ──────────
 
 export interface Application {
   id:                 string;
@@ -159,7 +159,7 @@ export interface ApplicationWithCandidate extends Application {
   aiScore?:        AIScore | null;
 }
 
-// ── Payloads ───────────────────────────────────────────────────────────────────
+// ── Payloads 
 
 export interface SubmitApplicationRequest {
   jobPostId:       string;

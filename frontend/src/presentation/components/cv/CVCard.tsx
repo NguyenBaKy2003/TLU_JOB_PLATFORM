@@ -9,7 +9,7 @@ import {
 import type { OnlineCV, CVStatus, CVVisibility } from "@/domain/models/Cv";
 import { CV_STATUS_LABELS, CV_VISIBILITY_LABELS } from "@/domain/models/Cv";
 
-// ── Status / Visibility badges ────────────────────────────────────────────────
+// ── Status / Visibility badges ───
 
 const STATUS_STYLES: Record<CVStatus, string> = {
   DRAFT:     "bg-amber-50 text-amber-700 border-amber-200",
@@ -23,7 +23,7 @@ const VISIBILITY_STYLES: Record<CVVisibility, string> = {
   LINK_ONLY: "bg-purple-50 text-purple-600",
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
@@ -31,7 +31,7 @@ function formatDate(iso: string) {
   );
 }
 
-// ── CV Thumbnail placeholder ──────────────────────────────────────────────────
+// ── CV Thumbnail placeholder ─────
 
 function CVThumbnail({ title, status }: { title: string; status: CVStatus }) {
   const initials = title
@@ -70,7 +70,7 @@ function CVThumbnail({ title, status }: { title: string; status: CVStatus }) {
   );
 }
 
-// ── Dropdown menu ─────────────────────────────────────────────────────────────
+// ── Dropdown menu ─────────
 
 interface MenuProps {
   cv: OnlineCV;
@@ -163,7 +163,7 @@ function CVCardMenu({ cv, onClose, onDuplicate, onDelete, onPublish, onArchive, 
   );
 }
 
-// ── Main Card ─────────────────────────────────────────────────────────────────
+// ── Main Card ─────────────
 
 interface Props {
   cv: OnlineCV;

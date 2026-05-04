@@ -26,7 +26,7 @@ export default function ProfileHero({
   const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
   const initials    = (firstName?.charAt(0) ?? lastName?.charAt(0) ?? "?").toUpperCase();
 
-  // ── Avatar ────────────────────────────────────────────────────────────────
+  // ── Avatar ────────────
 
   const handleAvatarFile = async (file: File) => {
     if (!onAvatarChange) return;
@@ -44,7 +44,7 @@ export default function ProfileHero({
     e.target.value = "";
   };
 
-  // ── CV ────────────────────────────────────────────────────────────────────
+  // ── CV ─
 
   const handleViewCV = async () => {
     if (!onViewCV || cvLoading) return;
@@ -58,7 +58,7 @@ export default function ProfileHero({
     try { await onDownloadCV(); } finally { setCvLoading(null); }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-xl border border-gray-100 shadow-sm">

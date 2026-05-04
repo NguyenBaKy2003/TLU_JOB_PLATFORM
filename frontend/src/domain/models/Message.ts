@@ -1,11 +1,11 @@
 // src/domain/models/Message.ts
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// ── Enums ──
 
 export type MessageType        = "TEXT" | "FILE" | "IMAGE" | "AUDIO" | "EMOJI";
 export type ConversationStatus = "ACTIVE" | "ARCHIVED" | "BLOCKED";
 
-// ── Shared types ──────────────────────────────────────────────────────────────
+// ── Shared types ──────────
 
 export interface Participant {
   id: string;
@@ -13,7 +13,7 @@ export interface Participant {
   avatarUrl?: string | null;
 }
 
-// ── Domain models (match backend 100%) ───────────────────────────────────────
+// ── Domain models (match backend 100%) ─────────
 
 // Message trong conversation
 export interface ConversationMessage {
@@ -54,7 +54,7 @@ export interface ConversationSummary {
   online?:   boolean;
 }
 
-// ── Payloads ──────────────────────────────────────────────────────────────────
+// ── Payloads ──────────────
 
 export interface StartConversationPayload {
   candidateId: string;
@@ -67,7 +67,7 @@ export interface SendMessagePayload {
   type:           MessageType;
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// ── Pagination ────────────
 
 export interface MessagePage {
   conversations: ConversationSummary[];

@@ -21,7 +21,7 @@ env:
   IMAGE_NAME: jobplatform-backend
   WORKING_DIR: backend/jobplatform
 
-# ════════════════════════════════════════════════════════════════
+#
 jobs:
   # ── Job 1: Build + Test ─────────────────────────────────────────
   ci:

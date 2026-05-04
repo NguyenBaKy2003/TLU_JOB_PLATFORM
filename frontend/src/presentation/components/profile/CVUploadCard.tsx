@@ -52,7 +52,7 @@ export default function CVUploadCard({
   const displayName      = local?.phase === "success" ? local.name : primaryCV?.title ?? null;
   const showPrimaryBadge = local?.phase === "success" ? local.isPrimary : !!primaryCV?.primary;
 
-  // ── Upload ────────────────────────────────────────────────────────────────
+  // ── Upload ────────────
 
   const doUpload = useCallback(async (file: File, setAsPrimary: boolean) => {
     setShowPrimaryAsk(false);
@@ -89,7 +89,7 @@ export default function CVUploadCard({
     const f = e.dataTransfer.files[0]; if (f) handleFile(f);
   };
 
-  // ── Delete primary CV ─────────────────────────────────────────────────────
+  // ── Delete primary CV ─
 
   const handleDelete = async () => {
     if (local?.phase === "success") { setLocal(null); return; }
@@ -99,14 +99,14 @@ export default function CVUploadCard({
     }
   };
 
-  // ── Open list modal ───────────────────────────────────────────────────────
+  // ── Open list modal ───
 
   const handleOpenList = async () => {
     setShowList(true);
     await onRefreshList();
   };
 
-  // ── Render: hỏi primary ───────────────────────────────────────────────────
+  // ── Render: hỏi primary ──────
 
   if (showPrimaryAsk && pendingFile) {
     return (
@@ -133,7 +133,7 @@ export default function CVUploadCard({
     );
   }
 
-  // ── Render: Success / Existing ────────────────────────────────────────────
+  // ── Render: Success / Existing ──────────────
 
   if (showSuccess) {
     return (
@@ -198,7 +198,7 @@ export default function CVUploadCard({
     );
   }
 
-  // ── Render: Upload / Error / Idle ─────────────────────────────────────────
+  // ── Render: Upload / Error / Idle ───────────
 
   return (
     <>

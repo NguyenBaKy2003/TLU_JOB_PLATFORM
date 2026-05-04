@@ -9,7 +9,7 @@ import { CandidateProfile,
 
 const MAX = 512;
 
-// ─── Single experience form ───────────────────────────────────────────────────
+// ─── Single experience form ──────
 
 interface ExpFormState {
   companyName: string;
@@ -107,7 +107,7 @@ function ExperienceForm({
   );
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Props ─
 
 interface Props {
   profile:          CandidateProfile;
@@ -118,7 +118,7 @@ interface Props {
   onDelete:         (id: string) => Promise<void>;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export default function WorkExperienceSection({
   profile, saving, error, onAdd, onUpdate, onDelete,

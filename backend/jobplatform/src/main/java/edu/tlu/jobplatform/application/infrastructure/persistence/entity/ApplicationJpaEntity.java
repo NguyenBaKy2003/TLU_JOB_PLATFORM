@@ -44,7 +44,7 @@ public class ApplicationJpaEntity extends BaseJpaEntity {
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 
-    // ── Interview ─────────────────────────────────────────────
+    // ── Interview ─
     @Column(name = "interview_scheduled_at")
     private LocalDateTime interviewScheduledAt;
     @Column(name = "interview_location", length = 500)
