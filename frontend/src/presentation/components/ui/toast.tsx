@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState,useRef, useCallback, useEffect, ReactNode } from "react";
 import { 
   CheckCircle2, 
   XCircle, 
@@ -131,6 +131,11 @@ function ToastItem({
   const config = toastConfig[toast.type];
   const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (toast.duration === 0 || isPaused) return;
@@ -141,17 +146,19 @@ function ToastItem({
 
     const timer = setInterval(() => {
       setProgress((prev) => {
-        if (prev <= 0) {
-          clearInterval(timer);
-          onClose(toast.id);
-          return 0;
-        }
-        return prev - step;
+        const next = prev - step;
+        return next <= 0 ? 0 : next;
       });
     }, interval);
 
     return () => clearInterval(timer);
-  }, [toast.id, toast.duration, onClose, isPaused]);
+  }, [toast.id, toast.duration, isPaused]);
+
+  useEffect(() => {
+    if (progress <= 0 && toast.duration !== 0) {
+      onCloseRef.current(toast.id);
+    }
+  }, [progress, toast.id, toast.duration]);
 
   return (
     <div

@@ -89,6 +89,26 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
         return jpaRepo.count();
     }
 
+    @Override
+    public int countByJobPostId(UUID id) {
+        return jpaRepo.countByJobPostId(id);
+    }
+
+    @Override
+    public Optional<Double> averageAIScoreByJobPostId(UUID jobUuid) {
+        return jpaRepo.averageAIScoreByJobPostId(jobUuid);
+    }
+
+    @Override
+    public int countInterviewedByCandidateId(UUID candidateId) {
+        return jpaRepo.countByCandidateIdAndStatus(candidateId, ApplicationStatus.INTERVIEW_SCHEDULED);
+    }
+
+    @Override
+    public int countByCandidateId(UUID candidateId) {
+        return jpaRepo.countByCandidateId(candidateId);
+    }
+
     // ── Search methods ────────────
 
     /**

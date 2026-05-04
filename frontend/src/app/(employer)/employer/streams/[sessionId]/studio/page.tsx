@@ -3,8 +3,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { LiveKitRoom, ControlBar } from "@livekit/components-react";
-import "@livekit/components-styles";
 import { MessageCircle, Pin, Square } from "lucide-react";
 import type { LiveStreamSession } from "@/domain/models/LiveStream";
 import { LiveStreamRepository } from "@/infrastructure/repositories/LiveStreamRepository";
@@ -15,18 +13,31 @@ import { ViewerCount } from "@/presentation/components/stream/common/ViewerCount
 import { ChatPanel, type ChatMessageData } from "@/presentation/components/stream/common/ChatPanel";
 import { LiveIndicator } from "@/presentation/components/stream/common/LiveIndicator";
 import { LoadingScreen } from "@/presentation/components/stream/common/LoadingScreen";
+import { LazyLiveKit } from "@/presentation/components/stream/common/LazyLiveKit";
 import { ConfirmEndModal, SpotlightPanel, StartScreen } from "@/presentation/components/stream/employer";
 
 const service = new LiveStreamService(new LiveStreamRepository());
 
 interface WsChatMessagePayload {
-  id: string; sessionId: string; senderId: string; senderName: string;
-  senderRole: "CANDIDATE" | "EMPLOYER" | "SYSTEM"; content: string; sentAt: string;
+  id: string;
+  sessionId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: "CANDIDATE" | "EMPLOYER" | "SYSTEM";
+  content: string;
+  sentAt: string;
 }
+
 interface WsQAQuestionPayload {
-  id: string; sessionId: string; candidateId: string; candidateName: string;
-  question: string; answered: boolean; askedAt: string;
+  id: string;
+  sessionId: string;
+  candidateId: string;
+  candidateName: string;
+  question: string;
+  answered: boolean;
+  askedAt: string;
 }
+
 type WsPayload<T> = { type: string; data: T; timestamp: string };
 
 export default function EmployerStudioPage() {
@@ -48,7 +59,9 @@ export default function EmployerStudioPage() {
   const [viewerCount, setViewerCount] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [spotlightedJobs, setSpotlightedJobs] = useState<string[]>([]);
+  const [isLiveKitActive, setIsLiveKitActive] = useState(false);
 
+  // Load session
   useEffect(() => {
     const loadSession = async () => {
       try {
@@ -59,84 +72,179 @@ export default function EmployerStudioPage() {
           const res = await service.startStream(sessionId);
           setToken(res.hostToken);
           setLivekitUrl(res.livekitUrl);
+          setIsLiveKitActive(true);
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error("Failed to load session:", e);
+      }
     };
+    
     loadSession();
+
+    // Cleanup khi rời trang - giải phóng RAM
+    return () => {
+      setIsLiveKitActive(false);
+      if (token) {
+        service.endStream(sessionId).catch(console.error);
+      }
+    };
   }, [sessionId]);
 
+  // Start stream
   const handleStart = async () => {
     setStarting(true);
     try {
       const res = await service.startStream(sessionId);
       setToken(res.hostToken);
       setLivekitUrl(res.livekitUrl);
-    } finally { setStarting(false); }
+      setIsLiveKitActive(true);
+    } catch (e) {
+      console.error("Failed to start stream:", e);
+    } finally {
+      setStarting(false);
+    }
   };
 
+  // Timer
   useEffect(() => {
-    if (!token) return;
+    if (!isLiveKitActive) return;
     const start = Date.now();
-    const t = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    const t = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
     return () => clearInterval(t);
-  }, [token]);
+  }, [isLiveKitActive]);
 
+  // Format elapsed time
   const formatElapsed = (s: number) => {
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
     return h > 0
       ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
       : `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
+  // WebSocket: Viewer count
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/stream/${sessionId}/events`, (event: any) => {
-      if (event.type === "VIEWER_COUNT_UPDATE") setViewerCount(event.payload.count);
-    });
+    const unsub = subscribeTopic(
+      `/topic/stream/${sessionId}/events`,
+      (event: any) => {
+        if (event.type === "VIEWER_COUNT_UPDATE") {
+          setViewerCount(event.payload.count);
+        }
+      }
+    );
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
+  // WebSocket: Chat messages
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/streams/${sessionId}/chat`, (wsPayload: WsPayload<WsChatMessagePayload>) => {
-      const d = wsPayload.data;
-      setMessages(prev => {
-        if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, { id: d.id, senderName: d.senderName, content: d.content, type: "CHAT", time: new Date(d.sentAt) }];
-      });
-    });
+    const unsub = subscribeTopic(
+      `/topic/streams/${sessionId}/chat`,
+      (wsPayload: WsPayload<WsChatMessagePayload>) => {
+        const d = wsPayload.data;
+        setMessages(prev => {
+          if (prev.some(m => m.id === d.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: d.id,
+              senderName: d.senderName,
+              content: d.content,
+              type: "CHAT",
+              time: new Date(d.sentAt),
+            },
+          ];
+        });
+      }
+    );
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
+  // WebSocket: Q&A messages
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/streams/${sessionId}/qa`, (wsPayload: WsPayload<WsQAQuestionPayload>) => {
-      const d = wsPayload.data;
-      setMessages(prev => {
-        if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, { id: d.id, senderName: d.candidateName, content: d.question, type: "Q_AND_A", time: new Date(d.askedAt) }];
-      });
-    });
+    const unsub = subscribeTopic(
+      `/topic/streams/${sessionId}/qa`,
+      (wsPayload: WsPayload<WsQAQuestionPayload>) => {
+        const d = wsPayload.data;
+        setMessages(prev => {
+          if (prev.some(m => m.id === d.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: d.id,
+              senderName: d.candidateName,
+              content: d.question,
+              type: "Q_AND_A",
+              time: new Date(d.askedAt),
+            },
+          ];
+        });
+      }
+    );
     return () => unsub();
   }, [sessionId, subscribeTopic]);
 
-  const handleSendMessage = useCallback((content: string) => {
-    setSending(true);
-    try { publishMessage(`/app/streams/${sessionId}/chat`, { content }); }
-    finally { setSending(false); }
-  }, [sessionId, publishMessage]);
+  // Send chat message
+  const handleSendMessage = useCallback(
+    (content: string) => {
+      setSending(true);
+      try {
+        publishMessage(`/app/streams/${sessionId}/chat`, { content });
+      } catch (e) {
+        console.error("Failed to send message:", e);
+      } finally {
+        setSending(false);
+      }
+    },
+    [sessionId, publishMessage]
+  );
 
-  const handleSpotlight = useCallback(async (jobId: string) => {
-    setSpotlighting(true);
-    try { await service.spotlightJob(sessionId, { jobPostId: jobId }); setSpotlightedJobs(prev => [jobId, ...prev]); }
-    finally { setSpotlighting(false); }
-  }, [sessionId]);
+  // Spotlight job
+  const handleSpotlight = useCallback(
+    async (jobId: string) => {
+      setSpotlighting(true);
+      try {
+        await service.spotlightJob(sessionId, { jobPostId: jobId });
+        setSpotlightedJobs(prev => [jobId, ...prev]);
+      } catch (e) {
+        console.error("Failed to spotlight job:", e);
+      } finally {
+        setSpotlighting(false);
+      }
+    },
+    [sessionId]
+  );
 
+  // End stream
   const handleEnd = async () => {
     setEnding(true);
-    try { await service.endStream(sessionId); router.push(`/employer/streams/${sessionId}`); }
-    finally { setEnding(false); setShowEndConfirm(false); }
+    try {
+      setIsLiveKitActive(false); // Ngắt LiveKit trước
+      await service.endStream(sessionId);
+      router.push(`/employer/streams/${sessionId}`);
+    } catch (e) {
+      console.error("Failed to end stream:", e);
+    } finally {
+      setEnding(false);
+      setShowEndConfirm(false);
+    }
   };
 
+  // Loading state
   if (!session) return <LoadingScreen />;
-  if (!token) return <StartScreen session={session} onStart={handleStart} starting={starting} />;
+  
+  // Start screen (chưa bắt đầu stream)
+  if (!token) {
+    return (
+      <StartScreen
+        session={session}
+        onStart={handleStart}
+        starting={starting}
+      />
+    );
+  }
 
   const messageCount = messages.length;
 
@@ -165,7 +273,7 @@ export default function EmployerStudioPage() {
           <button
             onClick={() => setShowEndConfirm(true)}
             disabled={ending}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-500 text-[13px] font-semibold hover:bg-red-100 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-500 text-[13px] font-semibold hover:bg-red-100 disabled:opacity-50 transition-colors"
           >
             <Square className="w-3.5 h-3.5 fill-current" />
             Kết thúc
@@ -175,21 +283,22 @@ export default function EmployerStudioPage() {
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Video side */}
+        {/* Video area */}
         <div className="flex-1 p-5 flex flex-col min-w-0 gap-4">
-          <LiveKitRoom
+          <LazyLiveKit
+            enabled={isLiveKitActive}
             serverUrl={livekitUrl}
             token={token}
-            connect video audio
+            connect
+            video
+            audio
             className="flex-1 flex flex-col gap-4"
+            showControlBar={true}
           >
             <div className="flex-1 min-h-0">
               <VideoArea viewerCount={viewerCount} showControls />
             </div>
-            <div className="shrink-0">
-              <ControlBar className="!bg-white !rounded-xl !border !border-slate-200 !px-5 !py-2.5" />
-            </div>
-          </LiveKitRoom>
+          </LazyLiveKit>
         </div>
 
         {/* Right panel */}
@@ -200,11 +309,11 @@ export default function EmployerStudioPage() {
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
-                  ${activeTab === t 
-                    ? "bg-slate-100 text-slate-800" 
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                  activeTab === t
+                    ? "bg-slate-100 text-slate-800"
                     : "bg-transparent text-slate-400 hover:text-slate-600"
-                  }`}
+                }`}
               >
                 {t === "chat" ? (
                   <>
@@ -254,8 +363,12 @@ export default function EmployerStudioPage() {
         </div>
       </div>
 
+      {/* End confirmation modal */}
       {showEndConfirm && (
-        <ConfirmEndModal onConfirm={handleEnd} onCancel={() => setShowEndConfirm(false)} />
+        <ConfirmEndModal
+          onConfirm={handleEnd}
+          onCancel={() => setShowEndConfirm(false)}
+        />
       )}
     </div>
   );

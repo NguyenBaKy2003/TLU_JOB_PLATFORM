@@ -4,7 +4,13 @@ import {
   ChatMessage,
   ChatSession,
   JdOptimizationResult,
+  JdGuidelineCheckResult,
+  CandidateComparisonResult,
+  CompetitionRateResult,
+  PassProbabilityResult,
   OptimizeJdPayload,
+  CheckGuidelinesPayload,
+  CompareCandidatesPayload,
   PageResponse,
   SendMessagePayload,
 } from "@/domain/models/Ai";
@@ -13,6 +19,7 @@ interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string | null;
+  errors?: Record<string, string[]>;
 }
 
 export class AiRepository implements IAiRepository {
@@ -53,9 +60,61 @@ export class AiRepository implements IAiRepository {
     return res.data.message ?? "Đang tính điểm AI...";
   }
 
-  async optimizeJd(payload: OptimizeJdPayload): Promise<JdOptimizationResult> {
-    const res = await api.post<ApiResponse<JdOptimizationResult>>(
-      "/ai/optimize-jd", payload
+async optimizeJd(payload: OptimizeJdPayload): Promise<JdOptimizationResult> {
+  const res = await api.post<ApiResponse<JdOptimizationResult>>(
+    "/ai/optimize-jd",
+    {
+      title: payload.title,
+      description: payload.description || "",
+      requirements: payload.requirements || "",
+      benefits: payload.benefits || "",      
+      level: payload.level || "",
+      category: payload.category || "",
+    }
+  );
+  return res.data.data;
+}
+
+  // ── NEW: JD Guidelines ──
+
+async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult> {
+  try {
+    const res = await api.post<ApiResponse<JdGuidelineCheckResult>>(
+      "/ai/check-jd-guidelines", payload
+    );
+    return res.data.data;
+  } catch (error: any) {
+    // Nếu API trả về 422 với data (VIOLATION nhưng vẫn có data)
+    if (error?.response?.status === 422 && error?.response?.data?.data) {
+      return error.response.data.data; 
+    }
+    throw error;
+  }
+}
+
+  // ── NEW: Candidate Comparison ──
+
+  async compareCandidates(jobId: string, payload: CompareCandidatesPayload): Promise<CandidateComparisonResult> {
+    const res = await api.post<ApiResponse<CandidateComparisonResult>>(
+      `/ai/jobs/${jobId}/compare-candidates`, payload
+    );
+    return res.data.data;
+  }
+
+  // ── NEW: Competition Rate ──
+
+  async getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult> {
+    const res = await api.get<ApiResponse<CompetitionRateResult>>(
+      `/api/v1/job-posts/${jobPostId}/competition-rate`
+    );
+    return res.data.data;
+  }
+
+  // ── NEW: Pass Probability ──
+
+  async getPassProbability(jobId: string): Promise<PassProbabilityResult> {
+    const res = await api.get<ApiResponse<PassProbabilityResult>>(
+      `/api/v1/job-posts/${jobId}/pass-probability`
     );
     return res.data.data;
   }

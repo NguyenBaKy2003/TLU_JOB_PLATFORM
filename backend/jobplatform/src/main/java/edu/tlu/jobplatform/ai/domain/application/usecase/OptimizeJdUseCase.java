@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.ai.usecase;
+package edu.tlu.jobplatform.ai.domain.application.usecase;
 
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationRequest;
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationResult;
@@ -16,15 +16,17 @@ public class OptimizeJdUseCase {
 
     public JdOptimizationResult execute(Command cmd) {
         return optimizationPort.optimize(JdOptimizationRequest.builder()
-            .originalTitle(cmd.title())
-            .originalDescription(cmd.description())
-            .originalRequirements(cmd.requirements())
-            .level(cmd.level())
-            .category(cmd.category())
-            .build());
+                .originalTitle(cmd.title())
+                .originalDescription(cmd.description())
+                .originalRequirements(cmd.requirements())
+                .originBenefits(cmd.benefits())
+                .level(cmd.level())
+                .category(cmd.category())
+                .build());
     }
 
     public record Command(
-        String title, String description, String requirements,
-        String level, String category) {}
+            String title, String description, String requirements, String benefits,
+            String level, String category) {
+    }
 }
