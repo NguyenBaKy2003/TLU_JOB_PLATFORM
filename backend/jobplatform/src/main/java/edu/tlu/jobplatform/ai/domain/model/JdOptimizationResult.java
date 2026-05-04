@@ -25,6 +25,9 @@ public class JdOptimizationResult {
     @JsonProperty("improvedRequirements")
     private String improvedRequirements;
 
+    @JsonProperty("improvedBenefits")
+    private String improvedBenefits;
+
     @JsonProperty("suggestions")
     private List<String> suggestions;
 

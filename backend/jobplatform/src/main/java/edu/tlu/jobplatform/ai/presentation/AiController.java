@@ -1,8 +1,13 @@
 package edu.tlu.jobplatform.ai.presentation;
 
+import edu.tlu.jobplatform.ai.domain.application.usecase.CheckJdGuidelinesUseCase;
+import edu.tlu.jobplatform.ai.domain.application.usecase.CompareCandidatesUseCase;
+import edu.tlu.jobplatform.ai.domain.application.usecase.OptimizeJdUseCase;
+import edu.tlu.jobplatform.ai.domain.application.usecase.RetriggerAIScoreUseCase;
+import edu.tlu.jobplatform.ai.domain.model.CandidateComparisonResult;
+import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckResult;
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationResult;
-import edu.tlu.jobplatform.ai.usecase.OptimizeJdUseCase;
-import edu.tlu.jobplatform.ai.usecase.RetriggerAIScoreUseCase;
+import edu.tlu.jobplatform.ai.presentation.dto.request.CompareCandidatesRequest;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -10,17 +15,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * AI endpoints cho Employer:
- *   POST /api/v1/ai/optimize-jd          — Tối ưu JD
- *   POST /api/v1/ai/applications/{id}/rescore — Chạy lại AI scoring
- */
 @RestController
 @RequestMapping("/api/v1/ai")
 @RequiredArgsConstructor
@@ -28,37 +29,87 @@ import java.util.UUID;
 @SecurityRequirement(name = "bearerAuth")
 public class AiController {
 
-    private final OptimizeJdUseCase        optimizeJdUseCase;
-    private final RetriggerAIScoreUseCase  retriggerUseCase;
+        private final OptimizeJdUseCase optimizeJdUseCase;
+        private final RetriggerAIScoreUseCase retriggerUseCase;
+        private final CheckJdGuidelinesUseCase checkGuidelinesUseCase;
+        private final CompareCandidatesUseCase compareCandidatesUseCase;
 
-    @Operation(summary = "Tối ưu hóa Job Description bằng AI")
-    @PostMapping("/optimize-jd")
-    @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<JdOptimizationResult>> optimizeJd(
-            @Valid @RequestBody OptimizeJdRequest req) {
+        @Operation(summary = "Tối ưu hóa Job Description bằng AI")
+        @PostMapping("/optimize-jd")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<JdOptimizationResult>> optimizeJd(
+                        @Valid @RequestBody OptimizeJdRequest req) {
 
-        JdOptimizationResult result = optimizeJdUseCase.execute(
-            new OptimizeJdUseCase.Command(
-                req.title(), req.description(),
-                req.requirements(), req.level(), req.category()));
+                JdOptimizationResult result = optimizeJdUseCase.execute(
+                                new OptimizeJdUseCase.Command(
+                                                req.title(), req.description(),
+                                                req.requirements(), req.benefits(), req.level(), req.category()));
 
-        return ResponseEntity.ok(ApiResponse.success(result));
-    }
+                return ResponseEntity.ok(ApiResponse.success(result));
+        }
 
-    @Operation(summary = "Chạy lại AI scoring cho đơn ứng tuyển")
-    @PostMapping("/applications/{id}/rescore")
-    @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> rescore(@PathVariable UUID id) {
-        retriggerUseCase.execute(id);   // async — không chờ kết quả
-        return ResponseEntity.ok(
-            ApiResponse.success("Đang tính điểm AI. Kết quả sẽ cập nhật trong vài giây."));
-    }
+        @Operation(summary = "Chạy lại AI scoring cho đơn ứng tuyển")
+        @PostMapping("/applications/{id}/rescore")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<String>> rescore(@PathVariable UUID id) {
+                retriggerUseCase.execute(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Đang tính điểm AI. Kết quả sẽ cập nhật trong vài giây."));
+        }
 
-    public record OptimizeJdRequest(
-        @NotBlank String title,
-        String description,
-        String requirements,
-        String level,
-        String category
-    ) {}
+        @Operation(summary = "Kiểm tra JD có vi phạm community guidelines không")
+        @PostMapping("/check-jd-guidelines")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<JdGuidelineCheckResult>> checkGuidelines(
+                        @Valid @RequestBody CheckGuidelinesRequest req) {
+
+                JdGuidelineCheckResult result = checkGuidelinesUseCase.execute(
+                                new CheckJdGuidelinesUseCase.Command(
+                                                req.jobPostId(), req.title(), req.description(),
+                                                req.requirements(), req.benefits()));
+
+                if (result.getSeverity() == JdGuidelineCheckResult.Severity.VIOLATION) {
+                        return ResponseEntity
+                                        .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                                        .body(ApiResponse.errorWithData(
+                                                        result,
+                                                        "JD vi phạm nguyên tắc cộng đồng",
+                                                        "JD_VIOLATION"));
+                }
+
+                return ResponseEntity.ok(ApiResponse.success(result));
+        }
+
+        @Operation(summary = "So sánh các ứng viên với nhau")
+        @PostMapping("/jobs/{jobId}/compare-candidates")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<CandidateComparisonResult>> compareCandidates(
+                        @PathVariable UUID jobId,
+                        @Valid @RequestBody CompareCandidatesRequest req) {
+
+                CandidateComparisonResult result = compareCandidatesUseCase.execute(
+                                new CompareCandidatesUseCase.Command(jobId, req.applicationIds()));
+
+                return ResponseEntity.ok(ApiResponse.success(result));
+        }
+
+        // ─── Request records ───────────────────────────────────────────────────
+
+        public record OptimizeJdRequest(
+                        @NotBlank String title,
+                        String description,
+                        String requirements,
+                        String benefits,
+                        String level,
+                        String category) {
+        }
+
+        public record CheckGuidelinesRequest(
+                        UUID jobPostId,
+                        @NotBlank String title,
+                        String description,
+                        String requirements,
+                        String benefits) {
+        }
+
 }

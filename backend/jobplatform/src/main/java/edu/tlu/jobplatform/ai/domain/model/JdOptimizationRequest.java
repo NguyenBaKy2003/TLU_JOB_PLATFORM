@@ -12,6 +12,7 @@ public class JdOptimizationRequest {
     private final String originalTitle;
     private final String originalDescription;
     private final String originalRequirements;
+    private final String originBenefits;
     private final String level; // JUNIOR, MIDDLE, SENIOR
     private final String category; // Ngành nghề
 }
