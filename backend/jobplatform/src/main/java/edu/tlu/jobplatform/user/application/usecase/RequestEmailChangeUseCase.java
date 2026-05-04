@@ -72,17 +72,18 @@ public class RequestEmailChangeUseCase {
         String token = UUID.randomUUID().toString();
         emailChangeTokenPort.save(user.getId(), newEmail, token);
 
-        String confirmLink = buildConfirmLink(user.getId(), token);
+        String confirmLink = buildConfirmLink(user.getId(), token, user.getRole().name());
         emailPort.sendEmailChangeConfirmation(user.getEmail(), user.getFullName(), newEmail, confirmLink);
 
         log.info("Email change requested: userId={}, newEmail={}", user.getId(), newEmail);
     }
 
-    private String buildConfirmLink(UUID userId, String token) {
+    private String buildConfirmLink(UUID userId, String token, String role) {
         return frontendUrl
                 + "/settings/confirm-email"
                 + "?token=" + token
-                + "&userId=" + userId;
+                + "&userId=" + userId
+                + "&role=" + role.toLowerCase(); // "candidate" | "employer" | "admin"
     }
 
     public record Command(UUID userId, String newEmail) {

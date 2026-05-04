@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useRef } from "react";
+import Link          from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Search, Bell, MessageSquare, ChevronDown,
@@ -14,14 +14,16 @@ import { NotificationPanel } from "@/presentation/components/shared/Notification
 import { FaMoneyBill, FaStream } from "react-icons/fa";
 
 interface Props {
-  title?:       string;
-  subtitle?:    string;
+  title?:        string;
+  subtitle?:     string;
   onMenuToggle?: () => void;
+  // notificationCount prop removed — Header reads unreadCount directly from useWebSocket()
 }
 
 export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props) {
   const router           = useRouter();
   const { user, logout } = useAuth();
+  // Source of truth — updates instantly on optimistic writes from markAsRead/markAllAsRead
   const { unreadCount }  = useWebSocket();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -40,17 +42,16 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
     { label: "Cài đặt",       href: "/candidate/settings",   Icon: Settings },
   ];
   const EMPLOYER_ITEMS = [
-    { label: "Tổng quan",     href: "/employer/dashboard",  Icon: LayoutDashboard },
-    { label: "Quản lý tin",   href: "/employer/jobs",       Icon: FileText        },
+    { label: "Tổng quan",     href: "/employer/dashboard",    Icon: LayoutDashboard },
+    { label: "Quản lý tin",   href: "/employer/jobs",         Icon: FileText        },
     { label: "Ứng viên",      href: "/employer/applications", Icon: Users           },
-    { label: "Hồ sơ công ty", href: "/employer/profile",   Icon: Building2       },
-    { label: "Thanh toán", href: "/employer/payments",   Icon: FaMoneyBill       },
-    { label: "Live Stream",       href: "/employer/streams",   Icon: FaStream        },
-    { label: "Cài đặt",       href: "/employer/settings",   Icon: Settings        },
+    { label: "Hồ sơ công ty", href: "/employer/profile",      Icon: Building2       },
+    { label: "Thanh toán",    href: "/employer/payments",     Icon: FaMoneyBill     },
+    { label: "Live Stream",   href: "/employer/streams",      Icon: FaStream        },
+    { label: "Cài đặt",       href: "/employer/settings",     Icon: Settings        },
   ];
   const dropdownItems = isEmployer ? EMPLOYER_ITEMS : CANDIDATE_ITEMS;
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node))
@@ -75,10 +76,9 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
   const msgHref = isEmployer ? "/employer/messages" : "/messages";
 
   return (
-    <header
-      className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
-  border-b border-gray-100 sticky top-0 z-20 shrink-0"
-    >
+    <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
+      border-b border-gray-100 sticky top-0 z-20 shrink-0">
+
       {/* ── Left ──────── */}
       <div className="flex items-center gap-3 min-w-0">
         <button
@@ -95,9 +95,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
               {title}
             </h1>
             {subtitle && (
-              <p className="text-xs text-gray-400 mt-0.5 truncate hidden sm:block">
-                {subtitle}
-              </p>
+              <p className="text-xs text-gray-400 mt-0.5 truncate hidden sm:block">{subtitle}</p>
             )}
           </div>
         )}
@@ -108,10 +106,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
 
         {/* Search — desktop */}
         <div className="hidden sm:block relative">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Tìm kiếm"
@@ -133,10 +128,8 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             <Search size={18} />
           </button>
         ) : (
-          <div
-            className="sm:hidden fixed inset-x-0 top-0 z-20 flex items-center gap-2
-              px-4 py-3 bg-white border-b border-gray-100 shadow-sm"
-          >
+          <div className="sm:hidden fixed inset-x-0 top-0 z-20 flex items-center gap-2
+            px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
             <Search size={15} className="text-gray-400 shrink-0" />
             <input
               ref={searchRef}
@@ -144,7 +137,8 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
               placeholder="Tìm kiếm..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-sm bg-transparent focus:outline-none text-gray-800 placeholder-gray-400"
+              className="flex-1 text-sm bg-transparent focus:outline-none
+                text-gray-800 placeholder-gray-400"
             />
             <button
               onClick={() => setShowSearch(false)}
@@ -156,15 +150,13 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
         )}
 
         {/* Role badge */}
-        <span
-          className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded-full
-            text-[11px] font-semibold
-            ${isEmployer ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}
-        >
+        <span className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded-full
+          text-[11px] font-semibold
+          ${isEmployer ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
           {isEmployer ? "Nhà tuyển dụng" : "Ứng viên"}
         </span>
 
-        {/* ── Notification bell ───────────── */}
+        {/* ── Notification bell ───────────────────────────────────────────── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
@@ -174,6 +166,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             <Bell size={18} />
             {unreadCount > 0 && (
               <span
+                key={unreadCount}
                 className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white
                   text-[9px] font-bold rounded-full flex items-center justify-center
                   animate-pulse"
@@ -197,12 +190,13 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           <MessageSquare size={18} />
         </Link>
 
-        {/* ── User menu ────── */}
+        {/* ── User menu ────────────────────────────────────────────────────── */}
         {user && (
-          <div className="relative " ref={userMenuRef}>
+          <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen((v) => !v); setNotifOpen(false); }}
-              className="flex items-center gap-1.5 px-1 py-1 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 px-1 py-1 rounded-xl
+                hover:bg-gray-50 transition-colors"
             >
               <div className="text-right hidden lg:block">
                 <p className="text-xs font-semibold text-gray-800 leading-tight">
@@ -211,11 +205,9 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
                 <p className="text-[10px] text-gray-400 leading-tight">{user.email}</p>
               </div>
 
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center
-                  overflow-hidden shrink-0 bg-gradient-to-br
-                  ${isEmployer ? "from-violet-400 to-violet-600" : "from-blue-400 to-blue-600"}`}
-              >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center
+                overflow-hidden shrink-0 bg-gradient-to-br
+                ${isEmployer ? "from-violet-400 to-violet-600" : "from-blue-400 to-blue-600"}`}>
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
@@ -233,19 +225,15 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             </button>
 
             {userMenuOpen && (
-              <div
-                className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl
-  border border-gray-100 shadow-lg py-1 z-20"
-              >
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl
+                border border-gray-100 shadow-lg py-1 z-20">
                 {/* Mobile-only user info */}
                 <div className="px-4 py-2.5 border-b border-gray-50 lg:hidden">
                   <p className="text-xs font-semibold text-gray-800">{user.fullName}</p>
                   <p className="text-[10px] text-gray-400">{user.email}</p>
-                  <span
-                    className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full
-                      text-[10px] font-semibold
-                      ${isEmployer ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}
-                  >
+                  <span className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full
+                    text-[10px] font-semibold
+                    ${isEmployer ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
                     {isEmployer ? "Nhà tuyển dụng" : "Ứng viên"}
                   </span>
                 </div>
@@ -255,7 +243,8 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
                     key={href}
                     href={href}
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm
+                      text-gray-700 hover:bg-gray-50"
                   >
                     <Icon size={15} className="text-gray-400" />
                     {label}

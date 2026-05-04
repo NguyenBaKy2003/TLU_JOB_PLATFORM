@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.user.application.usecase;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
+import edu.tlu.jobplatform.user.infrastructure.cache.UserCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,10 +26,10 @@ public class UpdateNameUseCase {
     private static final int MAX_NAME_LENGTH = 100;
 
     private final UserRepository userRepository;
+    private final UserCacheService userCacheService; // ← thêm
 
     @Transactional
     public void execute(Command cmd) {
-        // BR-01: Validate
         if (cmd.fullName() == null || cmd.fullName().isBlank()) {
             throw new BusinessRuleException("Họ và tên không được để trống.", "NAME_BLANK");
         }
@@ -39,12 +40,14 @@ public class UpdateNameUseCase {
                     "NAME_TOO_LONG");
         }
 
-        // BR-02: Load user
         var user = userRepository.findById(cmd.userId())
                 .orElseThrow(() -> ResourceNotFoundException.user(cmd.userId()));
 
         user.updateFullName(trimmed);
         userRepository.save(user);
+
+        // Evict sau khi DB commit — lần query tiếp theo load lại từ DB
+        userCacheService.evict(cmd.userId());
 
         log.info("Name updated for userId={}", cmd.userId());
     }

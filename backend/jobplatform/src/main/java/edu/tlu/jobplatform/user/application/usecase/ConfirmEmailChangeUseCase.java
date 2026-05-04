@@ -6,6 +6,7 @@ import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.user.application.port.out.EmailChangeTokenPort;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
+import edu.tlu.jobplatform.user.infrastructure.cache.UserCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class ConfirmEmailChangeUseCase {
     private final EmailChangeTokenPort emailChangeTokenPort;
     private final TokenStorePort tokenStore;
     private final EmailPort emailPort;
+    private final UserCacheService userCacheService; // ← thêm
 
     @Transactional
     public void execute(Command cmd) {
@@ -74,10 +76,15 @@ public class ConfirmEmailChangeUseCase {
         emailChangeTokenPort.delete(cmd.userId());
         tokenStore.deleteAll(cmd.userId());
 
+        // Evict cache — email đã đổi, cache cũ không còn hợp lệ
+        // Session bị revoke → user phải login lại → cache được warm lại tự nhiên
+        userCacheService.evict(cmd.userId());
+
         // Thông báo đến email cũ
         emailPort.sendEmailChangedNotification(oldEmail, user.getFullName(), pending.newEmail());
 
-        log.info("Email changed: userId={}, oldEmail={}, newEmail={}", cmd.userId(), oldEmail, pending.newEmail());
+        log.info("Email changed: userId={}, oldEmail={}, newEmail={}",
+                cmd.userId(), oldEmail, pending.newEmail());
     }
 
     public record Command(UUID userId, String token) {

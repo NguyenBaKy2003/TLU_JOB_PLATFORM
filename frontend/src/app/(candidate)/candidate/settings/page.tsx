@@ -1,4 +1,4 @@
-// src/app/settings/page.tsx
+// src/candidate/settings/page.tsx
 "use client";
 import { DashboardLayout }       from "@/presentation/components/layout/profile/DashboardLayout";
 import { useAuth }               from "@/application/contexts/AuthContext";
@@ -20,7 +20,6 @@ export default function AccountSettingsPage() {
         <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
           <NameSection
             firstName={user?.fullName ?? ""}
-            lastName={user?.lastName  ?? ""}
           />
           <AccountSection email={user?.email ?? ""} />
           <NotificationSection />

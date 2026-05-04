@@ -63,7 +63,7 @@ export default function OAuth2CallbackPage() {
       .then(() => {
         toast.success("Đăng nhập thành công!", "Chào mừng bạn đến với JobPlatform.");
         // Redirect theo portal mà backend xác nhận — không tự suy từ JWT phía client
-        const dest = portal === "EMPLOYER" ? "/employer/dashboard" : "/home";
+        const dest = portal === "EMPLOYER" ? "/employer/dashboard" : "/";
         setTimeout(() => router.replace(dest), 800);
       })
       .catch(() => {

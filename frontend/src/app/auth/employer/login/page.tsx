@@ -52,7 +52,7 @@ export default function EmployerLoginPage() {
   // ── Nếu đã đăng nhập → redirect về đúng dashboard theo role ──────────────
   useEffect(() => {
     if (authLoading || !user) return;
-    router.replace(user.role === "CANDIDATE" ? "/home" : "/employer/dashboard");
+    router.replace(user.role === "CANDIDATE" ? "/" : "/employer/dashboard");
   }, [user, authLoading, router]);
 
   const handleSubmit = useCallback(async (
