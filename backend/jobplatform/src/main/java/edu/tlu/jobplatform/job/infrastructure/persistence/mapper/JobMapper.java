@@ -17,7 +17,7 @@ import java.util.UUID;
 @Component
 public class JobMapper {
 
-    // ── JobPost ───────────────────────────────────────────────
+    // ── JobPost ───
 
     public JobPost toDomain(JobPostJpaEntity e) {
         if (e == null)
@@ -49,6 +49,7 @@ public class JobMapper {
                 .publishedAt(e.getPublishedAt())
                 .closedAt(e.getClosedAt())
                 .expiredAt(e.getExpiredAt())
+                .featured(e.isFeatured())
                 .status(e.getStatus())
                 .viewCount(e.getViewCount())
                 .applicationCount(e.getApplicationCount())
@@ -76,13 +77,13 @@ public class JobMapper {
                 .publishedAt(d.getPublishedAt())
                 .closedAt(d.getClosedAt())
                 .expiredAt(d.getExpiredAt())
+                .featured(d.isFeatured())
                 .status(d.getStatus())
                 .viewCount(d.getViewCount())
                 .applicationCount(d.getApplicationCount())
                 .build();
 
         e.setId(d.getId());
-
         applySalary(e, d.getSalary());
         applyWorkLocation(e, d.getWorkLocation());
         return e;
@@ -103,6 +104,7 @@ public class JobMapper {
         e.setPublishedAt(d.getPublishedAt());
         e.setClosedAt(d.getClosedAt());
         e.setExpiredAt(d.getExpiredAt());
+        e.setFeatured(d.isFeatured());
         e.setStatus(d.getStatus());
         e.setViewCount(d.getViewCount());
         e.setApplicationCount(d.getApplicationCount());
@@ -149,7 +151,7 @@ public class JobMapper {
         e.setWorkLocationAddress(loc.getAddress());
     }
 
-    // ── Skill ─────────────────────────────────────────────────
+    // ── Skill ─────
 
     public JobPostSkill toSkillDomain(JobPostSkillJpaEntity e) {
         return JobPostSkill.builder()
@@ -171,7 +173,7 @@ public class JobMapper {
                 .build();
     }
 
-    // ── SavedJob ──────────────────────────────────────────────
+    // ── SavedJob ──
 
     public SavedJob toSavedJobDomain(SavedJobJpaEntity e) {
         return SavedJob.builder()

@@ -31,7 +31,7 @@ public class UploadDocumentUseCase {
     @Transactional
     public CompanyDocument execute(UUID companyId, CompanyDocumentType type, MultipartFile file) {
 
-        // ── Validate ──────────────────────────────────────────────────────────
+        // ── Validate ──────────────
         if (file.isEmpty())
             throw new BusinessRuleException("File không được để trống.", "EMPTY_FILE");
 
@@ -43,7 +43,7 @@ public class UploadDocumentUseCase {
             throw new BusinessRuleException(
                     "Chỉ chấp nhận PDF, JPG, PNG.", "INVALID_FILE_TYPE");
 
-        // ── Upload ────────────────────────────────────────────────────────────
+        // ── Upload ────────────────
         String fileUrl;
         try {
             fileUrl = fileStorage.upload(

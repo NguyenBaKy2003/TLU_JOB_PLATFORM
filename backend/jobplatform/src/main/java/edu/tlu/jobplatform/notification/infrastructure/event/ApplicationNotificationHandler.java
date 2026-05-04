@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.notification.infrastructure.event;
 
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
@@ -86,7 +86,7 @@ public class ApplicationNotificationHandler {
                                 "/candidate/applications/" + event.getApplicationId()));
         }
 
-        // ── Resolvers ────────────────────────────────────────────────────────────
+        // ── Resolvers ────────────────
 
         private String resolveCandidateName(UUID candidateId) {
                 return candidateProfileRepo.findByUserId(candidateId)
@@ -107,7 +107,7 @@ public class ApplicationNotificationHandler {
                                 .orElse("vị trí đã ứng tuyển");
         }
 
-        // ── Helpers ──────────────────────────────────────────────────────────────
+        // ── Helpers ──────────────────
 
         private String buildStatusTitle(String status) {
                 return switch (status) {

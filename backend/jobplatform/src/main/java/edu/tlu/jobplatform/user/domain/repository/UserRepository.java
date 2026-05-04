@@ -20,6 +20,8 @@ public interface UserRepository {
 
     void deleteById(UUID id);
 
+    boolean existsById(UUID id);
+
     long countAll();
 
     Page<User> findAll(Pageable pageable);

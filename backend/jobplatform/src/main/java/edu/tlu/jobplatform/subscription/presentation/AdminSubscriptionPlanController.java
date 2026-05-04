@@ -50,9 +50,9 @@ public class AdminSubscriptionPlanController {
         private final CreateSubscriptionPlanUseCase createPlanUseCase;
         private final UpdateSubscriptionPlanUseCase updatePlanUseCase;
 
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
         // GET /api/v1/admin/subscription-plans
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
 
         /**
          * Lấy TẤT CẢ plan, bao gồm các plan đã bị tắt (active = false).
@@ -66,9 +66,9 @@ public class AdminSubscriptionPlanController {
                 return ResponseEntity.ok(ApiResponse.success(getAllPlansUseCase.execute()));
         }
 
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
         // POST /api/v1/admin/subscription-plans
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
 
         /**
          * Tạo gói dịch vụ mới.
@@ -111,9 +111,9 @@ public class AdminSubscriptionPlanController {
                                 .body(ApiResponse.success(created));
         }
 
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
         // PATCH /api/v1/admin/subscription-plans/{planId}
-        // ─────────────────────────────────────────────────────────────
+        // ─────────────────
 
         /**
          * Cập nhật một phần thông tin gói dịch vụ (PATCH / partial update).

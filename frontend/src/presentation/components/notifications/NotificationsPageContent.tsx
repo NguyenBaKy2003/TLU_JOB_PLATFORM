@@ -246,7 +246,7 @@ export function NotificationsPageContent({ description }: NotificationsPageProps
   )
 }
 
-// ── Route exports ─────────────────────────────────────────────────────────────
+// ── Route exports ─────────
 
 // (candidate)/notifications/page.tsx  → default export này
 export default function CandidateNotificationsPage() {

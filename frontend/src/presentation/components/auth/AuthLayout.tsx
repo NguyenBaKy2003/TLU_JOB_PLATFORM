@@ -25,7 +25,7 @@ export function AuthLayout({ children, imageSrc = "/candidate.png" }: AuthLayout
           {children}
         </div>
 
-        {/* ── Right panel — image ─────────────────────── */}
+        {/* ── Right panel — image ──────── */}
         <div className="hidden md:block w-[530px] flex-shrink-0">
           <img
             src={imageSrc}

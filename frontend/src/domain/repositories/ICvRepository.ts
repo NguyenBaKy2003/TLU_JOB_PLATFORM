@@ -10,7 +10,7 @@ import type {
 
 export interface ICvRepository {
 
-  // ── CRUD CV ───────────────────────────────────────────────────────────────
+  // ── CRUD CV ───────────
 
   /** GET /api/v1/cv — Danh sách CV của tôi */
   listMyCVs(): Promise<OnlineCV[]>;
@@ -27,7 +27,7 @@ export interface ICvRepository {
   /** DELETE /api/v1/cv/:cvId — Xóa CV */
   delete(cvId: string): Promise<void>;
 
-  // ── Sections ──────────────────────────────────────────────────────────────
+  // ── Sections ──────────
 
   /** POST /api/v1/cv/:cvId/sections — Thêm section mới */
   addSection(cvId: string, payload: UpdateCVSectionPayload): Promise<CVSection>;
@@ -41,7 +41,7 @@ export interface ICvRepository {
   /** PATCH /api/v1/cv/:cvId/sections/reorder — Sắp xếp lại sections */
   reorderSections(cvId: string, payload: ReorderSectionsPayload): Promise<OnlineCVDetail>;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────
 
   /** POST /api/v1/cv/:cvId/publish */
   publish(cvId: string): Promise<OnlineCVDetail>;
@@ -61,7 +61,7 @@ export interface ICvRepository {
   /** POST /api/v1/cv/:cvId/import-from-profile */
   importFromProfile(cvId: string): Promise<OnlineCVDetail>;
 
-  // ── Templates ─────────────────────────────────────────────────────────────
+  // ── Templates ─────────
 
   /** GET /api/v1/cv/templates — Danh sách template */
   listTemplates(): Promise<CVTemplate[]>;

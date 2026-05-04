@@ -46,7 +46,7 @@ public class AdminPaymentUseCase {
                 : paymentRepo.findByCompanyId(companyId, pageable);
     }
 
-    // ── Stats ─────────────────────────────────────────────────
+    // ── Stats ─────
 
     @Transactional(readOnly = true)
     public Stats getStats(LocalDateTime from, LocalDateTime to) {

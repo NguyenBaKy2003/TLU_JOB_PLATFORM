@@ -2,13 +2,13 @@ package edu.tlu.jobplatform.notification.domain.model;
 
 public enum NotificationType {
 
-    // ── Candidate nhận ────────────────────────────────────────────
+    // ── Candidate nhận
     APPLICATION_SUBMITTED,
     APPLICATION_STATUS_CHANGED,
     INTERVIEW_SCHEDULED,
     INTERVIEW_REMINDER,
 
-    // ── Employer nhận ─────────────────────────────────────────────
+    // ── Employer nhận ─
     NEW_APPLICATION_RECEIVED,
     COMPANY_VERIFIED,
     COMPANY_REJECTED,
@@ -20,7 +20,7 @@ public enum NotificationType {
     PAYMENT_SUCCESS,
     PAYMENT_FAILED,
 
-    // ── Chung ─────────────────────────────────────────────────────
+    // ── Chung ─────────
     NEW_MESSAGE, // badge only — không gửi email
     SYSTEM_ANNOUNCEMENT, // không gửi email
 }

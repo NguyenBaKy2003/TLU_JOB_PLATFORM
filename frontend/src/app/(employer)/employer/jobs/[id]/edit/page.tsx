@@ -21,11 +21,11 @@ import { extractErrorMessage }    from "@/lib/extractErrorMessage";
 import { RichTextArea }           from "@/presentation/components/job-post/RichTextArea";
 import { SkillsInput }            from "@/presentation/components/job-post/SkillsInput";
 
-// ── Singleton ─────────────────────────────────────────────────────────────────
+// ── Singleton ─────────────
 
 const jobService = new JobService(new JobRepository());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 const inputCls =
   "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
@@ -75,7 +75,7 @@ function detailToForm(job: JobPostDetail): JobPostForm {
   };
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────────
 
 function Field({ label, required, hint, error, children }: {
   label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode;
@@ -117,7 +117,7 @@ function SegmentedControl<T extends string>({ options, value, onChange, cols = 3
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ───
 
 export default function EditJobPage() {
   const router    = useRouter();
@@ -130,7 +130,7 @@ export default function EditJobPage() {
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState<string>("");
 
-  // ── Load job data ─────────────────────────────────────────────────────────
+  // ── Load job data ─────
 
   useEffect(() => {
     if (!id) return;
@@ -147,14 +147,14 @@ export default function EditJobPage() {
       .finally(() => setLoading(false));
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Field updater ─────────────────────────────────────────────────────────
+  // ── Field updater ─────
 
   const set = <K extends keyof JobPostForm>(key: K, val: JobPostForm[K]) => {
     setForm(p => ({ ...p, [key]: val }));
     if (errors[key]) setErrors(p => ({ ...p, [key]: undefined }));
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit ────────────
 
   const handleSubmit = useCallback(async (publish: boolean) => {
     const errs = validate(form);
@@ -181,7 +181,7 @@ export default function EditJobPage() {
     }
   }, [form, id, router, toast]);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // ── Derived ───────────
 
   const jobTypeOpts = Object.entries(JOB_TYPE_LABELS).map(([value, label]) => ({ value: value as JobType, label }));
   const levelOpts   = Object.entries(JOB_LEVEL_LABELS).map(([value, label]) => ({ value: value as JobLevel, label }));
@@ -191,7 +191,7 @@ export default function EditJobPage() {
   const hasErrors = Object.keys(errors).length > 0;
   const isDraft   = jobStatus === "DRAFT" || jobStatus === "";
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Loading state ─────
 
   if (loading) {
     return (
@@ -204,7 +204,7 @@ export default function EditJobPage() {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <div className="max-w-3xl mx-auto pb-12">
@@ -245,7 +245,7 @@ export default function EditJobPage() {
 
       <div className="flex flex-col gap-5">
 
-        {/* ── 1. Giới thiệu ─────────────────────────────────── */}
+        {/* ── 1. Giới thiệu ───── */}
         <PostSection icon={<Briefcase size={16} />} title="Giới thiệu công việc">
           <div className="flex flex-col gap-4">
             <Field label="Tiêu đề công việc" required error={errors.title}>
@@ -274,7 +274,7 @@ export default function EditJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 2. Địa điểm ───────────────────────────────────── */}
+        {/* ── 2. Địa điểm ─────── */}
         <PostSection icon={<MapPin size={16} />} title="Địa điểm làm việc">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
@@ -299,7 +299,7 @@ export default function EditJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 3. Mức lương ──────────────────────────────────── */}
+        {/* ── 3. Mức lương ────── */}
         <PostSection icon={<DollarSign size={16} />} title="Mức lương">
           <div className="flex flex-col gap-4">
             <label className="flex items-center gap-2.5 cursor-pointer">
@@ -343,7 +343,7 @@ export default function EditJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 4. Điều kiện ──────────────────────────────────── */}
+        {/* ── 4. Điều kiện ────── */}
         <PostSection icon={<Users size={16} />} title="Điều kiện tuyển dụng">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Kinh nghiệm (năm)" hint="0 = chưa có kinh nghiệm">
@@ -365,7 +365,7 @@ export default function EditJobPage() {
           </div>
         </PostSection>
 
-        {/* ── 5. Kỹ năng ────────────────────────────────────── */}
+        {/* ── 5. Kỹ năng ──────── */}
         <PostSection icon={<Wrench size={16} />} title="Kỹ năng yêu cầu">
           <SkillsInput
             skills={form.skills}
@@ -373,7 +373,7 @@ export default function EditJobPage() {
           />
         </PostSection>
 
-        {/* ── 6. Mô tả ──────────────────────────────────────── */}
+        {/* ── 6. Mô tả ────────── */}
         <PostSection icon={<FileText size={16} />} title="Mô tả & Yêu cầu">
           <div className="flex flex-col gap-5">
             <RichTextArea
@@ -400,7 +400,7 @@ export default function EditJobPage() {
           </div>
         </PostSection>
 
-        {/* ── Actions ───────────────────────────────────────── */}
+        {/* ── Actions ─────────── */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           {/* Lưu nháp — chỉ hiển thị khi đang là draft */}
           {isDraft && (

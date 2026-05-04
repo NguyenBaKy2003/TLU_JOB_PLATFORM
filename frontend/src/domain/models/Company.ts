@@ -1,7 +1,7 @@
 // src/domain/models/Company.ts
 // Types tương ứng với backend CompanyProfile + CompanyReview
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// ── Enums ──
 
 export type VerificationStatus = "UNVERIFIED" | "VERIFIED" | "REJECTED" | "SUSPENDED";
 
@@ -50,7 +50,7 @@ export interface CompanyDocument {
   uploadedAt: string;
 }
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// ── Domain models ─────────
 
 export interface CompanyProfile {
   id: string;
@@ -120,7 +120,7 @@ export interface CompanyReview {
   updatedAt:  string;
 }
 
-// ── Payloads (request bodies) ─────────────────────────────────────────────────
+// ── Payloads (request bodies) ────
 
 export interface CreateCompanyPayload {
   name:        string;
@@ -162,7 +162,7 @@ export interface CreateReviewPayload {
   employed?:  boolean;
 }
 
-// ── Query params ──────────────────────────────────────────────────────────────
+// ── Query params ──────────
 
 export interface CompanyListParams {
   page?: number;
@@ -171,7 +171,7 @@ export interface CompanyListParams {
   city?: string;
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// ── Pagination ────────────
 
 export interface PageResponse<T> {
   content:       T[];

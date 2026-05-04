@@ -12,7 +12,7 @@ export class MessageService {
 
   constructor(private readonly repo: IMessageRepository) {}
 
-  // ── Conversations ─────────────────────────────────────────────────────────
+  // ── Conversations ─────
 
   /** Inbox — danh sách conversations (cả candidate lẫn employer dùng chung) */
   getInbox(page = 0, size = 20): Promise<MessagePage> {
@@ -30,7 +30,7 @@ export class MessageService {
     return this.repo.startConversation({ candidateId, jobPostId });
   }
 
-  // ── Messages ──────────────────────────────────────────────────────────────
+  // ── Messages ──────────
 
   /** Lấy message thread của một conversation */
   getMessages(
@@ -73,7 +73,7 @@ export class MessageService {
     return this.repo.markAsRead(conversationId);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────────
 
   /**
    * Enrich messages với fromMe flag dựa trên currentUserId.

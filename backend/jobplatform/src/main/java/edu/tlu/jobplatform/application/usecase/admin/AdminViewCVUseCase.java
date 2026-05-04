@@ -1,8 +1,8 @@
 package edu.tlu.jobplatform.application.usecase.admin;
 
 import edu.tlu.jobplatform.shared.port.FileStoragePort;
-import edu.tlu.jobplatform.auth.candidate.domain.model.CandidateCV;
-import edu.tlu.jobplatform.auth.candidate.domain.repository.CandidateCVRepository;
+import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateCVRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;

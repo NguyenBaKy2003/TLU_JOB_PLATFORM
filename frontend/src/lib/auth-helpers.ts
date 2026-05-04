@@ -8,14 +8,14 @@ interface JWTPayload {
   iat: number;
 }
 
-// ─── Keys ─────────────────────────────────────────────────────────────────────
+// ─── Keys ──
 
 const ACCESS_TOKEN_KEY  = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const ADMIN_ACCESS_KEY  = "adminAccessToken";
 const ADMIN_REFRESH_KEY = "adminRefreshToken";
 
-// ─── User tokens ──────────────────────────────────────────────────────────────
+// ─── User tokens ──────────
 
 export const getAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -45,7 +45,7 @@ export const clearTokens = (): void => {
   window.dispatchEvent(new Event("tokenChanged"));
 };
 
-// ─── Admin tokens ─────────────────────────────────────────────────────────────
+// ─── Admin tokens ─────────
 
 export const getAdminAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -73,7 +73,7 @@ export const clearAdminTokens = (): void => {
   localStorage.removeItem(ADMIN_REFRESH_KEY);
 };
 
-// ─── Token validation ─────────────────────────────────────────────────────────
+// ─── Token validation ─────
 
 export const isTokenExpired = (token: string): boolean => {
   try {

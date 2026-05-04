@@ -39,17 +39,12 @@ interface WebSocketContextType {
   subscribeToNewNotification: (handler: (n: NotificationItem) => void) => () => void
   subscribeToAllRead: (handler: () => void) => () => void
   subscribeToNotificationDeleted: (handler: (id: string) => void) => () => void
-  /**
-   * Subscribe một STOMP topic tùy ý.
-   * - Connected: subscribe ngay
-   * - Chưa connected: đăng ký pending, auto re-subscribe khi connect/reconnect
-   *
-   * Cleanup function trả về: hủy subscription hiện tại,
-   * KHÔNG xóa khỏi pending (để re-subscribe sau reconnect vẫn hoạt động).
-   * Pending chỉ bị clear khi disconnect() chủ động.
-   */
   subscribeTopic: (topic: string, handler: (body: any) => void) => () => void
   publishMessage: (destination: string, body: object) => void
+  /** Optimistic mark single notification as read + REST call */
+  markAsRead: (id: string) => Promise<void>
+  /** Optimistic mark all notifications as read + REST call */
+  markAllAsRead: () => Promise<void>
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined)
@@ -97,17 +92,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const connectRef = useRef<() => void>(() => { })
   const MAX_RECONNECT_ATTEMPTS = 5
 
-  /**
-   * pending: topic → handler (registry để re-subscribe sau reconnect)
-   * KHÔNG xóa khi component unmount, CHỈ xóa khi disconnect() chủ động.
-   */
   const pendingSubscriptionsRef = useRef<Map<string, (body: any) => void>>(new Map())
-
-  /**
-   * active: topic → STOMP unsubscribe function (cleanup subscription hiện tại)
-   * Bị clear khi onDisconnect và khi disconnect() chủ động.
-   */
   const activeSubscriptionsRef = useRef<Map<string, () => void>>(new Map())
+
+  // Keep a ref to latest notifications for use inside callbacks (avoid stale closure)
+  const notificationsRef = useRef<NotificationItem[]>(notifications)
+  useEffect(() => { notificationsRef.current = notifications }, [notifications])
 
   const emitNewNotification = useCallback((n: NotificationItem) => {
     newNotifHandlersRef.current.forEach(h => h(n))
@@ -161,18 +151,65 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user])
 
+  // ─── Optimistic: mark single as read ────────────────────────────────────────
+  const markAsRead = useCallback(async (id: string) => {
+    const target = notificationsRef.current.find(n => n.notificationId === id)
+    // Already read — nothing to do
+    if (!target || target.read) return
+
+    // 1. Optimistic update
+    setNotifications(prev =>
+      prev.map(n =>
+        n.notificationId === id
+          ? { ...n, read: true, readAt: new Date().toISOString() }
+          : n
+      )
+    )
+    setUnreadCount(prev => Math.max(0, prev - 1))
+
+    try {
+      // 2. REST — backend will also push /user/queue/notification-read via WS
+      //    That WS handler is idempotent (already read → no-op)
+      await api.patch(`/notifications/${id}/read`)
+    } catch {
+      // 3. Rollback on failure
+      setNotifications(prev =>
+        prev.map(n =>
+          n.notificationId === id
+            ? { ...n, read: false, readAt: null }
+            : n
+        )
+      )
+      setUnreadCount(prev => prev + 1)
+    }
+  }, []) // stable — reads notificationsRef, not state directly
+
+  // ─── Optimistic: mark all as read ───────────────────────────────────────────
+  const markAllAsRead = useCallback(async () => {
+    // 1. Optimistic update
+    setNotifications(prev =>
+      prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() }))
+    )
+    setUnreadCount(0)
+
+    try {
+      // 2. REST — backend will push /user/queue/all-read via WS (idempotent)
+      await api.patch("/notifications/read-all")
+    } catch {
+      // 3. Rollback — reload from server
+      loadInitialNotifications()
+    }
+  }, [loadInitialNotifications])
+
   const subscribeTopic = useCallback(
     (topic: string, handler: (body: any) => void): (() => void) => {
-      // Luôn cập nhật pending với handler mới nhất (tránh stale closure)
       pendingSubscriptionsRef.current.set(topic, handler)
 
       if (clientRef.current?.connected) {
-        // Hủy active subscription cũ nếu có (tránh duplicate)
         const existingUnsub = activeSubscriptionsRef.current.get(topic)
         if (existingUnsub) existingUnsub()
 
         const sub = clientRef.current.subscribe(topic, (msg: IMessage) => {
-          // Đọc từ pending để luôn gọi handler mới nhất
           const currentHandler = pendingSubscriptionsRef.current.get(topic)
           if (currentHandler) currentHandler(JSON.parse(msg.body))
         })
@@ -180,19 +217,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         const unsub = () => {
           sub.unsubscribe()
           activeSubscriptionsRef.current.delete(topic)
-          // KHÔNG xóa khỏi pendingSubscriptionsRef
         }
         activeSubscriptionsRef.current.set(topic, unsub)
         return unsub
       }
 
-      // Chưa connected — onConnect sẽ subscribe sau
       return () => {
         activeSubscriptionsRef.current.delete(topic)
-        // KHÔNG xóa khỏi pendingSubscriptionsRef
       }
     },
-    [], // stable — không có deps thay đổi theo render
+    [],
   )
 
   const publishMessage = useCallback((destination: string, body: object) => {
@@ -256,6 +290,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           const count = parseInt(message.body, 10)
           if (!isNaN(count)) setUnreadCount(count)
         })
+
+        // WS event: single read — idempotent with optimistic update
         client.subscribe("/user/queue/notification-read", (message: IMessage) => {
           let readId: string
           try {
@@ -267,19 +303,23 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           setNotifications(prev =>
             prev.map(n =>
               n.notificationId === readId
-                ? { ...n, read: true, readAt: new Date().toISOString() }
+                ? { ...n, read: true, readAt: n.readAt ?? new Date().toISOString() }
                 : n
             )
           )
-          setUnreadCount(prev => Math.max(0, prev - 1))
+          // unreadCount is already decremented by optimistic update — don't decrement again
+          // (WS may arrive after optimistic, so we reconcile via server push on /unread-count)
         })
+
+        // WS event: all read — idempotent
         client.subscribe("/user/queue/all-read", () => {
           setNotifications(prev =>
-            prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() }))
+            prev.map(n => ({ ...n, read: true, readAt: n.readAt ?? new Date().toISOString() }))
           )
           setUnreadCount(0)
           emitAllRead()
         })
+
         client.subscribe("/user/queue/notification-deleted", (message: IMessage) => {
           const deletedId = message.body.replace(/"/g, "")
           setNotifications(prev => {
@@ -290,8 +330,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           emitNotificationDeleted(deletedId)
         })
 
-        // Re-subscribe tất cả pending topics sau connect/reconnect
-        // Đọc handler từ pendingSubscriptionsRef để luôn dùng handler mới nhất
+        // Re-subscribe pending topics after connect/reconnect
         pendingSubscriptionsRef.current.forEach((_, topic) => {
           console.log("🔄 [WebSocket] Re-subscribing topic:", topic)
           const sub = client.subscribe(topic, (msg: IMessage) => {
@@ -317,7 +356,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       onDisconnect: () => {
         console.log("🔌 [WebSocket] Disconnected")
         setIsConnected(false)
-        // Active subs đã dead — clear để tránh gọi unsubscribe trên dead connection
         activeSubscriptionsRef.current.clear()
 
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
@@ -371,13 +409,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     setNotifications([])
     setUnreadCount(0)
     reconnectAttemptsRef.current = 0
-    // Disconnect chủ động → clear cả hai map
     pendingSubscriptionsRef.current.clear()
     activeSubscriptionsRef.current.clear()
   }, [])
 
-  // Dùng connectRef thay vì connect trực tiếp để effect không re-run
-  // khi connect reference thay đổi (do deps bên trong thay đổi)
   useEffect(() => {
     if (user) {
       loadInitialNotifications()
@@ -423,6 +458,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     subscribeToNotificationDeleted,
     subscribeTopic,
     publishMessage,
+    markAsRead,
+    markAllAsRead,
   }
 
   return (

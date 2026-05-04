@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SubmitButton } from "@/presentation/components/common/auth-ui";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const PAY_CYCLES = [
   { value: "monthly", label: "Hàng tháng" },
@@ -13,14 +13,14 @@ const PAY_CYCLES = [
   { value: "hourly", label: "Theo giờ" },
 ];
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 export interface MinimumSalaryStepProps {
   onNext: (data: { salary: number; cycle: string }) => void;
   onSkip: () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export function MinimumSalaryStep({ onNext, onSkip }: MinimumSalaryStepProps) {
   const [salary, setSalary] = useState("");

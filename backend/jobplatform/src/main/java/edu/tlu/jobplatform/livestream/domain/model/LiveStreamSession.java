@@ -44,7 +44,7 @@ public class LiveStreamSession {
         this.interviewSlots = new ArrayList<>();
     }
 
-    // ─── Factory methods ──────────────────────────────────────────────────────
+    // ─── Factory methods ──────────
 
     public static LiveStreamSession create(
             UUID companyId,
@@ -105,7 +105,7 @@ public class LiveStreamSession {
         return session;
     }
 
-    // ─── Business methods ─────────────────────────────────────────────────────
+    // ─── Business methods ─────────
 
     public void start() {
         status.validateTransitionTo(SessionStatus.LIVE);
@@ -199,7 +199,7 @@ public class LiveStreamSession {
         return List.copyOf(interviewSlots);
     }
 
-    // ─── Private helpers ──────────────────────────────────────────────────────
+    // ─── Private helpers ──────────
 
     private InterviewSlot findSlot(UUID slotId) {
         return interviewSlots.stream()

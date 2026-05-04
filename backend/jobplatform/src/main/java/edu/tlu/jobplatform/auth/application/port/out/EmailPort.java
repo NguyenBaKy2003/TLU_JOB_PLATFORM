@@ -41,4 +41,27 @@ public interface EmailPort {
      * @param otp     mã OTP 6 số
      */
     void sendOtpEmail(String toEmail, String otp);
+
+    /**
+     * Gửi link xác nhận đổi email đến email MỚI.
+     *
+     * @param toOldEmail    email hiện tại (để thông báo)
+     * @param recipientName tên user
+     * @param newEmail      email mới (nơi gửi link xác nhận)
+     * @param confirmLink   link xác nhận
+     */
+    void sendEmailChangeConfirmation(String toOldEmail, String recipientName,
+            String newEmail, String confirmLink);
+
+    /**
+     * Thông báo đổi email thành công — gửi đến email CŨ.
+     * Giúp user phát hiện nếu tài khoản bị xâm phạm.
+     */
+    void sendEmailChangedNotification(String toOldEmail, String recipientName, String newEmail);
+
+    /**
+     * Thông báo tài khoản đã bị xóa.
+     */
+    void sendAccountDeletedNotification(String toEmail, String recipientName);
+
 }

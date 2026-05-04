@@ -60,7 +60,7 @@ export function CandidateDetailPanel({
   const phone       = candidate?.phone     ?? app.candidatePhone;
   const canSchedule = service.canScheduleInterview(current);
 
-  // ── CV actions ───────────────────────────────────────────────────────────
+  // ── CV actions ───────
   // FIX: Dùng service thay vì <a href={cvUrl}> trực tiếp.
   // Request đi qua /employer/applications/{id}/cv/view|download
   // → được kiểm tra auth 2 lớp ở backend. S3 URL không lộ ra client.
@@ -89,7 +89,7 @@ export function CandidateDetailPanel({
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto pb-4">
 
-      {/* ── Candidate header ──────────────────────────────────────────────── */}
+      {/* ── Candidate header ─── */}
       <div className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
         <CandidateAvatar name={name} src={avatar} size="lg" />
         <div className="flex-1 min-w-0">
@@ -112,7 +112,7 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── Status + actions ──────────────────────────────────────────────── */}
+      {/* ── Status + actions ─── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <ApplicationStatusBadge status={current.status} />
@@ -164,7 +164,7 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── Application info ──────────────────────────────────────────────── */}
+      {/* ── Application info ─── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Thông tin đơn
@@ -187,14 +187,14 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── AI Score ──────────────────────────────────────────────────────── */}
+      {/* ── AI Score ──── */}
       {detail?.aiScore && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <AIScorePanel score={detail.aiScore} />
         </div>
       )}
 
-      {/* ── Cover letter ──────────────────────────────────────────────────── */}
+      {/* ── Cover letter  */}
       {current.coverLetter && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -206,7 +206,7 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Interview info ────────────────────────────────────────────────── */}
+      {/* ── Interview info ───── */}
       {current.scheduledAt && (
         <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4">
           <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
@@ -224,7 +224,7 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Status timeline ───────────────────────────────────────────────── */}
+      {/* ── Status timeline ──── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           Lịch sử trạng thái

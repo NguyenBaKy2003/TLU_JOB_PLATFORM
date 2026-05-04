@@ -32,7 +32,7 @@ export default function AdminLayoutClient({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ── Admin auth guard ──────────────────────────────────────────────────────
+  // ── Admin auth guard ──
 
   useEffect(() => {
     if (adminLoading) return;
@@ -41,7 +41,7 @@ export default function AdminLayoutClient({
     }
   }, [adminUser, adminLoading, router]);
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // ── Loading ───────────
 
   if (adminLoading || !adminUser) {
     return (

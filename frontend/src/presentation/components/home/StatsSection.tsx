@@ -1,37 +1,33 @@
-// src/app/(main)/home/_components/StatsSection.tsx
 "use client";
-import { Briefcase, Building2, Users, Zap } from "lucide-react";
-import { STATS } from "@/app/(main)/home/_constants";
 import { useInView } from "./useInView";
-
-const ICONS: Record<string, React.ReactNode> = {
-  briefcase: <Briefcase size={20} />,
-  building:  <Building2 size={20} />,
-  users:     <Users size={20} />,
-  zap:       <Zap size={20} />,
-};
+import { motion } from "framer-motion";
+import { STATS } from "./constants";
 
 export function StatsSection() {
-  const { ref, visible } = useInView();
+  const { ref, inView } = useInView();
 
   return (
-    <section ref={ref} className="bg-white border-t border-slate-100 py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {STATS.map((s, i) => (
-            <div key={i}
-              className={`text-center transition-all duration-700 ${
-                visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-              style={{ transitionDelay: `${i * 100}ms` }}>
-              <div className="inline-flex items-center justify-center w-12 h-12
-                rounded-2xl bg-blue-100 text-blue-600 mb-3 mx-auto shadow-sm">
-                {ICONS[s.iconKey]}
-              </div>
-              <p className="text-3xl font-black text-slate-800 mb-1">{s.value}</p>
-              <p className="text-sm text-slate-400">{s.label}</p>
-            </div>
-          ))}
+    <section ref={ref} className="py-20 bg-gradient-to-b from-slate-900 to-slate-800">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {STATS.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${stat.gradient} flex items-center justify-center shadow-lg`}>
+                  <Icon className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
+                <p className="text-white/60 text-sm">{stat.label}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

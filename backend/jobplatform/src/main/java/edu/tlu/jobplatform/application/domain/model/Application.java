@@ -29,20 +29,20 @@ public class Application {
     private String coverLetter; // Thư xin việc (optional)
     private String expectedSalary; // Mức lương kỳ vọng
 
-    // ── Trạng thái ────────────────────────────────────────────
+    // ── Trạng thái
     private ApplicationStatus status;
     private String rejectionReason; // Lý do từ chối (nếu có)
 
-    // ── Phỏng vấn ─────────────────────────────────────────────
+    // ── Phỏng vấn ─
     private LocalDateTime interviewScheduledAt;
     private String interviewLocation; // "Online - Google Meet" / "VP HN"
     private String interviewNote;
 
-    // ── AI Scoring ────────────────────────────────────────────
+    // ── AI Scoring
     private AIScore aiScore; // null nếu chưa tính
     private boolean aiScoreCalculated;
 
-    // ── Metadata ──────────────────────────────────────────────
+    // ── Metadata ──
     private final LocalDateTime appliedAt;
     private LocalDateTime updatedAt;
 

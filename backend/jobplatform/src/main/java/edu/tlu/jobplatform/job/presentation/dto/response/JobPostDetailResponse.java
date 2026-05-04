@@ -50,6 +50,7 @@ public class JobPostDetailResponse {
         private final int applicationCount;
 
         private final List<SkillDto> skills;
+        private boolean featured;
 
         private final LocalDateTime publishedAt;
         private final LocalDateTime createdAt;
@@ -97,6 +98,7 @@ public class JobPostDetailResponse {
                                 .vacancies(j.getVacancies())
                                 .deadline(j.getDeadline())
                                 .status(j.getStatus())
+                                .featured(j.isFeatured())
                                 .acceptingApplications(j.isAcceptingApplications())
                                 .viewCount(j.getViewCount())
                                 .applicationCount(j.getApplicationCount())

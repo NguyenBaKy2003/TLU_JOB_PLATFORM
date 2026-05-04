@@ -18,7 +18,7 @@ import type {
 
 export interface ICompanyRepository {
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public ────────────
 
   /** Danh sách công ty đã xác thực (có phân trang) */
   listVerified(params?: CompanyListParams): Promise<PageResponse<CompanyProfile>>;
@@ -29,7 +29,7 @@ export interface ICompanyRepository {
   /** Chi tiết công ty theo slug */
   getBySlug(slug: string): Promise<CompanyProfile>;
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  // ── Employer ──────────
 
   /** Hồ sơ công ty của employer đang đăng nhập */
   getMyCompany(): Promise<CompanyProfile>;
@@ -52,7 +52,7 @@ export interface ICompanyRepository {
    */
   uploadCover(file: File): Promise<CompanyProfile>;
 
-  // ── Reviews ───────────────────────────────────────────────────────────────
+  // ── Reviews ───────────
 
   /** Danh sách review của công ty */
   listReviews(companyId: string, page?: number, size?: number): Promise<PageResponse<CompanyReview>>;
@@ -63,7 +63,7 @@ export interface ICompanyRepository {
   /** Xóa review */
   deleteReview(companyId: string, reviewId: string): Promise<void>;
 
-  // ── Admin ─────────────────────────────────────────────────────────────────
+  // ── Admin ─────────────
 
   /** [ADMIN] Danh sách công ty theo trạng thái */
   adminList(status: string, page?: number, size?: number): Promise<PageResponse<CompanyProfile>>;
@@ -97,7 +97,7 @@ export interface ICompanyRepository {
   /** Xoá thành viên đội ngũ */
   deleteTeamMember(memberId: string): Promise<void>;
 
-  // ── Gallery ───────────────────────────────────────────────────────────────
+  // ── Gallery ───────────
 
   /** Danh sách ảnh gallery */
   listGallery(companyId: string): Promise<GalleryImage[]>;
@@ -108,7 +108,7 @@ export interface ICompanyRepository {
   /** Xoá ảnh gallery */
   deleteGalleryImage(imageId: string): Promise<void>;
 
-  // ── Documents ─────────────────────────────────────────────────────────────
+  // ── Documents ─────────
 
   /** Danh sách tài liệu (chỉ owner/admin) */
   listDocuments(): Promise<CompanyDocument[]>;

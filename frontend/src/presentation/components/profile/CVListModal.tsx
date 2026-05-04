@@ -7,7 +7,7 @@ import { FileText, Download, Eye, Trash2,
 import { CandidateCV }                  from "@/domain/models/Candidate";
 import { extractErrorMessage }          from "@/lib/extractErrorMessage";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 interface Props {
   cvList:        CandidateCV[];
@@ -19,7 +19,7 @@ interface Props {
   onClose:       () => void;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("vi-VN", {
@@ -36,7 +36,7 @@ function shortTitle(title: string): string {
   return title.replace(/_/g, " ");
 }
 
-// ─── Row component ────────────────────────────────────────────────────────────
+// ─── Row component ────────
 
 interface RowAction { id: string; type: "view" | "download" | "delete" | "primary"; }
 
@@ -156,7 +156,7 @@ function CVRow({
   );
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
+// ─── Modal ─
 
 export default function CVListModal({
   cvList, loading, onView, onDownload, onDelete, onSetPrimary, onClose,

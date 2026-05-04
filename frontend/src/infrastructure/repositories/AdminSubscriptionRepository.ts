@@ -8,7 +8,7 @@ import type { SubscriptionPlan }            from "@/domain/models/CompanySubscri
 
 interface ApiResponse<T> { success: boolean; data: T; message?: string; }
 
-// ── Helper: inject adminAccessToken, skip shared interceptor ─────────────────
+// ── Helper: inject adminAccessToken, skip shared interceptor ──
 
 function adminCfg(params?: Record<string, unknown>) {
   const token = getAdminAccessToken();
@@ -35,7 +35,7 @@ async function patch<T>(url: string, body?: unknown, params?: Record<string, unk
   return res.data.data;
 }
 
-// ── Repository ────────────────────────────────────────────────────────────────
+// ── Repository ────────────
 
 export class AdminSubscriptionRepository implements IAdminSubscriptionRepository {
   private readonly PLANS = "/admin/subscription-plans";

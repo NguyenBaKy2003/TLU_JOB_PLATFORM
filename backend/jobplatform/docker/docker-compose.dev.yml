@@ -27,7 +27,7 @@ volumes:
 
 services:
 
-  # ── PostgreSQL ────────────────────────────────────────────────
+  # ── PostgreSQL ────
   postgres:
     image: postgres:16-alpine
     container_name: jobplatform-postgres-dev
@@ -51,7 +51,7 @@ services:
     ports:
       - "5432:5432"
 
-  # ── Redis ─────────────────────────────────────────────────────
+  # ── Redis ─────────
   redis:
     image: redis:7-alpine
     container_name: jobplatform-redis-dev
@@ -154,7 +154,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ── Nginx ─────────────────────────────────────────────────────
+  # ── Nginx ─────────
   nginx:
     image: nginx:alpine
     container_name: jobplatform-nginx-dev

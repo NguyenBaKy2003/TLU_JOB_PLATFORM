@@ -25,7 +25,7 @@ const STATUS_TABS: { value: ApplicationStatus | "ALL"; label: string }[] = [
   { value: "REJECTED",            label: "Không phù hợp" },
 ];
 
-// ── Salary formatter ───────────────────────────────────────────────────────────
+// ── Salary formatter ───────
 function salaryLabel(app: ApplicationWithJob) {
   if (!app.salaryMin && !app.salaryMax) return "Thoả thuận";
   const fmt = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(0)}tr` : `${n / 1_000}k`;
@@ -34,7 +34,7 @@ function salaryLabel(app: ApplicationWithJob) {
   return app.salaryMin ? `Từ ${fmt(app.salaryMin)}${cur}` : `Đến ${fmt(app.salaryMax!)}${cur}`;
 }
 
-// ── Card skeleton ──────────────────────────────────────────────────────────────
+// ── Card skeleton ──────────
 function AppSkeleton() {
   return (
     <div className="animate-pulse bg-white border border-gray-100 rounded-2xl p-5">
@@ -50,7 +50,7 @@ function AppSkeleton() {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+// ── Page ────
 export default function CandidateApplicationsPage() {
   const toast  = useToast();
   const router = useRouter();

@@ -9,7 +9,7 @@ const inputCls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl b
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
-// ── Field wrapper ─────────────────────────────────────────────────────────────
+// ── Field wrapper ─────────
 
 function Field({ label, required, hint, children }: {
   label: string; required?: boolean; hint?: string; children: React.ReactNode;
@@ -25,7 +25,7 @@ function Field({ label, required, hint, children }: {
   );
 }
 
-// ── Limit input (-1 = unlimited) ──────────────────────────────────────────────
+// ── Limit input (-1 = unlimited) ─
 
 function LimitInput({ label, value, onChange }: {
   label: string; value: number; onChange: (v: number) => void;
@@ -60,7 +60,7 @@ function LimitInput({ label, value, onChange }: {
   );
 }
 
-// ── Toggle ────────────────────────────────────────────────────────────────────
+// ── Toggle ─
 
 function ToggleRow({ label, desc, checked, onChange }: {
   label: string; desc: string; checked: boolean; onChange: (v: boolean) => void;
@@ -85,7 +85,7 @@ function ToggleRow({ label, desc, checked, onChange }: {
   );
 }
 
-// ── Default form ──────────────────────────────────────────────────────────────
+// ── Default form ──────────
 
 const DEFAULT: PlanPayload = {
   code: "", name: "", description: "",
@@ -95,7 +95,7 @@ const DEFAULT: PlanPayload = {
   durationDays: 30,
 };
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ──
 
 interface Props {
   plan?:     SubscriptionPlan;  // undefined = tạo mới
@@ -166,7 +166,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
 
         <div className="px-6 py-5 flex flex-col gap-6">
 
-          {/* ── Thông tin cơ bản ──────────────────────────── */}
+          {/* ── Thông tin cơ bản ───────────── */}
           <section>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Thông tin cơ bản
@@ -197,7 +197,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
             </div>
           </section>
 
-          {/* ── Giá ──────────────────────────────────────── */}
+          {/* ── Giá ────────── */}
           <section>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Giá (VND — nhập 0 cho gói miễn phí)
@@ -222,7 +222,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
             </div>
           </section>
 
-          {/* ── Quota ─────────────────────────────────────── */}
+          {/* ── Quota ───────── */}
           <section>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Quota (<Infinity size={10} className="inline" /> = không giới hạn, dùng -1)
@@ -240,7 +240,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
             </div>
           </section>
 
-          {/* ── Tính năng nâng cao ────────────────────────── */}
+          {/* ── Tính năng nâng cao ─────────── */}
           <section className="flex flex-col gap-4 p-4 bg-gray-50 rounded-2xl">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Tính năng nâng cao
@@ -259,7 +259,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
             />
           </section>
 
-          {/* ── Actions ──────────────────────────────────── */}
+          {/* ── Actions ────── */}
           <div className="flex gap-2 pt-1">
             <button onClick={onCancel} disabled={saving}
               className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100

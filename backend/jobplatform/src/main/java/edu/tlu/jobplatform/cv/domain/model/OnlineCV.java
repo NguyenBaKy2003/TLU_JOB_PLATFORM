@@ -45,7 +45,7 @@ public class OnlineCV {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Metadata update ───────────────────────────────────────────────────────
+    // ── Metadata update ───────────
 
     public void updateMetadata(String title, PersonalInfo personalInfo,
             UUID templateId, CVVisibility visibility) {
@@ -58,7 +58,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Section management ────────────────────────────────────────────────────
+    // ── Section management ────────
 
     /** Thêm section mới vào cuối */
     public CVSection addSection(SectionType type, String title, String content) {
@@ -127,7 +127,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Status transitions ────────────────────────────────────────────────────
+    // ── Status transitions ────────
 
     /** DRAFT → PUBLISHED. Validate trước khi publish. */
     public void publish(String slug) {
@@ -169,7 +169,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Stats & PDF ───────────────────────────────────────────────────────────
+    // ── Stats & PDF ───────────────
 
     public void incrementViewCount() {
         this.viewCount++;
@@ -180,7 +180,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Read-only view ────────────────────────────────────────────────────────
+    // ── Read-only view ────────────
 
     public List<CVSection> getSections() {
         return Collections.unmodifiableList(sections);

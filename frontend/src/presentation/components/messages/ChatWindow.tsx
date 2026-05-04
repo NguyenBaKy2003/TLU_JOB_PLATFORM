@@ -15,7 +15,7 @@ import { extractErrorMessage }  from "@/lib/extractErrorMessage";
 
 const service = new MessageService(new MessageRepository());
 
-// ── Avatar ────────────────────────────────────────────────────────────────────
+// ── Avatar ─
 function ParticipantAvatar({ name, src }: { name: string; src?: string | null }) {
   const COLORS = [
     "from-red-400 to-red-600", "from-blue-400 to-blue-600",
@@ -34,14 +34,14 @@ function ParticipantAvatar({ name, src }: { name: string; src?: string | null })
   );
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ──
 interface Props {
   conv: ConversationSummary;
   role: "EMPLOYER" | "CANDIDATE";
   onBack?: () => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────────
 export function ChatWindow({ conv, role, onBack }: Props) {
   const { user } = useAuth();
   const { subscribeToMessages, sendMessageWs, isConnected } = useWebSocket();
@@ -63,7 +63,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
   const inputRef   = useRef<HTMLInputElement>(null);
   const hasLoaded  = useRef<string | null>(null);
 
-  // ── Load messages ──────────────────────────────────────────────────────────
+  // ── Load messages ──────
   const loadMessages = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -83,7 +83,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
     loadMessages();
   }, [conv.id, loadMessages]);
 
-  // ── WebSocket ──────────────────────────────────────────────────────────────
+  // ── WebSocket ──────────
   useEffect(() => {
     const unsubscribe = subscribeToMessages((incoming: IncomingMessage) => {
       if (incoming.conversationId !== conv.id) return;
@@ -121,7 +121,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
     inputRef.current?.focus();
   }, [conv.id]);
 
-  // ── Send message ───────────────────────────────────────────────────────────
+  // ── Send message ───────
   const sendMessage = useCallback(async () => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
@@ -162,7 +162,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
     }
   }, [text, sending, conv.id, user?.id, isConnected, sendMessageWs]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────────
   return (
     <div className="flex flex-col h-full bg-white">
 
@@ -225,7 +225,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
   );
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
+// ── Utils ──
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("vi-VN", {
     hour: "2-digit",

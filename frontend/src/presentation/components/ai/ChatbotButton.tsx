@@ -89,7 +89,7 @@ export function ChatbotButton() {
 
   return (
     <>
-      {/* ── Floating button ─────────────────────────────────── */}
+      {/* ── Floating button ───── */}
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Mở Career Advisor"
@@ -110,7 +110,7 @@ export function ChatbotButton() {
         )}
       </button>
 
-      {/* ── Chat popup ──────────────────────────────────────── */}
+      {/* ── Chat popup ────────── */}
       {open && (
         <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96
           flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-200

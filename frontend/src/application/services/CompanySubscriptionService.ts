@@ -12,14 +12,14 @@ export class CompanySubscriptionService {
 
   constructor(private readonly repo: ICompanySubscriptionRepository) {}
 
-  // ── Plans (public) ────────────────────────────────────────────────────────
+  // ── Plans (public) ────
 
   /** Tất cả gói đang active — dùng trên trang pricing */
   getPlans(): Promise<SubscriptionPlan[]> {
     return this.repo.getPlans();
   }
 
-  // ── My subscription (employer) ────────────────────────────────────────────
+  // ── My subscription (employer) ──────────────
 
   /** Subscription hiện tại — null nếu chưa mua */
   getMySubscription(): Promise<CompanySubscription | null> {
@@ -31,7 +31,7 @@ export class CompanySubscriptionService {
     return this.repo.getMyQuota();
   }
 
-  // ── Purchase ──────────────────────────────────────────────────────────────
+  // ── Purchase ──────────
 
   /**
    * Mua gói theo tháng.
@@ -60,7 +60,7 @@ export class CompanySubscriptionService {
     window.location.href = result.paymentUrl;
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Helpers ───────────
 
   /** Tính giá sau giảm giá yearly (thường -20%) */
   yearlyDiscount(plan: SubscriptionPlan): number {

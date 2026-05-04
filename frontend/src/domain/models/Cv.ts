@@ -1,6 +1,6 @@
 // src/domain/models/Cv.ts
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// ── Enums ──
 
 export type CVStatus     = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type CVVisibility = "PUBLIC" | "PRIVATE" | "LINK_ONLY";
@@ -32,7 +32,7 @@ export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
   CUSTOM:      "Khác",
 };
 
-// ── Value objects ─────────────────────────────────────────────────────────────
+// ── Value objects ─────────
 
 export interface PersonalInfo {
   fullName:   string | null;
@@ -56,7 +56,7 @@ export interface CVSection {
   visible:      boolean;
 }
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// ── Domain models ─────────
 
 /** Dùng trong danh sách CV (OnlineCVResponse) */
 export interface OnlineCV {
@@ -87,7 +87,7 @@ export interface CVTemplate {
   premium:      boolean;
 }
 
-// ── Payloads ──────────────────────────────────────────────────────────────────
+// ── Payloads ──────────────
 
 export interface CreateOnlineCVPayload {
   title:      string;
@@ -112,7 +112,7 @@ export interface ReorderSectionsPayload {
   sectionIds: string[];
 }
 
-// ── Form state ────────────────────────────────────────────────────────────────
+// ── Form state ────────────
 
 export interface PersonalInfoForm {
   fullName:  string;

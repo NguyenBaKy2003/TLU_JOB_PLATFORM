@@ -9,7 +9,7 @@ import type {
 } from "@/domain/models/LiveStream";
 
 export interface ILiveStreamRepository {
-  // ─── Employer Endpoints ───────────────────────────────────────
+  // ─── Employer Endpoints ─────────
 
   /** POST /api/v1/streams — Tạo phiên stream mới */
   createSession(req: CreateSessionRequest): Promise<LiveStreamSession>;
@@ -32,7 +32,7 @@ export interface ILiveStreamRepository {
   /** POST /api/v1/streams/{id}/invite-slot — Mời candidate vào slot */
   inviteToSlot(sessionId: string, req: InviteToSlotRequest): Promise<InterviewSlot>;
 
-  // ─── Candidate Endpoints ──────────────────────────────────────
+  // ─── Candidate Endpoints ────────
 
   /** POST /api/v1/streams/{id}/join — Candidate lấy viewer token để vào xem */
   joinStream(sessionId: string): Promise<JoinSessionResponse>;

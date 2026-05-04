@@ -1,23 +1,26 @@
-// src/hooks/useInView.ts
-"use client";
 import { useEffect, useRef, useState } from "react";
 
-export function useInView(threshold = 0.15) {
-  const ref                 = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+export function useInView(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
       },
-      { threshold },
+      { threshold: 0.1, ...options }
     );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
 
-  return { ref, visible };
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [options]);
+
+  return { ref, inView };
 }

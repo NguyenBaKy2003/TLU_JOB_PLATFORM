@@ -67,7 +67,7 @@ public class ApplicationResponse {
                 .build();
     }
 
-    // ── Nested DTOs ────────────────────────────────────────────
+    // ── Nested DTOs
 
     @Getter
     @Builder

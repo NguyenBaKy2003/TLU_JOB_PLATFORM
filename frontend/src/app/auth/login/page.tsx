@@ -31,7 +31,7 @@ export default function LoginPage() {
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ──────────────────────
+  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ───────
   useEffect(() => {
     const error = searchParams.get("error");
     if (!error) return;
@@ -52,7 +52,7 @@ export default function LoginPage() {
   // ── Nếu đã đăng nhập → redirect về đúng dashboard theo role ──────────────
   useEffect(() => {
     if (authLoading || !user) return;
-    router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/home");
+    router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/");
   }, [user, authLoading, router]);
 
   const handleSubmit = useCallback(async (email: string, password: string) => {
@@ -63,8 +63,9 @@ export default function LoginPage() {
       setAccessToken(token.accessToken);
       setRefreshToken(token.refreshToken);
       setUserFromToken(token.user);
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn đến với JobPlatform.");
+      router.push("/");
 
-      router.push("/home");
     } catch (err: any) {
       toast.error(
         "Đăng nhập thất bại",

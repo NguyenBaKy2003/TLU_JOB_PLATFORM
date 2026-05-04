@@ -7,7 +7,7 @@ interface Props { msg: Message; }
 export function MessageBubble({ msg }: Props) {
   const isMe = msg.fromMe;
 
-  // ── Text ──────────────────────────────────────────────────────────────────
+  // ── Text ──────────────
   if (msg.type === "text") {
     return (
       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -24,7 +24,7 @@ export function MessageBubble({ msg }: Props) {
     );
   }
 
-  // ── Emoji ─────────────────────────────────────────────────────────────────
+  // ── Emoji ─────────────
   if (msg.type === "emoji") {
     return (
       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -33,7 +33,7 @@ export function MessageBubble({ msg }: Props) {
     );
   }
 
-  // ── File ──────────────────────────────────────────────────────────────────
+  // ── File ──────────────
   if (msg.type === "file") {
     return (
       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -56,7 +56,7 @@ export function MessageBubble({ msg }: Props) {
     );
   }
 
-  // ── Audio ─────────────────────────────────────────────────────────────────
+  // ── Audio ─────────────
   if (msg.type === "audio") {
     return (
       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>

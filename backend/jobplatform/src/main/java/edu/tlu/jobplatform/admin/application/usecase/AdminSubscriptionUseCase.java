@@ -95,7 +95,7 @@ public class AdminSubscriptionUseCase {
         return saved;
     }
 
-    // ── Plans ─────────────────────────────────────────────────
+    // ── Plans ─────
 
     @Transactional(readOnly = true)
     public List<SubscriptionPlan> listAllPlans() {

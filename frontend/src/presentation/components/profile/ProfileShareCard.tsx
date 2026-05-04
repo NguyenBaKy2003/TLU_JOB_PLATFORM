@@ -20,7 +20,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
 
   const fullUrl = `https://${profileUrl}`;
 
-  // ── Copy ─────────────────────────────────────────────────────────────────
+  // ── Copy ─────────────
 
   const handleCopy = async () => {
     try {
@@ -30,7 +30,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
     } catch { /* ignore */ }
   };
 
-  // ── Save slug ─────────────────────────────────────────────────────────────
+  // ── Save slug ─────────
 
   const handleSave = async () => {
     if (!onUpdateUrl) return;
@@ -48,7 +48,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">

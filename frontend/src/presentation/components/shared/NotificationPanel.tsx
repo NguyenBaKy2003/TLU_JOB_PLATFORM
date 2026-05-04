@@ -6,48 +6,27 @@ import { Bell, CheckCheck, ExternalLink } from "lucide-react";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { useAuth } from "@/application/contexts/AuthContext";
 import { TYPE_META, type NotificationApiType } from "@/domain/models/Notification";
-import api from "@/lib/axios";
 
 interface Props {
   onClose: () => void;
 }
 
 export function NotificationPanel({ onClose }: Props) {
-  const { notifications, unreadCount } = useWebSocket();
-  const { user }  = useAuth();
-  const router    = useRouter();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useWebSocket();
+  const { user } = useAuth();
+  const router   = useRouter();
 
   const isEmployer   = user?.role === "EMPLOYER";
   const allNotifHref = isEmployer ? "/employer/notifications" : "/candidate/notifications";
 
-  // ── Mark all as read ────────────────────────────────────────────────────────
-  // Backend push /user/queue/all-read → WebSocketContext reset state tự động
-  const markAllRead = async () => {
-    try {
-      await api.patch("/notifications/read-all");
-      // Không cần update state thủ công:
-      // WebSocketContext lắng nghe /user/queue/all-read và tự setUnreadCount(0)
-    } catch {
-      /* silent */
-    }
-  };
-
-  // ── Mark single as read then navigate ───────────────────────────────────────
-  // FIX: Optimistic update ngay lập tức nếu backend chưa push WS kịp.
-  // WebSocketContext cũng lắng nghe /user/queue/notification-read nên
-  // state sẽ đúng dù backend push hay không push WS event.
   const handleItemClick = async (
     notificationId: string,
     read: boolean,
     link: string | null,
   ) => {
+    // Optimistic update fires immediately inside markAsRead — no await needed before navigation
     if (!read) {
-      try {
-        // Gọi REST — backend sẽ push /user/queue/notification-read qua WS
-        await api.patch(`/notifications/${notificationId}/read`);
-      } catch {
-        /* silent */
-      }
+      markAsRead(notificationId); // intentionally not awaited
     }
     if (link) {
       onClose();
@@ -55,7 +34,6 @@ export function NotificationPanel({ onClose }: Props) {
     }
   };
 
-  // ── Time helper ─────────────────────────────────────────────────────────────
   function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
     const m    = Math.floor(diff / 60_000);
@@ -71,7 +49,7 @@ export function NotificationPanel({ onClose }: Props) {
       className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl
         border border-gray-100 shadow-xl z-50 overflow-hidden"
     >
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ─────── */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">Thông báo</span>
@@ -84,7 +62,7 @@ export function NotificationPanel({ onClose }: Props) {
 
         {unreadCount > 0 && (
           <button
-            onClick={markAllRead}
+            onClick={markAllAsRead}
             className="flex items-center gap-1 px-2 py-1 text-[11px] text-blue-600
               hover:bg-blue-50 rounded-lg transition-colors font-medium"
             title="Đánh dấu tất cả đã đọc"
@@ -95,7 +73,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── List ────────────────────────────────────────────────────────────── */}
+      {/* ── List ────────── */}
       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-gray-400">
@@ -104,7 +82,7 @@ export function NotificationPanel({ onClose }: Props) {
           </div>
         ) : (
           notifications.map((n) => {
-            const meta = TYPE_META[n.type as NotificationApiType];
+            const meta        = TYPE_META[n.type as NotificationApiType];
             const displayText = n.title || n.body || "";
             const truncated   =
               displayText.length > 80 ? displayText.slice(0, 80) + "…" : displayText;
@@ -162,7 +140,7 @@ export function NotificationPanel({ onClose }: Props) {
         )}
       </div>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      {/* ── Footer ──────── */}
       <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
         <Link
           href={allNotifHref}

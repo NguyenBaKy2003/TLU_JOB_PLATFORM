@@ -72,7 +72,7 @@ public class JwtTokenProvider {
         this.refreshTokenExpiryMs = refreshMs;
     }
 
-    // ── Tạo token ─────────────────────────────────────────────────
+    // ── Tạo token ─────
 
     public String generateAccessToken(User user, String tokenId) {
         Instant now = Instant.now();
@@ -100,7 +100,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // ── Xác thực token ────────────────────────────────────────────
+    // ── Xác thực token
 
     public boolean validateToken(String token) {
         try {
@@ -118,7 +118,7 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // ── Đọc claims ────────────────────────────────────────────────
+    // ── Đọc claims ────
 
     public UUID extractUserId(String token) {
         return UUID.fromString(parseClaims(token).getSubject());
@@ -155,7 +155,7 @@ public class JwtTokenProvider {
         return accessTokenExpiryMs / 1000;
     }
 
-    // ── Helper ────────────────────────────────────────────────────
+    // ── Helper ────────
 
     private Claims parseClaims(String token) {
         return Jwts.parser()

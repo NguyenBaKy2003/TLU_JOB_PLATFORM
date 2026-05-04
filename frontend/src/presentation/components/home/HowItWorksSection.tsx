@@ -1,81 +1,77 @@
-// src/app/(main)/home/_components/HowItWorksSection.tsx
 "use client";
-import Link                  from "next/link";
-import { ChevronRight }      from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useInView } from "./useInView";
-import { HOW_IT_WORKS_STEPS } from "@/app/(main)/home/_constants";
+import { HOW_IT_WORKS } from "./constants";
 
 export function HowItWorksSection() {
-  const { ref, visible } = useInView();
+  const { ref, inView } = useInView();
 
   return (
-    <section ref={ref} className="py-24 bg-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-
-        {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-700 ${
-          visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-        }`}>
-          <p className="text-amber-500 text-xs font-bold uppercase tracking-[3px] mb-3">
-            Dành cho ứng viên
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-800 mb-4">
+    <section ref={ref} className="py-20 bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e]">
+      <div className="max-w-6xl mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600/20 border border-purple-500/30 mb-4">
+            <span className="text-purple-400 text-xs font-semibold">CÁCH THỨC HOẠT ĐỘNG</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Chỉ 3 bước để có việc làm mới
           </h2>
-          <p className="text-slate-400 max-w-md mx-auto">
-            Quy trình đơn giản, minh bạch. Không phức tạp, không mất phí.
+          <p className="text-white/50 max-w-2xl mx-auto">
+            Quy trình đơn giản, nhanh chóng và hiệu quả
           </p>
-        </div>
+        </motion.div>
 
-        {/* Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Connector line */}
-          <div className="hidden md:block absolute top-8 left-1/3 right-1/3 h-px
-            bg-gradient-to-r from-transparent via-blue-300/60 to-transparent" />
+          {/* Connecting line */}
+          <div className="hidden md:block absolute top-24 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50" />
 
-          {HOW_IT_WORKS_STEPS.map((step, i) => (
-            <div key={i}
-              className={`relative transition-all duration-700 ${
-                visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: `${i * 150}ms` }}>
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl
-                bg-blue-100 border border-blue-200 mb-5 mx-auto shadow-sm">
-                <span className="text-2xl font-black text-blue-600">{step.step}</span>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 text-center mb-2">{step.title}</h3>
-              <p className="text-sm text-slate-400 text-center leading-relaxed">{step.desc}</p>
-            </div>
-          ))}
+          {HOW_IT_WORKS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="relative text-center"
+              >
+                <div className="relative z-10">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Icon className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xs">{step.step}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Employer CTA banner */}
-        <div
-          className={`mt-16 p-8 rounded-3xl border border-blue-100
-            bg-gradient-to-r from-sky-50 to-blue-50
-            flex flex-col sm:flex-row items-center justify-between gap-6
-            transition-all duration-700 shadow-sm ${
-              visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-            }`}
-          style={{ transitionDelay: "500ms" }}>
-          <div>
-            <p className="text-amber-500 text-xs font-bold uppercase tracking-[2px] mb-1">
-              Dành cho nhà tuyển dụng
-            </p>
-            <h3 className="text-xl font-black text-slate-800 mb-1">
-              Tìm nhân tài trong 72 giờ
-            </h3>
-            <p className="text-slate-400 text-sm">
-              AI matching thông minh giúp bạn lọc đúng ứng viên từ pool 420,000 người.
-            </p>
-          </div>
-          <Link href="/auth/employer/signup"
-            className="shrink-0 flex items-center gap-2 px-6 py-3.5 bg-amber-400
-              hover:bg-amber-300 text-slate-900 font-bold text-sm rounded-xl
-              transition-colors shadow-md shadow-amber-200/40">
-            Đăng tuyển miễn phí <ChevronRight size={16} />
-          </Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 text-center"
+        >
+          <p className="text-white/70">
+            Dành cho nhà tuyển dụng?{" "}
+            <Link href="/auth/employer/signup" className="text-blue-400 hover:underline inline-flex items-center gap-1">
+              Đăng tuyển miễn phí
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </p>
+        </motion.div>
       </div>
     </section>
   );

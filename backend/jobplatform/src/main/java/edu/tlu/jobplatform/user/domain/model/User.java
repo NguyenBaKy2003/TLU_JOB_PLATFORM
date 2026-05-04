@@ -35,7 +35,7 @@ public class User {
     private LocalDateTime lockedUntil;
     private final LocalDateTime createdAt;
 
-    // ── Business Rules ────────────────────────────────────────────
+    // ── Business Rules
 
     /**
      * Kiểm tra user có thể đăng nhập không.
@@ -120,7 +120,7 @@ public class User {
         this.active = false;
     }
 
-    // ── Activate ──────────────────────────────────────────────────────
+    // ── Activate ──────────
     public void activate() {
         this.active = true;
     }
@@ -178,5 +178,10 @@ public class User {
         if (this.avatarUrl == null && avatarUrl != null) {
             this.avatarUrl = avatarUrl;
         }
+    }
+
+    /** Cập nhật email sau khi xác nhận token. */
+    public void updateEmail(String newEmail) {
+        this.email = newEmail;
     }
 }

@@ -4,20 +4,20 @@ import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { SubmitButton } from "@/presentation/components/common/auth-ui";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const MAX_MB = 10;
 const ACCEPTED_EXTS = ["pdf", "doc", "docx"];
 const ACCEPTED_ACCEPT = ".pdf,.doc,.docx";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 export interface UploadCvStepProps {
   onComplete: (file: File | null) => void;
   onSkip: () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
   const [file, setFile] = useState<File | null>(null);
@@ -26,7 +26,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ── File validation ─────────────────────────────────────────────────────────
+  // ── File validation ─────
 
   const validateFile = (f: File): boolean => {
     if (f.size > MAX_MB * 1024 * 1024) {
@@ -58,7 +58,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
       ? `${(bytes / 1024).toFixed(0)} KB`
       : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // ── Submit ──────────────
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

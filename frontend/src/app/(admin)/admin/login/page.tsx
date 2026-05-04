@@ -10,7 +10,7 @@ import { useToast }                           from "@/presentation/components/ui
 
 const authService = new AuthService(new AuthRepository());
 
-// ── FormInput ──────────────────────────────────────────────────────────────────
+// ── FormInput ──────────────
 
 function FormInput({
   label, error, rightElement, ...props
@@ -47,7 +47,7 @@ function FormInput({
   );
 }
 
-// ── Spinner ────────────────────────────────────────────────────────────────────
+// ── Spinner ─
 
 function FullPageSpinner() {
   return (
@@ -61,7 +61,7 @@ function FullPageSpinner() {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+// ── Page ────
 
 export default function AdminLoginPage() {
   const router                                         = useRouter();

@@ -58,7 +58,7 @@ public class UploadGalleryImageUseCase {
                         "INVALID_FILE_TYPE");
         }
 
-        // ── Upload và lưu từng ảnh ────────────────────────────────────────────
+        // ── Upload và lưu từng ảnh
         List<CompanyGalleryImage> results = new ArrayList<>();
 
         for (int i = 0; i < files.size(); i++) {

@@ -55,4 +55,13 @@ public interface TokenStorePort {
 
     /** Kiểm tra jti có đang trong blacklist không */
     boolean isBlacklisted(String jti);
+
+    /**
+     * Revoke tất cả session của user TRỪ session hiện tại.
+     * Dùng sau khi đổi mật khẩu — giữ session đang thao tác, xóa các thiết bị khác.
+     *
+     * @param userId      chủ sở hữu các session
+     * @param keepTokenId tokenId của session cần giữ lại
+     */
+    void deleteAllExcept(UUID userId, String keepTokenId);
 }

@@ -51,7 +51,7 @@ public class QuotaDomainService {
         sub.consumeCvView(1);
     }
 
-    // ── Private ───────────────────────────────────────────────
+    // ── Private ───
 
     private void requireActive(CompanySubscription sub, String action) {
         if (sub == null || !sub.isActive())

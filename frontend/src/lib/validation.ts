@@ -1,4 +1,4 @@
-// ── Regex patterns ────────────────────────────────────────────
+// ── Regex patterns ──────────────
 export const REGEX = {
   email:    /\S+@\S+\.\S+/,
   hasUpper: /[A-Z]/,
@@ -7,7 +7,7 @@ export const REGEX = {
   phone:    /^(\+84|0)[0-9]{9,10}$/,
 };
 
-// ── Single field validators ────────────────────────────────────
+// ── Single field validators ──────
 export const validators = {
   required: (value: string, label = "Trường này") =>
     value.trim() ? undefined : `${label} không được để trống`,

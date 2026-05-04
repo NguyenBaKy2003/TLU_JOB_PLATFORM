@@ -1,10 +1,10 @@
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// ─── Enums ─
 
 export type UserRole     = "CANDIDATE" | "EMPLOYER" | "ADMIN" | "SUPER_ADMIN";
 export type UserStatus   = "ACTIVE" | "INACTIVE" | "LOCKED";
 export type OAuthProvider = "LOCAL" | "GOOGLE" | "FACEBOOK";
 
-// ─── Core Domain Model ────────────────────────────────────────────────────────
+// ─── Core Domain Model ────
 
 export interface User {
   id:                   string;
@@ -26,7 +26,7 @@ export interface User {
   failedLoginAttempts:  number;
 }
 
-// ─── Auth Token ───────────────────────────────────────────────────────────────
+// ─── Auth Token ───────────
 
 export interface AuthTokenUser {
   id:        string;
@@ -52,7 +52,7 @@ export interface AuthToken {
  */
 export type AuthTokenResponse = AuthToken;
 
-// ─── Command DTOs ─────────────────────────────────────────────────────────────
+// ─── Command DTOs ─────────
 
 export interface SignupData {
   email:     string;
@@ -103,7 +103,7 @@ export interface VerifyEmailRequest {
   code:  string;
 }
 
-// ─── Result DTOs ──────────────────────────────────────────────────────────────
+// ─── Result DTOs ──────────
 
 export type AuthResult = AuthToken;
 

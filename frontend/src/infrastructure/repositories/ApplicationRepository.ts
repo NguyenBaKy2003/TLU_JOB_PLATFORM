@@ -25,7 +25,7 @@ export class ApplicationRepository implements IApplicationRepository {
   private readonly EMPLOYER  = "/employer/applications";
   private readonly CANDIDATE = "/candidate/applications";
   private readonly JOBS     = "/jobs";
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  // ─── Helpers ──────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -42,7 +42,7 @@ export class ApplicationRepository implements IApplicationRepository {
     return res.data.data;
   }
 
-  // ─── Candidate ────────────────────────────────────────────────────────────
+  // ─── Candidate ────────
 
 async submit(req: SubmitApplicationRequest): Promise<Application> {
     const res = await api.post<{ data: Application }>(
@@ -80,7 +80,7 @@ async submit(req: SubmitApplicationRequest): Promise<Application> {
     return this.patch(`${this.BASE}/${applicationId}/decline-offer`, reason ? { reason } : undefined);
   }
 
-  // ─── Employer ─────────────────────────────────────────────────────────────
+  // ─── Employer ─────────
 
   async getByJobPost(
     jobPostId: string,

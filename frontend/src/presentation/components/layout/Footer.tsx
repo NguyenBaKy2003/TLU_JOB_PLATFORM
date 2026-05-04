@@ -19,7 +19,7 @@ function WhatsAppIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────
 
 const SERVICES = [
   { label: "Tìm việc", href: "/jobs" },
@@ -44,7 +44,7 @@ const SOCIALS = [
   { Icon: Twitter,      href: "#", label: "X (Twitter)", color: "hover:text-gray-900 hover:bg-gray-100" },
 ];
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export function Footer() {
   return (
@@ -53,7 +53,7 @@ export function Footer() {
       <div className="max-w-[1232px] mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
 
-          {/* ── Col 1: Brand ─────────────────────────────────────────────── */}
+          {/* ── Col 1: Brand ── */}
           <div className="md:col-span-1">
             <Link href="/" className="inline-block mb-4">
               <img src="/Logo.svg" alt="Job" className="h-10 w-auto" />
@@ -68,7 +68,7 @@ export function Footer() {
             
           </div>
 
-          {/* ── Col 2: Dịch vụ ───────────────────────────────────────────── */}
+          {/* ── Col 2: Dịch vụ  */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-4">Dịch vụ</h3>
             <ul className="space-y-2.5">
@@ -85,7 +85,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* ── Col 3: Liên kết ──────────────────────────────────────────── */}
+          {/* ── Col 3: Liên kết ────────────── */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-4">Liên kết</h3>
             <ul className="space-y-2.5">
@@ -102,7 +102,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* ── Col 4: Liên hệ ───────────────────────────────────────────── */}
+          {/* ── Col 4: Liên hệ  */}
           <div >
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
               Liên hệ với chúng mình
@@ -136,7 +136,7 @@ export function Footer() {
         </div>
       </div>
 
-      {/* ── Bottom bar ────────────────────────────────────────────────────── */}
+      {/* ── Bottom bar ── */}
       <div className="border-t border-gray-100">
         <div className=" container mx-auto px-4 h-12 flex items-center justify-between">
           <p className="text-xs text-gray-400">

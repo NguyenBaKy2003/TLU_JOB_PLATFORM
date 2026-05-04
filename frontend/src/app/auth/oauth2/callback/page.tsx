@@ -26,7 +26,7 @@ export default function OAuth2CallbackPage() {
     const error        = params.get("error");
     const portal       = params.get("portal"); // "CANDIDATE" | "EMPLOYER" — backend gửi kèm khi thành công
 
-    // ── Lỗi từ backend ──────────────────────────────────────────────────────
+    // ── Lỗi từ backend ──
     if (error) {
       const msg = buildDefaultMessage(error);
       toast.error("Đăng nhập thất bại", msg);
@@ -44,7 +44,7 @@ export default function OAuth2CallbackPage() {
       return;
     }
 
-    // ── Không có token ───────────────────────────────────────────────────────
+    // ── Không có token ───
     if (!accessToken || !refreshToken) {
       const msg = "Không nhận được token. Vui lòng thử lại.";
       toast.error("Lỗi xác thực", msg);
@@ -53,7 +53,7 @@ export default function OAuth2CallbackPage() {
       return;
     }
 
-    // ── Thành công ───────────────────────────────────────────────────────────
+    // ── Thành công ───────
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
     // Xóa tokens khỏi URL (tránh leak trong history / referer header)
@@ -63,7 +63,7 @@ export default function OAuth2CallbackPage() {
       .then(() => {
         toast.success("Đăng nhập thành công!", "Chào mừng bạn đến với JobPlatform.");
         // Redirect theo portal mà backend xác nhận — không tự suy từ JWT phía client
-        const dest = portal === "EMPLOYER" ? "/employer/dashboard" : "/home";
+        const dest = portal === "EMPLOYER" ? "/employer/dashboard" : "/";
         setTimeout(() => router.replace(dest), 800);
       })
       .catch(() => {
@@ -74,7 +74,7 @@ export default function OAuth2CallbackPage() {
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Loading ──────────────────────────────────────────────────────────────
+  // ── Loading ──────────
   if (!errorMsg) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -86,7 +86,7 @@ export default function OAuth2CallbackPage() {
     );
   }
 
-  // ── Error ────────────────────────────────────────────────────────────────
+  // ── Error ────────────
   return (
     <main className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="text-center space-y-4">
@@ -110,7 +110,7 @@ export default function OAuth2CallbackPage() {
   );
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────
 
 function buildDefaultMessage(error: string): string {
   switch (error) {

@@ -19,7 +19,7 @@ public class LiveStreamMapper {
 
     private final ObjectMapper objectMapper;
 
-    // ─── LiveStreamSession ───────────────────────────────────────────────────
+    // ─── LiveStreamSession ───────
 
     /**
      * Domain → JPA entity.
@@ -71,7 +71,7 @@ public class LiveStreamMapper {
                 parseInterviewSlots(jpa.getInterviewSlotsJson()));
     }
 
-    // ─── StreamEvent ─────────────────────────────────────────────────────────
+    // ─── StreamEvent ─────────────
 
     public StreamEventJpaEntity toJpa(StreamEvent domain) {
         return StreamEventJpaEntity.builder()
@@ -91,7 +91,7 @@ public class LiveStreamMapper {
                 jpa.getPayload());
     }
 
-    // ─── StreamRecording ─────────────────────────────────────────────────────
+    // ─── StreamRecording ─────────
 
     public StreamRecordingJpaEntity toJpa(StreamRecording domain) {
         return StreamRecordingJpaEntity.builder()
@@ -119,7 +119,7 @@ public class LiveStreamMapper {
         return recording;
     }
 
-    // ─── StreamAnalytics ─────────────────────────────────────────────────────
+    // ─── StreamAnalytics ─────────
 
     public StreamAnalyticsJpaEntity toJpa(StreamAnalytics domain) {
         return StreamAnalyticsJpaEntity.builder()
@@ -148,7 +148,7 @@ public class LiveStreamMapper {
         return analytics;
     }
 
-    // ─── JSON helpers ─────────────────────────────────────────────────────────
+    // ─── JSON helpers ─────────────
 
     private String toJson(Object obj) {
         try {

@@ -75,7 +75,7 @@ public class UpdateUserUseCase {
         }
     }
 
-    // ── Command record ────────────────────────────────────────────
+    // ── Command record
 
     /**
      * Tất cả field đều nullable — null nghĩa là "không thay đổi" (PATCH semantics).

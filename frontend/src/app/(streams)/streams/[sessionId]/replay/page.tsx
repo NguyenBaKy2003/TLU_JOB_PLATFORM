@@ -24,7 +24,7 @@ import { LiveStreamService } from "@/application/services/LiveStreamService";
 
 const service = new LiveStreamService(new LiveStreamRepository());
 
-// ─── Types ────────────────────────────────────────────────────
+// ─── Types 
 interface ReplayData {
   videoUrl: string | null;
   aiSummary: string | null;
@@ -33,7 +33,7 @@ interface ReplayData {
   hasApplyCTA: boolean;
 }
 
-// ─── Custom Video Player ──────────────────────────────────────
+// ─── Custom Video Player ────────
 function VideoPlayer({ url }: { url: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -148,7 +148,7 @@ function VideoPlayer({ url }: { url: string }) {
   );
 }
 
-// ─── AI Summary Card ──────────────────────────────────────────
+// ─── AI Summary Card ────────────
 function AISummaryCard({ replay }: { replay: ReplayData }) {
   const [expanded, setExpanded] = useState(true);
 
@@ -230,7 +230,7 @@ function AISummaryCard({ replay }: { replay: ReplayData }) {
   );
 }
 
-// ─── Processing State ─────────────────────────────────────────
+// ─── Processing State ───────────
 function ProcessingCard() {
   return (
     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
@@ -247,7 +247,7 @@ function ProcessingCard() {
   );
 }
 
-// ─── Apply CTA ────────────────────────────────────────────────
+// ─── Apply CTA ───
 function ApplyCTA({
   sessionId,
   onApply,
@@ -281,7 +281,7 @@ function ApplyCTA({
   );
 }
 
-// ─── Main Replay Page ─────────────────────────────────────────
+// ─── Main Replay Page ───────────
 export default function StreamReplayPage() {
   const params = useParams<{ sessionId: string }>();
   const router = useRouter();

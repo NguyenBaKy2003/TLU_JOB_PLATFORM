@@ -21,7 +21,7 @@ public class Message {
 
     private final LocalDateTime createdAt;
 
-    // ── Business rules ────────────────────────────────────────────────────────
+    // ── Business rules ────────────
 
     public void markAsRead() {
         if (!this.read) {

@@ -21,7 +21,7 @@ const STEP = {
   SUCCESS:  5,
 } as const;
 
-// ── Onboarding data shape ─────────────────────────────────────────────────────
+// ── Onboarding data shape ─
 
 interface OnboardingData {
   location:   string;

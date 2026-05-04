@@ -20,7 +20,7 @@ const config: Config = {
     extend: {
       colors: {
 
-        // ── Primary ────────────────────────────────────────────────
+        // ── Primary ───
         primary: {
           50:  "#EEF5FF",
           100: "#DECCFF",
@@ -35,7 +35,7 @@ const config: Config = {
           DEFAULT: "#005DDC",
         },
 
-        // ── Neutral ────────────────────────────────────────────────
+        // ── Neutral ───
         neutral: {
           50:  "#F8F8F8",
           100: "#F4F4F4",
@@ -48,7 +48,7 @@ const config: Config = {
           800: "#282828",
         },
 
-        // ── Error ──────────────────────────────────────────────────
+        // ── Error ─────
         error: {
           100: "#FFEEEE",
           200: "#FACCCC",
@@ -57,7 +57,7 @@ const config: Config = {
           DEFAULT: "#DC0000",
         },
 
-        // ── Success ────────────────────────────────────────────────
+        // ── Success ───
         success: {
           100: "#EEFFFD",
           200: "#CCFACC",
@@ -66,7 +66,7 @@ const config: Config = {
           DEFAULT: "#009E00",
         },
 
-        // ── Warning ────────────────────────────────────────────────
+        // ── Warning ───
         warning: {
           100: "#FFEBB2",
           500: "#F09E00",
@@ -74,7 +74,7 @@ const config: Config = {
           DEFAULT: "#F09E00",
         },
 
-        // ── Info ───────────────────────────────────────────────────
+        // ── Info ──────
         info: {
           100: "#E4FFF9",
           200: "#B8F2F2",

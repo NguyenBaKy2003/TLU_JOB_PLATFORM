@@ -46,7 +46,7 @@ public class ChatSessionRepositoryAdapter implements ChatSessionRepository {
         jpaRepo.deleteById(id);
     }
 
-    // ── Mapper ────────────────────────────────────────────────
+    // ── Mapper ────
 
     private ChatSession toDomain(ChatSessionJpaEntity e) {
         List<ChatMessage> messages = e.getMessages() == null ? List.of()

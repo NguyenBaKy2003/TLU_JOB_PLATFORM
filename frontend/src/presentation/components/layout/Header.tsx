@@ -19,11 +19,11 @@ type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Trang chủ", href: "/",          key: "trang-chu" },
-  { label: "Tìm Việc",  href: "/jobs",      key: "tim-viec"  },
-  { label: "Công Ty",   href: "/companies", key: "cong-ty"   },
-  { label: "Tạo CV",    href: "/cv",        key: "tao-cv"    },
-  { label: "Live Stream",    href: "/streams",        key: "streams"    },
+  { label: "Trang chủ",  href: "/",        key: "trang-chu" },
+  { label: "Tìm Việc",   href: "/jobs",    key: "tim-viec"  },
+  { label: "Công Ty",    href: "/companies", key: "cong-ty" },
+  { label: "Tạo CV",     href: "/cv",      key: "tao-cv"    },
+  { label: "Live Stream", href: "/streams", key: "streams"  },
 ];
 
 const CANDIDATE_DROPDOWN = [
@@ -60,28 +60,18 @@ export function Header() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // 🔥 FIX: Lấy cả notifications để subscribe đúng như SchoolRelief
-  const { unreadCount, notifications, isConnected } = useWebSocket();
+  // unreadCount từ context đã là source of truth — dùng thẳng, không cần local mirror
+  const { unreadCount, isConnected } = useWebSocket();
 
   const activePage = resolveActivePage(pathname);
   const isEmployer = user?.role === "EMPLOYER";
 
-  // 🔥 FIX: Local state để force re-render khi WebSocket push dữ liệu mới
-  const [localUnreadCount, setLocalUnreadCount] = useState(0);
-
-  // 🔥 FIX: Sync realtime từ WebSocketContext vào local state
-  // Pattern giống SchoolRelief - đây là key để badge cập nhật ngay lập tức
-  useEffect(() => {
-    console.log("🔔 Header: unreadCount updated →", unreadCount, "| total:", notifications.length);
-    setLocalUnreadCount(unreadCount);
-  }, [unreadCount, notifications, isConnected]);
-
-  const [scrolled,      setScrolled]      = useState(false);
-  const [searchOpen,    setSearchOpen]    = useState(false);
-  const [searchVal,     setSearchVal]     = useState("");
-  const [dropdownOpen,  setDropdownOpen]  = useState(false);
-  const [notifOpen,     setNotifOpen]     = useState(false);
-  const [mobileOpen,    setMobileOpen]    = useState(false);
+  const [scrolled,     setScrolled]     = useState(false);
+  const [searchOpen,   setSearchOpen]   = useState(false);
+  const [searchVal,    setSearchVal]    = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [mobileOpen,   setMobileOpen]   = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef    = useRef<HTMLDivElement>(null);
@@ -200,7 +190,7 @@ export function Header() {
               )}
             </div>
 
-            {/* ── Notification bell (logged-in only) ───────────────────── */}
+            {/* ── Notification bell (logged-in only) ──────────────────────── */}
             {isAuthenticated && (
               <div className="relative" ref={notifRef}>
                 <button
@@ -210,20 +200,19 @@ export function Header() {
                 >
                   <Bell size={18} />
 
-                  {/* 🔥 FIX: Dùng localUnreadCount + key để trigger animation
-                      giống hệt SchoolRelief pattern */}
-                  {localUnreadCount > 0 && (
+                  {/* Badge — driven directly by context, updates instantly on optimistic write */}
+                  {unreadCount > 0 && (
                     <span
-                      key={localUnreadCount} // 🔥 KEY quan trọng: re-mount → re-trigger animation
+                      key={unreadCount}
                       className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white
                         text-[9px] font-bold rounded-full flex items-center justify-center
                         border-2 border-white animate-pulse"
                     >
-                      {localUnreadCount > 9 ? "9+" : localUnreadCount}
+                      {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
 
-                  {/* 🔥 THÊM MỚI: Connection status indicator như SchoolRelief */}
+                  {/* Connection status dot */}
                   {isConnected ? (
                     <span
                       className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white"
@@ -245,7 +234,7 @@ export function Header() {
 
             <div className="w-px h-6 bg-gray-200 mx-2" />
 
-            {/* ── Logged in ────────────────────────────────────────────── */}
+            {/* ── Logged in ────────────────────────────────────────────────── */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Switch role link */}
@@ -350,7 +339,7 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              /* ── Not logged in ─────────────────────────────────────────── */
+              /* ── Not logged in ────────────────────────────────────────────── */
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/login"

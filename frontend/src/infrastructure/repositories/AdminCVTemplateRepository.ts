@@ -10,9 +10,9 @@ import type {
   UpdateCVTemplateRequest 
 } from "@/domain/models/AdminTemplates";
 
-// ─────────────────────────────────────────────────────────────
+// ─────────
 // Infrastructure: HTTP Adapter
-// ─────────────────────────────────────────────────────────────
+// ─────────
 
 interface ApiResponse<T> {
   success: boolean;

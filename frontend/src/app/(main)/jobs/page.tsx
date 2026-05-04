@@ -15,7 +15,7 @@ const service = new JobService(new JobRepository());
 
 const CITIES = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"];
 
-// ── JobCard skeleton ────────────────────────────────────────────────────────────
+// ── JobCard skeleton ────────
 
 function SkeletonCard() {
   return (
@@ -39,7 +39,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────────
+// ── Page ─────
 
 export default function JobsPage() {
   const [jobs,       setJobs]       = useState<JobPost[]>([]);
@@ -60,7 +60,7 @@ export default function JobsPage() {
 
   const hasLoaded = useRef(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // ── Fetch ─────────────
 
   const fetchJobs = useCallback(async (
     kw: string, ct: string, f: JobFilters, pg: number,
@@ -108,18 +108,18 @@ export default function JobsPage() {
     try { await service.toggleSave(id); } catch {}
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────
 
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Promo banner ───────────────────────────────────────── */}
+      {/* ── Promo banner ─────────── */}
       <div className="bg-blue-600 text-white text-center text-xs font-medium py-2.5 px-4">
         ✦ Tốc độ tăng hơn 20% khi sử dụng gói trả phí của chúng tôi.{" "}
         <a href="/pricing" className="underline font-semibold hover:text-blue-100">Tìm hiểu thêm</a>
       </div>
 
-      {/* ── Search hero ─────────────────────────────────────────── */}
+      {/* ── Search hero ───────────── */}
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
@@ -151,7 +151,7 @@ export default function JobsPage() {
         </div>
       </section>
 
-      {/* ── Main content ────────────────────────────────────────── */}
+      {/* ── Main content ──────────── */}
       <div className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Mobile filter toggle */}

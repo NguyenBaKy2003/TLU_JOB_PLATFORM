@@ -4,14 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { SubmitButton } from "@/presentation/components/common/auth-ui";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─
 
 export interface LocationStepProps {
   onNext: (data: { location: string; postalCode: string; remote: boolean }) => void;
   onSkip: () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────────
 
 export function LocationStep({ onNext, onSkip }: LocationStepProps) {
   const [location,   setLocation]   = useState("");

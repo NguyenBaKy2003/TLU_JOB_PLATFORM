@@ -26,7 +26,7 @@ public class Notification {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business rules ────────────────────────────────────────────────────────
+    // ── Business rules ────────────
 
     public void markAsRead() {
         if (!this.read) {

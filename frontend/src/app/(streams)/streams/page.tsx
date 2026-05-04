@@ -21,7 +21,7 @@ import { LiveStreamService } from "@/application/services/LiveStreamService";
 
 const service = new LiveStreamService(new LiveStreamRepository());
 
-// ─── Helpers ──────────────────────────────────────────────────
+// ─── Helpers ─────
 function formatScheduled(iso: string) {
   const d = new Date(iso);
   const now = new Date();
@@ -50,7 +50,7 @@ function isSoon(session: LiveStreamSession) {
   return diff > 0 && diff < 2 * 3600000;
 }
 
-// ─── Live Badge ───────────────────────────────────────────────
+// ─── Live Badge ──
 function LiveBadge() {
   return (
     <span className="inline-flex items-center gap-1.5 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg shadow-red-500/20">
@@ -63,7 +63,7 @@ function LiveBadge() {
   );
 }
 
-// ─── Featured Card ───────────────────────────────────────────
+// ─── Featured Card ─────────────
 function FeaturedCard({
   session,
   onClick,
@@ -138,7 +138,7 @@ function FeaturedCard({
   );
 }
 
-// ─── Stream Card ──────────────────────────────────────────────
+// ─── Stream Card ─
 function StreamCard({
   session,
   onClick,
@@ -207,7 +207,7 @@ function StreamCard({
   );
 }
 
-// ─── Filter Pill ──────────────────────────────────────────────
+// ─── Filter Pill ─
 function FilterPill({
   active,
   onClick,
@@ -231,7 +231,7 @@ function FilterPill({
   );
 }
 
-// ─── Empty State ──────────────────────────────────────────────
+// ─── Empty State ─
 function EmptyState({ query }: { query: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -248,7 +248,7 @@ function EmptyState({ query }: { query: string }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────
+// ─── Main Page ───
 export default function StreamMarketplacePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<LiveStreamSession[]>([]);
