@@ -1,3 +1,4 @@
+# .github/workflows/backend-cicd.yml
 name: Backend CI/CD → EC2 Dev
 
 on:
@@ -19,9 +20,8 @@ env:
   JAVA_VERSION: "21"
   REGISTRY: ghcr.io
 
-# ════════════════════════════════════════════════════════════════
 jobs:
-  # ── Job 1: Build & Test ─────────────────────────────────────────
+  # ── Job 1: Build ────────────────────────────────────────────────
   ci:
     name: Build (skip tests)
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
       - name: Build (skip tests)
         run: ./mvnw package -B -DskipTests
 
-  # ── Job 2: Build & Push Docker Image to GHCR ───────────────────
+  # ── Job 2: Build & Push Docker Image ────────────────────────────
   build-image:
     name: Build & Push to GHCR
     runs-on: ubuntu-latest
@@ -78,16 +78,15 @@ jobs:
           BRANCH="${GITHUB_REF_NAME}"
           PREFIX=$([ "$BRANCH" = "main" ] && echo "prod" || echo "dev")
           TAG="${PREFIX}-${SHORT_SHA}"
-          # GHCR yêu cầu lowercase
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_NAME="ghcr.io/${OWNER}/jobplatform-backend"
           FULL_IMAGE="${IMAGE_NAME}:${TAG}"
           ROLLING_TAG=$([ "$BRANCH" = "main" ] && echo "latest-prod" || echo "latest-dev")
-          echo "tag=${TAG}"                              >> $GITHUB_OUTPUT
-          echo "full_image=${FULL_IMAGE}"                >> $GITHUB_OUTPUT
-          echo "image_name=${IMAGE_NAME}"                >> $GITHUB_OUTPUT
-          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}"    >> $GITHUB_OUTPUT
-          echo "buildcache=${IMAGE_NAME}:buildcache"     >> $GITHUB_OUTPUT
+          echo "tag=${TAG}"                           >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}"             >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}"             >> $GITHUB_OUTPUT
+          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}" >> $GITHUB_OUTPUT
+          echo "buildcache=${IMAGE_NAME}:buildcache"  >> $GITHUB_OUTPUT
           echo "Image: ${FULL_IMAGE}"
 
       - name: Log in to GHCR
@@ -129,7 +128,7 @@ jobs:
 
     environment:
       name: development
-      url: http://dev-jobplatform.example.com
+      url: http://${{ secrets.EC2_DEV_HOST }}
 
     steps:
       - uses: actions/checkout@v4
@@ -150,15 +149,29 @@ jobs:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ${{ secrets.EC2_DEV_USER }}
           key: ${{ secrets.EC2_DEV_SSH_KEY }}
+          envs: LIVEKIT_API_KEY,LIVEKIT_API_SECRET,LIVEKIT_URL
           script: |
             set -e
             cd /opt/jobplatform
+
+            echo "▶ Cập nhật .env với secrets mới nhất..."
+            update_env() {
+              local key=$1 val=$2
+              if grep -q "^${key}=" .env 2>/dev/null; then
+                sed -i "s|^${key}=.*|${key}=${val}|" .env
+              else
+                echo "${key}=${val}" >> .env
+              fi
+            }
+            update_env "LIVEKIT_API_KEY"    "$LIVEKIT_API_KEY"
+            update_env "LIVEKIT_API_SECRET" "$LIVEKIT_API_SECRET"
+            update_env "LIVEKIT_URL"        "$LIVEKIT_URL"
 
             echo "▶ Log in to GHCR..."
             echo "${{ secrets.GHCR_PAT }}" \
               | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            echo "▶ Xóa các image backend cũ (giữ lại tag hiện tại & latest-dev)..."
+            echo "▶ Xóa các image backend cũ..."
             docker images --format '{{.Repository}}:{{.Tag}}' \
               | grep 'jobplatform-backend' \
               | grep -v '${{ needs.build-image.outputs.image-tag }}' \
@@ -174,7 +187,7 @@ jobs:
             docker compose -f docker-compose.dev.yml --env-file .env \
               up -d --no-deps --wait backend
 
-            echo "▶ Health check (chờ tối đa 3 phút)..."
+            echo "▶ Health check (tối đa 3 phút)..."
             for i in $(seq 1 18); do
               sleep 10
               STATUS=$(docker exec jobplatform-backend-dev \
@@ -196,3 +209,8 @@ jobs:
             docker image prune -f
 
             echo "🚀 Deploy complete: ${{ needs.build-image.outputs.image-tag }}"
+
+        env:
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}

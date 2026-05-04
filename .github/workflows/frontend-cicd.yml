@@ -1,3 +1,4 @@
+# .github/workflows/frontend-cicd.yml
 name: Frontend CI/CD → EC2 Dev
 
 on:
@@ -18,7 +19,6 @@ concurrency:
 env:
   REGISTRY: ghcr.io
 
-# ════════════════════════════════════════════════════════════════
 jobs:
   # ── Job 1: Lint & Type Check ────────────────────────────────────
   ci:
@@ -47,7 +47,7 @@ jobs:
       - name: Type check (non-blocking)
         run: npm run type-check --if-present || true
 
-  # ── Job 2: Build & Push Docker Image to GHCR ───────────────────
+  # ── Job 2: Build & Push Docker Image ────────────────────────────
   build-image:
     name: Build & Push to GHCR
     runs-on: ubuntu-latest
@@ -60,6 +60,8 @@ jobs:
       image-tag: ${{ steps.meta.outputs.tag }}
       full-image: ${{ steps.meta.outputs.full_image }}
       image-name: ${{ steps.meta.outputs.image_name }}
+      rolling: ${{ steps.meta.outputs.rolling }}
+      buildcache: ${{ steps.meta.outputs.buildcache }}
 
     permissions:
       contents: read
@@ -75,16 +77,15 @@ jobs:
           BRANCH="${GITHUB_REF_NAME}"
           PREFIX=$([ "$BRANCH" = "main" ] && echo "prod" || echo "dev")
           TAG="${PREFIX}-${SHORT_SHA}"
-          # GHCR yêu cầu lowercase
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_NAME="ghcr.io/${OWNER}/jobplatform-frontend"
           FULL_IMAGE="${IMAGE_NAME}:${TAG}"
           ROLLING_TAG=$([ "$BRANCH" = "main" ] && echo "latest-prod" || echo "latest-dev")
-          echo "tag=${TAG}"                              >> $GITHUB_OUTPUT
-          echo "full_image=${FULL_IMAGE}"                >> $GITHUB_OUTPUT
-          echo "image_name=${IMAGE_NAME}"                >> $GITHUB_OUTPUT
-          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}"    >> $GITHUB_OUTPUT
-          echo "buildcache=${IMAGE_NAME}:buildcache"     >> $GITHUB_OUTPUT
+          echo "tag=${TAG}"                           >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}"             >> $GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}"             >> $GITHUB_OUTPUT
+          echo "rolling=${IMAGE_NAME}:${ROLLING_TAG}" >> $GITHUB_OUTPUT
+          echo "buildcache=${IMAGE_NAME}:buildcache"  >> $GITHUB_OUTPUT
           echo "Image: ${FULL_IMAGE}"
 
       - name: Log in to GHCR
@@ -107,6 +108,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_BASE_URL=http://${{ secrets.EC2_DEV_HOST }}/api/v1
             NEXT_PUBLIC_WS_URL=http://${{ secrets.EC2_DEV_HOST }}
+            NEXT_PUBLIC_LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}
           tags: |
             ${{ steps.meta.outputs.full_image }}
             ${{ steps.meta.outputs.rolling }}
@@ -122,7 +124,7 @@ jobs:
 
     environment:
       name: development
-      url: http://dev-jobplatform.example.com
+      url: http://${{ secrets.EC2_DEV_HOST }}
 
     steps:
       - uses: actions/checkout@v4
@@ -151,7 +153,7 @@ jobs:
             echo "${{ secrets.GHCR_PAT }}" \
               | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            echo "▶ Xóa các image frontend cũ (giữ lại tag hiện tại & latest-dev)..."
+            echo "▶ Xóa các image frontend cũ..."
             docker images --format '{{.Repository}}:{{.Tag}}' \
               | grep 'jobplatform-frontend' \
               | grep -v '${{ needs.build-image.outputs.image-tag }}' \
@@ -161,10 +163,6 @@ jobs:
 
             echo "▶ Pull image: ${{ needs.build-image.outputs.full-image }}..."
             docker pull ${{ needs.build-image.outputs.full-image }}
-
-            echo "▶ Tag as local latest for compose..."
-            docker tag ${{ needs.build-image.outputs.full-image }} \
-              jobplatform-frontend:latest
 
             echo "▶ Restart frontend..."
             FRONTEND_IMAGE_TAG=${{ needs.build-image.outputs.image-tag }} \
