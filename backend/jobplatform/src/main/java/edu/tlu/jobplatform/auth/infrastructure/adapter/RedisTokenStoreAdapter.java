@@ -72,6 +72,20 @@ public class RedisTokenStoreAdapter implements TokenStorePort {
         return Boolean.TRUE.equals(redis.hasKey(NS_BLACKLIST + jti));
     }
 
+    @Override
+    public void deleteAllExcept(UUID userId, String keepTokenId) {
+        Set<String> keys = redis.keys(NS_REFRESH + userId + ":*");
+        if (keys == null || keys.isEmpty())
+            return;
+
+        String keepKey = refreshKey(userId, keepTokenId);
+        keys.stream()
+                .filter(k -> !k.equals(keepKey))
+                .forEach(redis::delete);
+
+        log.debug("Revoked all sessions except tokenId={} for userId={}", keepTokenId, userId);
+    }
+
     // ── Helper ────────
 
     private String refreshKey(UUID userId, String tokenId) {

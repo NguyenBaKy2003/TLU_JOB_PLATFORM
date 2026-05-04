@@ -88,7 +88,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/subscriptions/**").permitAll()
                                                 .requestMatchers("/api/v1/jobs/**").permitAll()
                                                 .requestMatchers("/api/v1/payments/callback/**").permitAll()
-
+                                                .requestMatchers("/api/v1/settings/**").authenticated()
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
                                                 .requestMatchers("/api/v1/applications/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/streams/*/leave")

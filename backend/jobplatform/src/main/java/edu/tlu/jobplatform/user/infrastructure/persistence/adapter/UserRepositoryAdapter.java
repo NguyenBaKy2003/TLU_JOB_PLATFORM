@@ -37,6 +37,11 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return jpaRepo.existsById(id);
+    }
+
+    @Override
     public User save(User user) {
         if (user.getId() != null) {
             Optional<UserJpaEntity> existing = jpaRepo.findById(user.getId());
