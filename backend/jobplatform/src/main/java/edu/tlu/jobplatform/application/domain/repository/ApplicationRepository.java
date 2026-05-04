@@ -57,4 +57,13 @@ public interface ApplicationRepository {
      * Admin/Employer: tìm đơn theo bài đăng, lọc theo status và keyword.
      */
     Page<Application> searchByJobPostId(UUID jobPostId, ApplicationStatus status, String keyword, Pageable pageable);
+
+    int countByJobPostId(UUID jobPostId);
+
+    Optional<Double> averageAIScoreByJobPostId(UUID jobPostId);
+
+    int countByCandidateId(UUID candidateId);
+
+    int countInterviewedByCandidateId(UUID candidateId);
+
 }

@@ -51,7 +51,7 @@ public class EmployerStreamController {
                                 req.title(), req.description(),
                                 req.sessionType(),
                                 req.scheduledAt()
-                                                .atZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh")) // ✅ đúng method
+                                                .atZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"))
                                                 .toLocalDateTime(),
                                 buildSlots(req));
 

@@ -36,8 +36,100 @@ export interface JdOptimizationResult {
   improvedTitle: string;
   improvedDescription: string;
   improvedRequirements: string;
+  improvedBenefits: string;
   suggestions: string[];
   qualityScore: number;
+}
+
+// ─── JD Guideline Check Models ──────
+
+export type Severity = "PASS" | "CLEAN" | "WARNING" | "VIOLATION";
+
+export interface GuidelineIssue {
+  category: string;
+  description: string;
+  suggestion: string;
+  severity: Severity;
+}
+
+export interface JdGuidelineCheckResult {
+  passed: boolean;
+  severity: Severity;
+  violations: GuidelineViolation[];
+  cleanedVersion: string;      
+  overallFeedback: string;     
+  qualityScore: number;       
+}
+export interface GuidelineViolation {
+  type: string;           
+  excerpt: string;        
+  explanation: string;    
+  suggestion: string;     
+}
+
+
+export interface CheckGuidelinesPayload {
+  jobPostId?: string;
+  title: string;
+  description?: string;
+  requirements?: string;
+  benefits?: string;
+}
+
+// ─── Candidate Comparison Models ──────
+
+export interface RankedCandidate {
+  rank: number;
+  applicationId: string;
+  candidateName: string;
+  totalScore: number;
+  skillScore: number;
+  experienceScore: number;
+  educationScore: number;
+  uniqueStrengths: string[];
+  relativeWeaknesses: string[];
+  verdict: string;
+}
+
+export interface CandidateComparisonResult {
+  ranking: RankedCandidate[];
+  topRecommendation: string;
+  comparisonSummary: string;
+  recruitmentAdvice: string;
+}
+
+export interface CompareCandidatesPayload {
+  applicationIds: string[];
+}
+
+// ─── Competition Rate Models ──────
+
+export interface CompetitionRateResult {
+  jobPostId: string;
+  totalApplications: number;
+  competitionLevel: "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
+  competitionRate: number;
+  averageScore: number;
+  topScore: number;
+  recommendation: string;
+}
+
+// ─── Pass Probability Models ──────
+
+export interface PassProbabilityResult {
+  candidateId: string;
+  jobPostId: string;
+  probability: number;
+  confidenceLevel: "LOW" | "MEDIUM" | "HIGH";
+  factors: PassFactor[];
+  overallAssessment: string;
+}
+
+export interface PassFactor {
+  name: string;
+  score: number;
+  impact: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  description: string;
 }
 
 // ─── Request Payloads ─────
@@ -51,9 +143,11 @@ export interface OptimizeJdPayload {
   title: string;
   description?: string;
   requirements?: string;
+  benefits?: string;     
   level?: string;
   category?: string;
 }
+
 export interface PageResponse<T> {
   content: T[];
   page: number;
