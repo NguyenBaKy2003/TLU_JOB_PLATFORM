@@ -74,9 +74,46 @@ services:
     expose:
       - "6379"
 
+  # ── LiveKit ───────────────────────────────────────────────────
+  # WebRTC media server — port phải mở thẳng ra ngoài (không qua Nginx)
+  # vì UDP không thể proxy qua HTTP reverse proxy.
+  #
+  # Security Group EC2 cần mở:
+  #   TCP 7880  — LiveKit HTTP / WebSocket (Nginx proxy tới đây)
+  #   TCP 7881  — LiveKit WebRTC TCP fallback
+  #   UDP 50200-50300 — WebRTC media (SRTP/STUN)
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: jobplatform-livekit-dev
+    restart: unless-stopped
+    # LiveKit cần biết IP public để điền vào SDP candidate cho client
+    # MUST_USE_EXTERNAL_IP=true bảo LiveKit tự detect IP public của EC2
+    command: >
+      --config /etc/livekit/livekit.yaml
+    environment:
+      # Không dùng --dev flag trên server thật; dùng config file với key/secret thực
+      LIVEKIT_API_KEY:    ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+    volumes:
+      - ./livekit.yaml:/etc/livekit/livekit.yaml:ro
+    ports:
+      # HTTP/WS — Nginx sẽ proxy /livekit/* → port này
+      - "7880:7880"
+      # WebRTC TCP fallback — phải expose thẳng
+      - "7881:7881"
+      # UDP media range — phải expose thẳng, không qua Nginx
+      - "50200-50300:50200-50300/udp"
+    networks:
+      - jobplatform-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7880/ | grep -q 'livekit' || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
   # ── Spring Boot Backend ───────────────────────────────────────
   backend:
-    # IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${IMAGE_NAME:-jobplatform-backend}:${IMAGE_TAG:-latest-dev}
     container_name: jobplatform-backend-dev
     restart: unless-stopped
@@ -85,6 +122,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      livekit:
+        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE:     dev
       # Database
@@ -109,6 +148,11 @@ services:
       OAUTH_GOOGLE_CLIENT_SECRET:   ${OAUTH_GOOGLE_CLIENT_SECRET}
       OAUTH_FACEBOOK_CLIENT_ID:     ${OAUTH_FACEBOOK_CLIENT_ID}
       OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET}
+      # LiveKit — backend dùng để tạo token và gọi LiveKit API
+      # Trỏ tới service name trong Docker network (không qua Nginx)
+      LIVEKIT_URL:        ws://livekit:7880
+      LIVEKIT_API_KEY:    ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
       # Tắt Elasticsearch health check — không có ES trên dev EC2
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
       SPRING_AUTOCONFIGURE_EXCLUDE: >-
@@ -135,19 +179,19 @@ services:
 
   # ── Next.js Frontend ──────────────────────────────────────────
   frontend:
-    # FRONTEND_IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${FRONTEND_IMAGE_NAME:-jobplatform-frontend}:${FRONTEND_IMAGE_TAG:-latest-dev}
     container_name: jobplatform-frontend-dev
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://${EC2_IP}/api/v1
+      NEXT_PUBLIC_API_URL:      http://${EC2_IP}/api/v1
+      # Client browser kết nối LiveKit qua Nginx WebSocket proxy
+      NEXT_PUBLIC_LIVEKIT_URL:  ws://${EC2_IP}/livekit
     expose:
       - "3000"
     networks:
       - jobplatform-net
     healthcheck:
-      # >= 500 để khớp với CI/CD health check script (404 vẫn chấp nhận được lúc startup)
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode >= 500 ? 1 : 0)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
