@@ -1,11 +1,12 @@
 # docker-compose.dev.yml — Dev EC2
 # Chạy: docker compose -f docker-compose.dev.yml --env-file .env up -d
 #
-# Tất cả services trên 1 EC2 instance (t3.medium đủ dùng cho dev)
-# Volumes được mount vào /opt/jobplatform/data/ để data tồn tại qua restart
+# LiveKit: dùng LiveKit Cloud (wss://joblin-x4kf2828.livekit.cloud)
+#          → KHÔNG cần container livekit trên EC2
+#          → Backend gọi LiveKit API qua internet, browser kết nối thẳng tới Cloud
 #
-# Lưu ý: Image được pull từ GHCR bởi CI/CD pipeline.
-#         EC2 phải đã đăng nhập GHCR trước: docker login ghcr.io
+# Tất cả services còn lại trên 1 EC2 instance (t3.medium)
+# Volumes mount vào /opt/jobplatform/data/ để data tồn tại qua restart
 
 networks:
   jobplatform-net:
@@ -27,7 +28,7 @@ volumes:
 
 services:
 
-  # ── PostgreSQL ────
+  # ── PostgreSQL ────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: jobplatform-postgres-dev
@@ -47,11 +48,10 @@ services:
       retries: 5
     expose:
       - "5432"
-    # Chỉ mở port ra ngoài khi cần debug — xóa dòng này ở production
     ports:
-      - "5432:5432"
+      - "5432:5432"   # chỉ dùng khi cần debug, xóa ở production
 
-  # ── Redis ─────────
+  # ── Redis ─────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: jobplatform-redis-dev
@@ -76,7 +76,6 @@ services:
 
   # ── Spring Boot Backend ───────────────────────────────────────
   backend:
-    # IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${IMAGE_NAME:-jobplatform-backend}:${IMAGE_TAG:-latest-dev}
     container_name: jobplatform-backend-dev
     restart: unless-stopped
@@ -109,13 +108,18 @@ services:
       OAUTH_GOOGLE_CLIENT_SECRET:   ${OAUTH_GOOGLE_CLIENT_SECRET}
       OAUTH_FACEBOOK_CLIENT_ID:     ${OAUTH_FACEBOOK_CLIENT_ID}
       OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET}
-      # Tắt Elasticsearch health check — không có ES trên dev EC2
+      # LiveKit Cloud — backend dùng để tạo token và gọi LiveKit Server API
+      # wss:// vì backend gọi ra internet tới LiveKit Cloud
+      LIVEKIT_URL:        ${LIVEKIT_URL}
+      LIVEKIT_API_KEY:    ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      # Tắt Elasticsearch
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
       SPRING_AUTOCONFIGURE_EXCLUDE: >-
         org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchClientAutoConfiguration,
         org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration,
         org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
-      # JVM — nguồn duy nhất, không định nghĩa lại trong Dockerfile
+      # JVM
       JAVA_OPTS: >-
         -XX:+UseContainerSupport
         -XX:MaxRAMPercentage=70.0
@@ -135,26 +139,26 @@ services:
 
   # ── Next.js Frontend ──────────────────────────────────────────
   frontend:
-    # FRONTEND_IMAGE_TAG được CI/CD truyền vào khi deploy; mặc định "latest-dev" khi chạy tay.
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${FRONTEND_IMAGE_NAME:-jobplatform-frontend}:${FRONTEND_IMAGE_TAG:-latest-dev}
     container_name: jobplatform-frontend-dev
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://${EC2_IP}/api/v1
+      # Browser kết nối thẳng tới LiveKit Cloud — không qua EC2
+      NEXT_PUBLIC_LIVEKIT_URL: ${LIVEKIT_URL}
     expose:
       - "3000"
     networks:
       - jobplatform-net
     healthcheck:
-      # >= 500 để khớp với CI/CD health check script (404 vẫn chấp nhận được lúc startup)
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode >= 500 ? 1 : 0)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
 
-  # ── Nginx ─────────
+  # ── Nginx ─────────────────────────────────────────────────────
   nginx:
     image: nginx:alpine
     container_name: jobplatform-nginx-dev

@@ -1,0 +1,51 @@
+# livekit.yaml — LiveKit Server config cho Dev EC2
+# Tham khảo: https://docs.livekit.io/home/self-hosting/local/
+#
+# File này được mount vào container: ./livekit.yaml:/etc/livekit/livekit.yaml
+# API key/secret được inject qua environment variable trong docker-compose.
+
+port: 7880
+bind_addresses:
+  - "0.0.0.0"
+
+# API key & secret — đọc từ env var được docker-compose inject
+# Định dạng: <key>: <secret>
+keys:
+  # Placeholder — LiveKit server đọc từ LIVEKIT_API_KEY / LIVEKIT_API_SECRET env
+  # Nếu muốn hardcode (không khuyến khích): thay bằng key/secret thật
+  # my_api_key: my_api_secret
+
+rtc:
+  # Port TCP fallback khi UDP bị block
+  tcp_port: 7881
+
+  # Dải UDP cho WebRTC media (SRTP) — phải khớp với docker-compose ports
+  udp_port_range_start: 50200
+  udp_port_range_end:   50300
+
+  # IP public của EC2 — LiveKit điền vào SDP ICE candidate gửi về browser.
+  # Nếu để trống, browser nhận IP private (172.x.x.x) → không kết nối được từ ngoài.
+  # Dùng biến môi trường hoặc điền thẳng IP public EC2 vào đây.
+  #
+  # Cách 1 (đơn giản nhất cho dev): điền thẳng
+  #   node_ip: "1.2.3.4"
+  #
+  # Cách 2: để LiveKit tự detect qua STUN
+  use_external_ip: true
+
+# Logging
+logging:
+  level: info
+  pion_level: error
+
+# Tắt tính năng không dùng để tiết kiệm RAM trên t3.medium
+room:
+  # Tự động xóa room khi không còn participant
+  auto_create: true
+  empty_timeout: 300       # 5 phút
+  departure_timeout: 20    # giây chờ trước khi xóa participant disconnect
+
+# Giới hạn để tránh OOM trên t3.medium (2GB RAM)
+limit:
+  num_tracks: 100
+  bytes_per_sec: 52428800  # 50 MB/s tổng băng thông

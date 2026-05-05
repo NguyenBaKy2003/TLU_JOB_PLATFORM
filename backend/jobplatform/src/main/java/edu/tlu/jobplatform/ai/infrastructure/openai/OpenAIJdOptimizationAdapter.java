@@ -46,8 +46,8 @@ public class OpenAIJdOptimizationAdapter implements JdOptimizationPort {
                     .replace("$title$", nullSafe(request.getOriginalTitle()))
                     .replace("$level$", nullSafe(request.getLevel()))
                     .replace("$category$", nullSafe(request.getCategory()))
-                    .replace("$description$", stripHtml(request.getOriginalDescription())) // ✅ stripHtml
-                    .replace("$requirements$", stripHtml(request.getOriginalRequirements())) // ✅ stripHtml
+                    .replace("$description$", stripHtml(request.getOriginalDescription()))
+                    .replace("$requirements$", stripHtml(request.getOriginalRequirements()))
                     .replace("$benefits$", stripHtml(request.getOriginBenefits()));
 
             String raw = chatClient.prompt().user(prompt).call().content();
