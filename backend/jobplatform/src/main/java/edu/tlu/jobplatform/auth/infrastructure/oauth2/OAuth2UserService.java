@@ -34,14 +34,23 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String provider = request.getClientRegistration().getRegistrationId();
         Map<String, Object> attrs = oAuth2User.getAttributes();
 
-        String providerId = extractProviderId(attrs, provider);
         String email = extractEmail(attrs, provider);
+        String providerId = extractProviderId(attrs, provider);
         String name = extractName(attrs, provider);
         String avatar = extractAvatar(attrs, provider);
 
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException("Không lấy được email từ " + provider);
         }
+
+        // ── GUARD: Không cho tài khoản ADMIN đăng nhập qua OAuth2 ──
+        userRepository.findByEmail(email.toLowerCase()).ifPresent(existing -> {
+            if (existing.getRole() == UserRole.ADMIN) {
+                log.warn("OAuth2 login blocked for ADMIN account: {}", email);
+                throw new OAuth2AuthenticationException(
+                        "Admin account must use local login");
+            }
+        });
 
         String portalType = readPortalTypeFromSession();
         UserRole roleForNew = "EMPLOYER".equals(portalType)
@@ -55,7 +64,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> createOAuth2User(
                         email, name, avatar, provider, providerId, roleForNew));
 
-        // Gọi thẳng, không qua event
         if (isNewUser) {
             profileCreationService.createProfileForUser(user);
             log.info("Profile created for new OAuth2 user={} role={}",

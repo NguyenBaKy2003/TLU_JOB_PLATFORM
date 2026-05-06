@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class AdminCVTemplateController {
         private final UpdateCVTemplateUseCase updateUseCase;
         private final ToggleCVTemplateUseCase toggleUseCase;
         private final GetCVTemplateDetailUseCase getDetailUseCase;
+        private final UploadCVTemplateThumbnailUseCase uploadThumbnailUseCase;
 
         // ── GET /api/v1/admin/cv-templates ─
 
@@ -160,5 +162,17 @@ public class AdminCVTemplateController {
                 CVTemplate template = getDetailUseCase.execute(templateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 AdminCVTemplateResponse.from(template)));
+        }
+
+        @PatchMapping("/{templateId}/thumbnail")
+        @Operation(summary = "Upload thumbnail cho template")
+        public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> uploadThumbnail(
+                        @PathVariable UUID templateId,
+                        @RequestParam("file") MultipartFile file) {
+
+                CVTemplate template = uploadThumbnailUseCase.execute(templateId, file);
+                return ResponseEntity.ok(ApiResponse.success(
+                                AdminCVTemplateResponse.fromList(template),
+                                "Thumbnail đã được cập nhật."));
         }
 }

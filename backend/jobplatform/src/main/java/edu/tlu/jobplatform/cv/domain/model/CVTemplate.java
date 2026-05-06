@@ -44,4 +44,8 @@ public class CVTemplate {
     public void deactivate() {
         this.active = false;
     }
+
+    public void updateThumbnail(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 }
