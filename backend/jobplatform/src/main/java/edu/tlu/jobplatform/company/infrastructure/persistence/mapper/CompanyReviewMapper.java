@@ -8,7 +8,7 @@ import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyRevi
 @Component
 public class CompanyReviewMapper {
 
-    // ── Entity → Domain ─────────────────────────────────────
+    // ── Entity → Domain ─
 
     public CompanyReview toDomain(CompanyReviewJpaEntity e) {
         if (e == null)
@@ -31,7 +31,7 @@ public class CompanyReviewMapper {
                 .build();
     }
 
-    // ── Domain → Entity (create new) ─────────────────────────
+    // ── Domain → Entity (create new) ─
 
     public CompanyReviewJpaEntity toNewEntity(CompanyReview r) {
         if (r == null)
@@ -51,7 +51,7 @@ public class CompanyReviewMapper {
                 .build();
     }
 
-    // ── Update Entity ───────────────────────────────────────
+    // ── Update Entity
 
     public void updateEntity(CompanyReviewJpaEntity e, CompanyReview r) {
         if (e == null || r == null)

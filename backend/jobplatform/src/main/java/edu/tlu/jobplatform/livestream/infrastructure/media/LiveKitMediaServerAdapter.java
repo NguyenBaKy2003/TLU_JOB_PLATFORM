@@ -25,7 +25,7 @@ public class LiveKitMediaServerAdapter implements MediaServerPort {
     @Value("${livekit.api-secret}")
     private String apiSecret;
 
-    // ─── MediaServerPort impl ─────────────────────────────────
+    // MediaServerPort impl ─
 
     @Override
     public String generateHostToken(UUID sessionId, UUID userId) {
@@ -60,7 +60,7 @@ public class LiveKitMediaServerAdapter implements MediaServerPort {
         return null;
     }
 
-    // ─── Private helpers ──────────────────────────────────────
+    // Private helpers ──
 
     private String buildToken(String room, String identity,
             boolean canPublish, boolean canSubscribe) {

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.util.List;
 
-// ─── CreatePollRequest ────────────────────────────────────────
+//  CreatePollRequest ─
 public record CreatePollRequest(
 
         @NotBlank String question,

@@ -1,4 +1,4 @@
-// ── SocialLinkJpaEntity.java ──────────────────────────────────────
+// ── SocialLinkJpaEntity.java ──
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.SocialLink.Platform;

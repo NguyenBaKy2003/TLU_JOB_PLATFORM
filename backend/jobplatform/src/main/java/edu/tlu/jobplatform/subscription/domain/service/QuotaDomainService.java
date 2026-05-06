@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class QuotaDomainService {
 
-    // ── Validation only ───────────────────────────────────────
+    // ── Validation only
 
     public void checkJobPostQuota(CompanySubscription sub) {
         requireActive(sub, "đăng tin tuyển dụng");
@@ -34,7 +34,7 @@ public class QuotaDomainService {
                     "CV_VIEW_QUOTA_EXCEEDED");
     }
 
-    // ── Consume (validate + mutate) ───────────────────────────
+    // ── Consume (validate + mutate)
 
     public void consumeJobPost(CompanySubscription sub) {
         checkJobPostQuota(sub);
@@ -51,7 +51,7 @@ public class QuotaDomainService {
         sub.consumeCvView(1);
     }
 
-    // ── Private ───
+    // ── Private
 
     private void requireActive(CompanySubscription sub, String action) {
         if (sub == null || !sub.isActive())

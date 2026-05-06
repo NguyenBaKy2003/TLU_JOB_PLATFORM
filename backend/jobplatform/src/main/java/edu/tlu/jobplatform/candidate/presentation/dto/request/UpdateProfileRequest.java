@@ -13,7 +13,7 @@ import java.util.Optional;
 @NoArgsConstructor
 public class UpdateProfileRequest {
 
-    // ── Basic info — Optional<T> để hỗ trợ xóa giá trị ──────────────────────
+    // ── Basic info — Optional<T> để hỗ trợ xóa giá trị
 
     private Optional<String> firstName = null;
     private Optional<String> lastName = null;
@@ -93,7 +93,7 @@ public class UpdateProfileRequest {
         this.currency = Optional.ofNullable(v);
     }
 
-    // ── Collections — null = không đổi, [] = xóa hết ─────────────────────────
+    // ── Collections — null = không đổi, [] = xóa hết ─
 
     @Valid
     private List<SkillRequest> skills;
@@ -109,7 +109,7 @@ public class UpdateProfileRequest {
 
     private List<String> benefits;
 
-    // ── Nested DTOs ───────────────
+    // ── Nested DTOs ─
 
     @Getter
     @NoArgsConstructor

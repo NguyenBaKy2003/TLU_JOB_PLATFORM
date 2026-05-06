@@ -86,7 +86,7 @@ public class ApplicationNotificationHandler {
                                 "/candidate/applications/" + event.getApplicationId()));
         }
 
-        // ── Resolvers ────────────────
+        // ── Resolvers
 
         private String resolveCandidateName(UUID candidateId) {
                 return candidateProfileRepo.findByUserId(candidateId)
@@ -107,7 +107,7 @@ public class ApplicationNotificationHandler {
                                 .orElse("vị trí đã ứng tuyển");
         }
 
-        // ── Helpers ──────────────────
+        // ── Helpers ──
 
         private String buildStatusTitle(String status) {
                 return switch (status) {

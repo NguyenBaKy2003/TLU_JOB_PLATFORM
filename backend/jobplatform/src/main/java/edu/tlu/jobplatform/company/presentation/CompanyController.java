@@ -30,29 +30,29 @@ import java.util.UUID;
 /**
  * Endpoints:
  *
- * ── Public ──────────
+ * ── Public ──
  * GET /api/v1/companies Danh sách công ty đã xác thực
  * GET /api/v1/companies/{id} Chi tiết công ty theo ID
  * GET /api/v1/companies/slug/{slug} Chi tiết công ty theo slug
  *
- * ── Employer ────────
+ * ── Employer
  * GET /api/v1/companies/my Hồ sơ của tôi (có documents)
  * POST /api/v1/companies Tạo hồ sơ công ty
  * PATCH /api/v1/companies/{id} Cập nhật thông tin
  * PATCH /api/v1/companies/logo Upload logo
  * PATCH /api/v1/companies/cover Upload ảnh bìa
  *
- * ── Team members ────
+ * ── Team members ─
  * POST /api/v1/companies/team Thêm thành viên
  * PATCH /api/v1/companies/team/{memberId} Cập nhật thành viên
  * PATCH /api/v1/companies/team/{memberId}/avatar Upload ảnh thành viên
  * DELETE /api/v1/companies/team/{memberId} Xoá thành viên
  *
- * ── Gallery ─────────
+ * ── Gallery ─
  * POST /api/v1/companies/gallery Upload ảnh gallery
  * DELETE /api/v1/companies/gallery/{imageId} Xoá ảnh gallery
  *
- * ── Documents ───────
+ * ── Documents ─
  * POST /api/v1/companies/documents Nộp tài liệu xác thực
  * GET /api/v1/companies/documents Danh sách tài liệu của tôi
  */
@@ -72,7 +72,7 @@ public class CompanyController {
         private final UploadDocumentUseCase uploadDocumentUseCase;
         private final UploadGalleryImageUseCase uploadGalleryImageUseCase;
 
-        // ── Repositories ──────────────────────────────────────────
+        // ── Repositories
         private final CompanyRepository companyRepository;
         private final CompanyTeamMemberRepository teamMemberRepository;
         private final CompanyDocumentRepository documentRepository;

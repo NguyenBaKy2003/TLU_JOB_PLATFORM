@@ -26,7 +26,7 @@ public class WsPayload {
         PING,
         ERROR,
 
-        // ── Livestream (thêm mới) ──────────────────
+        // ── Livestream (thêm mới) ──
         STREAM_CHAT_MESSAGE, // tin nhắn chat trong phiên
         STREAM_QA_QUESTION, // câu hỏi Q&A từ candidate → employer nhận
         STREAM_POLL_CREATED, // employer tạo poll mới

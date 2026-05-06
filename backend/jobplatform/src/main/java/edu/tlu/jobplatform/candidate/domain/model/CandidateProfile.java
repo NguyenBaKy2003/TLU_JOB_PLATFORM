@@ -26,7 +26,7 @@ public class CandidateProfile {
         this.email = email;
     }
 
-    // ── Scalar fields ─────────────
+    // ── Scalar fields ──
     private String firstName;
     private String lastName;
     private String headline;
@@ -61,7 +61,7 @@ public class CandidateProfile {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── updateBasicInfo — FULL replace (dùng khi gửi toàn bộ form) ───────────
+    // ── updateBasicInfo — FULL replace (dùng khi gửi toàn bộ form)
 
     public void updateBasicInfo(
             String firstName, String lastName,
@@ -84,7 +84,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── patchBasicInfo — PARTIAL update với Optional<T> ──────────────────────
+    // ── patchBasicInfo — PARTIAL update với Optional<T>
     //
     // Ba trạng thái của mỗi Optional parameter:
     // null = frontend không gửi field → giữ nguyên giá trị cũ
@@ -133,7 +133,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Avatar & status ───────────
+    // ── Avatar & status
 
     public void updateAvatar(String avatarUrl) {
         this.avatarUrl = avatarUrl;
@@ -152,7 +152,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Languages ─────────────────
+    // ── Languages ─
 
     public void replaceLanguages(List<Language> incoming) {
         this.languages = incoming.stream()
@@ -161,7 +161,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Social Links ──────────────
+    // ── Social Links
 
     public void replaceSocialLinks(List<SocialLink> incoming) {
         this.socialLinks = incoming.stream()
@@ -170,7 +170,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Experiences ───────────────
+    // ── Experiences ─
 
     public void addExperience(WorkExperience exp) {
         experiences.add(exp);
@@ -193,7 +193,7 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Educations ────────────────
+    // ── Educations
 
     public void addEducation(Education edu) {
         educations.add(edu);
@@ -216,28 +216,28 @@ public class CandidateProfile {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Desired Jobs ──────────────
+    // ── Desired Jobs
 
     public void updateDesiredJob(DesiredJob desiredJob) {
         this.desiredJobs = new ArrayList<>(List.of(desiredJob));
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Profile URL ───────────────
+    // ── Profile URL ─
 
     public void updateProfileUrl(String profileUrl) {
         this.profileUrl = profileUrl;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Benefits ──────────────────
+    // ── Benefits ──
 
     public void replaceBenefits(List<Benefit> incoming) {
         this.benefits = new ArrayList<>(incoming);
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Read-only views ───────────
+    // ── Read-only views
 
     public List<Skill> getSkills() {
         return Collections.unmodifiableList(skills);

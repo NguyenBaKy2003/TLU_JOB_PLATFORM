@@ -28,11 +28,11 @@ public class ApplicationDetailResponse {
     private final ApplicationStatus status;
     private final String rejectionReason;
 
-    // ── Job & Company info ────────────────────────────────────
+    // ── Job & Company info
     private final JobInfo job;
     private final CompanyInfo company;
 
-    // ── Candidate info (populated từ UserRepository) ──────────
+    // ── Candidate info (populated từ UserRepository) ──
     private final CandidateInfo candidate;
 
     // ── Interview ─
@@ -49,9 +49,9 @@ public class ApplicationDetailResponse {
     private final LocalDateTime updatedAt;
     private final List<StatusLogDto> statusHistory;
 
-    // ─────────────
+    // ──
     // Factory methods
-    // ─────────────
+    // ──
 
     /** Không có candidate info (dùng khi candidate tự xem đơn của mình) */
     public static ApplicationDetailResponse from(Application a) {
@@ -91,9 +91,9 @@ public class ApplicationDetailResponse {
         return build(a, logs, candidateInfo, jobInfo, companyInfo);
     }
 
-    // ─────────────
+    // ──
     // Private builder — single source of truth
-    // ─────────────
+    // ──
 
     private static ApplicationDetailResponse build(Application a,
             List<ApplicationStatusLog> logs,
@@ -136,9 +136,9 @@ public class ApplicationDetailResponse {
                 .statusHistory(history).build();
     }
 
-    // ─────────────
+    // ──
     // Nested DTOs
-    // ─────────────
+    // ──
 
     @Getter
     @Builder

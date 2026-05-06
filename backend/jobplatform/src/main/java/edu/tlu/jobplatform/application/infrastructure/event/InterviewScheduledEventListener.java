@@ -74,7 +74,7 @@ public class InterviewScheduledEventListener {
         }
     }
 
-    // ── Resolve helpers ───────────
+    // ── Resolve helpers
 
     /**
      * candidateName đã được publisher set sẵn.
@@ -103,7 +103,7 @@ public class InterviewScheduledEventListener {
         return (title != null && !title.isBlank()) ? title : "Vị trí ứng tuyển";
     }
 
-    // ── Format helper ─────────────
+    // ── Format helper ──
 
     /**
      * "2026-04-25T10:29:00" → "10:29 - Thứ Sáu, 25/04/2026"

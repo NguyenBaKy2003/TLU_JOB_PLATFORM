@@ -4,10 +4,10 @@ import jakarta.validation.constraints.*;
 
 import java.util.UUID;
 
-// ─── RespondPollRequest (Candidate) ───────────────────────────
+//  RespondPollRequest (Candidate) 
 public record RespondPollRequest(
 
-        @NotNull UUID pollEventId,
+                @NotNull UUID pollEventId,
 
-        @Min(0) int optionIndex) {
+                @Min(0) int optionIndex) {
 }

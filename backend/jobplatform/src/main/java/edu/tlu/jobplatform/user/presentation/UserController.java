@@ -43,7 +43,7 @@ public class UserController {
         private final UpdateUserUseCase updateUserUseCase;
         private final DeactivateUserUseCase deactivateUserUseCase;
 
-        // ── GET /api/users/me ─────────────────────────────────────────
+        // ── GET /api/users/me ──
 
         @Operation(summary = "Lấy thông tin bản thân", description = "Trả về profile đầy đủ của user đang đăng nhập. Dùng sau login để load profile.")
         @ApiResponses({
@@ -57,7 +57,7 @@ public class UserController {
                 return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
         }
 
-        // ── PATCH /api/users/me ───────────────────────────────────────
+        // ── PATCH /api/users/me
 
         @Operation(summary = "Cập nhật thông tin cá nhân", description = """
                         Cập nhật một phần thông tin cá nhân (PATCH semantics).
@@ -79,7 +79,7 @@ public class UserController {
                                 ApiResponse.success(UserResponse.from(user), "Cập nhật thông tin thành công."));
         }
 
-        // ── DELETE /api/users/me ──────────────────────────────────────
+        // ── DELETE /api/users/me ──
 
         @Operation(summary = "Tự vô hiệu hoá tài khoản", description = """
                         User tự yêu cầu vô hiệu hoá tài khoản của mình (soft delete).
@@ -96,11 +96,11 @@ public class UserController {
                                 ApiResponse.success("Tài khoản đã được vô hiệu hoá."));
         }
 
-        // ────────────────
+        //
         // Admin endpoints
-        // ────────────────
+        //
 
-        // ── GET /api/users/{id} ───────────────────────────────────────
+        // ── GET /api/users/{id}
 
         @Operation(summary = "[ADMIN] Lấy thông tin user theo ID", description = "Chỉ ADMIN mới được gọi endpoint này.")
         @GetMapping("/{id}")
@@ -112,7 +112,7 @@ public class UserController {
                 return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
         }
 
-        // ── PATCH /api/users/{id} ─────────────────────────────────────
+        // ── PATCH /api/users/{id} ─
 
         @Operation(summary = "[ADMIN] Cập nhật thông tin user", description = "Admin cập nhật thông tin của bất kỳ user nào.")
         @PatchMapping("/{id}")
@@ -126,7 +126,7 @@ public class UserController {
                                 ApiResponse.success(UserResponse.from(user), "Cập nhật thành công."));
         }
 
-        // ── DELETE /api/users/{id} ────────────────────────────────────
+        // ── DELETE /api/users/{id}
 
         @Operation(summary = "[ADMIN] Vô hiệu hoá tài khoản user", description = "Admin vô hiệu hoá tài khoản của bất kỳ user nào.")
         @DeleteMapping("/{id}")
@@ -140,7 +140,7 @@ public class UserController {
                                 ApiResponse.success("Tài khoản đã được vô hiệu hoá."));
         }
 
-        // ── Helper ────────
+        // ── Helper
 
         private UpdateUserUseCase.Command toCommand(UpdateUserRequest req) {
                 return new UpdateUserUseCase.Command(

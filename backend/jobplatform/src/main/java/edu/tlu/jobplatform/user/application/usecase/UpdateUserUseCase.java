@@ -66,7 +66,7 @@ public class UpdateUserUseCase {
         return saved;
     }
 
-    // ── Validation helpers ────────────────────────────────────────
+    // ── Validation helpers ─
 
     private void validateFullName(String fullName) {
         if (fullName.length() < 2 || fullName.length() > 100) {

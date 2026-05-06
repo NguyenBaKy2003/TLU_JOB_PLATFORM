@@ -32,7 +32,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "template_id", nullable = false)
     private UUID templateId;
 
-    // ── PersonalInfo (embedded, không phải bảng riêng) ───────────────────────
+    // ── PersonalInfo (embedded, không phải bảng riêng) ─
 
     @Column(name = "pi_full_name", length = 150)
     private String piFullName;
@@ -61,7 +61,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "pi_website", length = 300)
     private String piWebsite;
 
-    // ── Status & visibility ───────
+    // ── Status & visibility ─
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -80,7 +80,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "exported_pdf_url", length = 500)
     private String exportedPdfUrl;
 
-    // ── Sections (one-to-many, owned by this aggregate) ───────────────────────
+    // ── Sections (one-to-many, owned by this aggregate) ─
 
     @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("display_order ASC")

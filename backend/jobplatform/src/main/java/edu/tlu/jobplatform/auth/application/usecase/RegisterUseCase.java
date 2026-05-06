@@ -84,7 +84,7 @@ public class RegisterUseCase {
         return new Result(saved.getId(), saved.getEmail(), saved.getRole().name());
     }
 
-    // ── Helpers ───────
+    // ── Helpers ─
 
     private String generateOtp() {
         int code = new SecureRandom().nextInt(900_000) + 100_000;

@@ -66,14 +66,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         OAuth2UserPrincipal principal = (OAuth2UserPrincipal) auth.getPrincipal();
         User user = principal.getDomainUser();
 
-        // ── 1. Đọc portalType từ session ─────────────────────────────────────
+        // ── 1. Đọc portalType từ session ─
         // Phải đọc TRƯỚC mọi cleanup để dùng cho cả portal check và redirect URL.
         String portalType = readPortalTypeFromSession(req);
         log.debug("OAuth2 success: email={} portal={} sessionId={}",
                 user.getEmail(), portalType,
                 req.getSession(false) != null ? req.getSession(false).getId() : "null");
 
-        // ── 2. Kiểm tra account bị khóa ──────────────────────────────────────
+        // ── 2. Kiểm tra account bị khóa ──
         if (!user.isActive()) {
             log.warn("OAuth2 login blocked — account locked: {}", user.getEmail());
             redirectError(req, res, "ACCOUNT_LOCKED", portalType);
@@ -81,7 +81,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             return;
         }
 
-        // ── 3. Kiểm tra portal access ─────────────────────────────────────────
+        // ── 3. Kiểm tra portal access ──
         if (!isPortalAllowed(user, portalType)) {
             log.warn("OAuth2 portal mismatch: email={} role={} attemptedPortal={}",
                     user.getEmail(), user.getRole(), portalType);
@@ -94,18 +94,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         user.recordLogin();
         userRepository.save(user);
 
-        // ── 5. Tạo token pair ────
+        // ── 5. Tạo token pair ─
         String tokenId = UUID.randomUUID().toString();
         String accessToken = jwtTokenProvider.generateAccessToken(user, tokenId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user, tokenId);
         tokenStore.save(user.getId(), tokenId, refreshToken, REFRESH_TTL);
 
-        // ── 6. Cleanup session ───
+        // ── 6. Cleanup session
         cleanupSession(req);
 
         log.info("OAuth2 login success: {} [{}] portal={}", user.getEmail(), user.getId(), portalType);
 
-        // ── 7. Redirect về frontend ──────────────────────────────────────────
+        // ── 7. Redirect về frontend
         String redirectUrl = UriComponentsBuilder
                 .fromUriString(frontendUrl + "/auth/oauth2/callback")
                 .queryParam("accessToken", accessToken)
@@ -117,7 +117,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         getRedirectStrategy().sendRedirect(req, res, redirectUrl);
     }
 
-    // ── Session helpers ───────────
+    // ── Session helpers
 
     /**
      * Đọc portalType từ session.
@@ -145,7 +145,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
     }
 
-    // ── Business logic helpers ────
+    // ── Business logic helpers ─
 
     /**
      * Nhất quán với LoginUseCase#validatePortalAccess.

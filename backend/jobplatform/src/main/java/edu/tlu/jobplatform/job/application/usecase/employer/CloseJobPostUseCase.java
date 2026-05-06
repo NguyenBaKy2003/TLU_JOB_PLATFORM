@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-// ── CloseJobPostUseCase ───────────────────────────────────────────
+// ── CloseJobPostUseCase ─
 
 @Slf4j
 @Service

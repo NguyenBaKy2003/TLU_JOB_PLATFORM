@@ -33,9 +33,9 @@ public class GetProfileUseCase {
                 return CandidateProfile.builder()
                                 .id(profile.getId())
                                 .userId(profile.getUserId())
-                                // ── Từ users table ──────────────────────────────────────────
+                                // ── Từ users table
                                 .email(user.getEmail())
-                                // ── Từ candidate_profiles table ─────────────────────────────
+                                // ── Từ candidate_profiles table ──
                                 .firstName(profile.getFirstName())
                                 .lastName(profile.getLastName())
                                 .headline(profile.getHeadline())
@@ -62,7 +62,7 @@ public class GetProfileUseCase {
                                 .build();
         }
 
-        // ──────────
+        // ──
 
         /**
          * Giữ lại skill đầu tiên của mỗi name (case-insensitive).

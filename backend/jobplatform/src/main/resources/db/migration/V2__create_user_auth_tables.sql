@@ -1,4 +1,4 @@
--- ── Users ─────────────
+-- ── Users ──
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -41,7 +41,7 @@ CREATE TABLE candidate_profiles (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
--- ── Skills ────────────
+-- ── Skills ─
 CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -49,7 +49,7 @@ CREATE TABLE skills (
     level VARCHAR(50),
     years_of_exp INT DEFAULT 0
 );
--- ── Experiences ───────
+-- ── Experiences ─
 CREATE TABLE experiences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -61,7 +61,7 @@ CREATE TABLE experiences (
     current BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
--- ── Educations ────────
+-- ── Educations 
 CREATE TABLE educations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -73,7 +73,7 @@ CREATE TABLE educations (
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
--- ── Languages ─────────
+-- ── Languages ─
 CREATE TABLE languages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -82,7 +82,7 @@ CREATE TABLE languages (
         level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIVE')
     )
 );
--- ── Social Links ──────
+-- ── Social Links 
 CREATE TABLE social_links (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -98,7 +98,7 @@ CREATE TABLE social_links (
     ),
     url VARCHAR(500) NOT NULL
 );
--- ── Desired Jobs ──────
+-- ── Desired Jobs 
 CREATE TABLE desired_jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
@@ -126,13 +126,13 @@ CREATE TABLE desired_job_levels (
     ),
     PRIMARY KEY (desired_job_id, level)
 );
--- ── Benefits ──────────
+-- ── Benefits ──
 CREATE TABLE benefits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_profile_id UUID NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL
 );
--- ── Indexes ───────────
+-- ── Indexes 
 CREATE INDEX idx_skills_profile ON skills(candidate_profile_id);
 CREATE INDEX idx_experiences_profile ON experiences(candidate_profile_id);
 CREATE INDEX idx_educations_profile ON educations(candidate_profile_id);

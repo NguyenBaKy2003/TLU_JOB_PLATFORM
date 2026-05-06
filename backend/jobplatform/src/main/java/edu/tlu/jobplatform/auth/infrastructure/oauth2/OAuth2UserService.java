@@ -68,7 +68,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return new OAuth2UserPrincipal(user, attrs);
     }
 
-    // ── Session helper ────────────
+    // ── Session helper ─
 
     /**
      * Đọc portalType từ HttpSession hiện tại.
@@ -96,7 +96,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return "CANDIDATE";
     }
 
-    // ── Domain helpers ────────────
+    // ── Domain helpers ─
 
     private User createOAuth2User(String email, String name, String avatar,
             String provider, String providerId, UserRole role) {
@@ -127,7 +127,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return userRepository.save(existing);
     }
 
-    // ── Attribute extractors ──────
+    // ── Attribute extractors
 
     private String extractProviderId(Map<String, Object> attrs, String provider) {
         return switch (provider) {

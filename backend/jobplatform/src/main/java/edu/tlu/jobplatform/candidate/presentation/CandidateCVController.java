@@ -53,7 +53,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success(cvs));
         }
 
-        // ── POST /api/v1/candidate/cv/upload ──────────────────────────────────────
+        // ── POST /api/v1/candidate/cv/upload ──
 
         @Operation(summary = "Upload CV (PDF / DOC / DOCX)", description = """
                         Upload file CV lên S3.
@@ -98,7 +98,7 @@ public class CandidateCVController {
                                 CVResponse.from(cv), "CV đã được tải lên thành công."));
         }
 
-        // ── GET /api/v1/candidate/cv/{cvId}/view ──────────────────────────────────
+        // ── GET /api/v1/candidate/cv/{cvId}/view ──
 
         @Operation(summary = "Xem CV (inline)", description = """
                         Trả về file stream với Content-Disposition: inline.
@@ -119,7 +119,7 @@ public class CandidateCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── GET /api/v1/candidate/cv/{cvId}/download ──────────────────────────────
+        // ── GET /api/v1/candidate/cv/{cvId}/download
 
         @Operation(summary = "Tải CV xuống", description = """
                         Trả về file stream với Content-Disposition: attachment.
@@ -140,7 +140,7 @@ public class CandidateCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── PATCH /api/v1/candidate/cv/{cvId}/primary ─────────────────────────────
+        // ── PATCH /api/v1/candidate/cv/{cvId}/primary ──
 
         @Operation(summary = "Đặt CV làm primary", description = """
                         CV primary là CV mặc định khi ứng tuyển.
@@ -155,7 +155,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success("CV primary đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/candidate/cv/{cvId} ────────────────────────────────────
+        // ── DELETE /api/v1/candidate/cv/{cvId}
 
         @Operation(summary = "Xóa CV", description = """
                         Xóa CV và file trên S3 (nếu là UPLOADED).
@@ -170,7 +170,7 @@ public class CandidateCVController {
                 return ResponseEntity.ok(ApiResponse.success("CV đã được xóa."));
         }
 
-        // ── Validation helper ─────────
+        // ── Validation helper ─
 
         private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
         private static final List<String> ALLOWED_TYPES = List.of(

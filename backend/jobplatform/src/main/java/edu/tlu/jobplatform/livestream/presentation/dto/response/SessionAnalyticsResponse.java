@@ -6,7 +6,7 @@ import edu.tlu.jobplatform.livestream.domain.model.vo.*;
 import java.util.List;
 import java.util.UUID;
 
-// ─── SessionAnalyticsResponse (employer dashboard) ────────────
+//  SessionAnalyticsResponse (employer dashboard) ─
 public record SessionAnalyticsResponse(
         UUID sessionId,
         int peakViewerCount,

@@ -87,7 +87,7 @@ public class UploadCVUseCase {
                         log.warn("CV parse failed for candidateId={}: {}", cmd.candidateId(), e.getMessage());
                 }
 
-                // ── Quyết định primary ────
+                // ── Quyết định primary ─
                 // Logic:
                 // setAsPrimary = null → tự động: primary nếu chưa có CV nào
                 // setAsPrimary = true → user chủ động muốn set primary

@@ -53,7 +53,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
         }
     }
 
-    // ── Download ──────────────────
+    // ── Download ──
 
     @Override
     public FileResult download(String fileUrl) { // ← FileResult, không phải DownloadResult

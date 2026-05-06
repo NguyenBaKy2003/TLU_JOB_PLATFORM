@@ -2,7 +2,7 @@
 # t3.large: 2 vCPU, 8GB RAM
 # Postgres + Redis cùng EC2 (tự quản lý)
 
-version: '3.9'
+version: "3.9"
 
 networks:
   jobplatform-net:
@@ -23,15 +23,14 @@ volumes:
       device: /opt/jobplatform/data/redis
 
 services:
-
-  # ── PostgreSQL ────
+  # ── PostgreSQL ─
   postgres:
     image: postgres:16-alpine
     container_name: jobplatform-postgres-prod
     restart: always
     environment:
-      POSTGRES_DB:       jobplatform_prod
-      POSTGRES_USER:     jobplatform_prod
+      POSTGRES_DB: jobplatform_prod
+      POSTGRES_USER: jobplatform_prod
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data-prod:/var/lib/postgresql/data
@@ -51,7 +50,7 @@ services:
     expose:
       - "5432"
 
-  # ── Redis ─────────
+  # ── Redis ─
   redis:
     image: redis:7-alpine
     container_name: jobplatform-redis-prod
@@ -80,7 +79,7 @@ services:
     expose:
       - "6379"
 
-  # ── Spring Boot Backend ───────────────────────────────────────
+  # ── Spring Boot Backend
   backend:
     image: jobplatform-backend:latest
     container_name: jobplatform-backend-prod
@@ -91,19 +90,19 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE:     prod
-      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/jobplatform_prod
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/jobplatform_prod
       SPRING_DATASOURCE_USERNAME: jobplatform_prod
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_DATA_REDIS_HOST:     redis
-      SPRING_DATA_REDIS_PORT:     6379
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
-      APP_JWT_SECRET:             ${JWT_SECRET}
-      APP_FRONTEND_URL:           ${FRONTEND_URL}
-      SPRING_MAIL_HOST:           ${MAIL_HOST:-smtp.gmail.com}
-      SPRING_MAIL_USERNAME:       ${MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD:       ${MAIL_PASSWORD}
-      APP_OPENAI_API_KEY:         ${OPENAI_API_KEY}
+      APP_JWT_SECRET: ${JWT_SECRET}
+      APP_FRONTEND_URL: ${FRONTEND_URL}
+      SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      APP_OPENAI_API_KEY: ${OPENAI_API_KEY}
       JAVA_OPTS: >-
         -XX:+UseContainerSupport
         -XX:MaxRAMPercentage=75.0
@@ -121,7 +120,11 @@ services:
         reservations:
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -129,7 +132,7 @@ services:
     # Graceful shutdown — chờ request hiện tại xử lý xong
     stop_grace_period: 30s
 
-  # ── Nginx (SSL termination) ───────────────────────────────────
+  # ── Nginx (SSL termination) 
   nginx:
     image: nginx:alpine
     container_name: jobplatform-nginx-prod

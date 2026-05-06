@@ -51,7 +51,7 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                                // ── 401 / 403 custom response ──────────────────────────
+                                // ── 401 / 403 custom response
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((req, res, e) -> {
                                                         res.setStatus(401);
@@ -70,7 +70,7 @@ public class SecurityConfig {
                                                                                         "\"errorCode\":\"FORBIDDEN\"}");
                                                 }))
 
-                                // ── Authorization rules ────────────────────────────────
+                                // ── Authorization rules ─
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**",
@@ -96,13 +96,13 @@ public class SecurityConfig {
 
                                                 .anyRequest().authenticated())
 
-                                // ── OAuth2 Login ───────────────────────────────────────
+                                // ── OAuth2 Login
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(ui -> ui.userService(oauth2UserService))
                                                 .successHandler(oauth2SuccessHandler)
                                                 .failureUrl("/api/auth/oauth2/failure"))
 
-                                // ── JWT Filter ─────────────────────────────────────────
+                                // ── JWT Filter ──
                                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtAuthFilter, rateLimitFilter.getClass())
                                 .build();

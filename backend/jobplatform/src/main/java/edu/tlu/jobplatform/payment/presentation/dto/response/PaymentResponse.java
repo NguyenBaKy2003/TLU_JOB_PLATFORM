@@ -60,7 +60,7 @@ public class PaymentResponse {
                 .build();
     }
 
-    // ── Helpers ───
+    // ── Helpers
 
     private static String formatVND(BigDecimal amount) {
         if (amount == null)

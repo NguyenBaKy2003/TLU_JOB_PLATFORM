@@ -20,7 +20,7 @@ public enum NotificationType {
     PAYMENT_SUCCESS,
     PAYMENT_FAILED,
 
-    // ── Chung ─────────
+    // ── Chung ─
     NEW_MESSAGE, // badge only — không gửi email
     SYSTEM_ANNOUNCEMENT, // không gửi email
 }

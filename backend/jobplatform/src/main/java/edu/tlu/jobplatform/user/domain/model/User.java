@@ -120,12 +120,12 @@ public class User {
         this.active = false;
     }
 
-    // ── Activate ──────────
+    // ── Activate ──
     public void activate() {
         this.active = true;
     }
 
-    // ── Failed login tracking ─────────────────────────────────────────
+    // ── Failed login tracking ──
 
     /**
      * Ghi nhận login thất bại.

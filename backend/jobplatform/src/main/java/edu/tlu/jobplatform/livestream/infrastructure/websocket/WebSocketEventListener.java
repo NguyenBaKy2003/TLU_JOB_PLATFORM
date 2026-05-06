@@ -51,7 +51,7 @@ public class WebSocketEventListener {
      */
     private final Map<String, UUID> subscriptionUserMap = new ConcurrentHashMap<>();
 
-    // ─── Subscribe ────────────────
+    // Subscribe
 
     @EventListener
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
@@ -94,7 +94,7 @@ public class WebSocketEventListener {
         log.debug("[WS] User {} subscribed to session {} (wsSession={})", userId, sessionId, wsSessionId);
     }
 
-    // ─── Unsubscribe ──────────────
+    // Unsubscribe
 
     @EventListener
     public void handleUnsubscribeEvent(SessionUnsubscribeEvent event) {
@@ -125,7 +125,7 @@ public class WebSocketEventListener {
         log.debug("[WS] User {} unsubscribed from session {} (wsSession={})", userId, sessionId, wsSessionId);
     }
 
-    // ─── Disconnect ───────────────
+    // Disconnect ─
 
     @EventListener
     public void handleDisconnectEvent(SessionDisconnectEvent event) {
@@ -153,7 +153,7 @@ public class WebSocketEventListener {
         });
     }
 
-    // ─── Helpers ──────────────────
+    // Helpers ──
 
     private boolean isAuthenticated(Principal principal) {
         return principal instanceof Authentication auth && auth.isAuthenticated();

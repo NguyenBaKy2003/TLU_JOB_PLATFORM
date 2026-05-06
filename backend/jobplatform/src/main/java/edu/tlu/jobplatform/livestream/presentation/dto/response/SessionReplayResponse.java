@@ -5,7 +5,7 @@ import edu.tlu.jobplatform.livestream.domain.model.vo.*;
 import java.util.List;
 import java.util.UUID;
 
-// ─── SessionReplayResponse ────────────────────────────────────
+//  SessionReplayResponse 
 public record SessionReplayResponse(
         UUID sessionId,
         String title,
