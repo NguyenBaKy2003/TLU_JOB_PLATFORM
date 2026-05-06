@@ -105,7 +105,7 @@ public class ViewCandidateCVUseCase {
                 file.contentLength());
     }
 
-    // ── Helpers ───
+    // ── Helpers
 
     private static String sanitizeFileName(String title) {
         if (title == null || title.isBlank())

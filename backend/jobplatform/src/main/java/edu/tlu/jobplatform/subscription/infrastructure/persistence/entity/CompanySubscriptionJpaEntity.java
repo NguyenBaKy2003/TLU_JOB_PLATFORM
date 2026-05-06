@@ -41,7 +41,7 @@ public class CompanySubscriptionJpaEntity extends BaseJpaEntity {
     @Column(nullable = false, length = 20)
     private SubscriptionStatus status;
 
-    // ── Quota (3 loại, embedded) ──────────────────────────────
+    // ── Quota (3 loại, embedded)
     @Column(name = "job_post_quota_limit", nullable = false)
     private int jobPostQuotaLimit;
     @Column(name = "job_post_quota_used", nullable = false)

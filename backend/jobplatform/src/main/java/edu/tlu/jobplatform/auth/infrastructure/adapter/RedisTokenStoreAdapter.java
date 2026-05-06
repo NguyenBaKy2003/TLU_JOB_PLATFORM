@@ -86,7 +86,7 @@ public class RedisTokenStoreAdapter implements TokenStorePort {
         log.debug("Revoked all sessions except tokenId={} for userId={}", keepTokenId, userId);
     }
 
-    // ── Helper ────────
+    // ── Helper
 
     private String refreshKey(UUID userId, String tokenId) {
         return NS_REFRESH + userId + ":" + tokenId;

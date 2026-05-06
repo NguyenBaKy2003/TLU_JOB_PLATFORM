@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-// ── Request DTOs ──────────────────────────────────────────────────────────────
+// ── Request DTOs ─
 
 /**
  * PATCH /api/v1/settings/name

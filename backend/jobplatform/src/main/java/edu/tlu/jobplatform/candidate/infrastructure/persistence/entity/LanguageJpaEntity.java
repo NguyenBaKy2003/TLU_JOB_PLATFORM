@@ -1,4 +1,4 @@
-// ── LanguageJpaEntity.java ────────────────────────────────────────
+// ── LanguageJpaEntity.java ─
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.Language.Level;

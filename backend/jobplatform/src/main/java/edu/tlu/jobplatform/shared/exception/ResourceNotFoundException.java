@@ -27,7 +27,7 @@ public class ResourceNotFoundException extends DomainException {
         super(message, "RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    // ── Factory methods cho từng domain ──────────────────────────
+    // ── Factory methods cho từng domain ──
 
     public static ResourceNotFoundException of(String resourceName, Object id) {
         return new ResourceNotFoundException(resourceName, id);

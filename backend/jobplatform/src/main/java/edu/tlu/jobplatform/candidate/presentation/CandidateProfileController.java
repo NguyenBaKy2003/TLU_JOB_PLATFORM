@@ -49,7 +49,7 @@ public class CandidateProfileController {
         private final DeleteEducationUseCase deleteEducationUseCase;
         private final UpdateProfileUrlUseCase updateProfileUrlUseCase;
 
-        // ── GET /me ───────
+        // ── GET /me ─
 
         @Operation(summary = "Lấy hồ sơ của tôi")
         @GetMapping("/me")
@@ -61,7 +61,7 @@ public class CandidateProfileController {
                                 CandidateProfileResponse.from(profile)));
         }
 
-        // ── PUT /me ───────
+        // ── PUT /me ─
 
         @Operation(summary = "Cập nhật hồ sơ (PATCH semantics — chỉ gửi field cần đổi; gửi null để xóa)")
         @PutMapping("/me")
@@ -95,7 +95,7 @@ public class CandidateProfileController {
                                 "Hồ sơ đã được cập nhật."));
         }
 
-        // ── PATCH /me/avatar ──────────────────────────────────────────
+        // ── PATCH /me/avatar
 
         @Operation(summary = "Cập nhật avatar")
         @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -108,7 +108,7 @@ public class CandidateProfileController {
                                 CandidateProfileResponse.from(updated), "Ảnh đại diện đã được cập nhật."));
         }
 
-        // ── PATCH /me/profile-url ─────────────────────────────────────
+        // ── PATCH /me/profile-url ─
 
         @Operation(summary = "Cập nhật URL hồ sơ cá nhân")
         @PatchMapping("/me/profile-url")
@@ -122,7 +122,7 @@ public class CandidateProfileController {
                                 "URL hồ sơ đã được cập nhật."));
         }
 
-        // ── PATCH /me/job-search-status ───────────────────────────────
+        // ── PATCH /me/job-search-status ─
 
         @Operation(summary = "Cập nhật trạng thái tìm việc")
         @PatchMapping("/me/job-search-status")
@@ -135,7 +135,7 @@ public class CandidateProfileController {
                                 "Trạng thái tìm việc đã được cập nhật."));
         }
 
-        // ── Work experiences ──────────────────────────────────────────
+        // ── Work experiences
 
         @Operation(summary = "Thêm kinh nghiệm làm việc")
         @PostMapping("/me/experiences")
@@ -172,7 +172,7 @@ public class CandidateProfileController {
                 return ResponseEntity.ok(ApiResponse.success("Đã xóa kinh nghiệm làm việc."));
         }
 
-        // ── Educations ────
+        // ── Educations ─
 
         @Operation(summary = "Thêm học vấn")
         @PostMapping("/me/educations")
@@ -209,7 +209,7 @@ public class CandidateProfileController {
                 return ResponseEntity.ok(ApiResponse.success("Đã xóa học vấn."));
         }
 
-        // ── Private mappers ───────────────────────────────────────────
+        // ── Private mappers ─
 
         private List<Skill> mapSkills(UpdateProfileRequest req) {
                 if (req.getSkills() == null)

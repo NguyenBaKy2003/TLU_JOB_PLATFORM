@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.util.UUID;
 
-// ─── SpotlightJobRequest ──────────────────────────────────────
+//  SpotlightJobRequest ──
 public record SpotlightJobRequest(
 
         @NotNull(message = "jobPostId không được để trống") UUID jobPostId) {

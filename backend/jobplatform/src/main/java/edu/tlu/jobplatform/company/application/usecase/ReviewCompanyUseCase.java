@@ -32,7 +32,7 @@ public class ReviewCompanyUseCase {
     private final CompanyRepository companyRepository;
     private final CompanyReviewRepository reviewRepository;
 
-    // ── Tạo review mới ────────────────────────────────────────
+    // ── Tạo review mới ─
 
     @Transactional
     public CompanyReview create(CreateCommand cmd) {
@@ -71,7 +71,7 @@ public class ReviewCompanyUseCase {
         return saved;
     }
 
-    // ── Ẩn review (Admin) ─────────────────────────────────────
+    // ── Ẩn review (Admin) ─
 
     @Transactional
     public void hide(UUID reviewId) {
@@ -81,7 +81,7 @@ public class ReviewCompanyUseCase {
         reviewRepository.save(review);
     }
 
-    // ── Xóa review (Owner hoặc Admin) ─────────────────────────
+    // ── Xóa review (Owner hoặc Admin) ─
 
     @Transactional
     public void delete(UUID reviewId) {

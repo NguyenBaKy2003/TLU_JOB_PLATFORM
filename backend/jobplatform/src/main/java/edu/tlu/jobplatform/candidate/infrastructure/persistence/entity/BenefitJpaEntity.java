@@ -1,4 +1,4 @@
-// ── BenefitJpaEntity.java ─────────────────────────────────────────
+// ── BenefitJpaEntity.java ──
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.shared.base.BaseJpaEntity;

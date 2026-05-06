@@ -1,4 +1,4 @@
-// ── DesiredJobJpaEntity.java ──────────────────────────────────────
+// ── DesiredJobJpaEntity.java ──
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.DesiredJob.ContractType;

@@ -105,8 +105,8 @@ export function TeamMembersSection({ companyId, members, onUpdate }: Props) {
       toast.error("Sai định dạng", "Chỉ chấp nhận file ảnh");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("File quá lớn", "Ảnh không được vượt quá 2MB");
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("File quá lớn", "Ảnh không được vượt quá 3MB");
       return;
     }
 

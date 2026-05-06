@@ -49,7 +49,7 @@ public class StreamViewerManager {
     /** sessionId → Set<viewerId> — dedup per session */
     private final Map<UUID, Set<UUID>> sessionViewerSets = new ConcurrentHashMap<>();
 
-    // ─── Public API ───────────────
+    // Public API ─
 
     /**
      * Ghi nhận viewer tham gia session.
@@ -148,7 +148,7 @@ public class StreamViewerManager {
         log.info("Cleaned up viewer tracking for session {}", sessionId);
     }
 
-    // ─── Private helpers ──────────
+    // Private helpers ──
 
     /**
      * Xóa viewer khỏi session set và giảm counter.

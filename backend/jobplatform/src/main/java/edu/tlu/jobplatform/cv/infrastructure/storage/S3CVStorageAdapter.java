@@ -76,7 +76,7 @@ public class S3CVStorageAdapter implements CVStoragePort {
         }
     }
 
-    // ── Helpers (copy y chang từ S3FileStorageAdapter) ────────────────────────
+    // ── Helpers (copy y chang từ S3FileStorageAdapter)
 
     private String buildKey(UUID candidateId, UUID cvId) {
         return FOLDER + "/" + candidateId + "/" + cvId + ".pdf";

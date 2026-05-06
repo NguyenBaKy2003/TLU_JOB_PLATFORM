@@ -36,7 +36,7 @@ public class EmployerStreamController {
         private final InviteCandidateToSlotUseCase inviteToSlotUseCase;
         private final LiveStreamSessionRepository sessionRepository;
 
-        // ── POST /api/v1/streams ──────────────────────────────────
+        // ── POST /api/v1/streams ──
 
         @Operation(summary = "Tạo phiên stream mới", description = "Tạo phiên JOB_FAIR hoặc INTERVIEW. Trạng thái ban đầu là SCHEDULED.")
         @PostMapping
@@ -60,7 +60,7 @@ public class EmployerStreamController {
                                 .body(ApiResponse.success(SessionResponse.from(session)));
         }
 
-        // ── GET /api/v1/streams ───────────────────────────────────
+        // ── GET /api/v1/streams
 
         @Operation(summary = "Danh sách phiên stream của công ty")
         @GetMapping
@@ -72,7 +72,7 @@ public class EmployerStreamController {
                 return ResponseEntity.ok(ApiResponse.success(sessions));
         }
 
-        // ── POST /api/v1/streams/{sessionId}/start ────────────────
+        // ── POST /api/v1/streams/{sessionId}/start
 
         @Operation(summary = "Bắt đầu live stream", description = "Chuyển SCHEDULED → LIVE. Trả về LiveKit host token để bật camera.")
         @PostMapping("/{sessionId}/start")
@@ -85,7 +85,7 @@ public class EmployerStreamController {
                                 new SessionStartResponse(result.hostToken(), result.livekitUrl())));
         }
 
-        // ── POST /api/v1/streams/{sessionId}/end ──────────────────
+        // ── POST /api/v1/streams/{sessionId}/end ──
 
         @Operation(summary = "Kết thúc live stream", description = "Chuyển LIVE → ENDED. Tự động trigger recording và AI summary async.")
         @PostMapping("/{sessionId}/end")
@@ -97,7 +97,7 @@ public class EmployerStreamController {
                 return ResponseEntity.ok(ApiResponse.success(null, "Phiên stream đã kết thúc."));
         }
 
-        // ── POST /api/v1/streams/{sessionId}/spotlight ────────────
+        // ── POST /api/v1/streams/{sessionId}/spotlight ─
 
         @Operation(summary = "Ghim job post lên stream", description = "Hiển thị CTA ứng tuyển trong khi đang LIVE. Push realtime tới tất cả viewer.")
         @PostMapping("/{sessionId}/spotlight")
@@ -112,7 +112,7 @@ public class EmployerStreamController {
                 return ResponseEntity.ok(ApiResponse.success(null));
         }
 
-        // ── POST /api/v1/streams/{sessionId}/invite-slot ──────────
+        // ── POST /api/v1/streams/{sessionId}/invite-slot ──
 
         @Operation(summary = "Mời candidate vào interview slot", description = "Assign slot cho candidate. Candidate nhận thông báo realtime qua WebSocket.")
         @PostMapping("/{sessionId}/invite-slot")
@@ -127,7 +127,7 @@ public class EmployerStreamController {
                 return ResponseEntity.ok(ApiResponse.success(slot));
         }
 
-        // ── Helper ────
+        // ── Helper ─
 
         private List<InterviewSlot> buildSlots(CreateSessionRequest req) {
                 if (req.interviewSlots() == null || req.interviewSlots().isEmpty())

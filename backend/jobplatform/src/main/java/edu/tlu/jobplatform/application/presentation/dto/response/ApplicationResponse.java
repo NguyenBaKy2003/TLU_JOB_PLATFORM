@@ -31,7 +31,7 @@ public class ApplicationResponse {
     private final JobInfo job;
     private final CompanyInfo company;
 
-    // ── Factory methods ────────────────────────────────────────
+    // ── Factory methods ─
 
     public static ApplicationResponse from(Application a) {
         return from(a, null, null, null);

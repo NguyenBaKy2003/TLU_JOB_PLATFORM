@@ -34,14 +34,23 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String provider = request.getClientRegistration().getRegistrationId();
         Map<String, Object> attrs = oAuth2User.getAttributes();
 
-        String providerId = extractProviderId(attrs, provider);
         String email = extractEmail(attrs, provider);
+        String providerId = extractProviderId(attrs, provider);
         String name = extractName(attrs, provider);
         String avatar = extractAvatar(attrs, provider);
 
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException("Không lấy được email từ " + provider);
         }
+
+        // ── GUARD: Không cho tài khoản ADMIN đăng nhập qua OAuth2 ──
+        userRepository.findByEmail(email.toLowerCase()).ifPresent(existing -> {
+            if (existing.getRole() == UserRole.ADMIN) {
+                log.warn("OAuth2 login blocked for ADMIN account: {}", email);
+                throw new OAuth2AuthenticationException(
+                        "Admin account must use local login");
+            }
+        });
 
         String portalType = readPortalTypeFromSession();
         UserRole roleForNew = "EMPLOYER".equals(portalType)
@@ -55,7 +64,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> createOAuth2User(
                         email, name, avatar, provider, providerId, roleForNew));
 
-        // Gọi thẳng, không qua event
         if (isNewUser) {
             profileCreationService.createProfileForUser(user);
             log.info("Profile created for new OAuth2 user={} role={}",
@@ -68,7 +76,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return new OAuth2UserPrincipal(user, attrs);
     }
 
-    // ── Session helper ────────────
+    // ── Session helper ─
 
     /**
      * Đọc portalType từ HttpSession hiện tại.
@@ -96,7 +104,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return "CANDIDATE";
     }
 
-    // ── Domain helpers ────────────
+    // ── Domain helpers ─
 
     private User createOAuth2User(String email, String name, String avatar,
             String provider, String providerId, UserRole role) {
@@ -127,7 +135,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return userRepository.save(existing);
     }
 
-    // ── Attribute extractors ──────
+    // ── Attribute extractors
 
     private String extractProviderId(Map<String, Object> attrs, String provider) {
         return switch (provider) {

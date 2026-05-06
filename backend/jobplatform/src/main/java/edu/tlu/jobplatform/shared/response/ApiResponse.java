@@ -44,7 +44,7 @@ public class ApiResponse<T> {
         this.traceId = traceId;
     }
 
-    // ── Static factory methods ────────────────────────────────────
+    // ── Static factory methods
 
     /** Thành công + data */
     public static <T> ApiResponse<T> success(T data) {

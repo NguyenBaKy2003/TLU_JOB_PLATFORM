@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-// ── ChatSessionJpaEntity ──────────────────────────────────────────
+// ── ChatSessionJpaEntity 
 
 @Entity
 @Table(name = "chat_sessions", indexes = @Index(name = "idx_chat_user", columnList = "user_id"))

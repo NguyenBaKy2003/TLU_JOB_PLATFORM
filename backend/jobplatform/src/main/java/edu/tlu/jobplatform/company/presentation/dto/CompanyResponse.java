@@ -17,7 +17,7 @@ import java.util.UUID;
 @Schema(description = "Thông tin hồ sơ công ty")
 public class CompanyResponse {
 
-    // ── Thông tin cơ bản ──────────────────────────────────────
+    // ── Thông tin cơ bản ──
     private final UUID id;
     private final UUID ownerId;
     private final String name;
@@ -36,14 +36,14 @@ public class CompanyResponse {
     private final String logoUrl;
     private final String coverImageUrl;
 
-    // ── Trạng thái xác thực ───────────────────────────────────
+    // ── Trạng thái xác thực
     private final VerificationStatus verificationStatus;
     private final String rejectionReason;
     private final boolean canPostJobs;
     private final LocalDateTime verifiedAt;
     private final LocalDateTime createdAt;
 
-    // ── Nội dung mở rộng ──────────────────────────────────────
+    // ── Nội dung mở rộng ──
     private final List<TeamMemberDto> teamMembers;
     private final List<GalleryImageDto> gallery;
     private final List<DocumentDto> documents; // Chỉ admin thấy
@@ -158,7 +158,7 @@ public class CompanyResponse {
                 .build();
     }
 
-    // ── Helpers ───
+    // ── Helpers
 
     private static CompanyResponseBuilder base(CompanyProfile c) {
         return CompanyResponse.builder()

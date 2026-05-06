@@ -36,7 +36,7 @@ public class UploadGalleryImageUseCase {
             List<String> captions) {
         int current = galleryRepository.countByCompanyId(companyId);
 
-        // ── Guard: kiểm tra tổng số ảnh trước khi upload ─────────────────────
+        // ── Guard: kiểm tra tổng số ảnh trước khi upload ──
         if (current + files.size() > MAX_GALLERY_IMAGES)
             throw new BusinessRuleException(
                     "Vượt quá giới hạn " + MAX_GALLERY_IMAGES + " ảnh. "
@@ -44,7 +44,7 @@ public class UploadGalleryImageUseCase {
                             + (MAX_GALLERY_IMAGES - current) + " ảnh.",
                     "GALLERY_LIMIT_EXCEEDED");
 
-        // ── Validate tất cả file trước khi upload bất kỳ file nào ────────────
+        // ── Validate tất cả file trước khi upload bất kỳ file nào ─
         for (MultipartFile file : files) {
             if (file.getSize() > MAX_FILE_SIZE)
                 throw new BusinessRuleException(

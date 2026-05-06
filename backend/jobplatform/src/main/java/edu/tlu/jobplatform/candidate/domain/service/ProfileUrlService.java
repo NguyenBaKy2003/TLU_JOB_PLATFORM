@@ -29,7 +29,7 @@ public class ProfileUrlService {
 
     private final CandidateProfileRepository profileRepository;
 
-    // ── Generate ──────────────────
+    // ── Generate ──
 
     /**
      * Tự động sinh slug từ firstName + lastName.
@@ -61,7 +61,7 @@ public class ProfileUrlService {
         return BASE_URL + base + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    // ── Validate & update ─────────
+    // ── Validate & update ─
 
     /**
      * Validate slug do user chọn và trả về profileUrl đầy đủ.
@@ -87,7 +87,7 @@ public class ProfileUrlService {
         return url;
     }
 
-    // ── Private helpers ───────────
+    // ── Private helpers
 
     private String buildBaseSlug(String firstName, String lastName) {
         String combined = ((firstName == null ? "" : firstName)

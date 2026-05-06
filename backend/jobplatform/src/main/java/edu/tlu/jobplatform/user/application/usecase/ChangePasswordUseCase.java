@@ -84,7 +84,7 @@ public class ChangePasswordUseCase {
         log.info("Password changed for userId={}", cmd.userId());
     }
 
-    // ── Dùng lại rule giống RegisterUseCase / ResetPasswordUseCase ────────────
+    // ── Dùng lại rule giống RegisterUseCase / ResetPasswordUseCase ─
 
     private void validatePassword(String pw) {
         if (pw == null || pw.length() < 8)

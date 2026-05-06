@@ -27,15 +27,14 @@ volumes:
       device: /opt/jobplatform/data/redis
 
 services:
-
-  # ── PostgreSQL ────────────────────────────────────────────────
+  # ── PostgreSQL ─
   postgres:
     image: postgres:16-alpine
     container_name: jobplatform-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_DB:       jobplatform_dev
-      POSTGRES_USER:     jobplatform_dev
+      POSTGRES_DB: jobplatform_dev
+      POSTGRES_USER: jobplatform_dev
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
@@ -49,9 +48,9 @@ services:
     expose:
       - "5432"
     ports:
-      - "5432:5432"   # chỉ dùng khi cần debug, xóa ở production
+      - "5432:5432" # chỉ dùng khi cần debug, xóa ở production
 
-  # ── Redis ─────────────────────────────────────────────────────
+  # ── Redis 
   redis:
     image: redis:7-alpine
     container_name: jobplatform-redis-dev
@@ -74,7 +73,7 @@ services:
     expose:
       - "6379"
 
-  # ── Spring Boot Backend ───────────────────────────────────────
+  # ── Spring Boot Backend
   backend:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${IMAGE_NAME:-jobplatform-backend}:${IMAGE_TAG:-latest-dev}
     container_name: jobplatform-backend-dev
@@ -85,33 +84,33 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE:     dev
+      SPRING_PROFILES_ACTIVE: dev
       # Database
-      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/jobplatform_dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/jobplatform_dev
       SPRING_DATASOURCE_USERNAME: jobplatform_dev
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       # Redis
-      SPRING_DATA_REDIS_HOST:     redis
-      SPRING_DATA_REDIS_PORT:     6379
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       # JWT
-      APP_JWT_SECRET:             ${JWT_SECRET}
+      APP_JWT_SECRET: ${JWT_SECRET}
       # URLs
-      APP_FRONTEND_URL:           ${FRONTEND_URL}
-      APP_BASE_URL:               ${APP_BASE_URL}
-      CORS_ORIGINS:               ${CORS_ORIGINS}
+      APP_FRONTEND_URL: ${FRONTEND_URL}
+      APP_BASE_URL: ${APP_BASE_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
       # Email
-      SPRING_MAIL_USERNAME:       ${SPRING_MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD:       ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       # OAuth2
-      OAUTH_GOOGLE_CLIENT_ID:       ${OAUTH_GOOGLE_CLIENT_ID}
-      OAUTH_GOOGLE_CLIENT_SECRET:   ${OAUTH_GOOGLE_CLIENT_SECRET}
-      OAUTH_FACEBOOK_CLIENT_ID:     ${OAUTH_FACEBOOK_CLIENT_ID}
+      OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID}
+      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET}
+      OAUTH_FACEBOOK_CLIENT_ID: ${OAUTH_FACEBOOK_CLIENT_ID}
       OAUTH_FACEBOOK_CLIENT_SECRET: ${OAUTH_FACEBOOK_CLIENT_SECRET}
       # LiveKit Cloud — backend dùng để tạo token và gọi LiveKit Server API
       # wss:// vì backend gọi ra internet tới LiveKit Cloud
-      LIVEKIT_URL:        ${LIVEKIT_URL}
-      LIVEKIT_API_KEY:    ${LIVEKIT_API_KEY}
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
       # Tắt Elasticsearch
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
@@ -131,13 +130,17 @@ services:
     networks:
       - jobplatform-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          'wget -qO- http://localhost:8080/actuator/health | grep -q ''"status":"UP"'' || exit 1',
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 90s
 
-  # ── Next.js Frontend ──────────────────────────────────────────
+  # ── Next.js Frontend 
   frontend:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER}/${FRONTEND_IMAGE_NAME:-jobplatform-frontend}:${FRONTEND_IMAGE_TAG:-latest-dev}
     container_name: jobplatform-frontend-dev
@@ -152,13 +155,17 @@ services:
     networks:
       - jobplatform-net
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', r => process.exit(r.statusCode >= 500 ? 1 : 0)).on('error', () => process.exit(1))\""]
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "require(''http'').get(''http://localhost:3000'', r => process.exit(r.statusCode >= 500 ? 1 : 0)).on(''error'', () => process.exit(1))"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
 
-  # ── Nginx ─────────────────────────────────────────────────────
+  # ── Nginx 
   nginx:
     image: nginx:alpine
     container_name: jobplatform-nginx-dev

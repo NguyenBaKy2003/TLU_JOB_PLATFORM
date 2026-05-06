@@ -8,7 +8,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// ─── StreamParticipant ───────────────────────────────────────
+//  StreamParticipant 
 @Entity
 @Table(name = "stream_participants", indexes = @Index(name = "idx_participant_session", columnList = "session_id"))
 @Getter

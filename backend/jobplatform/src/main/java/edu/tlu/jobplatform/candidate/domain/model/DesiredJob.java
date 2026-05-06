@@ -1,4 +1,4 @@
-// ── DesiredJob.java ───
+// ── DesiredJob.java 
 package edu.tlu.jobplatform.candidate.domain.model;
 
 import lombok.Builder;

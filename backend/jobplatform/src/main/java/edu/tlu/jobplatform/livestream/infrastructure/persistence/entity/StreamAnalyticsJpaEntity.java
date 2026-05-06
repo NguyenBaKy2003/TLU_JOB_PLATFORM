@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-// ─── StreamAnalytics ─────────────────────────────────────────
+//  StreamAnalytics ──
 @Entity
 @Table(name = "stream_analytics")
 @Getter

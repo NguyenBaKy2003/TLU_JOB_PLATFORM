@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 
 import java.util.List;
 
-// ─── CreateSessionRequest ─────────────────────────────────────
+//  CreateSessionRequest ─
 import java.time.OffsetDateTime;
 
 public record CreateSessionRequest(

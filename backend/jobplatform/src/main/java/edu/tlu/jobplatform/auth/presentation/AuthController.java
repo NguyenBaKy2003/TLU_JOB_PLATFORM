@@ -75,7 +75,7 @@ public class AuthController {
                                                 "Đăng ký thành công. Vui lòng kiểm tra email và nhập mã OTP."));
         }
 
-        // ── POST /api/v1/auth/verify-email ────────────────────────────────────────
+        // ── POST /api/v1/auth/verify-email ─
 
         @Operation(summary = "Xác thực email sau đăng ký", description = """
                         Nhập mã OTP 6 số đã gửi về email để kích hoạt tài khoản.
@@ -96,7 +96,7 @@ public class AuthController {
                                 TokenResponse.from(token),
                                 "Xác thực thành công! Đang đăng nhập..."));
         }
-        // ── POST /api/v1/auth/resend-otp ──────────────────────────────────────────
+        // ── POST /api/v1/auth/resend-otp
 
         @Operation(summary = "Gửi lại mã OTP xác thực email", description = """
                         Gửi lại OTP 6 số nếu mã cũ đã hết hạn hoặc bị mất.
@@ -127,7 +127,7 @@ public class AuthController {
                                 "Nếu email này hợp lệ và chưa xác thực, bạn sẽ nhận được mã OTP mới trong vài phút."));
         }
 
-        // ── POST /api/v1/auth/login ───
+        // ── POST /api/v1/auth/login
 
         @Operation(summary = "Đăng nhập", description = "Đăng nhập bằng email/password. Trả về JWT access token (15p) và refresh token (30 ngày).")
         @ApiResponses({
@@ -161,7 +161,7 @@ public class AuthController {
                 return ResponseEntity.ok(ApiResponse.success(TokenResponse.from(token)));
         }
 
-        // ── POST /api/auth/forgot-password ───────────────────────────
+        // ── POST /api/auth/forgot-password
 
         @Operation(summary = "Quên mật khẩu — gửi link đặt lại qua email", description = """
                         Gửi email chứa link đặt lại mật khẩu (hết hạn sau **15 phút**).
@@ -186,7 +186,7 @@ public class AuthController {
                                 "Nếu email này đã đăng ký, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút."));
         }
 
-        // ── POST /api/auth/reset-password ────────────────────────────
+        // ── POST /api/auth/reset-password ─
 
         @Operation(summary = "Đặt lại mật khẩu bằng reset token", description = """
                         Đặt mật khẩu mới bằng token nhận được qua email.
@@ -232,7 +232,7 @@ public class AuthController {
                 return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công."));
         }
 
-        // ── POST /api/v1/auth/logout-all ──────────────────────────────────────────
+        // ── POST /api/v1/auth/logout-all
 
         @Operation(summary = "Đăng xuất tất cả thiết bị", description = "Revoke toàn bộ refresh token — đăng xuất mọi thiết bị đang đăng nhập.")
         @SecurityRequirement(name = "bearerAuth")
@@ -244,7 +244,7 @@ public class AuthController {
                 return ResponseEntity.ok(ApiResponse.success("Đã đăng xuất khỏi tất cả thiết bị."));
         }
 
-        // ── GET /api/v1/auth/oauth2/url/{provider} ────────────────────────────────
+        // ── GET /api/v1/auth/oauth2/url/{provider}
         @Operation(summary = "Lấy OAuth2 authorization URL", description = """
                         Trả về URL để frontend redirect sang Google/Facebook.
 
@@ -288,7 +288,7 @@ public class AuthController {
                 return ResponseEntity.ok(ApiResponse.success(Map.of("url", url)));
         }
 
-        // ── GET /api/v1/auth/oauth2/failure ───────────────────────────────────────
+        // ── GET /api/v1/auth/oauth2/failure
 
         @Operation(summary = "OAuth2 failure — Spring Security redirect target")
         @GetMapping("/oauth2/failure")
@@ -309,7 +309,7 @@ public class AuthController {
                                 : authHeader.trim();
         }
 
-        // ── Inner DTOs ────────────────
+        // ── Inner DTOs
 
         public record RegisterResponse(UUID userId, String email, String role) {
         }

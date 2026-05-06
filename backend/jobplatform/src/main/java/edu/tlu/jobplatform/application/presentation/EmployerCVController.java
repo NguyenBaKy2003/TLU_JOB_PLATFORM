@@ -39,7 +39,7 @@ public class EmployerCVController {
 
     private final ViewCandidateCVUseCase viewCVUseCase;
 
-    // ── Xem CV từ Application (dùng cvUrl của Application) ───
+    // ── Xem CV từ Application (dùng cvUrl của Application)
 
     @Operation(summary = "Preview CV ứng viên trong tab mới (inline)")
     @GetMapping("/{applicationId}/cv/view")
@@ -59,7 +59,7 @@ public class EmployerCVController {
         return streamResponse(result, "attachment");
     }
 
-    // ── Xem CV cụ thể theo cvId (candidate có nhiều CV) ──────
+    // ── Xem CV cụ thể theo cvId (candidate có nhiều CV)
 
     @Operation(summary = "Preview một CV cụ thể của ứng viên (inline)")
     @GetMapping("/{applicationId}/cv/{cvId}/view")
@@ -81,7 +81,7 @@ public class EmployerCVController {
         return streamResponse(result, "attachment");
     }
 
-    // ── Helper ────
+    // ── Helper ─
 
     private ResponseEntity<InputStreamResource> streamResponse(
             ViewCandidateCVUseCase.Result result, String disposition) {

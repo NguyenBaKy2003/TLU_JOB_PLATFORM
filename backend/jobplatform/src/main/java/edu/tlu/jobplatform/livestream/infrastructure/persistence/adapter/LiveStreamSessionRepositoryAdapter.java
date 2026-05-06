@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
 
-// ─── LiveStreamSession Adapter ───────────────────────────────
+//  LiveStreamSession Adapter ─
 @Component
 @RequiredArgsConstructor
 public class LiveStreamSessionRepositoryAdapter implements LiveStreamSessionRepository {

@@ -8,7 +8,7 @@ import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaE
 @Component
 public class CompanyMapper {
 
-    // ── Entity → Domain ─────────────────────────────────────
+    // ── Entity → Domain ─
 
     public CompanyProfile toDomain(CompanyJpaEntity e) {
         if (e == null)
@@ -41,7 +41,7 @@ public class CompanyMapper {
                 .build();
     }
 
-    // ── Domain → Entity (create new) ─────────────────────────
+    // ── Domain → Entity (create new) ─
 
     public CompanyJpaEntity toNewEntity(CompanyProfile c) {
         if (c == null)
@@ -70,7 +70,7 @@ public class CompanyMapper {
                 .build();
     }
 
-    // ── Update Entity (merge) ───────────────────────────────
+    // ── Update Entity (merge) ─
 
     public void updateEntity(CompanyJpaEntity e, CompanyProfile c) {
         if (e == null || c == null)

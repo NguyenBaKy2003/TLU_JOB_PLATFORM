@@ -47,7 +47,7 @@ public class OnlineCVController {
         private final ImportFromProfileUseCase importFromProfileUseCase;
         private final PreviewCVUseCase previewCVUseCase;
         private final DownloadExportedCVUseCase downloadExportedCVUseCase;
-        // ── GET /api/v1/cv ────────────
+        // ── GET /api/v1/cv ─
 
         @Operation(summary = "Danh sách CV của tôi")
         @GetMapping
@@ -59,7 +59,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success(list));
         }
 
-        // ── POST /api/v1/cv ───────────
+        // ── POST /api/v1/cv
 
         @Operation(summary = "Tạo CV mới", description = """
                         Tạo CV mới ở trạng thái DRAFT từ template được chọn.
@@ -76,7 +76,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được tạo thành công."));
         }
 
-        // ── GET /api/v1/cv/{cvId} ─────
+        // ── GET /api/v1/cv/{cvId} ──
 
         @Operation(summary = "Chi tiết CV (để chỉnh sửa)")
         @GetMapping("/{cvId}")
@@ -88,7 +88,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success(OnlineCVDetailResponse.from(cv)));
         }
 
-        // ── PUT /api/v1/cv/{cvId} ─────
+        // ── PUT /api/v1/cv/{cvId} ──
 
         @Operation(summary = "Cập nhật metadata CV", description = """
                         Cập nhật: tiêu đề, thông tin cá nhân, template, visibility.
@@ -119,7 +119,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success("CV đã được xóa."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/sections ───────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/sections
 
         @Operation(summary = "Thêm section mới vào CV")
         @PostMapping("/{cvId}/sections")
@@ -135,7 +135,7 @@ public class OnlineCVController {
                                 CVSectionResponse.from(section), "Section đã được thêm."));
         }
 
-        // ── PUT /api/v1/cv/{cvId}/sections/{sectionId} ────────────────────────────
+        // ── PUT /api/v1/cv/{cvId}/sections/{sectionId} ─
 
         @Operation(summary = "Cập nhật nội dung section")
         @PutMapping("/{cvId}/sections/{sectionId}")
@@ -152,7 +152,7 @@ public class OnlineCVController {
                                 CVSectionResponse.from(section), "Section đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/cv/{cvId}/sections/{sectionId} ─────────────────────────
+        // ── DELETE /api/v1/cv/{cvId}/sections/{sectionId} ─
 
         @Operation(summary = "Xóa section khỏi CV")
         @DeleteMapping("/{cvId}/sections/{sectionId}")
@@ -165,7 +165,7 @@ public class OnlineCVController {
                 return ResponseEntity.ok(ApiResponse.success("Section đã được xóa."));
         }
 
-        // ── PATCH /api/v1/cv/{cvId}/sections/reorder ──────────────────────────────
+        // ── PATCH /api/v1/cv/{cvId}/sections/reorder
 
         @Operation(summary = "Sắp xếp lại thứ tự sections", description = """
                         Truyền vào mảng sectionIds theo thứ tự mới.
@@ -183,7 +183,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "Thứ tự sections đã được cập nhật."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/publish ────────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/publish ─
 
         @Operation(summary = "Publish CV", description = """
                         Chuyển CV từ DRAFT → PUBLISHED.
@@ -201,7 +201,7 @@ public class OnlineCVController {
                                 "CV đã được publish. Slug: " + cv.getSlug()));
         }
 
-        // ── POST /api/v1/cv/{cvId}/archive ────────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/archive ─
 
         @Operation(summary = "Archive CV")
         @PostMapping("/{cvId}/archive")
@@ -214,7 +214,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được archive."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/restore ────────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/restore ─
 
         @Operation(summary = "Restore CV từ ARCHIVED → DRAFT")
         @PostMapping("/{cvId}/restore")
@@ -227,7 +227,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được restore về DRAFT."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/duplicate ──────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/duplicate ──
 
         @Operation(summary = "Nhân bản CV", description = "Clone CV hiện tại thành bản DRAFT mới.")
         @PostMapping("/{cvId}/duplicate")
@@ -240,7 +240,7 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được nhân bản."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/export ─────────────────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/export ──
 
         @Operation(summary = "Xuất CV thành PDF và tải về", description = """
                         Nếu CV chưa có PDF → render + upload S3 → stream về máy.
@@ -263,7 +263,7 @@ public class OnlineCVController {
                                                 new java.io.ByteArrayInputStream(result.pdfBytes())));
         }
 
-        // ── POST /api/v1/cv/{cvId}/import-from-profile ────────────────────────────
+        // ── POST /api/v1/cv/{cvId}/import-from-profile ─
 
         @Operation(summary = "Import từ hồ sơ ứng viên", description = """
                         Tự động điền thông tin cá nhân, kinh nghiệm, học vấn, kỹ năng

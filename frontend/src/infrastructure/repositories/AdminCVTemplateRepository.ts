@@ -2,12 +2,12 @@
 import api from "@/lib/axios";
 import { getAdminAccessToken } from "@/lib/auth-helpers";
 import type { IAdminCVTemplateRepository } from "../../domain/repositories/IAdminCVTemplateRepository";
-import type { 
-  CVTemplate, 
-  CVTemplateListResponse, 
+import type {
+  CVTemplate,
+  CVTemplateListResponse,
   CVTemplateDetailResponse,
-  CreateCVTemplateRequest, 
-  UpdateCVTemplateRequest 
+  CreateCVTemplateRequest,
+  UpdateCVTemplateRequest,
 } from "@/domain/models/AdminTemplates";
 
 // ─────────
@@ -32,15 +32,14 @@ export class AdminCVTemplateRepository implements IAdminCVTemplateRepository {
     const res = await api.get<ApiResponse<CVTemplateListResponse[]>>(this.BASE, {
       headers: adminHeaders(),
     });
-    // CVTemplateListResponse[] is assignable to CVTemplate[] vì htmlContent là optional
     return res.data.data;
   }
 
   async findById(id: string): Promise<CVTemplate> {
-    const res = await api.get<ApiResponse<CVTemplateDetailResponse>>(`${this.BASE}/${id}`, {
-      headers: adminHeaders(),
-    });
-    // CVTemplateDetailResponse extends CVTemplate nên assignable
+    const res = await api.get<ApiResponse<CVTemplateDetailResponse>>(
+      `${this.BASE}/${id}`,
+      { headers: adminHeaders() }
+    );
     return res.data.data;
   }
 
@@ -80,6 +79,28 @@ export class AdminCVTemplateRepository implements IAdminCVTemplateRepository {
       `${this.BASE}/${id}/deactivate`,
       {},
       { headers: adminHeaders() }
+    );
+    return res.data.data;
+  }
+
+  /**
+   * Upload / thay thumbnail cho template.
+   * Gửi multipart/form-data với field name "file" — khớp với
+   * @RequestParam("file") MultipartFile trên backend.
+   */
+  async uploadThumbnail(id: string, file: File): Promise<CVTemplate> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await api.patch<ApiResponse<CVTemplateListResponse>>(
+      `${this.BASE}/${id}/thumbnail`,
+      formData,
+      {
+        headers: {
+          ...adminHeaders(),
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return res.data.data;
   }

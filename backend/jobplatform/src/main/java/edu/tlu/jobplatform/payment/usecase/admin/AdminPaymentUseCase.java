@@ -24,7 +24,7 @@ public class AdminPaymentUseCase {
 
     private final PaymentRepository paymentRepo;
 
-    // ── Search / List ─────────────────────────────────────────
+    // ── Search / List ──
 
     @Transactional(readOnly = true)
     public Page<Payment> search(UUID companyId, PaymentStatus status, String gateway,
@@ -46,7 +46,7 @@ public class AdminPaymentUseCase {
                 : paymentRepo.findByCompanyId(companyId, pageable);
     }
 
-    // ── Stats ─────
+    // ── Stats ──
 
     @Transactional(readOnly = true)
     public Stats getStats(LocalDateTime from, LocalDateTime to) {
@@ -60,7 +60,7 @@ public class AdminPaymentUseCase {
                 from, to);
     }
 
-    // ── Refund (SUPER_ADMIN only) ─────────────────────────────
+    // ── Refund (SUPER_ADMIN only) ──
 
     @Transactional
     public Payment refund(UUID paymentId, String reason) {

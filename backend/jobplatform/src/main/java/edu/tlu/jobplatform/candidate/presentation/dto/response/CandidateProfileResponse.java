@@ -82,7 +82,7 @@ public class CandidateProfileResponse {
                                 .build();
         }
 
-        // ── Nested responses ──────────────────────────────────────────
+        // ── Nested responses
 
         @Getter
         @Builder

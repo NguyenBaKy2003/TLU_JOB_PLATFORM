@@ -34,7 +34,7 @@ public interface FileStoragePort {
      */
     void delete(String fileUrl);
 
-    // ── Result record ─────────────
+    // ── Result record ──
 
     record FileResult(
             InputStream inputStream,

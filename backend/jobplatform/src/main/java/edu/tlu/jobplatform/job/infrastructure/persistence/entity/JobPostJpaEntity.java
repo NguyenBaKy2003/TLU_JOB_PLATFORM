@@ -58,7 +58,7 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(length = 100)
     private String category;
 
-    // ── Salary (embedded VO) ──────────────────────────────────
+    // ── Salary (embedded VO)
     @Column(name = "salary_min", precision = 15, scale = 2)
     private BigDecimal salaryMin;
 
@@ -71,7 +71,7 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(name = "salary_negotiable")
     private Boolean salaryNegotiable;
 
-    // ── WorkLocation (embedded VO) ────────────────────────────
+    // ── WorkLocation (embedded VO)
     @Column(name = "work_location_type", length = 20)
     private String workLocationType; // ONSITE, REMOTE, HYBRID
 
@@ -112,7 +112,7 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Builder.Default
     private boolean featured = false;
 
-    // ── Skills ────
+    // ── Skills ─
     @OneToMany(mappedBy = "jobPostId", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<JobPostSkillJpaEntity> skills = new ArrayList<>();

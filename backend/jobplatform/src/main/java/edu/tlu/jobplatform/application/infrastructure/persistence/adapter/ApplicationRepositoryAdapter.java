@@ -21,7 +21,7 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
 
     private final ApplicationJpaRepository jpaRepo;
 
-    // ── Existing methods ──────────
+    // ── Existing methods ──
 
     @Override
     public Optional<Application> findById(UUID id) {
@@ -109,7 +109,7 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
         return jpaRepo.countByCandidateId(candidateId);
     }
 
-    // ── Search methods ────────────
+    // ── Search methods ─
 
     /**
      * Chuẩn hoá keyword: null/blank → null (JPQL sẽ bỏ qua điều kiện search).

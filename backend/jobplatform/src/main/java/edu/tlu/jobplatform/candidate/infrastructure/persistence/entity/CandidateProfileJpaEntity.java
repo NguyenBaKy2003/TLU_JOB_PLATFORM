@@ -1,4 +1,4 @@
-// ── CandidateProfileJpaEntity.java (updated) ──────────────────────
+// ── CandidateProfileJpaEntity.java (updated) 
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile.JobSearchStatus;
@@ -71,7 +71,7 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     @Column(length = 10)
     private String currency;
 
-    // ── Relations ─────
+    // ── Relations ──
 
     @ElementCollection
     @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "profile_id"))

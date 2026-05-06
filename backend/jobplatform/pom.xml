@@ -41,7 +41,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-        <!-- ── CORE ──────────────────────────────────────── -->
+        <!-- ── CORE ─ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -70,7 +70,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- ── SECURITY ──────────────────────────────────── -->
+        <!-- ── SECURITY  -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -118,7 +118,7 @@
             <artifactId>pdfbox</artifactId>
             <version>3.0.2</version>
         </dependency>
-        <!-- ── DATABASE ──────────────────────────────────── -->
+        <!-- ── DATABASE  -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -137,39 +137,39 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- ── CACHE / REDIS ─────────────────────────────── -->
+        <!-- ── CACHE / REDIS ─ -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
             <version>3.4.4</version>
         </dependency>
 
-        <!-- ── ELASTICSEARCH ─────────────────────────────── -->
+        <!-- ── ELASTICSEARCH ─ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
 
-        <!-- ─── LiveKit Server SDK ───────────────────────────────────── -->
+        <!--  LiveKit Server SDK ─ -->
         <dependency>
             <groupId>io.livekit</groupId>
             <artifactId>livekit-server</artifactId>
             <version>0.12.1</version>
         </dependency>
 
-        <!-- ── HTTP CLIENT ───────────────────────────────── -->
+        <!-- ── HTTP CLIENT ─ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 		
-        <!-- ── MONITORING ────────────────────────────────── -->
+        <!-- ── MONITORING ── -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <!-- ── API DOCS ──────────────────────────────────── -->
+        <!-- ── API DOCS  -->
         <dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -190,14 +190,14 @@
             <artifactId>reactor-netty</artifactId>
         </dependency>
 
-        <!-- ── CODE GEN ──────────────────────────────────── -->
+        <!-- ── CODE GEN  -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
-        <!-- ── TESTING ───────────────────────────────────── -->
+        <!-- ── TESTING ─ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

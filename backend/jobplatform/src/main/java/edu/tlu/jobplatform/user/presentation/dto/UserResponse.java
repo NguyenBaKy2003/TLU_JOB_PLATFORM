@@ -57,7 +57,7 @@ public class UserResponse {
     @Schema(description = "Thời điểm tạo tài khoản")
     private final LocalDateTime createdAt;
 
-    // ── Factory ───────
+    // ── Factory ─
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -75,7 +75,7 @@ public class UserResponse {
                 .build();
     }
 
-    // ── Helpers ───────
+    // ── Helpers ─
 
     /**
      * Tạo chữ viết tắt từ họ tên để hiển thị avatar placeholder.

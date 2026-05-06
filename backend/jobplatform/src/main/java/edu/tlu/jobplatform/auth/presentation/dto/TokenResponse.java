@@ -33,7 +33,7 @@ public class TokenResponse {
     @Schema(description = "Thông tin user đã đăng nhập")
     private final UserInfo user;
 
-    // ── Factory ───────
+    // ── Factory ─
 
     public static TokenResponse from(AuthToken token) {
         AuthToken.UserSummary u = token.getUser();
@@ -53,7 +53,7 @@ public class TokenResponse {
                 .build();
     }
 
-    // ── Inner DTO ─────
+    // ── Inner DTO ──
 
     @Getter
     @Builder

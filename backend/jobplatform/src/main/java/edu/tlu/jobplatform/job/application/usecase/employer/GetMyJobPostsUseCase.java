@@ -11,10 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-// ── UpdateJobPostUseCase ──────────────────────────────────────────
+// ── UpdateJobPostUseCase 
 
 @Slf4j
-// ── GetMyJobPostsUseCase ──────────────────────────────────────────
+// ── GetMyJobPostsUseCase
 
 @Service
 @RequiredArgsConstructor

@@ -1,8 +1,8 @@
 // domain/repositories/IAdminCVTemplateRepository.ts
-import type { 
-  CVTemplate, 
-  CreateCVTemplateRequest, 
-  UpdateCVTemplateRequest 
+import type {
+  CVTemplate,
+  CreateCVTemplateRequest,
+  UpdateCVTemplateRequest,
 } from "@/domain/models/AdminTemplates";
 
 // ─────────
@@ -30,4 +30,7 @@ export interface IAdminCVTemplateRepository {
 
   /** PATCH /api/v1/admin/cv-templates/:id/deactivate */
   deactivate(id: string): Promise<CVTemplate>;
+
+  /** PATCH /api/v1/admin/cv-templates/:id/thumbnail */
+  uploadThumbnail(id: string, file: File): Promise<CVTemplate>;
 }
