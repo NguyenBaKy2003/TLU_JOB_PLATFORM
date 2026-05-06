@@ -40,7 +40,7 @@ public interface ApplicationRepository {
     /** Đếm tổng tất cả đơn — dùng cho admin dashboard */
     long countAll();
 
-    // ── Search methods (admin) ────
+    // ── Search methods (admin) ─
 
     /**
      * Admin: tìm tất cả đơn, lọc theo status và keyword.

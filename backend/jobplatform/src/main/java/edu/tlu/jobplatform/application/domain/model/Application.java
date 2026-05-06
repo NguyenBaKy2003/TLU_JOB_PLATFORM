@@ -24,7 +24,7 @@ public class Application {
     private final UUID candidateId;
     private final UUID companyId; // denormalized để query nhanh
 
-    // ── Nội dung ứng tuyển ────────────────────────────────────
+    // ── Nội dung ứng tuyển
     private final String cvUrl; // URL file CV đã upload
     private String coverLetter; // Thư xin việc (optional)
     private String expectedSalary; // Mức lương kỳ vọng
@@ -46,7 +46,7 @@ public class Application {
     private final LocalDateTime appliedAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Rules ────────────────────────────────────────
+    // ── Business Rules ─
 
     /** Employer chuyển trạng thái đơn */
     public void updateStatus(ApplicationStatus newStatus, String note) {

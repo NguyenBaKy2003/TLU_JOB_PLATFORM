@@ -36,7 +36,7 @@ public class CompanyReview {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Rules ────────────────────────────────────────
+    // ── Business Rules ─
 
     public void hide() {
         this.visible = false;

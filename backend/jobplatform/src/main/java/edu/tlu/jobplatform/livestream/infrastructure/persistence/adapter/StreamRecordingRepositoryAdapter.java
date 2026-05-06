@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-// ─── StreamRecording Adapter ──────────────────────────────────
+//  StreamRecording Adapter ──
 @Component
 @RequiredArgsConstructor
 public class StreamRecordingRepositoryAdapter implements StreamRecordingRepository {

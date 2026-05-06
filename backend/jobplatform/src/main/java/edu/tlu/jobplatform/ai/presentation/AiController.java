@@ -93,7 +93,7 @@ public class AiController {
                 return ResponseEntity.ok(ApiResponse.success(result));
         }
 
-        // ─── Request records ───────────────────────────────────────────────────
+        // Request records ─
 
         public record OptimizeJdRequest(
                         @NotBlank String title,

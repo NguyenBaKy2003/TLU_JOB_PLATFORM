@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-// ─── StreamRecording ─────────────────────────────────────────
+//  StreamRecording ──
 @Entity
 @Table(name = "stream_recordings")
 @Getter

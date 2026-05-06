@@ -47,7 +47,7 @@ public class AuthToken {
                 .build();
     }
 
-    // ── Nested Value Object ───────────────────────────────────────
+    // ── Nested Value Object
 
     /**
      * Thông tin tóm tắt của user — nhúng trong AuthToken response.

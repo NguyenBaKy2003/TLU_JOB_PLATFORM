@@ -25,7 +25,7 @@ public class CompanyProfile {
     private final UUID id;
     private final UUID ownerId; // FK → User.id (EMPLOYER)
 
-    // ── Thông tin cơ bản ──────────────────────────────────────
+    // ── Thông tin cơ bản ──
     private String name;
     private String slug; // url-friendly, unique
     private String description;
@@ -33,7 +33,7 @@ public class CompanyProfile {
     private String email;
     private String phone;
 
-    // ── Địa chỉ ───
+    // ── Địa chỉ
     private String address;
     private String city;
     private String country;
@@ -43,11 +43,11 @@ public class CompanyProfile {
     private CompanySize size; // Quy mô nhân sự
     private Integer foundedYear;
 
-    // ── Media ─────
+    // ── Media ──
     private String logoUrl;
     private String coverImageUrl;
 
-    // ── Trạng thái xác thực ───────────────────────────────────
+    // ── Trạng thái xác thực
     private VerificationStatus verificationStatus;
     private String rejectionReason; // lý do từ chối (nếu có)
     private LocalDateTime verifiedAt;
@@ -58,7 +58,7 @@ public class CompanyProfile {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Rules ────────────────────────────────────────
+    // ── Business Rules ─
 
     /** Công ty được phép đăng tin tuyển dụng */
     public boolean canPostJobs() {

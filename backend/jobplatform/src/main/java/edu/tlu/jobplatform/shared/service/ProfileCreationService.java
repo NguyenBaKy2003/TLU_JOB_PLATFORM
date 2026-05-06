@@ -48,7 +48,7 @@ public class ProfileCreationService {
         }
     }
 
-    // ── Candidate ─────────────────
+    // ── Candidate ─
 
     private void createCandidateProfile(User user) {
         if (candidateProfileRepository.existsByUserId(user.getId())) {
@@ -131,7 +131,7 @@ public class ProfileCreationService {
                 saved.getId(), user.getId(), saved.getSlug());
     }
 
-    // ── Slug generators ───────────
+    // ── Slug generators
 
     /**
      * Sinh profileUrl unique cho CandidateProfile.

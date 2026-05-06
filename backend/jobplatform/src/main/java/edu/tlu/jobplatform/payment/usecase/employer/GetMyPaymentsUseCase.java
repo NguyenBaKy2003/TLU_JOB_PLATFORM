@@ -50,7 +50,7 @@ public class GetMyPaymentsUseCase {
         return payment;
     }
 
-    // ── Helper ────
+    // ── Helper ─
 
     private UUID resolveMyCompanyId() {
         UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();

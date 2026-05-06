@@ -33,7 +33,7 @@ public class CreateJobPostRequest {
         @Schema(example = "Công nghệ thông tin")
         private String category;
 
-        // ── Salary ────
+        // ── Salary ─
         @Schema(example = "20000000")
         private BigDecimal salaryMin;
 
@@ -46,7 +46,7 @@ public class CreateJobPostRequest {
         @Schema(example = "false", description = "true = Thoả thuận")
         private boolean salaryNegotiable;
 
-        // ── WorkLocation ──────────────────────────────────────────
+        // ── WorkLocation
         @Schema(example = "ONSITE", allowableValues = { "ONSITE", "REMOTE", "HYBRID" })
         private String workLocationType;
 
@@ -67,7 +67,7 @@ public class CreateJobPostRequest {
         @NotNull(message = "Vui lòng chọn hạn nộp CV")
         private LocalDate deadline;
 
-        // ── Skills ────
+        // ── Skills ─
         @Valid
         @Schema(description = "Danh sách kỹ năng yêu cầu")
         private List<SkillRequest> skills;

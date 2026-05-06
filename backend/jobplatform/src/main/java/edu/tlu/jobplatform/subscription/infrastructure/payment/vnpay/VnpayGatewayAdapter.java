@@ -107,7 +107,7 @@ public class VnpayGatewayAdapter implements PaymentGatewayPort {
         return params.getOrDefault("vnp_TransactionNo", "UNKNOWN");
     }
 
-    // ─── helpers — port từ VNPayUtil của tài liệu ─────────────────────────
+    // helpers — port từ VNPayUtil của tài liệu ─
 
     /**
      * Build payment URL theo đúng spec VNPay.

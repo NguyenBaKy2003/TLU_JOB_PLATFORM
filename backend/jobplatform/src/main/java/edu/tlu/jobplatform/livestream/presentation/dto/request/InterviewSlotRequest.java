@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
-// ─── InterviewSlotRequest ─────────────────────────────────────
+//  InterviewSlotRequest ─
 public record InterviewSlotRequest(
 
         @NotNull LocalDateTime startTime,

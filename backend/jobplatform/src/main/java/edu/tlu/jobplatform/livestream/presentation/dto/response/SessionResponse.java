@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-// ─── SessionResponse (list view) ─────────────────────────────
+//  SessionResponse (list view) ──
 public record SessionResponse(
         UUID id,
         UUID companyId,

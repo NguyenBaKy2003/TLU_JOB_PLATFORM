@@ -22,7 +22,7 @@ public class CandidateMapper {
          */
         private final UserJpaRepository userJpaRepo;
 
-        // ── CandidateProfile ──────────
+        // ── CandidateProfile ──
 
         public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
                 CandidateProfile profile = CandidateProfile.builder()
@@ -157,7 +157,7 @@ public class CandidateMapper {
                                 .forEach(e.getBenefits()::add);
         }
 
-        // ── WorkExperience ────────────
+        // ── WorkExperience ─
 
         public WorkExperience toDomain(WorkExperienceJpaEntity e) {
                 return WorkExperience.builder()
@@ -183,7 +183,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Education ─────────────────
+        // ── Education ─
 
         public Education toDomain(EducationJpaEntity e) {
                 return Education.builder()
@@ -223,7 +223,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── Language ──────────────────
+        // ── Language ──
 
         public Language toDomain(LanguageJpaEntity e) {
                 return Language.builder()
@@ -241,7 +241,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── SocialLink ────────────────
+        // ── SocialLink
 
         public SocialLink toDomain(SocialLinkJpaEntity e) {
                 return SocialLink.builder()
@@ -259,7 +259,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── DesiredJob ────────────────
+        // ── DesiredJob
 
         public DesiredJob toDomain(DesiredJobJpaEntity e) {
                 return DesiredJob.builder()
@@ -299,7 +299,7 @@ public class CandidateMapper {
                                 .build();
         }
 
-        // ── CandidateCV ───────────────
+        // ── CandidateCV ─
 
         public CandidateCV toDomain(CandidateCVJpaEntity e) {
                 return CandidateCV.builder()
@@ -332,7 +332,7 @@ public class CandidateMapper {
                 e.setParsedContent(cv.getParsedContent());
         }
 
-        // ── Private utils ─────────────
+        // ── Private utils ──
 
         /**
          * Stateful predicate — giữ lại phần tử đầu tiên theo name (case-insensitive).

@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 public interface PaymentRepository {
 
-    // ── Existing methods (giữ nguyên) ─────────────────────────
+    // ── Existing methods (giữ nguyên) ─
 
     Optional<Payment> findById(UUID id);
 
@@ -29,7 +29,7 @@ public interface PaymentRepository {
 
     Payment save(Payment payment);
 
-    // ── Employer: lịch sử thanh toán của công ty mình ─────────
+    // ── Employer: lịch sử thanh toán của công ty mình ─
 
     /** Tất cả payments của 1 công ty, mới nhất trước */
     Page<Payment> findByCompanyId(UUID companyId, Pageable pageable);
@@ -37,7 +37,7 @@ public interface PaymentRepository {
     /** Filter thêm theo status */
     Page<Payment> findByCompanyIdAndStatus(UUID companyId, PaymentStatus status, Pageable pageable);
 
-    // ── Admin: xem toàn hệ thống ──────────────────────────────
+    // ── Admin: xem toàn hệ thống
 
     /**
      * Search đa điều kiện — tham số null = bỏ qua điều kiện đó.

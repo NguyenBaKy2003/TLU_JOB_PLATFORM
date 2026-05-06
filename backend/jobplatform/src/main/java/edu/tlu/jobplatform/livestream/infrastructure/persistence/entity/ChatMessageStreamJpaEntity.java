@@ -37,7 +37,7 @@ public class ChatMessageStreamJpaEntity extends BaseJpaEntity {
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
 
-    // ── Static factory — chỉ dùng trong Mapper ───────────────
+    // ── Static factory — chỉ dùng trong Mapper ─
     public static ChatMessageStreamJpaEntity of(
             UUID id,
             UUID sessionId,

@@ -6,7 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-// ── SubscriptionPlanJpaEntity ─────────────────────────────────────
+// ── SubscriptionPlanJpaEntity ─
 
 @Entity
 @Table(name = "subscription_plans")

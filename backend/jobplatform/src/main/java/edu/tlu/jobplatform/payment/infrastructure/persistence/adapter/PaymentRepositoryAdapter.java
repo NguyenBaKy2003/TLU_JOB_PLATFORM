@@ -26,7 +26,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     private final PaymentJpaRepo jpaRepo;
     private final SubscriptionMapper mapper;
 
-    // ── Existing methods ──────────────────────────────────────
+    // ── Existing methods ──
 
     @Override
     public Optional<Payment> findById(UUID id) {
@@ -68,7 +68,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
-    // ── Admin ─────
+    // ── Admin ──
 
     @Override
     public Page<Payment> search(UUID companyId, PaymentStatus status, String gateway,

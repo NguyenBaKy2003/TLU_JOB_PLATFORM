@@ -41,7 +41,7 @@ public class ApplicationDomainEventPublisher {
 
         private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-        // ── publishApplicationSubmitted ───────────────────────────────────────────
+        // ── publishApplicationSubmitted ─
 
         public void publishApplicationSubmitted(Application app, String jobTitle) {
                 eventPublisher.publishEvent(new ApplicationSubmittedEvent(
@@ -57,7 +57,7 @@ public class ApplicationDomainEventPublisher {
                 log.debug("ApplicationSubmittedEvent fired: {}", app.getId());
         }
 
-        // ── publishStatusChanged ──────
+        // ── publishStatusChanged
 
         public void publishStatusChanged(Application app, ApplicationStatus prevStatus) {
                 eventPublisher.publishEvent(new ApplicationStatusChangedEvent(

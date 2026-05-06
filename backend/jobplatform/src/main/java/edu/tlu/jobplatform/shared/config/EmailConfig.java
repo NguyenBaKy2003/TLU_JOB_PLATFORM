@@ -76,7 +76,7 @@ public class EmailConfig {
         return mailSender;
     }
 
-    // ── Thymeleaf Template Engine riêng cho email ──────────────────
+    // ── Thymeleaf Template Engine riêng cho email ──
 
     /**
      * Bean tên "emailTemplateEngine" — @Qualifier dùng để inject đúng bean này

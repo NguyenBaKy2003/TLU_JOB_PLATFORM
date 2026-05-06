@@ -56,7 +56,7 @@ public class LogoutUseCase {
         log.info("User logged out from all devices: {}", userId);
     }
 
-    // ── Helper ────────
+    // ── Helper
 
     private void blacklistIfNeeded(String jti, String accessToken) {
         long remaining = jwtTokenProvider.getRemainingSeconds(accessToken);

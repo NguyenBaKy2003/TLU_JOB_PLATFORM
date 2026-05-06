@@ -51,7 +51,7 @@ public class JobPost {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Methods ──────────────────────────────────────
+    // ── Business Methods ──
 
     public void publish() {
         status.assertCanTransitionTo(JobStatus.PUBLISHED);

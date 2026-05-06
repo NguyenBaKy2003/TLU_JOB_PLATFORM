@@ -27,7 +27,7 @@ public class CVDomainService {
 
     private final OnlineCVRepository cvRepository;
 
-    // ── BR-01: Giới hạn số lượng CV ───────────────────────────
+    // ── BR-01: Giới hạn số lượng CV
 
     /**
      * Validate qua repository — dùng khi tạo OnlineCV.
@@ -66,7 +66,7 @@ public class CVDomainService {
         return cv;
     }
 
-    // ── BR-02 & BR-03: Primary CV ─────────────────────────────
+    // ── BR-02 & BR-03: Primary CV ──
 
     /**
      * BR-02: Đổi primary CV — unmark tất cả, mark cái được chọn.
@@ -94,7 +94,7 @@ public class CVDomainService {
         return remaining;
     }
 
-    // ── Slug generation ───────────────────────────────────────
+    // ── Slug generation
 
     public String generateUniqueSlug(String title, UUID candidateId) {
         String base = toSlug(title + "-" + candidateId.toString().substring(0, 6));
@@ -110,7 +110,7 @@ public class CVDomainService {
         return slug;
     }
 
-    // ── Helpers ───
+    // ── Helpers
 
     private static final Pattern NON_LATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");

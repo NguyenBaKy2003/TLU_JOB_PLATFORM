@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ThumbnailUploader } from "./ThumbnailUploader";
 
 export interface TemplateFormData {
   name: string;
@@ -15,15 +16,26 @@ export interface TemplateFormData {
 interface Props {
   data: TemplateFormData;
   onChange: (field: keyof TemplateFormData, value: string | boolean) => void;
+  /** File thumbnail đang pending upload (được quản lý bởi page) */
+  pendingThumbnail?: File | null;
+  /** Gọi khi user chọn file thumbnail mới */
+  onThumbnailSelect?: (file: File) => void;
+  /** Đang upload thumbnail */
+  thumbnailUploading?: boolean;
+  /** Lỗi thumbnail từ server */
+  thumbnailError?: string | null;
   isEdit?: boolean;
   error?: string | null;
 }
 
 const CATEGORIES = [
   { value: "", label: "Chọn danh mục..." },
-  { value: "professional", label: "Professional" },
-  { value: "creative", label: "Creative" },
-  { value: "simple", label: "Simple" },
+  { value: "PROFESSIONAL", label: "Professional" },
+  { value: "CREATIVE", label: "Creative" },
+  { value: "MODERN", label: "Modern" },
+  { value: "CLASSIC", label: "Classic" },
+  { value: "SIMPLE", label: "Simple" },
+  { value: "OTHER", label: "Khác" },
 ];
 
 function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
@@ -31,8 +43,18 @@ function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
     return (
       <div className="flex h-64 items-center justify-center text-gray-400">
         <div className="text-center">
-          <svg className="mx-auto h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            className="mx-auto mb-2 h-10 w-10 text-gray-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           <p className="text-sm">Chưa có HTML content</p>
         </div>
@@ -41,7 +63,7 @@ function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
   }
 
   return (
-    <div className="relative bg-gray-100 dark:bg-gray-800 p-4 min-h-[400px]">
+    <div className="relative bg-gray-100 p-4 dark:bg-gray-800" style={{ minHeight: 400 }}>
       <div
         className="mx-auto w-full max-w-full overflow-hidden rounded-lg bg-white shadow-md"
         style={{ aspectRatio: "210 / 297" }}
@@ -56,15 +78,31 @@ function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
       </div>
       <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
-        <span>Preview hiển thị HTML thô — Thymeleaf expressions chưa được render bởi backend.</span>
+        <span>
+          Preview hiển thị HTML thô — Thymeleaf expressions chưa được render bởi backend.
+        </span>
       </div>
     </div>
   );
 }
 
-export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
+export function TemplateFormFields({
+  data,
+  onChange,
+  pendingThumbnail,
+  onThumbnailSelect,
+  thumbnailUploading,
+  thumbnailError,
+  isEdit,
+  error,
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
 
@@ -72,23 +110,30 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      onChange("htmlContent", text);
-    };
+    reader.onload = (ev) => onChange("htmlContent", ev.target?.result as string);
     reader.readAsText(file, "utf-8");
     e.target.value = "";
   }
 
   return (
     <div className="space-y-6">
+      {/* ── Global error ────────────────────────────────────────────── */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       )}
 
-      {/* Name */}
+      {/* ── Thumbnail uploader ───────────────────────────────────────── */}
+      <ThumbnailUploader
+        currentUrl={data.thumbnailUrl || null}
+        pendingFile={pendingThumbnail ?? null}
+        onFileSelect={onThumbnailSelect ?? (() => {})}
+        uploading={thumbnailUploading ?? false}
+        error={thumbnailError}
+      />
+
+      {/* ── Name ────────────────────────────────────────────────────── */}
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Tên template <span className="text-red-500">*</span>
@@ -104,34 +149,7 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
         <p className="text-right text-xs text-gray-400">{data.name.length}/100</p>
       </div>
 
-      {/* Thumbnail URL */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          URL thumbnail
-        </label>
-        <input
-          type="url"
-          value={data.thumbnailUrl}
-          maxLength={500}
-          placeholder="https://example.com/thumbnail.png"
-          onChange={(e) => onChange("thumbnailUrl", e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500"
-        />
-        {data.thumbnailUrl && (
-          <div className="flex items-center gap-2 rounded-md border border-gray-100 p-2 dark:border-gray-800">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.thumbnailUrl}
-              alt="thumbnail preview"
-              className="h-10 w-16 rounded object-cover"
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-            <span className="text-xs text-gray-400">Preview</span>
-          </div>
-        )}
-      </div>
-
-      {/* Category + Premium row */}
+      {/* ── Category + Premium ───────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -181,7 +199,7 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
         </div>
       </div>
 
-      {/* Active toggle — chỉ hiện khi edit */}
+      {/* ── Active toggle (edit only) ────────────────────────────────── */}
       {isEdit && (
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -214,55 +232,59 @@ export function TemplateFormFields({ data, onChange, isEdit, error }: Props) {
         </div>
       )}
 
-      {/* HTML Content */}
+      {/* ── HTML Content ─────────────────────────────────────────────── */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               HTML Content (Thymeleaf) <span className="text-red-500">*</span>
             </label>
-            
-            {/* Tab buttons */}
+
+            {/* Edit / Preview tabs */}
             <div className="flex rounded-lg border border-gray-200 p-0.5 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={() => setViewMode("edit")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                  viewMode === "edit"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                }`}
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("preview")}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                  viewMode === "preview"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                }`}
-              >
-                Preview
-              </button>
+              {(["edit", "preview"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    viewMode === mode
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
+                >
+                  {mode === "edit" ? "Edit" : "Preview"}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Import file */}
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-indigo-400"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
             </svg>
             Import file .html
           </button>
-          <input ref={fileRef} type="file" accept=".html,.xhtml,.xml" className="hidden" onChange={handleFileImport} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".html,.xhtml,.xml"
+            className="hidden"
+            onChange={handleFileImport}
+          />
         </div>
 
-        {/* Editor / Preview */}
+        {/* Editor / Preview panel */}
         <div className="relative">
           {viewMode === "edit" ? (
             <>

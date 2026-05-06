@@ -21,14 +21,14 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
     private final CompanyReviewJpaRepository jpaRepo;
     private final CompanyReviewMapper mapper;
 
-    // ── Exists ─────────────────────────────────────────
+    // ── Exists ──
 
     @Override
     public boolean existsByCompanyIdAndReviewerId(UUID companyId, UUID reviewerId) {
         return jpaRepo.existsByCompanyIdAndReviewerId(companyId, reviewerId);
     }
 
-    // ── Query ──────────────────────────────────────────
+    // ── Query
 
     @Override
     public Page<CompanyReview> findVisibleByCompanyId(UUID companyId, Pageable pageable) {
@@ -41,14 +41,14 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
         return jpaRepo.findAverageRatingByCompanyId(companyId);
     }
 
-    // ── Find ───────────────────────────────────────────
+    // ── Find ─
 
     @Override
     public Optional<CompanyReview> findById(UUID id) {
         return jpaRepo.findById(id).map(mapper::toDomain);
     }
 
-    // ── Save ───────────────────────────────────────────
+    // ── Save ─
 
     @Override
     public CompanyReview save(CompanyReview review) {
@@ -68,7 +68,7 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
         return mapper.toDomain(jpaRepo.save(newEntity));
     }
 
-    // ── Delete ─────────────────────────────────────────
+    // ── Delete ──
 
     @Override
     public void deleteById(UUID id) {

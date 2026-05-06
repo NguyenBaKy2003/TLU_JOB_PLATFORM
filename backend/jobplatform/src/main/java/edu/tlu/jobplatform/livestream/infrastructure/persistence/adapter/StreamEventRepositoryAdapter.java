@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-// ─── StreamEvent Adapter ─────────────────────────────────────
+//  StreamEvent Adapter ─
 @Component
 @RequiredArgsConstructor
 public class StreamEventRepositoryAdapter implements StreamEventRepository {

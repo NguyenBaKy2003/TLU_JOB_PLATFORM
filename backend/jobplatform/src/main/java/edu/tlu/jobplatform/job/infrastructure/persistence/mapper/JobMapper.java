@@ -17,7 +17,7 @@ import java.util.UUID;
 @Component
 public class JobMapper {
 
-    // ── JobPost ───
+    // ── JobPost
 
     public JobPost toDomain(JobPostJpaEntity e) {
         if (e == null)
@@ -112,7 +112,7 @@ public class JobMapper {
         applyWorkLocation(e, d.getWorkLocation());
     }
 
-    // ── Salary helpers ────────────────────────────────────────
+    // ── Salary helpers ─
 
     private Salary buildSalary(JobPostJpaEntity e) {
         if (Boolean.TRUE.equals(e.getSalaryNegotiable()))
@@ -131,7 +131,7 @@ public class JobMapper {
         e.setSalaryNegotiable(s.isNegotiable());
     }
 
-    // ── WorkLocation helpers ──────────────────────────────────
+    // ── WorkLocation helpers ──
 
     private WorkLocation buildWorkLocation(JobPostJpaEntity e) {
         if (e.getWorkLocationType() == null)
@@ -151,7 +151,7 @@ public class JobMapper {
         e.setWorkLocationAddress(loc.getAddress());
     }
 
-    // ── Skill ─────
+    // ── Skill ──
 
     public JobPostSkill toSkillDomain(JobPostSkillJpaEntity e) {
         return JobPostSkill.builder()

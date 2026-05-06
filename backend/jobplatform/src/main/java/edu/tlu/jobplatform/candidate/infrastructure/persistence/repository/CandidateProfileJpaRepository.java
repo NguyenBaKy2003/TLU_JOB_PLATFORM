@@ -35,7 +35,7 @@ public interface CandidateProfileJpaRepository
         @Query("SELECT p FROM CandidateProfileJpaEntity p WHERE p.profileUrl = :profileUrl")
         Optional<CandidateProfileJpaEntity> findByProfileUrl(@Param("profileUrl") String profileUrl);
 
-        // ── Existence checks ──────────
+        // ── Existence checks ──
 
         boolean existsByUserId(UUID userId);
 

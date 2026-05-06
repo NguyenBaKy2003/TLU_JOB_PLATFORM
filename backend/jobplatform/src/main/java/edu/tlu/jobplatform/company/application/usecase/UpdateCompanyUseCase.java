@@ -73,7 +73,7 @@ public class UpdateCompanyUseCase {
         return saved;
     }
 
-    // ── Command — PATCH semantics (tất cả nullable) ───────────
+    // ── Command — PATCH semantics (tất cả nullable)
 
     public record Command(
             String name,

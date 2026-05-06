@@ -16,7 +16,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- gen_random_uuid()
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- trigram search cho FTS
--- ── audit_logs ───────
+-- ── audit_logs ─
 -- Lưu lịch sử hành động của user và system
 -- Partition theo tháng để query nhanh (partition được thêm sau)
 CREATE TABLE IF NOT EXISTS audit_logs (

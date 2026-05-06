@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionMapper {
 
-    // ── CompanySubscription ───────────────────────────────────
+    // ── CompanySubscription
 
     public CompanySubscription toDomain(CompanySubscriptionJpaEntity e) {
         return CompanySubscription.builder()
@@ -70,7 +70,7 @@ public class SubscriptionMapper {
         e.setCvViewQuotaUsed(d.getCvViewQuota().getUsed());
     }
 
-    // ── SubscriptionPlan ──────────────────────────────────────
+    // ── SubscriptionPlan ──
 
     public SubscriptionPlan toPlanDomain(SubscriptionPlanJpaEntity e) {
         return SubscriptionPlan.builder()
@@ -110,7 +110,7 @@ public class SubscriptionMapper {
         return entity;
     }
 
-    // ── Payment ───
+    // ── Payment
 
     public Payment toPaymentDomain(PaymentJpaEntity e) {
         return Payment.builder()

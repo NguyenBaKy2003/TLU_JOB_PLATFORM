@@ -64,7 +64,7 @@ public class ForgotPasswordUseCase {
                 () -> log.debug("Forgot password: email not found [{}] — silent ignore", normalizedEmail));
     }
 
-    // ── Private helpers ───────────────────────────────────────────
+    // ── Private helpers ─
 
     private void processRequest(User user) {
 

@@ -95,7 +95,7 @@ public class ResetPasswordUseCase {
         log.info("Password reset successfully for userId={}", cmd.userId());
     }
 
-    // ── Business Rule validation ──────────────────────────────────
+    // ── Business Rule validation ──
 
     private void validatePassword(String pw) {
         if (pw == null || pw.length() < 8)
@@ -112,7 +112,7 @@ public class ResetPasswordUseCase {
                     "Mật khẩu phải có ít nhất 1 chữ số.", "WEAK_PASSWORD");
     }
 
-    // ── Command ───────
+    // ── Command ─
 
     /**
      * @param userId      UUID của user (từ query param link email)

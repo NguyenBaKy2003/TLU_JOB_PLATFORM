@@ -47,7 +47,7 @@ public class UserCacheService {
                 .registerModule(new JavaTimeModule());
     }
 
-    // ── Read ──────────
+    // ── Read ──
 
     /**
      * Lấy User từ cache.
@@ -69,7 +69,7 @@ public class UserCacheService {
         }
     }
 
-    // ── Write ─────────
+    // ── Write ─
 
     /**
      * Lưu User vào cache.
@@ -84,7 +84,7 @@ public class UserCacheService {
         }
     }
 
-    // ── Evict ─────────
+    // ── Evict ─
 
     /**
      * Xóa cache của user — gọi sau mỗi lần update hoặc deactivate.
@@ -95,13 +95,13 @@ public class UserCacheService {
         log.debug("Cache evicted for user: {}", userId);
     }
 
-    // ── Helper ────────
+    // ── Helper
 
     private String key(UUID userId) {
         return KEY_PREFIX + userId;
     }
 
-    // ── Cached DTO (serializable, không có passwordHash) ─────────
+    // ── Cached DTO (serializable, không có passwordHash) ─
 
     /**
      * Chỉ cache những field cần thiết để render UI.

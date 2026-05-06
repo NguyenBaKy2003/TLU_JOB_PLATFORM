@@ -30,7 +30,7 @@ public class CompanySubscription {
     private final LocalDateTime createdAt;
     private UUID currentPaymentId;
 
-    // ── Business Rules ────────────────────────────────────────
+    // ── Business Rules ─
 
     public boolean isActive() {
         return status == SubscriptionStatus.ACTIVE
@@ -61,7 +61,7 @@ public class CompanySubscription {
         return isActive() && !cvViewQuota.isExceeded();
     }
 
-    // ── State transitions ─────────────────────────────────────
+    // ── State transitions ─
 
     public void activate(UUID paymentId, LocalDateTime expiresAt) {
         this.status = SubscriptionStatus.ACTIVE;
@@ -82,7 +82,7 @@ public class CompanySubscription {
         this.status = SubscriptionStatus.FAILED;
     }
 
-    // ── Quota operations ──────────────────────────────────────
+    // ── Quota operations ──
 
     public void consumeJobPost(int count) {
         this.jobPostQuota = jobPostQuota.consume(count);

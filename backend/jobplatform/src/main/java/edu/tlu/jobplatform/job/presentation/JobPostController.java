@@ -195,7 +195,7 @@ public class JobPostController {
                 return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã được xóa."));
         }
 
-        // ── Helpers ───
+        // ── Helpers
         private UUID resolveCompanyId() {
                 UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
                 return companyRepository.findByOwnerId(ownerId)

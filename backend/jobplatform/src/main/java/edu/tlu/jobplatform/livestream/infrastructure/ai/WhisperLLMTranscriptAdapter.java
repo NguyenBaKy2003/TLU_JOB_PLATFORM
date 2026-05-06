@@ -42,7 +42,7 @@ public class WhisperLLMTranscriptAdapter implements AITranscriptPort {
         this.objectMapper = objectMapper;
     }
 
-    // ─── AITranscriptPort impl ────────────────────────────────
+    // AITranscriptPort impl
 
     @Override
     public String transcribe(String recordingUrl) {
@@ -83,7 +83,7 @@ public class WhisperLLMTranscriptAdapter implements AITranscriptPort {
         }
     }
 
-    // ─── Private helpers ──────────────────────────────────────
+    // Private helpers ──
 
     private String buildSummarizePrompt(String transcript, String title, String sessionType) {
         return """

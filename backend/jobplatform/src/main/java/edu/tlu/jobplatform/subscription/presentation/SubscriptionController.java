@@ -81,7 +81,7 @@ public class SubscriptionController {
                 "Đơn hàng đã được tạo. Vui lòng thanh toán tại URL được cung cấp."));
     }
 
-    // ── Helper ────
+    // ── Helper ─
 
     private UUID resolveCompanyId() {
         UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();

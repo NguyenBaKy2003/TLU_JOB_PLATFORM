@@ -27,7 +27,7 @@ public class CompanyTeamMember {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Business Rules ────────────────────────────────────────
+    // ── Business Rules ─
 
     public void update(String fullName, String jobTitle, String bio,
             String linkedinUrl, int displayOrder) {

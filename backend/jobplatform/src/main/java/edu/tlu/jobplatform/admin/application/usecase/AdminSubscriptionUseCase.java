@@ -33,7 +33,7 @@ public class AdminSubscriptionUseCase {
     private final CompanySubscriptionRepository subscriptionRepo;
     private final SubscriptionPlanRepository planRepo;
 
-    // ── Subscription ──────────────────────────────────────────
+    // ── Subscription
 
     @Transactional(readOnly = true)
     public List<CompanySubscription> listByCompany(UUID companyId) {
@@ -95,7 +95,7 @@ public class AdminSubscriptionUseCase {
         return saved;
     }
 
-    // ── Plans ─────
+    // ── Plans ──
 
     @Transactional(readOnly = true)
     public List<SubscriptionPlan> listAllPlans() {

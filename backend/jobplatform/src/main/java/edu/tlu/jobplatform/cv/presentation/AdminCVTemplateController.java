@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,8 +43,9 @@ public class AdminCVTemplateController {
         private final UpdateCVTemplateUseCase updateUseCase;
         private final ToggleCVTemplateUseCase toggleUseCase;
         private final GetCVTemplateDetailUseCase getDetailUseCase;
+        private final UploadCVTemplateThumbnailUseCase uploadThumbnailUseCase;
 
-        // ── GET /api/v1/admin/cv-templates ────────────────────────────────────────
+        // ── GET /api/v1/admin/cv-templates ─
 
         @Operation(summary = "Danh sách tất cả templates (kể cả inactive)")
         @GetMapping
@@ -53,7 +55,7 @@ public class AdminCVTemplateController {
                 return ResponseEntity.ok(ApiResponse.success(list));
         }
 
-        // ── POST /api/v1/admin/cv-templates ───────────────────────────────────────
+        // ── POST /api/v1/admin/cv-templates
 
         @Operation(summary = "Tạo template mới", description = """
                         Upload HTML content để tạo template CV mới.
@@ -99,7 +101,7 @@ public class AdminCVTemplateController {
                                 "Template đã được tạo thành công."));
         }
 
-        // ── PUT /api/v1/admin/cv-templates/{id} ───────────────────────────────────
+        // ── PUT /api/v1/admin/cv-templates/{id}
 
         @Operation(summary = "Cập nhật template", description = """
                         Cập nhật toàn bộ thông tin và HTML content của template.
@@ -119,7 +121,7 @@ public class AdminCVTemplateController {
                                 "Template đã được cập nhật."));
         }
 
-        // ── PATCH /api/v1/admin/cv-templates/{id}/activate ────────────────────────
+        // ── PATCH /api/v1/admin/cv-templates/{id}/activate
 
         @Operation(summary = "Kích hoạt template", description = """
                         Template được activate sẽ hiển thị trong danh sách candidate chọn.
@@ -134,7 +136,7 @@ public class AdminCVTemplateController {
                                 "Template đã được kích hoạt."));
         }
 
-        // ── PATCH /api/v1/admin/cv-templates/{id}/deactivate ──────────────────────
+        // ── PATCH /api/v1/admin/cv-templates/{id}/deactivate
 
         @Operation(summary = "Ẩn template", description = """
                         Template bị deactivate sẽ ẩn khỏi danh sách candidate.
@@ -150,7 +152,7 @@ public class AdminCVTemplateController {
                                 "Template đã được ẩn."));
         }
 
-        // ── GET /api/v1/admin/cv-templates/{id} ───────────────────────────────────
+        // ── GET /api/v1/admin/cv-templates/{id}
 
         @Operation(summary = "Chi tiết template (kèm htmlContent)")
         @GetMapping("/{templateId}")
@@ -160,5 +162,17 @@ public class AdminCVTemplateController {
                 CVTemplate template = getDetailUseCase.execute(templateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 AdminCVTemplateResponse.from(template)));
+        }
+
+        @PatchMapping("/{templateId}/thumbnail")
+        @Operation(summary = "Upload thumbnail cho template")
+        public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> uploadThumbnail(
+                        @PathVariable UUID templateId,
+                        @RequestParam("file") MultipartFile file) {
+
+                CVTemplate template = uploadThumbnailUseCase.execute(templateId, file);
+                return ResponseEntity.ok(ApiResponse.success(
+                                AdminCVTemplateResponse.fromList(template),
+                                "Thumbnail đã được cập nhật."));
         }
 }

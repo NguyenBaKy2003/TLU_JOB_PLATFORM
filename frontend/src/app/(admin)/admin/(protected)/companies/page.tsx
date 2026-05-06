@@ -12,9 +12,8 @@ import {
   TableActions,
   FormModel,
   FormField,
-  DetailModel,
-  DetailField
 } from '@/presentation/components/common';
+import { CompanyDetailModal } from '@/presentation/components/admin/companies/CompanyDetailModal';
 import { AdminCompanyRepository } from '@/infrastructure/repositories/AdminCompanyRepository';
 import type {
   AdminCompany,
@@ -112,7 +111,9 @@ export default function AdminCompaniesPage() {
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalElements, setTotalElements] = useState(0);
-  const [selectedCompany, setSelectedCompany] = useState<AdminCompany | null>(null);
+  
+  // Company Detail Modal state
+  const [detailCompanyId, setDetailCompanyId] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   // Confirm Modal state
@@ -199,16 +200,16 @@ export default function AdminCompaniesPage() {
     });
   }, [filters.status]);
 
-  const fetchCompanyDetail = async (id: string) => {
-    try {
-      const detail = await service.getCompany(id);
-      setSelectedCompany(detail);
-      setDetailModalOpen(true);
-    } catch (error) {
-      console.error('Failed to fetch company detail:', error);
-      const message = extractErrorMessage(error, 'Không thể tải chi tiết công ty');
-      toastRef.current.error('Lỗi', message);
-    }
+  // Mở modal chi tiết công ty
+  const openCompanyDetail = (id: string) => {
+    setDetailCompanyId(id);
+    setDetailModalOpen(true);
+  };
+
+  // Đóng modal chi tiết công ty
+  const closeCompanyDetail = () => {
+    setDetailModalOpen(false);
+    setDetailCompanyId(null);
   };
 
   const handleApprove = async (id: string) => {
@@ -355,79 +356,6 @@ export default function AdminCompaniesPage() {
     }
   ];
 
-  // Detail fields
-  const getDetailFields = (): DetailField[] => {
-    if (!selectedCompany) return [];
-    
-    return [
-      {
-        key: 'logo',
-        label: 'Logo',
-        value: selectedCompany.logoUrl ? (
-          <img src={selectedCompany.logoUrl} alt={selectedCompany.name} className="w-20 h-20 object-cover rounded-lg border" />
-        ) : 'Chưa có logo',
-        type: 'image'
-      },
-      {
-        key: 'name',
-        label: 'Tên công ty',
-        value: selectedCompany.name,
-        copyable: true
-      },
-      {
-        key: 'email',
-        label: 'Email',
-        value: selectedCompany.email,
-        copyable: true
-      },
-      {
-        key: 'website',
-        label: 'Website',
-        value: selectedCompany.website || 'Chưa có',
-        copyable: true
-      },
-      {
-        key: 'industry',
-        label: 'Ngành nghề',
-        value: selectedCompany.industry || 'Chưa có'
-      },
-      {
-        key: 'city',
-        label: 'Thành phố',
-        value: selectedCompany.city || 'Chưa có'
-      },
-      {
-        key: 'verificationStatus',
-        label: 'Trạng thái',
-        value: (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[selectedCompany.verificationStatus].color}`}>
-            {statusConfig[selectedCompany.verificationStatus].icon}
-            {statusConfig[selectedCompany.verificationStatus].label}
-          </span>
-        ),
-        type: 'badge'
-      },
-      {
-        key: 'rejectionReason',
-        label: 'Lý do từ chối',
-        value: selectedCompany.rejectionReason || '—',
-        type: 'text'
-      },
-      {
-        key: 'createdAt',
-        label: 'Ngày tạo',
-        value: new Date(selectedCompany.createdAt).toLocaleString('vi-VN'),
-        type: 'date'
-      },
-      {
-        key: 'updatedAt',
-        label: 'Cập nhật lần cuối',
-        value: selectedCompany.updatedAt ? new Date(selectedCompany.updatedAt).toLocaleString('vi-VN') : '—',
-        type: 'date'
-      }
-    ];
-  };
-
   // Generate dynamic actions based on company status
   const getActions = (record: AdminCompany): ActionItem<AdminCompany>[] => {
     const actions: ActionItem<AdminCompany>[] = [
@@ -435,7 +363,7 @@ export default function AdminCompaniesPage() {
         key: 'view',
         label: 'Xem chi tiết',
         icon: <Eye className="w-4 h-4" />,
-        onClick: () => fetchCompanyDetail(record.id),
+        onClick: () => openCompanyDetail(record.id), // Sử dụng hàm mới
         color: 'default'
       }
     ];
@@ -597,12 +525,11 @@ export default function AdminCompaniesPage() {
         />
       </div>
 
-      {/* Detail Modal */}
-      <DetailModel
+      {/* Company Detail Modal - Component mới */}
+      <CompanyDetailModal
         isOpen={detailModalOpen}
-        onClose={() => setDetailModalOpen(false)}
-        title={`Chi tiết công ty - ${selectedCompany?.name || ''}`}
-        fields={getDetailFields()}
+        onClose={closeCompanyDetail}
+        companyId={detailCompanyId || ""}
       />
 
       {/* Confirm Modal for Approve/Unsuspend */}

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-// ─── StreamAnalytics Adapter ──────────────────────────────────
+//  StreamAnalytics Adapter ──
 @Component
 @RequiredArgsConstructor
 public class StreamAnalyticsRepositoryAdapter implements StreamAnalyticsRepository {

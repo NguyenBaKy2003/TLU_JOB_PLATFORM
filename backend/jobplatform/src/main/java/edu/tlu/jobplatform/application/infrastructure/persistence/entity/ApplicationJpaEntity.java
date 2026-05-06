@@ -52,7 +52,7 @@ public class ApplicationJpaEntity extends BaseJpaEntity {
     @Column(name = "interview_note", columnDefinition = "TEXT")
     private String interviewNote;
 
-    // ── AI Score (embedded) ───────────────────────────────────
+    // ── AI Score (embedded) ─
     @Column(name = "ai_score")
     private Integer aiScore;
     @Column(name = "ai_skill_match_score")

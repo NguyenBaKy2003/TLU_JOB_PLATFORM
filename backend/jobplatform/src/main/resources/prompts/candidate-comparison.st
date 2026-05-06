@@ -3,9 +3,9 @@ Bạn là chuyên gia tuyển dụng. So sánh các ứng viên dưới đây ch
 === VỊ TRÍ ===
 Chức danh: $jobTitle$ | Cấp độ: $jobLevel$
 Yêu cầu: $jobRequirements$
-==============
 
-=== CÁC ỨNG VIÊN ===
+
+ CÁC ỨNG VIÊN ===
 $candidates$
 ====================
 
