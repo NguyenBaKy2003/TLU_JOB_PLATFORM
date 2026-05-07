@@ -105,7 +105,7 @@ async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineChe
 
   async getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult> {
     const res = await api.get<ApiResponse<CompetitionRateResult>>(
-      `/api/v1/job-posts/${jobPostId}/competition-rate`
+      `/job-posts/${jobPostId}/competition-rate`
     );
     return res.data.data;
   }
@@ -114,7 +114,7 @@ async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineChe
 
   async getPassProbability(jobId: string): Promise<PassProbabilityResult> {
     const res = await api.get<ApiResponse<PassProbabilityResult>>(
-      `/api/v1/job-posts/${jobId}/pass-probability`
+      `/job-posts/${jobId}/pass-probability`
     );
     return res.data.data;
   }
