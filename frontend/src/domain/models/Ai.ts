@@ -56,17 +56,17 @@ export interface JdGuidelineCheckResult {
   passed: boolean;
   severity: Severity;
   violations: GuidelineViolation[];
-  cleanedVersion: string;      
-  overallFeedback: string;     
-  qualityScore: number;       
-}
-export interface GuidelineViolation {
-  type: string;           
-  excerpt: string;        
-  explanation: string;    
-  suggestion: string;     
+  cleanedVersion: string;
+  overallFeedback: string;
+  qualityScore: number;
 }
 
+export interface GuidelineViolation {
+  type: string;
+  excerpt: string;
+  explanation: string;
+  suggestion: string;
+}
 
 export interface CheckGuidelinesPayload {
   jobPostId?: string;
@@ -104,14 +104,25 @@ export interface CompareCandidatesPayload {
 
 // ─── Competition Rate Models ──────
 
+export interface CompetitionBreakdown {
+  applicantRatioScore: number;
+  poolQualityScore: number;
+  jobPopularityScore: number;
+  urgencyScore: number;
+  entryBarrierScore: number;
+}
+
 export interface CompetitionRateResult {
-  jobPostId: string;
-  totalApplications: number;
-  competitionLevel: "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
-  competitionRate: number;
-  averageScore: number;
-  topScore: number;
-  recommendation: string;
+  competitionScore: number;
+  level: "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
+  trend: "STABLE" | "RISING" | "FALLING";
+  totalApplicants: number;
+  averageAIScore: number;
+  applicationToHiringRatio: number;
+  hiringQuota: number;
+  breakdown: CompetitionBreakdown;
+  candidateAdvice: string;
+  employerInsight: string;
 }
 
 // ─── Pass Probability Models ──────
@@ -143,7 +154,7 @@ export interface OptimizeJdPayload {
   title: string;
   description?: string;
   requirements?: string;
-  benefits?: string;     
+  benefits?: string;
   level?: string;
   category?: string;
 }
