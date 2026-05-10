@@ -1,3 +1,4 @@
+// LoginPage.tsx
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -9,6 +10,7 @@ import { AuthRepository }                    from "@/infrastructure/repositories
 import { useAuth }                           from "@/application/contexts/AuthContext";
 import { useToast }                          from "@/presentation/components/ui/toast";
 import { setAccessToken, setRefreshToken }   from "@/lib/auth-helpers";
+import { OtpVerifyStep } from "@/presentation/components/auth/register/OtpVerifyStep";
 
 const authService = new AuthService(new AuthRepository());
 
@@ -30,8 +32,8 @@ export default function LoginPage() {
   const toast                                            = useToast();
   const [loading,      setLoading]      = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null); // ← thêm
 
-  // ── Hiển thị lỗi OAuth2 từ query param (?error=...) ───────
   useEffect(() => {
     const error = searchParams.get("error");
     if (!error) return;
@@ -40,16 +42,13 @@ export default function LoginPage() {
       title:   "Đăng nhập thất bại",
       message: "Đăng nhập mạng xã hội thất bại. Vui lòng thử lại.",
     };
-
     toast.error(title, message);
 
-    // Xóa ?error khỏi URL để tránh hiển thị lại khi refresh
     const url = new URL(window.location.href);
     url.searchParams.delete("error");
     window.history.replaceState({}, "", url.toString());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Nếu đã đăng nhập → redirect về đúng dashboard theo role ──────────────
   useEffect(() => {
     if (authLoading || !user) return;
     router.replace(user.role === "EMPLOYER" ? "/employer/dashboard" : "/");
@@ -67,6 +66,14 @@ export default function LoginPage() {
       router.push("/");
 
     } catch (err: any) {
+      const code = err?.response?.data?.errorCode;
+
+      // ← Nếu email chưa xác thực → chuyển sang bước OTP
+      if (code === "EMAIL_NOT_VERIFIED") {
+        setPendingEmail(email);
+        return;
+      }
+
       toast.error(
         "Đăng nhập thất bại",
         err?.response?.data?.message ?? "Vui lòng thử lại.",
@@ -89,6 +96,18 @@ export default function LoginPage() {
       setOauthLoading(false);
     }
   }, [toast]);
+
+  if (pendingEmail) {
+    return (
+      <AuthLayout imageSrc="/candidate.png">
+        <OtpVerifyStep
+          email={pendingEmail}
+          onVerified={() => router.push("/")} 
+          onBack={() => setPendingEmail(null)}
+        />
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout imageSrc="/candidate.png">

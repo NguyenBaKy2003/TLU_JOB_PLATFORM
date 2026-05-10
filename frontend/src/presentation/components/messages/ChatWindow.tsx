@@ -183,7 +183,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
           <p className="text-sm font-semibold">{displayName}</p>
           <p className="text-xs text-gray-400">
             {conv.lastMessageAt
-              ? `Hoạt động ${timeAgo(conv.lastMessageAt)}`
+              ? `${timeAgo(conv.lastMessageAt)}`
               : "Chưa hoạt động"}
           </p>
         </div>
@@ -237,7 +237,7 @@ function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
 
-  if (mins < 1) return "Đang hoạt động"; // 👈 thêm dòng này
+  if (mins < 1) return "Đang hoạt động"; 
   if (mins < 60) return `${mins} phút trước`;
 
   const hrs = Math.floor(mins / 60);

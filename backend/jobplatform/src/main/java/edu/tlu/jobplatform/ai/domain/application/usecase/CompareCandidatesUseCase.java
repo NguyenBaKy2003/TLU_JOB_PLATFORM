@@ -70,7 +70,7 @@ public class CompareCandidatesUseCase {
                 .orElseThrow(() -> ResourceNotFoundException.application(appId));
 
         // Lấy CandidateProfile
-        CandidateProfile candidateProfile = candidateProfileRepo.findById(app.getCandidateId())
+        CandidateProfile candidateProfile = candidateProfileRepo.findByUserId(app.getCandidateId())
                 .orElseThrow(() -> ResourceNotFoundException.candidate(app.getCandidateId()));
 
         // Lấy AI score đã tính sẵn (nếu có)

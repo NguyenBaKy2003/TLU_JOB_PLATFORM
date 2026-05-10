@@ -184,7 +184,6 @@ public class AnalyticsQueryService {
                 .build();
     }
 
-    @Cacheable(value = "analytics:admin:user-growth", key = "#months", unless = "#result == null")
     public List<TimeSeriesData> getUserGrowthTimeSeries(int months) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery("""
@@ -202,7 +201,6 @@ public class AnalyticsQueryService {
         return TimeSeriesData.ofMonthly(rows);
     }
 
-    @Cacheable(value = "analytics:admin:revenue", key = "#months", unless = "#result == null")
     public List<TimeSeriesData> getRevenueTimeSeries(int months) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery("""

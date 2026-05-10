@@ -42,15 +42,17 @@ export default function EmployerNotificationsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [starred,  setStarred]  = useState<Set<string>>(new Set())
 
-  // ✅ unreadCount lấy từ Context — single source of truth với badge header
+  // unreadCount + markAsRead/markAllAsRead từ Context — single source of truth
   const {
     unreadCount,
     subscribeToNewNotification,
     subscribeToAllRead,
     subscribeToNotificationDeleted,
+    markAsRead,
+    markAllAsRead: markAllAsReadCtx,
   } = useWebSocket()
 
-  // ✅ Dùng ref để tránh load 2 lần ở StrictMode
+  // Dùng ref để tránh load 2 lần ở StrictMode
   const hasLoaded = useRef(false)
 
   // ─── Load danh sách từ API ─────
@@ -73,19 +75,16 @@ export default function EmployerNotificationsPage() {
   }, [load])
 
   // ─── WS: Notification mới ──────
-  // ✅ Dùng event-based subscription — không bị lệch do snapshot array giới hạn 10 items
   useEffect(() => {
     return subscribeToNewNotification((newNotif) => {
       setItems(prev => {
         if (prev.some(n => n.notificationId === newNotif.notificationId)) return prev
-        // ✅ Cast sang NotificationItem (WS trả về cùng shape)
         return [newNotif as unknown as NotificationItem, ...prev]
       })
     })
   }, [subscribeToNewNotification])
 
-  // ─── WS: All-read (đọc từ tab/thiết bị khác) ──
-  // ✅ Đồng bộ trạng thái isRead khi server broadcast all-read
+  // ─── WS: All-read (đồng bộ từ tab/thiết bị khác) ──
   useEffect(() => {
     return subscribeToAllRead(() => {
       setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
@@ -96,7 +95,6 @@ export default function EmployerNotificationsPage() {
   useEffect(() => {
     return subscribeToNotificationDeleted((deletedId) => {
       setItems(prev => prev.filter(n => n.notificationId !== deletedId))
-      // Bỏ khỏi selected nếu đang được chọn
       setSelected(prev => {
         if (!prev.has(deletedId)) return prev
         const next = new Set(prev)
@@ -107,17 +105,19 @@ export default function EmployerNotificationsPage() {
   }, [subscribeToNotificationDeleted])
 
   // ─── Actions ────────────
+  // Gọi markAsRead từ context → tự động giảm unreadCount ở Header & Sidebar
   const markOneRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n =>
       n.notificationId === id ? { ...n, read: true, readAt: new Date().toISOString() } : n
     ))
-    try { await service.markOneRead(id) } catch { /* silent */ }
-  }, [])
+    await markAsRead(id)
+  }, [markAsRead])
 
+  // Gọi markAllAsReadCtx từ context → reset unreadCount về 0 ở Header & Sidebar
   const markAllRead = useCallback(async () => {
     setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
-    try { await service.markAllRead() } catch { load() }
-  }, [load])
+    await markAllAsReadCtx()
+  }, [markAllAsReadCtx])
 
   const toggleStar = useCallback((id: string) => {
     setStarred(prev => {

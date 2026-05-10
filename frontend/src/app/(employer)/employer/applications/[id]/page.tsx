@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, FileText, Clock,
   MapPin, User, Mail, Phone,
-  Eye, Download, Loader2,
+  Eye, Download, Loader2, Calendar,
 } from "lucide-react";
 
 import { ApplicationStatusBadge }   from "@/presentation/components/applications/ApplicationStatusBadge";
 import { StatusTimeline }           from "@/presentation/components/applications/StatusTimeline";
 import { AIScorePanel }             from "@/presentation/components/applications/AIScorePanel";
 import { StartConversationButton }  from "@/presentation/components/applications/StartConversationButton";
+import { ScheduleInterviewModal }   from "@/presentation/components/applications/ScheduleInterviewModal";
 
 import { ApplicationService }    from "@/application/services/ApplicationService";
 import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository";
@@ -51,8 +52,11 @@ export default function EmployerApplicationDetailPage() {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   // CV action states
-  const [cvViewing,    setCvViewing]    = useState(false);
+  const [cvViewing,     setCvViewing]     = useState(false);
   const [cvDownloading, setCvDownloading] = useState(false);
+
+  // Interview scheduling state
+  const [showSchedule, setShowSchedule] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -85,7 +89,6 @@ export default function EmployerApplicationDetailPage() {
   };
 
   // ── CV actions ──────────
-  // Không truyền cvId → backend dùng cvUrl của application
   const handleViewCV = async () => {
     if (!detail) return;
     setCvViewing(true);
@@ -109,6 +112,20 @@ export default function EmployerApplicationDetailPage() {
     } finally {
       setCvDownloading(false);
     }
+  };
+
+  // ── Interview scheduling ──────────
+  const canScheduleInterview = detail?.status === "SHORTLISTED";
+
+  const handleScheduleSuccess = async () => {
+    if (!detail) return;
+    try {
+      const refreshed = await service.getEmployerDetail(detail.id);
+      setDetail(refreshed);
+    } catch (e) {
+      toast.error("Lỗi", extractErrorMessage(e));
+    }
+    setShowSchedule(false);
   };
 
   const allowedNext = detail ? (ALLOWED_TRANSITIONS[detail.status] ?? []) : [];
@@ -218,7 +235,30 @@ export default function EmployerApplicationDetailPage() {
             )}
           </div>
 
-        
+          {/* ── Schedule Interview (SHORTLISTED only) ── */}
+          {canScheduleInterview && (
+            <div className="flex items-center justify-between gap-3 p-4 bg-purple-50
+              border border-purple-100 rounded-2xl">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                  <Calendar size={15} className="text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-purple-800">Ứng viên đã được rút gọn</p>
+                  <p className="text-xs text-purple-500 mt-0.5">Bạn có thể lên lịch phỏng vấn ngay bây giờ</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSchedule(true)}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-purple-600
+                  text-white text-xs font-semibold rounded-xl hover:bg-purple-700
+                  transition-colors whitespace-nowrap"
+              >
+                <Calendar size={13} />
+                Lên lịch
+              </button>
+            </div>
+          )}
 
           {/* ── Meta info ─ */}
           <div className="grid grid-cols-2 gap-3">
@@ -258,9 +298,6 @@ export default function EmployerApplicationDetailPage() {
           )}
 
           {/* ── CV actions  */}
-          {/* Dùng service.viewCVAsEmployer / downloadCVAsEmployer thay vì href trực tiếp
-              → backend stream qua /employer/applications/{id}/cv/view|download
-              → tránh lộ S3 URL, qua auth middleware của Spring Security */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
               CV ứng viên
@@ -306,6 +343,16 @@ export default function EmployerApplicationDetailPage() {
 
         </div>
       </div>
+
+      {/* ── Schedule Interview Modal ── */}
+      {showSchedule && detail && (
+        <ScheduleInterviewModal
+          applicationId={detail.id}
+          candidateName={detail.candidate?.fullName ?? "Ứng viên"}
+          onSuccess={handleScheduleSuccess}
+          onClose={() => setShowSchedule(false)}
+        />
+      )}
     </div>
   );
 }

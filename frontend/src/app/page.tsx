@@ -1,3 +1,4 @@
+import { ChatbotButton } from "@/presentation/components/ai/ChatbotButton";
 import { CategoriesSection } from "@/presentation/components/home/CategoriesSection";
 import { CtaSection } from "@/presentation/components/home/CtaSection";
 import { FeaturesSection } from "@/presentation/components/home/FeaturesSection";
@@ -19,6 +20,7 @@ export default function HomePage() {
       <FeaturesSection />
       <TestimonialsSection />
       <CtaSection />
+      <ChatbotButton></ChatbotButton>
       <Footer></Footer>
     </main>
   );

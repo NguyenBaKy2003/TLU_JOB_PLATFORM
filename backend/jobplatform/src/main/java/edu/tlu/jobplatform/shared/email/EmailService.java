@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -222,5 +223,89 @@ public class EmailService {
                         log.error("Failed to send email: template={} to={} error={}",
                                         template, to, e.getMessage());
                 }
+        }
+
+        /**
+         * Gửi email chào mừng sau khi xác thực email thành công.
+         *
+         * Template variables: fullName, loginLink
+         */
+        @Async("aiTaskExecutor")
+        public void sendWelcomeEmail(String toEmail, String fullName) {
+                send(
+                                toEmail,
+                                "[JobPlatform] Chào mừng bạn đến với JobPlatform!",
+                                "welcome",
+                                Map.of(
+                                                "fullName", fullName,
+                                                "loginLink", "https://jobplatform.vn/dashboard",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        /**
+         * Xác nhận thanh toán thành công.
+         *
+         * Template variables: fullName, planCode, amount, gateway, transactionId,
+         * paidAt
+         */
+        @Async("aiTaskExecutor")
+        public void sendPaymentSuccessEmail(String toEmail, String fullName,
+                        String planCode, BigDecimal amount,
+                        String gateway, String transactionId) {
+                send(
+                                toEmail,
+                                "[JobPlatform] Thanh toán thành công",
+                                "payment-success",
+                                Map.of(
+                                                "fullName", fullName,
+                                                "planCode", planCode,
+                                                "amount", String.format("%,.0f VND", amount),
+                                                "gateway", gateway,
+                                                "transactionId", transactionId,
+                                                "paidAt", LocalDateTime.now().format(DATETIME_FMT),
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        /**
+         * Thông báo gói dịch vụ đã được kích hoạt.
+         *
+         * Template variables: fullName, planName, expiresAt, jobPostLimit,
+         * dashboardLink
+         */
+        @Async("aiTaskExecutor")
+        public void sendSubscriptionActivatedEmail(String toEmail, String fullName,
+                        String planName, LocalDateTime expiresAt,
+                        int jobPostLimit) {
+                send(
+                                toEmail,
+                                "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
+                                "subscription-activated",
+                                Map.of(
+                                                "fullName", fullName,
+                                                "planName", planName,
+                                                "expiresAt", expiresAt.format(DATETIME_FMT),
+                                                "jobPostLimit", String.valueOf(jobPostLimit),
+                                                "dashboardLink", "https://jobplatform.vn/employer/dashboard",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        /**
+         * Thông báo gói dịch vụ đã hết hạn.
+         *
+         * Template variables: fullName, planCode, expiredAt, renewLink
+         */
+        @Async("aiTaskExecutor")
+        public void sendSubscriptionExpiredEmail(String toEmail, String fullName,
+                        String planCode) {
+                send(
+                                toEmail,
+                                "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
+                                "subscription-expired",
+                                Map.of(
+                                                "fullName", fullName,
+                                                "planCode", planCode,
+                                                "expiredAt", LocalDateTime.now().format(DATETIME_FMT),
+                                                "renewLink", "https://jobplatform.vn/employer/plans",
+                                                "supportEmail", "support@jobplatform.vn"));
         }
 }

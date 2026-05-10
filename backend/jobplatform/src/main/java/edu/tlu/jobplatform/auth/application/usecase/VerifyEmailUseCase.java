@@ -4,6 +4,7 @@ import edu.tlu.jobplatform.auth.application.port.out.OtpStorePort;
 import edu.tlu.jobplatform.auth.application.port.out.TokenStorePort;
 import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
+import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.service.ProfileCreationService;
 import edu.tlu.jobplatform.user.domain.model.User;
@@ -40,7 +41,8 @@ public class VerifyEmailUseCase {
     private final OtpStorePort otpStore;
     private final TokenStorePort tokenStore;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ProfileCreationService profileCreationService; // ← thay eventPublisher
+    private final ProfileCreationService profileCreationService;
+    private final EmailService emailService;
 
     @Transactional
     public AuthToken execute(Command cmd) {
@@ -68,8 +70,8 @@ public class VerifyEmailUseCase {
             user.markVerified();
             userRepository.save(user);
 
-            // Gọi thẳng — không qua event, không có ẩn số transaction
             profileCreationService.createProfileForUser(user);
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
 
             log.info("Email verified + profile created: {} [{}]", email, user.getRole());
         }

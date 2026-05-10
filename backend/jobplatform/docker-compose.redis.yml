@@ -1,9 +1,7 @@
 version: '3.8'
 
 services:
-  # ============================================================
   # REDIS ONLY - Chỉ chạy Redis, app chạy local
-  # ============================================================
   redis:
     image: redis:7.2-alpine
     container_name: school-relief-redis
