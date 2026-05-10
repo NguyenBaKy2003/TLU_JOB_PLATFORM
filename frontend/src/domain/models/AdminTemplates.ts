@@ -1,4 +1,3 @@
-// D:\TLU_JOB_PLATFORM\frontend\src\domain\models\AdminTemplates.ts
 
 // ─────────
 // Domain Models cho Admin CV Templates

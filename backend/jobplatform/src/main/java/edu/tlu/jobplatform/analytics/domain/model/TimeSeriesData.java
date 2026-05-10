@@ -1,22 +1,25 @@
 package edu.tlu.jobplatform.analytics.domain.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
-/**
- * Value object cho dữ liệu time-series (chart theo tháng/tuần).
- */
 @Getter
 @Builder
+@JsonDeserialize(builder = TimeSeriesData.TimeSeriesDataBuilder.class)
 public class TimeSeriesData {
 
-    private final String label; // VD: "2026-01", "T1/2026"
+    private final String label;
     private final Number value;
-    private final String period; // MONTH | WEEK | DAY
+    private final String period;
 
-    /** Tạo danh sách time-series từ raw data */
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class TimeSeriesDataBuilder {
+    }
+
     public static List<TimeSeriesData> ofMonthly(List<Object[]> rows) {
         return rows.stream()
                 .map(r -> TimeSeriesData.builder()

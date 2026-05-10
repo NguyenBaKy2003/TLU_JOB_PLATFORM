@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.shared.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -18,8 +19,8 @@ import java.time.Duration;
 
 /**
  * Cấu hình Redis:
- *   - StringRedisTemplate → lưu token, OTP (string đơn giản)
- *   - RedisCacheManager   → @Cacheable annotation (cache object phức tạp)
+ * - StringRedisTemplate → lưu token, OTP (string đơn giản)
+ * - RedisCacheManager → @Cacheable annotation (cache object phức tạp)
  *
  * Connection config (host, port, password) lấy từ application.yml.
  */
@@ -43,21 +44,27 @@ public class RedisConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
         ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        mapper.activateDefaultTypingAsProperty(
+                mapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                "@class");
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(10))
-            .serializeKeysWith(
-                RedisSerializationContext.SerializationPair.fromSerializer(
-                    new StringRedisSerializer()))
-            .serializeValuesWith(
-                RedisSerializationContext.SerializationPair.fromSerializer(
-                    new GenericJackson2JsonRedisSerializer(mapper)))
-            .disableCachingNullValues();
+                .entryTtl(Duration.ofMinutes(10))
+                .prefixCacheNameWith("v4:")
+                .serializeKeysWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(
+                                new StringRedisSerializer()))
+                .serializeValuesWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(
+                                new GenericJackson2JsonRedisSerializer(mapper)))
+                .disableCachingNullValues();
 
         return RedisCacheManager.builder(factory)
-            .cacheDefaults(config)
-            .build();
+                .cacheDefaults(config)
+                .build();
     }
 }

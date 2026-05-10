@@ -1,16 +1,16 @@
 package edu.tlu.jobplatform.analytics.domain.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-/**
- * Value object: số liệu của một công ty trong bảng xếp hạng Admin.
- */
 @Getter
 @Builder
+@JsonDeserialize(builder = TopCompanyStats.TopCompanyStatsBuilder.class)
 public class TopCompanyStats {
 
     private final UUID companyId;
@@ -22,4 +22,8 @@ public class TopCompanyStats {
     private final BigDecimal totalRevenue;
     private final long streamSessions;
     private final int rank;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class TopCompanyStatsBuilder {
+    }
 }

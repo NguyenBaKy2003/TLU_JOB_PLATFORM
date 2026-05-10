@@ -118,8 +118,6 @@ public class LoginUseCase {
                                 .build();
         }
 
-        // LoginUseCase.java — thêm method + cập nhật record
-
         private void validatePortalAccess(User user, String portalType) {
                 boolean allowed = switch (portalType) {
                         case "CANDIDATE" -> user.getRole() == UserRole.CANDIDATE;
