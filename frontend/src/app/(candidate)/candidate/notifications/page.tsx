@@ -42,12 +42,14 @@ export default function CandidateNotificationsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [starred,  setStarred]  = useState<Set<string>>(new Set())
 
-  // ✅ unreadCount lấy từ Context — single source of truth với badge header
+  // unreadCount + markAsRead/markAllAsRead từ Context — single source of truth
   const {
     unreadCount,
     subscribeToNewNotification,
     subscribeToAllRead,
     subscribeToNotificationDeleted,
+    markAsRead,
+    markAllAsRead: markAllAsReadCtx,
   } = useWebSocket()
 
   const hasLoaded = useRef(false)
@@ -69,8 +71,7 @@ export default function CandidateNotificationsPage() {
     load()
   }, [load])
 
-  // ─── WS: Notification mới 
-  // ✅ Event-based — không bị miss do snapshot array bị giới hạn 10 items
+  // ─── WS: Notification mới ──────
   useEffect(() => {
     return subscribeToNewNotification((newNotif) => {
       setItems(prev => {
@@ -80,10 +81,10 @@ export default function CandidateNotificationsPage() {
     })
   }, [subscribeToNewNotification])
 
-  // ─── WS: All-read (đồng bộ từ tab/thiết bị khác) ─────────────
+  // ─── WS: All-read (đồng bộ từ tab/thiết bị khác) ──
   useEffect(() => {
     return subscribeToAllRead(() => {
-      setItems(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })))
+      setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
     })
   }, [subscribeToAllRead])
 
@@ -101,17 +102,19 @@ export default function CandidateNotificationsPage() {
   }, [subscribeToNotificationDeleted])
 
   // ─── Actions ─────────────
+  // Gọi markAsRead từ context → tự động giảm unreadCount ở Header & Sidebar
   const markOneRead = useCallback(async (id: string) => {
     setItems(prev => prev.map(n =>
-      n.notificationId === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
+      n.notificationId === id ? { ...n, read: true, readAt: new Date().toISOString() } : n
     ))
-    try { await service.markOneRead(id) } catch { /* silent */ }
-  }, [])
+    await markAsRead(id)
+  }, [markAsRead])
 
+  // Gọi markAllAsReadCtx từ context → reset unreadCount về 0 ở Header & Sidebar
   const markAllRead = useCallback(async () => {
-    setItems(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })))
-    try { await service.markAllRead() } catch { load() }
-  }, [load])
+    setItems(prev => prev.map(n => ({ ...n, read: true, readAt: new Date().toISOString() })))
+    await markAllAsReadCtx()
+  }, [markAllAsReadCtx])
 
   const toggleStar = useCallback((id: string) => {
     setStarred(prev => {
@@ -135,8 +138,9 @@ export default function CandidateNotificationsPage() {
     tab,
   )
 
+  // Dùng n.read (field chuẩn của NotificationItem) — không dùng n.isRead
   const todayUnread = items.filter(n => {
-    if (n.isRead) return false
+    if (n.read) return false
     const d = new Date(n.createdAt), now = new Date()
     return (
       d.getDate()     === now.getDate()   &&
@@ -148,7 +152,7 @@ export default function CandidateNotificationsPage() {
   const tabCount = (key: NotificationTab) =>
     key === "ALL" ? items.length : items.filter(n => typeToTab(n.type) === key).length
 
-  // ─── Render 
+  // ─── Render ──────────────
   return (
     <div className="mx-auto">
       <div className="mb-6">
