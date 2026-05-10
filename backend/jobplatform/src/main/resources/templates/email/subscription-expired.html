@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Gói dịch vụ đã hết hạn</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff;
+                 border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header { background: #dc2626; padding: 32px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; }
+    .body { padding: 32px; color: #374151; line-height: 1.6; }
+    .warn-box { background: #fef2f2; border: 1px solid #fecaca;
+                border-radius: 8px; padding: 16px 20px; margin: 20px 0; color: #991b1b; }
+    .btn { display: inline-block; margin: 24px 0; padding: 12px 32px;
+           background: #dc2626; color: #fff; text-decoration: none;
+           border-radius: 6px; font-weight: bold; }
+    .footer { background: #f9fafb; padding: 20px 32px;
+              text-align: center; font-size: 12px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>⚠ Gói dịch vụ đã hết hạn</h1>
+  </div>
+  <div class="body">
+    <p>Xin chào <strong th:text="${fullName}">Công ty</strong>,</p>
+    <p>Gói dịch vụ <strong th:text="${planCode}">BASIC</strong> của bạn đã hết hạn vào
+       <strong th:text="${expiredAt}">00:00 01/01/2025</strong>.</p>
+    <div class="warn-box">
+      Các tin tuyển dụng đang chạy có thể bị tạm ngừng hiển thị. Vui lòng gia hạn để tiếp tục sử dụng dịch vụ.
+    </div>
+    <p>Gia hạn ngay để không bỏ lỡ ứng viên tiềm năng:</p>
+    <a th:href="${renewLink}" class="btn">Gia hạn ngay</a>
+    <p>Cần hỗ trợ? Liên hệ <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support</a>.</p>
+  </div>
+  <div class="footer">
+    © 2025 JobPlatform. Mọi quyền được bảo lưu.
+  </div>
+</div>
+</body>
+</html>

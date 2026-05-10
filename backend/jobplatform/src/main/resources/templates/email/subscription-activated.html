@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Gói dịch vụ đã kích hoạt</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff;
+                 border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header { background: #2563eb; padding: 32px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; }
+    .body { padding: 32px; color: #374151; line-height: 1.6; }
+    .plan-box { background: #eff6ff; border: 1px solid #bfdbfe;
+                border-radius: 8px; padding: 20px; margin: 20px 0; }
+    .plan-row { display: flex; justify-content: space-between;
+                padding: 6px 0; border-bottom: 1px solid #dbeafe; }
+    .plan-row:last-child { border-bottom: none; }
+    .label { color: #6b7280; }
+    .btn { display: inline-block; margin: 24px 0; padding: 12px 32px;
+           background: #2563eb; color: #fff; text-decoration: none;
+           border-radius: 6px; font-weight: bold; }
+    .footer { background: #f9fafb; padding: 20px 32px;
+              text-align: center; font-size: 12px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎉 Gói dịch vụ đã được kích hoạt</h1>
+  </div>
+  <div class="body">
+    <p>Xin chào <strong th:text="${fullName}">Công ty</strong>,</p>
+    <p>Gói dịch vụ của bạn đã được kích hoạt thành công. Bạn có thể bắt đầu đăng tin tuyển dụng ngay.</p>
+    <div class="plan-box">
+      <div class="plan-row">
+        <span class="label">Gói dịch vụ</span>
+        <span th:text="${planName}">BASIC</span>
+      </div>
+      <div class="plan-row">
+        <span class="label">Số tin đăng tuyển</span>
+        <span th:text="${jobPostLimit} + ' tin'">10 tin</span>
+      </div>
+      <div class="plan-row">
+        <span class="label">Hiệu lực đến</span>
+        <span th:text="${expiresAt}">00:00 01/01/2026</span>
+      </div>
+    </div>
+    <a th:href="${dashboardLink}" class="btn">Vào Dashboard</a>
+    <p>Cần hỗ trợ? Liên hệ <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support</a>.</p>
+  </div>
+  <div class="footer">
+    © 2025 JobPlatform. Mọi quyền được bảo lưu.
+  </div>
+</div>
+</body>
+</html>
