@@ -149,7 +149,7 @@ services:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://${EC2_IP}/api/v1
       # Browser kết nối thẳng tới LiveKit Cloud — không qua EC2
-      NEXT_PUBLIC_LIVEKIT_URL: ${LIVEKIT_URL}
+      NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL}
     expose:
       - "3000"
     networks:
@@ -181,3 +181,26 @@ services:
       - ./nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - jobplatform-net
+
+
+  # ── LiveKit Server ─
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: jobplatform-livekit-dev
+    restart: unless-stopped
+    command: >
+      --dev
+      --bind 0.0.0.0
+      --port 7880
+    ports:
+      - "7880:7880"           # HTTP/WebSocket API
+      - "7881:7881/tcp"       # RTC TCP
+      - "50200-50300:50200-50300/udp"  # RTC UDP media
+    networks:
+      - jobplatform-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7880 || exit 0"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
