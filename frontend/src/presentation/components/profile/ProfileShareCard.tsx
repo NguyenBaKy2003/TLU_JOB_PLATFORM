@@ -52,7 +52,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+      <h3 className="text-[16px] font-semibold text-gray-900 mb-1">
         Đường dẫn hồ sơ của bạn
       </h3>
       <p className="text-xs text-gray-500 mb-4">
@@ -116,7 +116,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
             href={fullUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline truncate flex-1 min-w-0"
+            className="text-[16px] text-blue-600 hover:underline truncate flex-1 min-w-0"
           >
             {profileUrl}
           </a>
@@ -134,7 +134,7 @@ export default function ProfileShareCard({ profileUrl, onUpdateUrl }: Props) {
       {/* Copy button */}
       <button
         onClick={handleCopy}
-        className={`w-full flex items-center justify-center gap-2 py-2.5 text-sm
+        className={`w-full flex items-center justify-center gap-2 py-2.5 text-[16px]
           font-medium rounded-lg border transition-all ${
             copied
               ? "border-green-400 text-green-600 bg-green-50"

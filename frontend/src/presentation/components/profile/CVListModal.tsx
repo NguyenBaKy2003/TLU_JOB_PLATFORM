@@ -79,7 +79,7 @@ function CVRow({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-medium text-gray-800 truncate">
+          <p className="text-[16px] font-medium text-gray-800 truncate">
             {shortTitle(cv.title)}
           </p>
           {cv.primary && (
@@ -174,7 +174,7 @@ export default function CVListModal({
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <ListVideo size={18} className="text-blue-600" />
-            <h2 className="text-sm font-semibold text-gray-900">Danh sách CV của tôi</h2>
+            <h2 className="text-[16px] font-semibold text-gray-900">Danh sách CV của tôi</h2>
             {!loading && (
               <span className="px-2 py-0.5 text-[10px] font-medium text-gray-500
                 bg-gray-100 rounded-full">
@@ -202,7 +202,7 @@ export default function CVListModal({
               <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-xl">
                 <FileText size={22} className="text-gray-400" />
               </div>
-              <p className="text-sm text-gray-400">Chưa có CV nào</p>
+              <p className="text-[16px] text-gray-400">Chưa có CV nào</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">

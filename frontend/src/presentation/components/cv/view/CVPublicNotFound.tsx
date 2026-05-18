@@ -20,21 +20,21 @@ export function CVPublicNotFound() {
         <h1 className="text-xl font-black text-gray-800 mb-2">
           Không tìm thấy CV
         </h1>
-        <p className="text-sm text-gray-500 leading-relaxed mb-8">
+        <p className="text-[16px] text-gray-500 leading-relaxed mb-8">
           CV này không tồn tại, đã bị xóa, hoặc chủ sở hữu đã đặt chế độ riêng tư.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-[16px] font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Quay lại
           </button>
           <Link
             href="/"
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#3D5A80] hover:bg-[#2E4565] rounded-xl transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-[16px] font-semibold text-white bg-[#3D5A80] hover:bg-[#2E4565] rounded-xl transition-colors"
           >
             Về trang chủ
           </Link>

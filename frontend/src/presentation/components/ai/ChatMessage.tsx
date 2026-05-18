@@ -22,7 +22,7 @@ export function ChatMessageItem({ role, content, createdAt }: Props) {
 
       {/* Bubble */}
       <div className={`max-w-[75%] flex flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}>
-        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap
+        <div className={`px-4 py-2.5 rounded-2xl text-[16px] leading-relaxed whitespace-pre-wrap
           ${isUser
             ? "bg-blue-600 text-white rounded-tr-sm"
             : "bg-white text-gray-800 rounded-tl-sm shadow-sm border border-gray-100"}`}>

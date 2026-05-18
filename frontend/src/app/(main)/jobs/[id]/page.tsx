@@ -220,8 +220,8 @@ export default function JobDetailPage() {
   if (error || !job) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
-        <p className="text-sm text-red-500 text-center">{error ?? "Không tìm thấy việc làm"}</p>
-        <Link href="/jobs" className="text-sm text-blue-600 hover:underline">← Quay lại tìm kiếm</Link>
+        <p className="text-[16px] text-red-500 text-center">{error ?? "Không tìm thấy việc làm"}</p>
+        <Link href="/jobs" className="text-[16px] text-blue-600 hover:underline">← Quay lại tìm kiếm</Link>
       </div>
     );
   }
@@ -245,7 +245,7 @@ export default function JobDetailPage() {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800
+          className="flex items-center gap-1.5 text-[16px] text-gray-500 hover:text-gray-800
             transition-colors mb-5 sm:mb-6"
         >
           <ChevronLeft size={16} /> Quay lại kết quả tìm kiếm

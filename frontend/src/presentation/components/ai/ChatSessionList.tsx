@@ -18,7 +18,7 @@ export function ChatSessionList({
       <button
         onClick={onNew}
         className="flex items-center gap-2 mx-3 mt-3 mb-2 px-3 py-2.5
-          bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+          bg-blue-600 hover:bg-blue-700 text-white text-[16px] font-medium
           rounded-xl transition-colors"
       >
         <Plus className="w-4 h-4" />
@@ -37,7 +37,7 @@ export function ChatSessionList({
             key={s.id}
             onClick={() => onSelect(s.id)}
             className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer
-              transition-colors text-sm
+              transition-colors text-[16px]
               ${activeSessionId === s.id
                 ? "bg-blue-50 text-blue-700"
                 : "hover:bg-gray-100 text-gray-700"}`}

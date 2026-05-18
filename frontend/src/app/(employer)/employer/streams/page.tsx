@@ -76,7 +76,7 @@ export default function EmployerStreamDashboard() {
 
         <button
             onClick={() => router.push("/employer/streams/create")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-800 text-white text-sm font-semibold rounded-xl hover:bg-blue-900 shrink-0"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-800 text-white text-[16px] font-semibold rounded-xl hover:bg-blue-900 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Tạo phiên mới</span>

@@ -58,7 +58,7 @@ export function CategoriesSection() {
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <p className="font-semibold text-white mb-1">{cat.label}</p>
-                  <p className="text-white/40 text-sm">{cat.count} việc làm</p>
+                  <p className="text-white/40 text-[16px]">{cat.count} việc làm</p>
                 </Link>
               </motion.div>
             );

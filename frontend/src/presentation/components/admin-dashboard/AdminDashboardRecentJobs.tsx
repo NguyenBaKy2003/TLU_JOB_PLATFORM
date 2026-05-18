@@ -22,14 +22,14 @@ export function AdminDashboardRecentJobs() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-bold text-gray-900">Tin đăng gần đây</h2>
+        <h2 className="text-[16px] font-bold text-gray-900">Tin đăng gần đây</h2>
         <Link href="/admin/jobs"
           className="flex items-center gap-1 text-xs text-red-600 font-medium hover:underline">
           Xem tất cả <ChevronRight size={13} />
         </Link>
       </div>
 
-      <table className="w-full text-sm">
+      <table className="w-full text-[16px]">
         <thead>
           <tr className="text-xs text-gray-400 font-medium border-b border-gray-100">
             {["Vị trí", "Công ty", "Trạng thái", "Ứng tuyển", "Thao tác"].map(h => (

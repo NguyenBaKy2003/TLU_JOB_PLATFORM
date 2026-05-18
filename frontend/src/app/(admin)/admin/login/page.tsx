@@ -23,14 +23,14 @@ function FormInput({
         ${error
           ? "border-red-400 bg-red-50"
           : "border-gray-300 focus-within:border-red-500"}`}>
-        <label className={`absolute -top-2.5 left-3 bg-white px-1 text-sm leading-none
+        <label className={`absolute -top-2.5 left-3 bg-white px-1 text-[16px] leading-none
           ${error ? "text-red-500" : "text-gray-800"}`}>
           {label}<span className="text-red-500 ml-0.5">*</span>
         </label>
         <div className="relative">
           <input
             {...props}
-            className="w-full bg-transparent text-sm text-gray-700 placeholder-gray-400
+            className="w-full bg-transparent text-[16px] text-gray-700 placeholder-gray-400
               outline-none pr-8"
           />
           {rightElement && (
@@ -123,7 +123,7 @@ export default function AdminLoginPage() {
             <Shield size={28} className="text-white" />
           </div>
           <h1 className="text-xl font-bold text-gray-900">Joblin Admin</h1>
-          <p className="text-sm text-gray-500 mt-1">Đăng nhập vào trang quản trị</p>
+          <p className="text-[16px] text-gray-500 mt-1">Đăng nhập vào trang quản trị</p>
         </div>
 
         {/* Form card */}
@@ -131,7 +131,7 @@ export default function AdminLoginPage() {
 
           {apiError && (
             <div className="flex items-start gap-2.5 p-3 bg-red-50 border border-red-100
-              rounded-xl mb-5 text-sm text-red-700">
+              rounded-xl mb-5 text-[16px] text-red-700">
               <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
               {apiError}
             </div>
@@ -180,7 +180,7 @@ export default function AdminLoginPage() {
               type="submit"
               disabled={busy}
               className="w-full flex items-center justify-center gap-2 py-3 bg-red-600
-                text-white text-sm font-semibold rounded-xl hover:bg-red-700
+                text-white text-[16px] font-semibold rounded-xl hover:bg-red-700
                 disabled:opacity-60 disabled:cursor-not-allowed transition-colors
                 shadow-sm shadow-red-200"
             >

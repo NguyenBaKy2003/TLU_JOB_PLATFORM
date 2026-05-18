@@ -72,7 +72,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ví dụ: CV Frontend Developer 2025"
                 className="
-                  w-full px-4 py-2.5 text-sm text-gray-900
+                  w-full px-4 py-2.5 text-[16px] text-gray-900
                   border border-gray-200 rounded-xl
                   focus:outline-none focus:ring-2 focus:ring-[#3D5A80]/30 focus:border-[#3D5A80]
                   placeholder:text-gray-300 transition-all
@@ -90,7 +90,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
               </label>
 
               {templates.length === 0 ? (
-                <p className="text-sm text-gray-400 py-6 text-center">Không có template khả dụng</p>
+                <p className="text-[16px] text-gray-400 py-6 text-center">Không có template khả dụng</p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {templates.map((tpl) => (
@@ -112,7 +112,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
               type="button"
               onClick={onClose}
               disabled={creating}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-[16px] font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
             >
               Hủy
             </button>
@@ -122,7 +122,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
               className="
                 flex items-center gap-2 px-5 py-2.5
                 bg-[#3D5A80] hover:bg-[#2E4565]
-                text-white text-sm font-semibold rounded-xl
+                text-white text-[16px] font-semibold rounded-xl
                 transition-all duration-150 shadow-sm
                 disabled:opacity-50 disabled:cursor-not-allowed
                 active:scale-95

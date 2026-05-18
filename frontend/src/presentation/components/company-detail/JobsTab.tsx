@@ -36,7 +36,7 @@ function JobCard({ job, companyName }: { job: Job; companyName: string }) {
       <CompanyAvatar name={companyName} size={44} />
       <div className="flex-1 min-w-0">
         <p className="text-[11px] text-gray-400 mb-0.5">{companyName}</p>
-        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{job.title}</h3>
+        <h3 className="text-[16px] font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{job.title}</h3>
         <div className="flex flex-wrap items-center gap-1.5 my-2">
           {job.tags.map(tag => (
             <span key={tag} className={`px-2 py-0.5 text-[11px] font-medium rounded-full border ${TAG_STYLES[tag] ?? "bg-gray-50 text-gray-600 border-gray-200"}`}>
@@ -50,7 +50,7 @@ function JobCard({ job, companyName }: { job: Job; companyName: string }) {
         </div>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-bold text-blue-600">{job.salary}</p>
+        <p className="text-[16px] font-bold text-blue-600">{job.salary}</p>
       </div>
     </Link>
   );
@@ -64,7 +64,7 @@ export function JobsTab({ company, jobs = [] }: Props) {
           <h2 className="text-lg font-bold text-gray-900">Việc làm đang tuyển</h2>
         </div>
         <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
-          <p className="text-sm text-gray-400">Chưa có tin tuyển dụng nào</p>
+          <p className="text-[16px] text-gray-400">Chưa có tin tuyển dụng nào</p>
         </div>
       </div>
     );
@@ -74,7 +74,7 @@ export function JobsTab({ company, jobs = [] }: Props) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-bold text-gray-900">Việc làm đang tuyển</h2>
-        <Link href={`/jobs?company=${company.id}`} className="text-sm text-blue-600 hover:underline font-medium flex items-center gap-1">
+        <Link href={`/jobs?company=${company.id}`} className="text-[16px] text-blue-600 hover:underline font-medium flex items-center gap-1">
           Xem tất cả →
         </Link>
       </div>

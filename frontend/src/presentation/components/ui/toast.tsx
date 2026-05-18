@@ -196,7 +196,7 @@ function ToastItem({
         {/* Text content */}
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="flex items-center gap-2 mb-1">
-            <p className={`font-semibold text-sm ${config.text}`}>
+            <p className={`font-semibold text-[16px] ${config.text}`}>
               {toast.title}
             </p>
             {/* Type badge */}
@@ -209,7 +209,7 @@ function ToastItem({
                toast.type === 'success' ? 'Thành công' : 'Thông tin'}
             </span>
           </div>
-          <p className={`text-sm leading-relaxed ${config.subText}`}>
+          <p className={`text-[16px] leading-relaxed ${config.subText}`}>
             {toast.message}
           </p>
         </div>
@@ -395,9 +395,9 @@ export function Toast({
         </div>
         
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold text-sm ${config.text}`}>{title}</p>
+          <p className={`font-semibold text-[16px] ${config.text}`}>{title}</p>
           {message && (
-            <p className={`text-sm mt-1 ${config.subText}`}>{message}</p>
+            <p className={`text-[16px] mt-1 ${config.subText}`}>{message}</p>
           )}
         </div>
 

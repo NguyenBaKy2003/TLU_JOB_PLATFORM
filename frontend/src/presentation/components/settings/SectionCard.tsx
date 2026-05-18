@@ -6,7 +6,7 @@ export function SectionCard({
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-50">
         <span className="text-gray-400">{icon}</span>
-        <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
+        <h2 className="text-[16px] font-semibold text-gray-800">{title}</h2>
       </div>
       <div className="px-6 py-5">{children}</div>
     </div>

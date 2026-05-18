@@ -30,7 +30,7 @@ export function PaymentTable<T extends AnyPayment>({
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
         py-16 flex flex-col items-center gap-2 text-gray-400">
         <Users size={32} strokeWidth={1.2} />
-        <p className="text-sm">{emptyLabel}</p>
+        <p className="text-[16px]">{emptyLabel}</p>
       </div>
     );
   }
@@ -38,7 +38,7 @@ export function PaymentTable<T extends AnyPayment>({
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-[16px]">
           <thead>
             <tr className="border-b border-gray-50 bg-gray-50/60">
               {columns.map(col => (

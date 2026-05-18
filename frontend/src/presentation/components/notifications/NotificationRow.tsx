@@ -63,7 +63,7 @@ export function NotificationRow({ notif, selected, onToggle, onMarkRead, onToggl
 
       {/* Content */}
       <div className="flex-1 min-w-0" onClick={handleClick}>
-        <p className={`text-sm leading-snug mb-0.5
+        <p className={`text-[16px] leading-snug mb-0.5
           ${notif.read ? "text-gray-600" : "text-gray-900 font-semibold"}`}>
           {notif.title}
         </p>

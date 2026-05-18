@@ -10,7 +10,7 @@ interface StarRatingProps {
 export function StarRating({ value, size = "md", showValue = true }: StarRatingProps) {
   const sizes = {
     sm: { star: 12, text: "text-xs" },
-    md: { star: 14, text: "text-sm" },
+    md: { star: 14, text: "text-[16px]" },
     lg: { star: 16, text: "text-base" }
   };
   

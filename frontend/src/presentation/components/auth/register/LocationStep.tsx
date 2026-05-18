@@ -64,7 +64,7 @@ export function LocationStep({ onNext, onSkip }: LocationStepProps) {
             placeholder="Nhập vị trí của bạn"
             value={location}
             onChange={e => { setLocation(e.target.value); setError(""); }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-[16px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
           />
         </div>
 
@@ -91,7 +91,7 @@ export function LocationStep({ onNext, onSkip }: LocationStepProps) {
             placeholder="Nhập mã bưu chính"
             value={postalCode}
             onChange={e => setPostalCode(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-[16px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
           />
         </div>
 
@@ -105,7 +105,7 @@ export function LocationStep({ onNext, onSkip }: LocationStepProps) {
       <button
         type="button"
         onClick={onSkip}
-        className="w-full text-center text-sm text-gray-500 hover:text-gray-700 mt-3 transition-colors"
+        className="w-full text-center text-[16px] text-gray-500 hover:text-gray-700 mt-3 transition-colors"
       >
         Bỏ qua
       </button>

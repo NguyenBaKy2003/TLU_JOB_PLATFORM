@@ -7,10 +7,10 @@ import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 
 function LimitCell({ value }: { value: number }) {
   return value === -1
-    ? <span className="flex items-center gap-1 text-blue-600 font-semibold text-sm">
+    ? <span className="flex items-center gap-1 text-blue-600 font-semibold text-[16px]">
         <Infinity size={14} /> Unlimited
       </span>
-    : <span className="text-sm font-semibold text-gray-800">{value.toLocaleString()}</span>;
+    : <span className="text-[16px] font-semibold text-gray-800">{value.toLocaleString()}</span>;
 }
 
 function FeatureIcon({ enabled }: { enabled: boolean }) {
@@ -46,7 +46,7 @@ function PlanRow({ plan, onEdit, onToggle, formatPrice, toggling }: {
                 px-1.5 py-0.5 rounded-full font-semibold">Tắt</span>
             )}
           </div>
-          <p className="text-sm font-semibold text-gray-900">{plan.name}</p>
+          <p className="text-[16px] font-semibold text-gray-900">{plan.name}</p>
           {plan.description && (
             <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{plan.description}</p>
           )}
@@ -55,7 +55,7 @@ function PlanRow({ plan, onEdit, onToggle, formatPrice, toggling }: {
 
       {/* Price */}
       <td className="px-5 py-4">
-        <p className="text-sm font-semibold text-gray-900">
+        <p className="text-[16px] font-semibold text-gray-900">
           {formatPrice(plan.priceMonthly)}
           <span className="text-gray-400 font-normal text-[11px]">/tháng</span>
         </p>
@@ -66,7 +66,7 @@ function PlanRow({ plan, onEdit, onToggle, formatPrice, toggling }: {
       </td>
 
       {/* Duration */}
-      <td className="px-5 py-4 text-sm text-gray-700">{plan.durationDays} ngày</td>
+      <td className="px-5 py-4 text-[16px] text-gray-700">{plan.durationDays} ngày</td>
 
       {/* Quotas */}
       <td className="px-5 py-4"><LimitCell value={plan.jobPostLimit}     /></td>
@@ -138,7 +138,7 @@ export function PlanTable({ plans, togglingId, onEdit, onToggle, formatPrice }: 
           <tbody>
             {plans.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-5 py-16 text-center text-sm text-gray-400">
+                <td colSpan={9} className="px-5 py-16 text-center text-[16px] text-gray-400">
                   Chưa có gói nào
                 </td>
               </tr>

@@ -6,7 +6,7 @@ export function DashboardSchedule() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-gray-900">Lịch trình</h3>
+        <h3 className="text-[16px] font-bold text-gray-900">Lịch trình</h3>
         <button className="w-7 h-7 flex items-center justify-center rounded-lg
           hover:bg-gray-100 text-gray-400 transition-colors">
           <Calendar size={14} />
@@ -23,7 +23,7 @@ export function DashboardSchedule() {
                 : "hover:bg-gray-100 text-gray-500"
             }`}>
             <span className="text-[10px] font-medium mb-1 opacity-70">{d.label}</span>
-            <span className="text-sm font-bold">{d.date}</span>
+            <span className="text-[16px] font-bold">{d.date}</span>
           </button>
         ))}
       </div>

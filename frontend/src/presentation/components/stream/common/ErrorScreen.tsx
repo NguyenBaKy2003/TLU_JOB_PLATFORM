@@ -20,12 +20,12 @@ export function ErrorScreen({
       </div>
       <div>
         <h2 className="text-lg font-semibold text-slate-800 mb-2">{message}</h2>
-        <p className="text-sm text-slate-500">{subMessage}</p>
+        <p className="text-[16px] text-slate-500">{subMessage}</p>
       </div>
       {onBack && (
         <button
           onClick={onBack}
-          className="bg-blue-500 text-white border-none rounded-[10px] px-7 py-2.5 text-sm font-medium cursor-pointer hover:bg-blue-600"
+          className="bg-blue-500 text-white border-none rounded-[10px] px-7 py-2.5 text-[16px] font-medium cursor-pointer hover:bg-blue-600"
         >
           Thử lại
         </button>

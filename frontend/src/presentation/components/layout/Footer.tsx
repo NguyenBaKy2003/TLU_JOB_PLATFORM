@@ -58,7 +58,7 @@ export function Footer() {
             <Link href="/" className="inline-block mb-4">
               <img src="/Logo.svg" alt="Job" className="h-10 w-auto" />
             </Link>
-            <p className="text-sm text-gray-500 leading-relaxed mb-6">
+            <p className="text-[16px] text-gray-500 leading-relaxed mb-6">
               Job là nền tảng tuyển dụng và tìm kiếm việc làm thông minh, giúp
               kết nối ứng viên với nhà tuyển dụng hàng đầu. Với bộ công cụ tìm
               kiếm nhanh, tính năng tạo CV chuyên nghiệp và thuật toán kết nối
@@ -70,13 +70,13 @@ export function Footer() {
 
           {/* ── Col 2: Dịch vụ  */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Dịch vụ</h3>
+            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">Dịch vụ</h3>
             <ul className="space-y-2.5">
               {SERVICES.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                    className="text-[16px] text-gray-500 hover:text-blue-600 transition-colors"
                   >
                     {label}
                   </Link>
@@ -87,13 +87,13 @@ export function Footer() {
 
           {/* ── Col 3: Liên kết ────────────── */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Liên kết</h3>
+            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">Liên kết</h3>
             <ul className="space-y-2.5">
               {LINKS.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                    className="text-[16px] text-gray-500 hover:text-blue-600 transition-colors"
                   >
                     {label}
                   </Link>
@@ -104,7 +104,7 @@ export function Footer() {
 
           {/* ── Col 4: Liên hệ  */}
           <div >
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">
               Liên hệ với chúng mình
             </h3>
 
@@ -122,11 +122,11 @@ export function Footer() {
               ))}
             </div>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2.5 text-sm text-gray-500">
+              <li className="flex items-start gap-2.5 text-[16px] text-gray-500">
                 <MapPin size={16} className="text-blue-500  mt-0.5" />
                 <span>140, Nguyễn Trãi, Hà Nội</span>
               </li>
-              <li className="flex items-center gap-2.5 text-sm text-gray-500">
+              <li className="flex items-center gap-2.5 text-[16px] text-gray-500">
                 <Phone size={16} className="text-blue-500 " />
                 <span>1(647)558-5560</span>
               </li>

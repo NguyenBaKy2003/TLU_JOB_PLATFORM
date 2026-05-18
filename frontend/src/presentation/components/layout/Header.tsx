@@ -11,7 +11,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth }      from "@/application/contexts/AuthContext";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { NotificationPanel } from "@/presentation/components/shared/NotificationPanel";
-
+import { AISearchBox } from "@/presentation/components/ai/AISearchBox";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
@@ -68,7 +68,6 @@ export function Header() {
 
   const [scrolled,     setScrolled]     = useState(false);
   const [searchOpen,   setSearchOpen]   = useState(false);
-  const [searchVal,    setSearchVal]    = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
@@ -76,7 +75,6 @@ export function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef    = useRef<HTMLDivElement>(null);
   const searchRef   = useRef<HTMLDivElement>(null);
-  const searchInput = useRef<HTMLInputElement>(null);
 
   // Shadow on scroll
   useEffect(() => {
@@ -99,10 +97,7 @@ export function Header() {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  // Focus search input when opened
-  useEffect(() => {
-    if (searchOpen) setTimeout(() => searchInput.current?.focus(), 50);
-  }, [searchOpen]);
+
 
   // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); }, [pathname]);
@@ -172,22 +167,17 @@ export function Header() {
                 {searchOpen ? <X size={18} /> : <Search size={18} />}
               </button>
 
-              {searchOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] w-72 bg-white border
-                  border-gray-200 rounded-xl shadow-lg p-2 flex items-center gap-2
-                  animate-in fade-in slide-in-from-top-1 duration-150">
-                  <Search size={16} className="text-gray-400 flex-shrink-0 ml-1" />
-                  <input
-                    ref={searchInput}
-                    value={searchVal}
-                    onChange={(e) => setSearchVal(e.target.value)}
-                    onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
-                    placeholder="Tìm kiếm việc làm..."
-                    className="flex-1 text-sm text-gray-700 placeholder-gray-400
-                      bg-transparent outline-none py-1.5"
-                  />
-                </div>
-              )}
+             {searchOpen && (
+                  <div
+                    className="absolute right-0 top-[calc(100%+8px)] w-80
+                      animate-in fade-in slide-in-from-top-1 duration-150"
+                  >
+                    <AISearchBox
+                      placeholder="Tìm kiếm việc làm..."
+                      onSearch={() => setSearchOpen(false)}
+                    />
+                  </div>
+                )}
             </div>
 
             {/* ── Notification bell (logged-in only) ──────────────────────── */}
@@ -241,7 +231,7 @@ export function Header() {
                 {!isEmployer ? (
                   <Link
                     href="/employer"
-                    className="hidden lg:block text-sm font-medium text-gray-600
+                    className="hidden lg:block text-[16px] font-medium text-gray-600
                       hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
                   >
                     Nhà tuyển dụng
@@ -249,7 +239,7 @@ export function Header() {
                 ) : (
                   <Link
                     href="/jobs"
-                    className="hidden lg:block text-sm font-medium text-gray-600
+                    className="hidden lg:block text-[16px] font-medium text-gray-600
                       hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
                   >
                     Tìm việc làm
@@ -295,7 +285,7 @@ export function Header() {
                       <div className="px-4 py-3 border-b border-gray-50">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-[16px] font-semibold text-gray-900 truncate">
                               {user.fullName}
                             </p>
                             <p className="text-xs text-gray-400 mt-0.5 truncate">
@@ -315,7 +305,7 @@ export function Header() {
                             key={href}
                             href={href}
                             onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
                               text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                           >
                             <Icon size={15} className="text-gray-400 shrink-0" />
@@ -328,7 +318,7 @@ export function Header() {
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl
-                            text-sm text-red-500 hover:bg-red-50 transition-colors"
+                            text-[16px] text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <LogOut size={15} />
                           Đăng xuất
@@ -343,14 +333,14 @@ export function Header() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 px-4 py-2
+                  className="text-[16px] font-medium text-gray-600 hover:text-blue-600 px-4 py-2
                     rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="text-sm font-semibold text-white px-4 py-2 rounded-xl
+                  className="text-[16px] font-semibold text-white px-4 py-2 rounded-xl
                     bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
                     shadow-sm shadow-blue-200"
                 >
@@ -400,14 +390,14 @@ export function Header() {
                 <Link
                   href="/auth/login"
                   className="flex-1 text-center py-2.5 border border-gray-200 rounded-xl
-                    text-sm font-semibold text-gray-700"
+                    text-[16px] font-semibold text-gray-700"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/auth/signup"
                   className="flex-1 text-center py-2.5 bg-blue-600 rounded-xl
-                    text-sm font-semibold text-white"
+                    text-[16px] font-semibold text-white"
                 >
                   Đăng ký
                 </Link>
@@ -420,7 +410,7 @@ export function Header() {
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
                       text-gray-600 hover:bg-gray-50"
                   >
                     <Icon size={15} className="text-gray-400" />
@@ -430,7 +420,7 @@ export function Header() {
                 <div className="h-px bg-gray-100 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 w-full px-3 py-3 rounded-xl text-sm
+                  className="flex items-center gap-2 w-full px-3 py-3 rounded-xl text-[16px]
                     text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={15} />

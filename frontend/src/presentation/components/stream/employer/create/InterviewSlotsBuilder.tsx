@@ -55,7 +55,7 @@ export function InterviewSlotsBuilder({ slots, onChange }: InterviewSlotsBuilder
                 type="datetime-local"
                 value={slot.startTime}
                 onChange={(e) => updateSlot(i, { startTime: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[16px] text-slate-700 bg-white outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
               />
             </div>
             <div>
@@ -65,7 +65,7 @@ export function InterviewSlotsBuilder({ slots, onChange }: InterviewSlotsBuilder
               <select
                 value={slot.durationMinutes}
                 onChange={(e) => updateSlot(i, { durationMinutes: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[16px] text-slate-700 bg-white outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
               >
                 {DURATION_OPTIONS.map((m) => (
                   <option key={m} value={m}>{m} phút</option>
@@ -90,7 +90,7 @@ export function InterviewSlotsBuilder({ slots, onChange }: InterviewSlotsBuilder
       <button
         type="button"
         onClick={addSlot}
-        className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 text-sm font-medium hover:border-slate-300 hover:text-slate-500 transition-all flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 text-[16px] font-medium hover:border-slate-300 hover:text-slate-500 transition-all flex items-center justify-center gap-2"
       >
         <Plus className="w-4 h-4" />
         Thêm slot phỏng vấn

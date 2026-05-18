@@ -98,7 +98,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
       <form onSubmit={handleSubmit}>
         {/* Label row */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-[16px] font-semibold text-gray-800">
             Tải lên CV
           </span>
           <a href="#" className="text-[11px] text-blue-600 hover:underline">
@@ -157,7 +157,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
                 </svg>
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-800 max-w-[200px] truncate">
+                <p className="text-[16px] font-medium text-gray-800 max-w-[200px] truncate">
                   {file.name}
                 </p>
                 <p className="text-xs text-gray-500">{formatSize(file.size)}</p>
@@ -220,7 +220,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full mt-3 py-2.5 border border-blue-500 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors"
+          className="w-full mt-3 py-2.5 border border-blue-500 text-blue-600 text-[16px] font-medium rounded-lg hover:bg-blue-50 transition-colors"
         >
           Tải lên CV
         </button>
@@ -236,7 +236,7 @@ export function UploadCvStep({ onComplete, onSkip }: UploadCvStepProps) {
       <button
         type="button"
         onClick={onSkip}
-        className="w-full text-center text-sm text-gray-500 hover:text-gray-700 mt-3 transition-colors"
+        className="w-full text-center text-[16px] text-gray-500 hover:text-gray-700 mt-3 transition-colors"
       >
         Bỏ qua
       </button>

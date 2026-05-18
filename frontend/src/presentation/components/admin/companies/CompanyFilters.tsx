@@ -26,7 +26,7 @@ export function CompanyFilters({ status, totalElements, onStatus, onReset }: Pro
       {/* Icon + label */}
       <div className="flex items-center gap-2 text-gray-400 shrink-0">
         <Building2 size={16} />
-        <span className="text-sm font-medium text-gray-500">
+        <span className="text-[16px] font-medium text-gray-500">
           {totalElements.toLocaleString()} công ty
         </span>
       </div>

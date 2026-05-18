@@ -45,7 +45,7 @@ export function ErrorAlert({
     >
       <AlertCircle className={`w-5 h-5 ${colorScheme.icon} flex-shrink-0 mt-0.5`} />
       <div className="flex-1">
-        <p className={`text-sm ${colorScheme.text}`}>{message}</p>
+        <p className={`text-[16px] ${colorScheme.text}`}>{message}</p>
       </div>
       {onClose && (
         <button
@@ -71,11 +71,11 @@ export function InactiveAccountAlert({ message, onClose }: InactiveAccountAlertP
       <div className="flex items-start">
         <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-red-800 mb-1">
+          <h3 className="text-[16px] font-semibold text-red-800 mb-1">
             Tài khoản bị vô hiệu hóa
           </h3>
-          <p className="text-sm text-red-700">{message}</p>
-          <p className="text-sm text-red-600 mt-2">
+          <p className="text-[16px] text-red-700">{message}</p>
+          <p className="text-[16px] text-red-600 mt-2">
             Vui lòng liên hệ quản trị viên để được hỗ trợ.
           </p>
         </div>

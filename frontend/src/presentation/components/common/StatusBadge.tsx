@@ -98,7 +98,7 @@ const statusConfig: Record<StatusType, { bg: string; text: string; border: strin
 
 const sizeClasses = {
   sm: 'px-2 py-0.5 text-xs gap-1',
-  md: 'px-2.5 py-1 text-sm gap-1.5',
+  md: 'px-2.5 py-1 text-[16px] gap-1.5',
   lg: 'px-3 py-1.5 text-base gap-2'
 };
 
@@ -158,7 +158,7 @@ export const DotStatusBadge: React.FC<DotStatusBadgeProps> = ({
   
   const sizeClass = {
     sm: 'text-xs',
-    md: 'text-sm',
+    md: 'text-[16px]',
     lg: 'text-base'
   }[size];
   

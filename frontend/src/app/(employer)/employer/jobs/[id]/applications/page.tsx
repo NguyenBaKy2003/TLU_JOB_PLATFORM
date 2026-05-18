@@ -104,7 +104,7 @@ function CandidateCard({
       >
         <RankBadge rank={candidate.rank} />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate">{candidate.candidateName}</p>
+          <p className="text-[16px] font-semibold text-gray-800 truncate">{candidate.candidateName}</p>
           <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{candidate.verdict}</p>
         </div>
         <div className="text-right shrink-0">
@@ -189,7 +189,7 @@ function CompareResultModal({
             <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
               <GitCompareArrows size={14} className="text-blue-600" />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">Kết quả so sánh ứng viên</h2>
+            <h2 className="text-[16px] font-semibold text-gray-900">Kết quả so sánh ứng viên</h2>
           </div>
           <button
             onClick={onClose}
@@ -206,7 +206,7 @@ function CompareResultModal({
               <Trophy size={14} className="text-blue-600" />
               <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Gợi ý hàng đầu</span>
             </div>
-            <p className="text-sm text-gray-800 leading-relaxed">{result.topRecommendation}</p>
+            <p className="text-[16px] text-gray-800 leading-relaxed">{result.topRecommendation}</p>
           </div>
 
           {/* Rankings */}
@@ -386,7 +386,7 @@ const handleCompare = async () => {
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+          className="flex items-center gap-1.5 text-[16px] text-gray-500 hover:text-gray-800 transition-colors"
         >
           <ChevronLeft size={16} /> Quay lại
         </button>
@@ -407,7 +407,7 @@ const handleCompare = async () => {
 
       {/* Compare mode banner */}
       {compareMode && (
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-[16px]">
           <div className="flex items-center gap-2 text-blue-700">
             <GitCompareArrows size={14} />
             <span className="font-medium">Chế độ so sánh:</span>
@@ -469,7 +469,7 @@ const handleCompare = async () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm ứng viên..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200
+            className="w-full pl-9 pr-4 py-2 text-[16px] bg-white border border-gray-200
               rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
               focus:border-blue-400 placeholder:text-gray-300 transition-all"
           />
@@ -484,7 +484,7 @@ const handleCompare = async () => {
           shadow-sm overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-gray-50 flex items-center gap-2">
             <Users size={14} className="text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-[16px] font-medium text-gray-700">
               {filtered.length} ứng viên
             </span>
           </div>
@@ -501,7 +501,7 @@ const handleCompare = async () => {
                 </div>
               ))
             ) : filtered.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">
+              <div className="py-12 text-center text-[16px] text-gray-400">
                 Không có ứng viên
               </div>
             ) : (
@@ -565,7 +565,7 @@ const handleCompare = async () => {
             <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400
               bg-white rounded-2xl border border-gray-100 shadow-sm">
               <GitCompareArrows size={36} strokeWidth={1.2} className="text-blue-300" />
-              <p className="text-sm text-gray-500 font-medium">
+              <p className="text-[16px] text-gray-500 font-medium">
                 {compareIds.size === 0
                   ? "Tick vào ứng viên để thêm vào danh sách so sánh"
                   : compareIds.size === 1
@@ -600,7 +600,7 @@ const handleCompare = async () => {
             <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400
               bg-white rounded-2xl border border-gray-100 shadow-sm">
               <Users size={36} strokeWidth={1.2} />
-              <p className="text-sm">Chọn một ứng viên để xem chi tiết</p>
+              <p className="text-[16px]">Chọn một ứng viên để xem chi tiết</p>
             </div>
           )}
         </div>

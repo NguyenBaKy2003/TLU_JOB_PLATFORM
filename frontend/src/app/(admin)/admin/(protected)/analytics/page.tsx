@@ -265,7 +265,7 @@ function StatCard({ title, value, icon, color, children }: StatCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+        <h3 className="text-[16px] font-medium text-gray-500">{title}</h3>
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>{icon}</div>
       </div>
       <div className="text-2xl font-bold text-gray-900 mb-4">{value}</div>
@@ -283,9 +283,9 @@ interface StatDetailProps {
 function StatDetail({ label, value, highlight }: StatDetailProps) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-[16px] text-gray-500">{label}</span>
       <span
-        className={`text-sm font-medium ${
+        className={`text-[16px] font-medium ${
           highlight
             ? "text-red-600 bg-red-50 px-2 py-0.5 rounded"
             : "text-gray-900"
@@ -360,7 +360,7 @@ function UserGrowthChart() {
     <div className="space-y-2">
       {data.data.map((point, index) => (
         <div key={index} className="flex items-center gap-3">
-          <span className="text-sm text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
+          <span className="text-[16px] text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
           <div className="flex-1 bg-gray-100 rounded-full h-6">
             <div
               className="bg-blue-500 h-6 rounded-full flex items-center justify-end px-2 transition-all"
@@ -405,7 +405,7 @@ function RevenueChart() {
     <div className="space-y-2">
       {data.data.map((point, index) => (
         <div key={index} className="flex items-center gap-3">
-          <span className="text-sm text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
+          <span className="text-[16px] text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
           <div className="flex-1 bg-gray-100 rounded-full h-6">
             <div
               className="bg-green-500 h-6 rounded-full flex items-center justify-end px-2 transition-all"
@@ -457,20 +457,20 @@ function TopCompaniesTable() {
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">#</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Công ty</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Jobs</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Đơn ứng tuyển</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Đã tuyển</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Doanh thu</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Streams</th>
+            <th className="text-left py-3 px-4 text-[16px] font-medium text-gray-500">#</th>
+            <th className="text-left py-3 px-4 text-[16px] font-medium text-gray-500">Công ty</th>
+            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Jobs</th>
+            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Đơn ứng tuyển</th>
+            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Đã tuyển</th>
+            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Doanh thu</th>
+            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Streams</th>
           </tr>
         </thead>
         <tbody>
           {data.companies.map((company) => (
             <tr key={company.companyId} className="border-b border-gray-100 hover:bg-gray-50">
               <td className="py-3 px-4">
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold
+                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold
                   ${company.rank <= 3 ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"}`}
                 >
                   {company.rank}
@@ -488,15 +488,15 @@ function TopCompaniesTable() {
                   <span className="font-medium text-gray-900">{company.companyName}</span>
                 </div>
               </td>
-              <td className="text-right py-3 px-4 text-sm">{company.totalJobs.toLocaleString()}</td>
-              <td className="text-right py-3 px-4 text-sm">
+              <td className="text-right py-3 px-4 text-[16px]">{company.totalJobs.toLocaleString()}</td>
+              <td className="text-right py-3 px-4 text-[16px]">
                 {company.totalApplications.toLocaleString()}
               </td>
-              <td className="text-right py-3 px-4 text-sm">{company.totalHired.toLocaleString()}</td>
-              <td className="text-right py-3 px-4 text-sm font-medium">
+              <td className="text-right py-3 px-4 text-[16px]">{company.totalHired.toLocaleString()}</td>
+              <td className="text-right py-3 px-4 text-[16px] font-medium">
                 ${company.totalRevenue?.toLocaleString() || "0"}
               </td>
-              <td className="text-right py-3 px-4 text-sm">
+              <td className="text-right py-3 px-4 text-[16px]">
                 {company.streamSessions.toLocaleString()}
               </td>
             </tr>

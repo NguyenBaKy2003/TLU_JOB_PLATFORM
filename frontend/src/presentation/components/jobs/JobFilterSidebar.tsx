@@ -58,7 +58,7 @@ function Section({
       >
         <div className="flex items-center gap-2">
           {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-          <span className="text-sm font-semibold text-gray-800">{title}</span>
+          <span className="text-[16px] font-semibold text-gray-800">{title}</span>
           {count > 0 && (
             <motion.span 
               initial={{ scale: 0 }}
@@ -128,7 +128,7 @@ function CheckRow({ label, checked, onChange, icon }: {
         )}
       </div>
       {icon && <span className="text-base">{icon}</span>}
-      <span className={`text-sm transition-colors ${checked ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
+      <span className={`text-[16px] transition-colors ${checked ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
         {label}
       </span>
     </motion.label>
@@ -164,7 +164,7 @@ function RadioRow({ label, checked, onChange, icon }: {
         )}
       </div>
       {icon && <span className="text-base">{icon}</span>}
-      <span className={`text-sm transition-colors ${checked ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
+      <span className={`text-[16px] transition-colors ${checked ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
         {label}
       </span>
     </motion.label>
@@ -422,7 +422,7 @@ export function JobFilterSidebar({ filters, onChange, onClearAll }: Props) {
                 min={0}
                 onChange={e => onChange({ ...filters, minSalary: e.target.value })}
                 placeholder="0"
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl
+                className="w-full pl-9 pr-3 py-2 text-[16px] border border-gray-200 rounded-xl
                   focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
                   placeholder:text-gray-300"
               />
@@ -438,7 +438,7 @@ export function JobFilterSidebar({ filters, onChange, onClearAll }: Props) {
                 min={0}
                 onChange={e => onChange({ ...filters, maxSalary: e.target.value })}
                 placeholder="Không giới hạn"
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl
+                className="w-full pl-9 pr-3 py-2 text-[16px] border border-gray-200 rounded-xl
                   focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
                   placeholder:text-gray-300"
               />

@@ -157,7 +157,7 @@ export function RegisterSuccessStep({ token, onboarding }: Props) {
             : "Đăng ký thành công!"}
       </h2>
 
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-[16px] text-gray-500 mb-4">
         {status === "saving"
           ? "Vui lòng chờ trong giây lát..."
           : status === "done"

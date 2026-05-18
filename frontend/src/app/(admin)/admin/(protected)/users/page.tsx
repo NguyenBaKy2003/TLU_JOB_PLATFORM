@@ -321,12 +321,12 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý người dùng</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[16px] text-muted-foreground mt-1">
             Quản lý tài khoản, phân quyền và trạng thái người dùng
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-[16px] text-muted-foreground">
             Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> người dùng
           </div>
         </div>

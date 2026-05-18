@@ -89,7 +89,7 @@ export const PublicSearchFilter: React.FC<PublicSearchFilterProps> = ({
       {showFilters && categories.length > 0 && (
         <div className="mt-3 p-4 bg-muted/30 rounded-xl border border-border animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium">Bộ lọc nâng cao</span>
+            <span className="text-[16px] font-medium">Bộ lọc nâng cao</span>
             <button
               onClick={() => setShowFilters(false)}
               className="text-muted-foreground hover:text-foreground"
@@ -112,7 +112,7 @@ export const PublicSearchFilter: React.FC<PublicSearchFilterProps> = ({
             {hasActiveFilters && (
               <button
                 onClick={handleClear}
-                className="px-3 py-1.5 text-sm rounded-lg border border-border bg-background hover:bg-muted"
+                className="px-3 py-1.5 text-[16px] rounded-lg border border-border bg-background hover:bg-muted"
               >
                 Xóa tất cả
               </button>
@@ -122,7 +122,7 @@ export const PublicSearchFilter: React.FC<PublicSearchFilterProps> = ({
                 setShowFilters(false);
                 handleSearch();
               }}
-              className="px-3 py-1.5 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+              className="px-3 py-1.5 text-[16px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Áp dụng
             </button>

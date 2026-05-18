@@ -62,19 +62,19 @@ function DeleteConfirmModal({ onConfirm, onCancel, loading }: {
     <SettingsModal title="Xóa bài đăng" onClose={onCancel}>
       <div className="flex flex-col gap-4">
         <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
-          <p className="text-sm font-semibold text-red-600 mb-1">⚠️ Hành động không thể hoàn tác</p>
+          <p className="text-[16px] font-semibold text-red-600 mb-1">⚠️ Hành động không thể hoàn tác</p>
           <p className="text-xs text-red-500 leading-relaxed">
             Bài đăng và tất cả đơn ứng tuyển liên quan sẽ bị xóa vĩnh viễn.
           </p>
         </div>
         <div className="flex gap-2">
           <button onClick={onCancel} disabled={loading}
-            className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100
+            className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100
               rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors">
             Hủy
           </button>
           <button onClick={onConfirm} disabled={loading}
-            className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500
+            className="flex-1 py-2.5 text-[16px] font-medium text-white bg-red-500
               rounded-xl hover:bg-red-600 disabled:opacity-50 transition-colors
               flex items-center justify-center gap-2">
             {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
@@ -189,7 +189,7 @@ export default function EmployerJobsPage() {
         <div className="flex items-center justify-between gap-4">
           <div />
           <Link href="/employer/jobs/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white text-sm
+          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white text-[16px]
             font-semibold rounded-xl hover:bg-violet-700 transition-colors">
           <PlusCircle size={16} />
           Đăng tin mới
@@ -234,7 +234,7 @@ export default function EmployerJobsPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={e => handleSearch(e.target.value)}
               placeholder="Tìm theo tên tin đăng..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl
+              className="w-full pl-9 pr-4 py-2 text-[16px] bg-white border border-gray-200 rounded-xl
                 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
                 placeholder:text-gray-300 transition-all" />
           </div>
@@ -253,9 +253,9 @@ export default function EmployerJobsPage() {
           <TableSkeleton />
         ) : error ? (
           <div className="py-16 text-center">
-            <p className="text-sm text-red-500 mb-3">{error}</p>
+            <p className="text-[16px] text-red-500 mb-3">{error}</p>
             <button onClick={loadJobs}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600
+              className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600
                 rounded-xl hover:bg-blue-700 transition-colors">
               Thử lại
             </button>
@@ -267,7 +267,7 @@ export default function EmployerJobsPage() {
               <Filter size={24} className="text-gray-300" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-700 mb-1">
+              <p className="text-[16px] font-medium text-gray-700 mb-1">
                 {search ? "Không tìm thấy kết quả" : "Chưa có tin tuyển dụng"}
               </p>
               <p className="text-xs text-gray-400">
@@ -279,7 +279,7 @@ export default function EmployerJobsPage() {
             {!search && (
               <Link href="/employer/jobs/new"
                 className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white
-                  text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+                  text-[16px] font-semibold rounded-xl hover:bg-blue-700 transition-colors">
                 <Plus size={16} /> Đăng tin ngay
               </Link>
             )}

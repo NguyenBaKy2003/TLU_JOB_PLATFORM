@@ -23,18 +23,18 @@ export function TemplateMetadata({ template }: TemplateMetadataProps) {
             Premium
           </span>
         ) : (
-          <span className="text-sm text-gray-600 dark:text-gray-300">Free</span>
+          <span className="text-[16px] text-gray-600 dark:text-gray-300">Free</span>
         )}
       </MetaRow>
 
       <MetaRow label="Trạng thái">
-        <span className={`text-sm font-medium ${template.active ? "text-green-600 dark:text-green-400" : "text-gray-400"}`}>
+        <span className={`text-[16px] font-medium ${template.active ? "text-green-600 dark:text-green-400" : "text-gray-400"}`}>
           {template.active ? "Đang hiển thị" : "Đang ẩn"}
         </span>
       </MetaRow>
 
       <MetaRow label="Tạo lúc">
-        <span className="text-sm text-gray-600 dark:text-gray-300">
+        <span className="text-[16px] text-gray-600 dark:text-gray-300">
           {template.createdAt 
             ? new Date(template.createdAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }) 
             : "—"}
@@ -42,7 +42,7 @@ export function TemplateMetadata({ template }: TemplateMetadataProps) {
       </MetaRow>
 
       <MetaRow label="Cập nhật">
-        <span className="text-sm text-gray-600 dark:text-gray-300">
+        <span className="text-[16px] text-gray-600 dark:text-gray-300">
           {template.updatedAt 
             ? new Date(template.updatedAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }) 
             : "—"}

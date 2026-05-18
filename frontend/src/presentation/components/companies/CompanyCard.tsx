@@ -143,13 +143,13 @@ export function CompanyCard({ company, index = 0 }: CompanyCardProps) {
                 </div>
 
                 {/* Location */}
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 mb-3 text-sm text-gray-600">
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 mb-3 text-[16px] text-gray-600">
                   <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">{company.location}</span>
+                  <span className="text-xs sm:text-[16px] truncate">{company.location}</span>
                 </div>
 
                 {/* Description - Hide on mobile */}
-                <p className="hidden sm:block text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
+                <p className="hidden sm:block text-[16px] text-gray-600 line-clamp-2 mb-3 leading-relaxed">
                   {company.description || "Chúng tôi là công ty hàng đầu trong lĩnh vực công nghệ, chuyên cung cấp các giải pháp phần mềm và dịch vụ IT chất lượng cao."}
                 </p>
 

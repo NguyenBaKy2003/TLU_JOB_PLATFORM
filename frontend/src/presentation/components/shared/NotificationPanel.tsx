@@ -52,7 +52,7 @@ export function NotificationPanel({ onClose }: Props) {
       {/* ── Header ─────── */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-800">Thông báo</span>
+          <span className="text-[16px] font-semibold text-gray-800">Thông báo</span>
           {unreadCount > 0 && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
               {unreadCount > 99 ? "99+" : unreadCount}

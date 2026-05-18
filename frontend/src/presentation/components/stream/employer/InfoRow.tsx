@@ -16,7 +16,7 @@ export function InfoRow({ icon: Icon, label, value, border = true }: InfoRowProp
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-slate-400 mb-0.5">{label}</p>
-        <div className="text-sm font-medium text-slate-700">{value}</div>
+        <div className="text-[16px] font-medium text-slate-700">{value}</div>
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             placeholder="Tìm kiếm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl
+            className="pl-9 pr-4 py-2 text-[16px] bg-gray-50 border border-gray-200 rounded-xl
               w-44 lg:w-52 focus:outline-none focus:ring-2 focus:ring-blue-500/20
               focus:border-blue-400 transition-all"
           />
@@ -137,12 +137,12 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
               placeholder="Tìm kiếm..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-sm bg-transparent focus:outline-none
+              className="flex-1 text-[16px] bg-transparent focus:outline-none
                 text-gray-800 placeholder-gray-400"
             />
             <button
               onClick={() => setShowSearch(false)}
-              className="text-sm font-medium text-blue-600 shrink-0"
+              className="text-[16px] font-medium text-blue-600 shrink-0"
             >
               Huỷ
             </button>
@@ -243,7 +243,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
                     key={href}
                     href={href}
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-[16px]
                       text-gray-700 hover:bg-gray-50"
                   >
                     <Icon size={15} className="text-gray-400" />
@@ -255,7 +255,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[16px]
                     text-red-500 hover:bg-red-50"
                 >
                   <LogOut size={15} />

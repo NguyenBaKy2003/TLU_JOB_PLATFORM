@@ -274,9 +274,9 @@ export default function AdminApplicationsPage() {
         value: (
           <div className="space-y-1">
             <div className="font-medium">{selectedApplication.candidateName}</div>
-            <div className="text-sm text-muted-foreground">{selectedApplication.candidateEmail}</div>
+            <div className="text-[16px] text-muted-foreground">{selectedApplication.candidateEmail}</div>
             {selectedApplication.candidate?.phone && (
-              <div className="text-sm text-muted-foreground">{selectedApplication.candidate.phone}</div>
+              <div className="text-[16px] text-muted-foreground">{selectedApplication.candidate.phone}</div>
             )}
           </div>
         ),
@@ -289,7 +289,7 @@ export default function AdminApplicationsPage() {
           <div className="space-y-1">
             <div className="font-medium">{selectedApplication.job.title}</div>
             {selectedApplication.job.level && (
-              <div className="text-sm text-muted-foreground">Cấp bậc: {selectedApplication.job.level}</div>
+              <div className="text-[16px] text-muted-foreground">Cấp bậc: {selectedApplication.job.level}</div>
             )}
           </div>
         ),
@@ -318,7 +318,7 @@ export default function AdminApplicationsPage() {
         value: selectedApplication.aiScore ? (
           <div className="flex items-center gap-2">
             <span className="font-semibold">{selectedApplication.aiScore}</span>
-            <span className="text-sm text-muted-foreground">({selectedApplication.aiScoreLabel})</span>
+            <span className="text-[16px] text-muted-foreground">({selectedApplication.aiScoreLabel})</span>
           </div>
         ) : 'Chưa có điểm',
         type: 'text'
@@ -329,7 +329,7 @@ export default function AdminApplicationsPage() {
         value: (
           <div className="space-y-2">
             {statusLogs.map(log => (
-              <div key={log.id} className="text-sm border-l-2 border-border pl-3 py-1">
+              <div key={log.id} className="text-[16px] border-l-2 border-border pl-3 py-1">
                 <div className="flex items-center gap-2">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${statusConfig[log.toStatus].color}`}>
                     {statusConfig[log.toStatus].label}
@@ -456,12 +456,12 @@ export default function AdminApplicationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý đơn ứng tuyển</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[16px] text-muted-foreground mt-1">
             Quản lý và theo dõi trạng thái các đơn ứng tuyển
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-[16px] text-muted-foreground">
             Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> đơn
           </div>
         </div>

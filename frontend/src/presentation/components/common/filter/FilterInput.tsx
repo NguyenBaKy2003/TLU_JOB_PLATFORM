@@ -52,7 +52,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+        className="w-full pl-9 pr-8 py-2 text-[16px] rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
       />
       {clearable && localValue && (
         <button

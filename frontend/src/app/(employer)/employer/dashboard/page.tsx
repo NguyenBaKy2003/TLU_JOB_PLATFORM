@@ -30,7 +30,7 @@ export default function EmployerDashboardPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-blue-600
             border-t-transparent animate-spin" />
-          <p className="text-sm text-gray-400">Đang tải...</p>
+          <p className="text-[16px] text-gray-400">Đang tải...</p>
         </div>
       </div>
     );

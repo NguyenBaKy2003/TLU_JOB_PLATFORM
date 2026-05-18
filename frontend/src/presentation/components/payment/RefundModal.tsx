@@ -32,7 +32,7 @@ export function RefundModal({ paymentId, onClose, onConfirm }: Props) {
           <h2 className="font-semibold text-base">Hoàn tiền giao dịch</h2>
         </div>
 
-        <p className="text-sm text-gray-500">
+        <p className="text-[16px] text-gray-500">
           Giao dịch{" "}
           <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
             {paymentId}
@@ -49,7 +49,7 @@ export function RefundModal({ paymentId, onClose, onConfirm }: Props) {
             onChange={e => setReason(e.target.value)}
             rows={3}
             placeholder="Nhập lý do hoàn tiền (bắt buộc)..."
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-[16px]
               outline-none focus:border-purple-400 focus:ring-2
               focus:ring-purple-100 resize-none"
           />
@@ -58,7 +58,7 @@ export function RefundModal({ paymentId, onClose, onConfirm }: Props) {
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-xl border border-gray-200
+            className="px-4 py-2 text-[16px] rounded-xl border border-gray-200
               text-gray-600 hover:bg-gray-50"
           >
             Hủy
@@ -66,7 +66,7 @@ export function RefundModal({ paymentId, onClose, onConfirm }: Props) {
           <button
             onClick={handleSubmit}
             disabled={!reason.trim() || loading}
-            className="px-4 py-2 text-sm rounded-xl bg-purple-600 text-white
+            className="px-4 py-2 text-[16px] rounded-xl bg-purple-600 text-white
               font-medium hover:bg-purple-700 disabled:opacity-40
               disabled:cursor-not-allowed transition-colors"
           >

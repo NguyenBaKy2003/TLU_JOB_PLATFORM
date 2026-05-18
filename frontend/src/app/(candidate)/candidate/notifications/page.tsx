@@ -157,7 +157,7 @@ export default function CandidateNotificationsPage() {
     <div className="mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Thông Báo</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-[16px] text-gray-500 mt-1">
           {unreadCount > 0
             ? `Bạn có ${unreadCount} thông báo chưa đọc.`
             : "Tất cả thông báo đã được đọc."}
@@ -170,7 +170,7 @@ export default function CandidateNotificationsPage() {
         <div className="px-5 py-4 border-b border-gray-100">
           {todayUnread > 0 && (
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-[16px] text-gray-600">
                 <Bell size={15} className="text-blue-500" />
                 <span>Bạn có <strong>{todayUnread}</strong> thông báo mới hôm nay.</span>
               </div>
@@ -242,7 +242,7 @@ export default function CandidateNotificationsPage() {
 
         {/* ── Error ── */}
         {error && (
-          <div className="px-5 py-3 bg-red-50 text-sm text-red-600 flex items-center justify-between">
+          <div className="px-5 py-3 bg-red-50 text-[16px] text-red-600 flex items-center justify-between">
             {error}
             <button onClick={load} className="text-xs underline text-red-400 hover:text-red-600">
               Thử lại
@@ -257,7 +257,7 @@ export default function CandidateNotificationsPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
               <Inbox size={40} strokeWidth={1.5} />
-              <p className="text-sm">Hiện chưa có thông báo nào.</p>
+              <p className="text-[16px]">Hiện chưa có thông báo nào.</p>
             </div>
           ) : (
             filtered

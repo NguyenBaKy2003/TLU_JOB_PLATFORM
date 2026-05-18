@@ -115,13 +115,13 @@ export default function ProfileHero({
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-lg font-bold text-blue-600 truncate">
               {displayName || (
-                <span className="text-gray-400 font-normal italic text-sm sm:text-base">
+                <span className="text-gray-400 font-normal italic text-[16px] sm:text-base">
                   Chưa có tên
                 </span>
               )}
             </h2>
             {title && (
-              <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{title}</p>
+              <p className="text-xs sm:text-[16px] text-gray-500 truncate mt-0.5">{title}</p>
             )}
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function ProfileHero({
             onClick={handleViewCV}
             disabled={!!cvLoading || !onViewCV}
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5
-              px-3 sm:px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg
+              px-3 sm:px-4 py-2 text-[16px] font-medium text-blue-600 bg-blue-50 rounded-lg
               hover:bg-blue-100 disabled:opacity-50 transition-colors"
           >
             {cvLoading === "view"
@@ -145,7 +145,7 @@ export default function ProfileHero({
             onClick={handleDownloadCV}
             disabled={!!cvLoading || !onDownloadCV}
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5
-              px-3 sm:px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg
+              px-3 sm:px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg
               hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {cvLoading === "download"

@@ -63,7 +63,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-border bg-muted/30 rounded-b-lg">
       {/* Left - Total info */}
       {showTotal && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-[16px] text-muted-foreground">
           Hiển thị <span className="font-medium text-foreground">{startIndex}</span> -{' '}
           <span className="font-medium text-foreground">{endIndex}</span> trên{' '}
           <span className="font-medium text-foreground">{totalItems}</span> kết quả
@@ -76,7 +76,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="px-2 py-1.5 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="px-2 py-1.5 text-[16px] rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
           {pageSizeOptions.map(size => (
             <option key={size} value={size}>{size} / trang</option>
@@ -105,7 +105,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
               key={idx}
               onClick={() => typeof page === 'number' && onPageChange(page)}
               className={`
-                min-w-[32px] h-8 px-2 rounded-md text-sm font-medium transition-colors
+                min-w-[32px] h-8 px-2 rounded-md text-[16px] font-medium transition-colors
                 ${page === currentPage 
                   ? 'bg-primary text-primary-foreground' 
                   : page === '...' 

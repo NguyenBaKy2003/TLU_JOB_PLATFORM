@@ -43,7 +43,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {title}
       </h3>
       
-      <p className="text-sm text-muted-foreground max-w-md mb-6">
+      <p className="text-[16px] text-muted-foreground max-w-md mb-6">
         {description}
       </p>
       
@@ -75,7 +75,7 @@ export const CompactEmptyState: React.FC<CompactEmptyStateProps> = ({
   return (
     <div className={`flex flex-col items-center justify-center text-center py-8 px-4 ${className}`}>
       <Inbox className="w-10 h-10 text-muted-foreground mb-3" />
-      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-[16px] font-medium text-foreground">{title}</p>
       {description && (
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       )}

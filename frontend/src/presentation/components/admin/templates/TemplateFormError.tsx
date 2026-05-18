@@ -21,13 +21,13 @@ export function TemplateFormError({
           <div className="mt-4 flex justify-center gap-3">
             <button 
               onClick={onRetry} 
-              className="rounded-lg border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-100 dark:border-red-700 dark:text-red-400"
+              className="rounded-lg border border-red-200 px-4 py-2 text-[16px] text-red-600 hover:bg-red-100 dark:border-red-700 dark:text-red-400"
             >
               Thử lại
             </button>
             <Link 
               href={backHref} 
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+              className="rounded-lg bg-red-600 px-4 py-2 text-[16px] text-white hover:bg-red-700"
             >
               Quay lại
             </Link>

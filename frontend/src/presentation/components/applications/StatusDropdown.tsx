@@ -64,7 +64,7 @@ export function StatusDropdown({
             <button
               key={s}
               onClick={() => { onChange(s); setOpen(false); }}
-              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700
+              className="flex items-center w-full px-4 py-2.5 text-[16px] text-gray-700
                 hover:bg-gray-50 text-left transition-colors"
             >
               {APPLICATION_STATUS_LABELS[s]}

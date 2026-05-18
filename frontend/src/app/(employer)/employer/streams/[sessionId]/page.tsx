@@ -70,7 +70,7 @@ export default function SessionDetailPage() {
           {(isLive || isScheduled) && (
             <button
               onClick={openStudio}
-              className={`inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl
+              className={`inline-flex items-center gap-2 text-[16px] font-semibold px-5 py-2.5 rounded-xl
                 ${isLive
                   ? "bg-red-500 text-white hover:bg-red-600"
                   : "bg-slate-800 text-white hover:bg-slate-900"
@@ -129,7 +129,7 @@ export default function SessionDetailPage() {
         {/* Interview slots */}
         {session.sessionType === "INTERVIEW" && session.interviewSlots.length > 0 && (
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <h2 className="text-[16px] font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-slate-400" />
               Interview Slots
             </h2>

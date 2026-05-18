@@ -54,7 +54,7 @@ export function StatusBanner({ status, onStudioClick }: StatusBannerProps) {
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
         <div>
-          <p className={`font-semibold text-sm ${config.color}`}>{config.label}</p>
+          <p className={`font-semibold text-[16px] ${config.color}`}>{config.label}</p>
           <p className="text-xs text-slate-500 mt-0.5">{config.desc}</p>
         </div>
         {isLive && onStudioClick && (

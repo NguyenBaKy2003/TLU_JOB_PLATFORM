@@ -33,7 +33,7 @@ export function JobActionMenu({ jobId, status, onPublish, onClose, onDelete, onE
   ) => onClick ? (
     <button key={label}
       onClick={() => { onClick(); setOpen(false); }}
-      className={`flex items-center gap-2.5 px-4 py-2.5 text-sm w-full text-left
+      className={`flex items-center gap-2.5 px-4 py-2.5 text-[16px] w-full text-left
         transition-colors ${danger
           ? "text-red-500 hover:bg-red-50"
           : "text-gray-700 hover:bg-gray-50"}`}>

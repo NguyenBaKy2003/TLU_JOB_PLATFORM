@@ -163,7 +163,7 @@ function AISummaryCard({ replay }: { replay: ReplayData }) {
           <Sparkles className="w-4 h-4 text-amber-400" />
         </div>
         <div className="flex-1">
-          <p className="text-white font-semibold text-sm">AI Tóm tắt</p>
+          <p className="text-white font-semibold text-[16px]">AI Tóm tắt</p>
           <p className="text-white/40 text-xs">Được tạo tự động từ nội dung stream</p>
         </div>
         <ChevronRight
@@ -177,7 +177,7 @@ function AISummaryCard({ replay }: { replay: ReplayData }) {
         <div className="px-4 pb-4 space-y-4">
           {/* Summary text */}
           {replay.aiSummary && (
-            <p className="text-white/70 text-sm leading-relaxed">
+            <p className="text-white/70 text-[16px] leading-relaxed">
               {replay.aiSummary}
             </p>
           )}
@@ -198,7 +198,7 @@ function AISummaryCard({ replay }: { replay: ReplayData }) {
                     <span className="text-white/20 text-xs font-mono w-4 flex-shrink-0 pt-0.5">
                       {i + 1}.
                     </span>
-                    <p className="text-white/60 text-sm">{q}</p>
+                    <p className="text-white/60 text-[16px]">{q}</p>
                   </div>
                 ))}
               </div>
@@ -238,7 +238,7 @@ function ProcessingCard() {
         <Loader className="w-4 h-4 text-amber-500 animate-spin" />
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-700">AI đang xử lý</p>
+        <p className="text-[16px] font-medium text-slate-700">AI đang xử lý</p>
         <p className="text-xs text-slate-400">
           Tóm tắt sẽ sẵn sàng sau vài phút. Vui lòng quay lại sau.
         </p>
@@ -262,7 +262,7 @@ function ApplyCTA({
           <Briefcase className="w-5 h-5 text-slate-500" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-800 text-sm">
+          <h3 className="font-semibold text-slate-800 text-[16px]">
             Quan tâm đến vị trí tuyển dụng?
           </h3>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -272,7 +272,7 @@ function ApplyCTA({
       </div>
       <button
         onClick={onApply}
-        className="w-full py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-2.5 bg-slate-800 text-white text-[16px] font-semibold rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
       >
         <Briefcase className="w-4 h-4" />
         Xem vị trí tuyển dụng
@@ -329,13 +329,13 @@ export default function StreamReplayPage() {
         </div>
         <div>
           <h2 className="font-bold text-slate-800 mb-1">Replay chưa sẵn sàng</h2>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-400 text-[16px]">
             Recording đang được xử lý. Vui lòng quay lại sau ít phút.
           </p>
         </div>
         <button
           onClick={() => router.back()}
-          className="text-sm text-slate-500 underline hover:text-slate-700 transition-colors"
+          className="text-[16px] text-slate-500 underline hover:text-slate-700 transition-colors"
         >
           Quay lại
         </button>
@@ -355,7 +355,7 @@ export default function StreamReplayPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-slate-800 truncate text-sm">
+            <h1 className="font-semibold text-slate-800 truncate text-[16px]">
               {session?.title ?? "Xem lại phiên stream"}
             </h1>
             <p className="text-xs text-slate-400">Replay</p>
@@ -374,7 +374,7 @@ export default function StreamReplayPage() {
           >
             <div className="text-center text-slate-400">
               <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Video chưa sẵn sàng</p>
+              <p className="text-[16px]">Video chưa sẵn sàng</p>
             </div>
           </div>
         )}
@@ -386,7 +386,7 @@ export default function StreamReplayPage() {
               {session?.title ?? "Phiên stream"}
             </h2>
             {session && (
-              <p className="text-slate-400 text-sm mt-0.5">
+              <p className="text-slate-400 text-[16px] mt-0.5">
                 {new Date(session.scheduledAt).toLocaleDateString("vi-VN", {
                   weekday: "long",
                   day: "2-digit",

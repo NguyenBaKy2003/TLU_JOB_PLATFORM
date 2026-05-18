@@ -1,6 +1,5 @@
 package edu.tlu.jobplatform.shared.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -16,6 +15,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * Cấu hình Redis:
@@ -28,43 +28,48 @@ import java.time.Duration;
 @Configuration
 public class RedisConfig {
 
-    /**
-     * Template để thao tác Redis với key/value kiểu String.
-     * Dùng trong: TokenStoreAdapter, OtpStoreAdapter.
-     */
-    @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
-        return new StringRedisTemplate(factory);
-    }
+        /**
+         * Template để thao tác Redis với key/value kiểu String.
+         * Dùng trong: TokenStoreAdapter, OtpStoreAdapter.
+         */
+        @Bean
+        public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
+                return new StringRedisTemplate(factory);
+        }
 
-    /**
-     * Cache manager cho @Cacheable.
-     * Default TTL: 10 phút — mỗi cache region có thể override.
-     */
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
-        ObjectMapper mapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        /**
+         * Cache manager cho @Cacheable.
+         * Default TTL: 10 phút — mỗi cache region có thể override.
+         */
+        @Bean
+        public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
+                ObjectMapper mapper = new ObjectMapper()
+                                .registerModule(new JavaTimeModule())
+                                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        mapper.activateDefaultTypingAsProperty(
-                mapper.getPolymorphicTypeValidator(),
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                "@class");
+                mapper.activateDefaultTypingAsProperty(
+                                mapper.getPolymorphicTypeValidator(),
+                                ObjectMapper.DefaultTyping.NON_FINAL,
+                                "@class");
 
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
-                .prefixCacheNameWith("v4:")
-                .serializeKeysWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new StringRedisSerializer()))
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new GenericJackson2JsonRedisSerializer(mapper)))
-                .disableCachingNullValues();
+                RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(10))
+                                .prefixCacheNameWith("v7:")
+                                .serializeKeysWith(
+                                                RedisSerializationContext.SerializationPair.fromSerializer(
+                                                                new StringRedisSerializer()))
+                                .serializeValuesWith(
+                                                RedisSerializationContext.SerializationPair.fromSerializer(
+                                                                new GenericJackson2JsonRedisSerializer(mapper)))
+                                .disableCachingNullValues();
 
-        return RedisCacheManager.builder(factory)
-                .cacheDefaults(config)
-                .build();
-    }
+                // Per-cache TTL overrides
+                Map<String, RedisCacheConfiguration> cacheConfigs = Map.of(
+                                "recommendations", defaultConfig.entryTtl(Duration.ofMinutes(2)));
+
+                return RedisCacheManager.builder(factory)
+                                .cacheDefaults(defaultConfig)
+                                .withInitialCacheConfigurations(cacheConfigs)
+                                .build();
+        }
 }

@@ -80,7 +80,7 @@ export default function OAuth2CallbackPage() {
       <main className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 rounded-full border-2 border-blue-100 border-t-blue-600 animate-spin mx-auto" />
-          <p className="text-gray-400 text-sm">Đang xử lý đăng nhập...</p>
+          <p className="text-gray-400 text-[16px]">Đang xử lý đăng nhập...</p>
         </div>
       </main>
     );
@@ -103,7 +103,7 @@ export default function OAuth2CallbackPage() {
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </div>
-        <p className="text-red-500 text-sm max-w-xs">{errorMsg}</p>
+        <p className="text-red-500 text-[16px] max-w-xs">{errorMsg}</p>
         <p className="text-gray-400 text-xs">Đang chuyển hướng về trang đăng nhập...</p>
       </div>
     </main>

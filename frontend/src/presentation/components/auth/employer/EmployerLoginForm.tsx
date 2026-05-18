@@ -77,7 +77,7 @@ export function EmployerLoginForm({ onSubmit, onGoogleLogin, loading = false, oa
 
         {/* Submit — dark button like PDF */}
         <button type="submit" disabled={busy}
-          className="w-full bg-blue-500 hover:bg-blue-800 text-white py-2.5 rounded text-sm
+          className="w-full bg-blue-500 hover:bg-blue-800 text-white py-2.5 rounded text-[16px]
             font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
           {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
           {loading ? "Đang xử lý..." : "Đăng Nhập"}

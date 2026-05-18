@@ -216,9 +216,9 @@ export default function ProfilePage() {
   if (error || !profile) {
     return (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-sm text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
+          <p className="text-[16px] text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
           <button onClick={loadProfile}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+            className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
             Thử lại
           </button>
         </div>

@@ -10,7 +10,7 @@ import { extractErrorMessage }        from "@/lib/extractErrorMessage";
 const service = new ApplicationService(new ApplicationRepository());
 
 const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+  "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -66,7 +66,7 @@ export function ScheduleInterviewModal({
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">Lên lịch phỏng vấn</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">Lên lịch phỏng vấn</h3>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
             <X size={16} />
           </button>
@@ -136,7 +136,7 @@ export function ScheduleInterviewModal({
             <button
               onClick={onClose}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100
+              className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100
                 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
               Hủy
@@ -144,7 +144,7 @@ export function ScheduleInterviewModal({
             <button
               onClick={handleConfirm}
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[16px]
                 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700
                 disabled:opacity-50 transition-colors"
             >

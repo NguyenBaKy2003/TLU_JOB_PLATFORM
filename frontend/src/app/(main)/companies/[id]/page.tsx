@@ -78,7 +78,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   if (error || !company) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <p className="text-red-500 text-sm">{error ?? "Không tìm thấy công ty"}</p>
+      <p className="text-red-500 text-[16px]">{error ?? "Không tìm thấy công ty"}</p>
     </div>
   );
 

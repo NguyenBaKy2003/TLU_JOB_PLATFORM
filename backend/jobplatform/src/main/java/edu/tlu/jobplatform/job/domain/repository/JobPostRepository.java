@@ -34,4 +34,5 @@ public interface JobPostRepository {
     void deleteById(UUID id);
 
     List<JobPost> findAllById(Collection<UUID> ids);
+
 }

@@ -20,7 +20,7 @@ export function CVPageHeader({ count, onCreateClick }: Props) {
         <h1 className="text-[2rem] font-bold text-[#1A1A2E] leading-tight tracking-tight">
           CV Online
         </h1>
-        <p className="mt-1.5 text-sm text-[#6B7280]">
+        <p className="mt-1.5 text-[16px] text-[#6B7280]">
           {count > 0
             ? `Bạn có ${count} CV · Nhà tuyển dụng có thể tìm thấy bạn qua link chia sẻ`
             : "Tạo CV trực tuyến và chia sẻ với nhà tuyển dụng"}
@@ -32,7 +32,7 @@ export function CVPageHeader({ count, onCreateClick }: Props) {
         className="
           flex items-center gap-2 px-5 py-2.5
           bg-[#3D5A80] hover:bg-[#2E4565]
-          text-white text-sm font-semibold
+          text-white text-[16px] font-semibold
           rounded-xl transition-all duration-150
           shadow-sm hover:shadow-md active:scale-95
         "

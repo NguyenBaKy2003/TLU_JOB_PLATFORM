@@ -18,12 +18,12 @@ export function EmptyState({ onCreateClick }: EmptyStateProps) {
         </div>
       </div>
       <h3 className="text-slate-800 font-bold text-lg mb-1">Chưa có phiên stream nào</h3>
-      <p className="text-slate-500 text-sm mb-6 max-w-sm">
+      <p className="text-slate-500 text-[16px] mb-6 max-w-sm">
         Tạo phiên Job Fair hoặc Phỏng vấn trực tiếp để kết nối với ứng viên
       </p>
       <button
         onClick={onCreateClick}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-900"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-white text-[16px] font-semibold rounded-xl hover:bg-slate-900"
       >
         <Plus className="w-4 h-4" />
         Tạo phiên stream đầu tiên

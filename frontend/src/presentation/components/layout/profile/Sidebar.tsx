@@ -71,7 +71,7 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all group
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px] transition-all group
         ${active
           ? "bg-blue-50 text-blue-600 font-medium"
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -148,7 +148,7 @@ function SidebarContent({
         </div>
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">
+            <p className="text-[16px] font-bold text-gray-900 truncate">
               <Link href={homeHref}>Joblin</Link>
             </p>
             <p className="text-[11px] text-gray-400">{brandLabel}</p>
@@ -183,7 +183,7 @@ function SidebarContent({
             href="/employer/jobs/new"
             onClick={isMobile ? onClose : undefined}
             className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl
-              text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              text-[16px] font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
           >
             <PlusCircle size={16} />
             Đăng tin tuyển dụng
@@ -215,7 +215,7 @@ function SidebarContent({
         <Link
           href={isEmployer ? "/employer/help" : "/help"}
           onClick={isMobile ? onClose : undefined}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
             text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
         >
           <HelpCircle size={18} className="shrink-0" />
@@ -223,7 +223,7 @@ function SidebarContent({
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
             text-red-500 hover:bg-red-50 transition-colors w-full text-left"
         >
           <LogOut size={18} className="shrink-0" />

@@ -107,7 +107,7 @@ export function ChatPanel({
             onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder={placeholder}
             maxLength={maxLength}
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30 focus:bg-white/15 transition-colors"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/10 text-[16px] text-white placeholder:text-white/30 outline-none focus:border-white/30 focus:bg-white/15 transition-colors"
           />
           <button
             onClick={handleSend}

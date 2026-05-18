@@ -93,7 +93,7 @@ export function PlanCard({
       </div>
 
       {/* Select indicator */}
-      <div className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center
+      <div className={`w-full py-2.5 rounded-xl text-[16px] font-semibold text-center
         transition-colors ${
           selected
             ? "bg-blue-600 text-white"

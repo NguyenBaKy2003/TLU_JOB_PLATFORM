@@ -54,7 +54,7 @@ export function ReasonModal({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+            <p className="text-[16px] text-gray-500 mt-0.5">{description}</p>
           </div>
           <button
             onClick={onClose}
@@ -73,7 +73,7 @@ export function ReasonModal({
             onChange={e => { setReason(e.target.value); setError(""); }}
             placeholder={placeholder}
             rows={4}
-            className={`w-full rounded-xl border px-3.5 py-3 text-sm resize-none
+            className={`w-full rounded-xl border px-3.5 py-3 text-[16px] resize-none
               outline-none transition-colors
               ${error
                 ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
@@ -88,7 +88,7 @@ export function ReasonModal({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600
+            className="px-4 py-2 rounded-xl text-[16px] font-medium text-gray-600
               hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             Huỷ
@@ -96,7 +96,7 @@ export function ReasonModal({
           <button
             onClick={handleSubmit}
             disabled={loading || !reason.trim()}
-            className={`px-4 py-2 rounded-xl text-sm font-medium text-white
+            className={`px-4 py-2 rounded-xl text-[16px] font-medium text-white
               transition-colors disabled:opacity-50 disabled:cursor-not-allowed
               ${confirmClass}`}
           >

@@ -138,7 +138,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="relative">
           <div className={`relative border rounded-xl px-3 pt-3 pb-2 transition-all
             ${errors.description ? "border-red-400 bg-red-50" : "border-gray-300 focus-within:border-blue-500"}`}>
-            <label className={`absolute -top-2.5 left-3 bg-white px-1 text-sm leading-none
+            <label className={`absolute -top-2.5 left-3 bg-white px-1 text-[16px] leading-none
               ${errors.description ? "text-red-500" : "text-gray-800"}`}>
               Mô tả công ty<span className="text-red-500 ml-0.5">*</span>
             </label>
@@ -150,7 +150,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               }}
               placeholder="Viết mô tả về công ty của bạn..."
               rows={5}
-              className="w-full bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none resize-none"
+              className="w-full bg-transparent text-[16px] text-gray-700 placeholder-gray-400 outline-none resize-none"
             />
           </div>
           <div className="flex items-center justify-between mt-1 px-1">
@@ -176,7 +176,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       <div className="text-center mt-3">
         <button onClick={onSkip}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          className="text-[16px] text-gray-500 hover:text-gray-700 transition-colors">
           Bỏ qua
         </button>
       </div>
