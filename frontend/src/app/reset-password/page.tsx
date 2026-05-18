@@ -1,21 +1,16 @@
-"use client";
+// src/app/auth/reset-password/page.tsx
+// Server Component — KHÔNG dùng hooks ở đây
 
-import { useSearchParams }    from "next/navigation";
-import { AuthLayout }         from "@/presentation/components/auth/AuthLayout";
-import { ResetPasswordForm }  from "@/presentation/components/auth/reset-password/ResetPasswordForm";
-import { InvalidTokenState }  from "@/presentation/components/auth/reset-password/InvalidTokenState";
+import { Suspense }                  from "react";
+import { AuthLayout }                from "@/presentation/components/auth/AuthLayout";
+import { ResetPasswordPageClient }   from "./ResetPasswordPageClient";
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const token  = searchParams.get("token");
-  const userId = searchParams.get("userId");
-
   return (
     <AuthLayout imageSrc="/candidate.png">
-      {token && userId
-        ? <ResetPasswordForm token={token} userId={userId} />
-        : <InvalidTokenState />
-      }
+      <Suspense fallback={null}>
+        <ResetPasswordPageClient />
+      </Suspense>
     </AuthLayout>
   );
 }
