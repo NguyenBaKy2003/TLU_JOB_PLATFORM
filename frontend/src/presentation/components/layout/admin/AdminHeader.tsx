@@ -56,7 +56,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-800">Thông báo</span>
+          <span className="text-[16px] font-semibold text-gray-800">Thông báo</span>
           {unreadCount > 0 && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full">
               {unreadCount > 99 ? "99+" : unreadCount}
@@ -211,7 +211,7 @@ export function AdminHeader({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Tìm kiếm..."
-            className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl
+            className="pl-9 pr-4 py-2 text-[16px] bg-gray-50 border border-gray-200 rounded-xl
               w-44 lg:w-52 focus:outline-none focus:ring-2 focus:ring-red-500/20
               focus:border-red-400 transition-all"
           />
@@ -235,12 +235,12 @@ export function AdminHeader({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Tìm kiếm..."
-              className="flex-1 text-sm bg-transparent focus:outline-none
+              className="flex-1 text-[16px] bg-transparent focus:outline-none
                 text-gray-800 placeholder-gray-400"
             />
             <button
               onClick={() => setShowSearch(false)}
-              className="text-sm font-medium text-red-600 shrink-0"
+              className="text-[16px] font-medium text-red-600 shrink-0"
             >
               Huỷ
             </button>
@@ -314,7 +314,7 @@ export function AdminHeader({
               <Link
                 href="/admin/settings"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5 px-4 py-2.5 text-sm
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[16px]
                   text-gray-700 hover:bg-gray-50"
               >
                 <Settings size={15} className="text-gray-400" /> Cài đặt
@@ -322,7 +322,7 @@ export function AdminHeader({
               <hr className="my-1 border-gray-100" />
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[16px]
                   text-red-500 hover:bg-red-50"
               >
                 <LogOut size={15} /> Đăng xuất

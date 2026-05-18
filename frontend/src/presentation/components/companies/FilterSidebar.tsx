@@ -57,7 +57,7 @@ function FilterSection({
       >
         <div className="flex items-center gap-2">
           {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-          <span className="text-sm font-semibold text-gray-800">{title}</span>
+          <span className="text-[16px] font-semibold text-gray-800">{title}</span>
           {count !== undefined && count > 0 && (
             <motion.span 
               initial={{ scale: 0 }}
@@ -244,7 +244,7 @@ export function FilterSidebar({
                   )}
                 </div>
                 <Icon className={`w-3.5 h-3.5 transition-colors ${isSelected ? 'text-blue-500' : 'text-gray-400'}`} />
-                <span className={`text-sm transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
+                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
                   {b}
                 </span>
               </motion.label>
@@ -292,7 +292,7 @@ export function FilterSidebar({
                   )}
                 </div>
                 <span className="text-lg">{g.icon}</span>
-                <span className={`text-sm transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
+                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
                   {g.label}
                 </span>
               </motion.label>
@@ -335,7 +335,7 @@ export function FilterSidebar({
                     />
                   )}
                 </div>
-                <span className={`text-sm transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
+                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
                   {label}
                 </span>
               </motion.label>

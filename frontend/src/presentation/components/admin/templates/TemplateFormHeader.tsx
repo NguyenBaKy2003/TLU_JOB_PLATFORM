@@ -22,7 +22,7 @@ export function TemplateFormHeader({
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 text-[16px] text-gray-500 dark:text-gray-400">
             {subtitle}
           </p>
         )}

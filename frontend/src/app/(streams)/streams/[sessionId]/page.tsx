@@ -74,7 +74,7 @@ function InfoBlock({ icon: Icon, label, children }: {
       </div>
       <div>
         <p className="text-xs text-slate-400 mb-0.5">{label}</p>
-        <div className="text-sm font-medium text-slate-700">{children}</div>
+        <div className="text-[16px] font-medium text-slate-700">{children}</div>
       </div>
     </div>
   );
@@ -84,14 +84,14 @@ function InfoBlock({ icon: Icon, label, children }: {
 function SlotList({ slots }: { slots: LiveStreamSession["interviewSlots"] }) {
   const open = slots.filter((s) => s.status === "OPEN");
   if (open.length === 0) {
-    return <p className="text-sm text-slate-400">Tất cả slots đã được đặt</p>;
+    return <p className="text-[16px] text-slate-400">Tất cả slots đã được đặt</p>;
   }
   return (
     <div className="space-y-2">
       {open.map((slot, i) => (
         <div
           key={slot.slotId}
-          className="flex items-center gap-2 text-sm text-slate-600 bg-blue-50/50 px-3 py-2 rounded-lg"
+          className="flex items-center gap-2 text-[16px] text-slate-600 bg-blue-50/50 px-3 py-2 rounded-lg"
         >
           <Clock className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
           <span>
@@ -158,7 +158,7 @@ export default function CandidateStreamDetailPage() {
         <p className="text-slate-500 font-medium">Không tìm thấy phiên stream</p>
         <button
           onClick={() => router.back()}
-          className="text-sm text-blue-500 hover:text-blue-600 font-medium"
+          className="text-[16px] text-blue-500 hover:text-blue-600 font-medium"
         >
           Quay lại
         </button>
@@ -242,7 +242,7 @@ export default function CandidateStreamDetailPage() {
                   {session.title}
                 </h1>
                 {session.description && (
-                  <p className="text-white/60 text-sm mt-2 leading-relaxed">
+                  <p className="text-white/60 text-[16px] mt-2 leading-relaxed">
                     {session.description}
                   </p>
                 )}

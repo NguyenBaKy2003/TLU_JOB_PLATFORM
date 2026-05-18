@@ -466,7 +466,7 @@ export default function AdminSubscriptionPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý đăng ký</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[16px] text-muted-foreground mt-1">
             Quản lý gói đăng ký và theo dõi đăng ký của công ty
           </p>
         </div>
@@ -481,7 +481,7 @@ export default function AdminSubscriptionPage() {
           </div>
           <button
             onClick={openCreatePlanModal}
-            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
+            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2 text-[16px]"
           >
             <Plus className="w-4 h-4" />
             Thêm gói

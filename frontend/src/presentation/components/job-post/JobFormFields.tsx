@@ -11,7 +11,7 @@ import type { JobPostForm, JobType, JobLevel, WorkLocType, JobSkill } from "@/do
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+  "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -54,7 +54,7 @@ export function SegmentedControl<T extends string>({
       {options.map(o => (
         <button
           key={o.value} type="button" onClick={() => onChange(o.value)}
-          className={`py-2.5 px-3 text-sm font-medium rounded-xl border transition-all
+          className={`py-2.5 px-3 text-[16px] font-medium rounded-xl border transition-all
             ${value === o.value
               ? "bg-blue-600 text-white border-blue-600 shadow-sm"
               : "bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600"
@@ -103,7 +103,7 @@ export function FeaturedToggle({
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold leading-tight ${checked ? "text-amber-700" : "text-gray-700"}`}>
+        <p className={`text-[16px] font-semibold leading-tight ${checked ? "text-amber-700" : "text-gray-700"}`}>
           Đăng tin nổi bật
         </p>
         <p className={`text-xs mt-0.5 ${checked ? "text-amber-600" : "text-gray-400"}`}>
@@ -242,7 +242,7 @@ export function JobFormFields({
               onChange={e => onChange("salaryNegotiable", e.target.checked)}
               className="w-3.5 h-3.5 rounded border-gray-300 accent-blue-600"
             />
-            <span className="text-sm text-gray-700">Mức lương thoả thuận</span>
+            <span className="text-[16px] text-gray-700">Mức lương thoả thuận</span>
           </label>
 
           {!form.salaryNegotiable && (

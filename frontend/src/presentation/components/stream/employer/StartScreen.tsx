@@ -18,7 +18,7 @@ export function StartScreen({ session, onStart, starting }: StartScreenProps) {
       
       <div>
         <h1 className="text-2xl font-bold text-slate-800 mb-2">{session.title}</h1>
-        <p className="text-sm text-slate-500">Bắt đầu stream khi bạn đã sẵn sàng</p>
+        <p className="text-[16px] text-slate-500">Bắt đầu stream khi bạn đã sẵn sàng</p>
       </div>
 
       <button

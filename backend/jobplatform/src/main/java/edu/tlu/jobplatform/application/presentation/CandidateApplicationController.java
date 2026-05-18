@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.application.presentation;
 
+import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
@@ -49,6 +50,7 @@ public class CandidateApplicationController {
         private final CompanyInfoResolver companyInfoResolver;
         private final AcceptOfferUseCase acceptOfferUseCase;
         private final DeclineOfferUseCase declineOfferUseCase;
+        private final TrackCandidateBehaviorUseCase trackUseCase;
 
         @Operation(summary = "Nộp đơn ứng tuyển")
         @PostMapping("/api/v1/jobs/{jobPostId}/apply")
@@ -62,6 +64,8 @@ public class CandidateApplicationController {
                 Application app = submitUseCase.execute(new SubmitApplicationUseCase.Command(
                                 jobPostId, candidateId, req.getCvUrl(),
                                 req.getCoverLetter(), req.getExpectedSalary()));
+
+                trackUseCase.trackJobApply(candidateId, jobPostId);
 
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(ApiResponse.success(ApplicationResponse.from(app),

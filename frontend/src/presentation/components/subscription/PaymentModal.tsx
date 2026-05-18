@@ -9,8 +9,8 @@ import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 function VNPayLogo() {
   return (
     <div className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 rounded-lg">
-      <span className="text-white font-black text-sm tracking-tight">VN</span>
-      <span className="text-yellow-400 font-black text-sm tracking-tight">PAY</span>
+      <span className="text-white font-black text-[16px] tracking-tight">VN</span>
+      <span className="text-yellow-400 font-black text-[16px] tracking-tight">PAY</span>
     </div>
   );
 }
@@ -44,7 +44,7 @@ export function PaymentModal({ plan, yearly, formatPrice, discount, onConfirm, o
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">Xác nhận thanh toán</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">Xác nhận thanh toán</h3>
           <button onClick={onCancel}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
             <X size={16} />
@@ -59,22 +59,22 @@ export function PaymentModal({ plan, yearly, formatPrice, discount, onConfirm, o
               Chi tiết đơn hàng
             </p>
             <div className="flex flex-col gap-2.5">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-[16px]">
                 <span className="text-gray-600">Gói dịch vụ</span>
                 <span className="font-semibold text-gray-900">{plan.name}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-[16px]">
                 <span className="text-gray-600">Chu kỳ</span>
                 <span className="font-semibold text-gray-900">{yearly ? "1 năm" : "1 tháng"}</span>
               </div>
               {yearly && discount > 0 && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-[16px]">
                   <span className="text-gray-600">Giảm giá</span>
                   <span className="font-semibold text-green-600">-{discount}%</span>
                 </div>
               )}
               <div className="border-t border-gray-200 pt-2.5 flex justify-between">
-                <span className="text-sm font-semibold text-gray-800">Tổng thanh toán</span>
+                <span className="text-[16px] font-semibold text-gray-800">Tổng thanh toán</span>
                 <span className="text-base font-bold text-blue-600">{formatPrice(price)}</span>
               </div>
             </div>
@@ -93,7 +93,7 @@ export function PaymentModal({ plan, yearly, formatPrice, discount, onConfirm, o
                 </div>
                 <VNPayLogo />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800">VNPay</p>
+                  <p className="text-[16px] font-semibold text-gray-800">VNPay</p>
                   <p className="text-[11px] text-gray-500">
                     Thẻ ATM, Visa, MasterCard, QR Code
                   </p>
@@ -114,12 +114,12 @@ export function PaymentModal({ plan, yearly, formatPrice, discount, onConfirm, o
           {/* Actions */}
           <div className="flex gap-2">
             <button onClick={onCancel} disabled={loading}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100
+              className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100
                 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors">
               Hủy
             </button>
             <button onClick={handleConfirm} disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[16px]
                 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700
                 disabled:opacity-50 transition-colors shadow-sm">
               {loading

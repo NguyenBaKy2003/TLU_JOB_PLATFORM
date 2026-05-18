@@ -142,7 +142,7 @@ export default function JobsPage() {
                 onChange={e => setDraftKeyword(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSearch()}
                 placeholder="Tên công việc hoặc từ khóa"
-                className="flex-1 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
+                className="flex-1 text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
               />
             </div>
             <div className="flex items-center gap-2 px-4 py-3 border-b sm:border-b-0 sm:border-r border-gray-100">
@@ -150,7 +150,7 @@ export default function JobsPage() {
               <select
                 value={draftCity}
                 onChange={e => setDraftCity(e.target.value)}
-                className="text-sm text-gray-800 focus:outline-none bg-transparent cursor-pointer w-36"
+                className="text-[16px] text-gray-800 focus:outline-none bg-transparent cursor-pointer w-36"
               >
                 <option value="">Địa điểm</option>
                 {["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"].map(c => (
@@ -162,7 +162,7 @@ export default function JobsPage() {
             <button
               onClick={handleSearch}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600
-                text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                text-white text-[16px] font-semibold hover:bg-blue-700 transition-colors"
             >
               <Search size={15} /> Tìm kiếm
             </button>
@@ -179,7 +179,7 @@ export default function JobsPage() {
           <button
             onClick={() => setMobileFilterOpen(v => !v)}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200
-              rounded-xl text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
+              rounded-xl text-[16px] font-medium text-gray-700 hover:border-gray-300 transition-colors"
           >
             <SlidersHorizontal size={15} />
             Bộ lọc
@@ -228,7 +228,7 @@ export default function JobsPage() {
             </p>
 
             {error && (
-              <div className="text-center py-12 text-sm text-red-500">{error}</div>
+              <div className="text-center py-12 text-[16px] text-red-500">{error}</div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -237,7 +237,7 @@ export default function JobsPage() {
                 : jobs.length === 0
                   ? (
                     <div className="col-span-2 py-16 text-center">
-                      <p className="text-gray-400 text-sm">Không tìm thấy việc làm phù hợp</p>
+                      <p className="text-gray-400 text-[16px]">Không tìm thấy việc làm phù hợp</p>
                       <button
                         onClick={() => { setFilters(EMPTY_FILTERS); setPage(0); }}
                         className="mt-3 text-blue-600 text-xs hover:underline"

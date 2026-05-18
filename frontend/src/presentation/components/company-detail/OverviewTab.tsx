@@ -15,7 +15,7 @@ function ReviewerAvatar({ name }: { name: string }) {
   const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   
   return (
-    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white font-semibold text-sm shrink-0`}>
+    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white font-semibold text-[16px] shrink-0`}>
       {initials}
     </div>
   );
@@ -42,7 +42,7 @@ export function OverviewTab({ company, reviews = [] }: Props) {
         <h2 className="text-lg font-bold text-gray-900 mb-6">Đánh giá</h2>
         <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
           <Star size={40} className="mx-auto mb-2 text-gray-300" />
-          <p className="text-sm text-gray-400">Chưa có đánh giá nào</p>
+          <p className="text-[16px] text-gray-400">Chưa có đánh giá nào</p>
         </div>
       </div>
     );
@@ -98,7 +98,7 @@ export function OverviewTab({ company, reviews = [] }: Props) {
               <div className="flex items-center gap-3 min-w-0">
                 <ReviewerAvatar name={review.anonymous ? "Ẩn danh" : `NV${review.reviewerId.slice(0, 6)}`} />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">
+                  <p className="text-[16px] font-semibold text-gray-800 truncate">
                     {review.anonymous ? "Ẩn danh" : `Người dùng ${review.reviewerId.slice(0, 8)}`}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -119,8 +119,8 @@ export function OverviewTab({ company, reviews = [] }: Props) {
               )}
             </div>
 
-            {review.title && <p className="text-sm font-semibold text-gray-800">{review.title}</p>}
-            <p className="text-sm text-gray-600 leading-relaxed">{review.content}</p>
+            {review.title && <p className="text-[16px] font-semibold text-gray-800">{review.title}</p>}
+            <p className="text-[16px] text-gray-600 leading-relaxed">{review.content}</p>
 
             {(review.pros || review.cons) && (
               <div className="flex flex-col gap-2 text-xs">

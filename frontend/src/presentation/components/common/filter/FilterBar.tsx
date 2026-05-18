@@ -65,7 +65,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Bộ lọc</span>
+          <span className="text-[16px] font-medium">Bộ lọc</span>
           {hasActiveFilters && (
             <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
               Đang lọc

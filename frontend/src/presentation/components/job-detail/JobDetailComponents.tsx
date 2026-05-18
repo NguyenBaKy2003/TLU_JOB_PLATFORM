@@ -41,7 +41,7 @@ export function CompanyLogo({
   name, src, size = "md",
 }: { name: string; src?: string | null; size?: "sm" | "md" | "lg" }) {
   const color = LOGO_COLORS[(name?.charCodeAt(0) ?? 0) % LOGO_COLORS.length];
-  const sz = size === "sm" ? "text-sm" : size === "lg" ? "text-2xl" : "text-xl";
+  const sz = size === "sm" ? "text-[16px]" : size === "lg" ? "text-2xl" : "text-xl";
   if (src) return <img src={src} alt={name} className="w-full h-full object-cover" />;
   return (
     <div className={`w-full h-full bg-gradient-to-br ${color} flex items-center
@@ -79,7 +79,7 @@ export function Section({ title, children }: { title: string; children: React.Re
 export function HtmlContent({ html }: { html: string }) {
   return (
     <div
-      className="job-html-content text-sm text-gray-700 leading-relaxed"
+      className="job-html-content text-[16px] text-gray-700 leading-relaxed"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -124,7 +124,7 @@ export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHero
           <p className="text-xs text-gray-400 mb-0.5">{job.companyName}</p>
           <h1 className="text-xl font-bold text-gray-900 leading-snug">{job.title}</h1>
           {job.category && (
-            <p className="text-sm text-gray-500 mt-0.5">{job.category}</p>
+            <p className="text-[16px] text-gray-500 mt-0.5">{job.category}</p>
           )}
           <div className="flex flex-wrap gap-1.5 mt-3">
             {tags.map(t => (
@@ -213,7 +213,7 @@ export function JobDescriptionCards({ job }: { job: JobPostDetail }) {
                     {s.required && (
                       <Star size={12} className="text-yellow-500 fill-yellow-400 shrink-0" />
                     )}
-                    <span className="text-sm font-medium text-gray-800">{s.skillName}</span>
+                    <span className="text-[16px] font-medium text-gray-800">{s.skillName}</span>
                   </div>
                   <span className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full
                     ${LEVEL_COLORS[s.level] ?? "bg-gray-100 text-gray-600"}`}>
@@ -255,7 +255,7 @@ export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <h3 className="text-sm font-semibold text-gray-800 mb-4">Thông tin việc làm</h3>
+      <h3 className="text-[16px] font-semibold text-gray-800 mb-4">Thông tin việc làm</h3>
       <div className="flex flex-col gap-3">
         {rows.map(({ icon, label, value }) => (
           <div key={label} className="flex items-start gap-3">
@@ -285,7 +285,7 @@ export function CompanyCard({ job }: { job: JobPostDetail }) {
           <CompanyLogo name={job.companyName} src={job.companyLogoUrl} size="sm" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate
+          <p className="text-[16px] font-semibold text-gray-800 truncate
             group-hover:text-blue-600 transition-colors">
             {job.companyName}
           </p>
@@ -303,7 +303,7 @@ export function CompanyCard({ job }: { job: JobPostDetail }) {
 export function AppliedBadge() {
   return (
     <div className="w-full py-3 bg-green-50 border border-green-200 text-green-700
-      text-sm font-semibold rounded-xl flex items-center justify-center gap-2">
+      text-[16px] font-semibold rounded-xl flex items-center justify-center gap-2">
       <CheckCircle2 size={16} />
       Đã ứng tuyển
     </div>

@@ -109,7 +109,7 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
           {status === "error" && "Xác nhận thất bại"}
         </h1>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[16px] text-muted-foreground">
           {status === "loading" &&
             "Vui lòng đợi trong giây lát, chúng tôi đang xử lý yêu cầu của bạn."}
           {status === "success" && (
@@ -133,7 +133,7 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
         <button
           type="button"
           onClick={() => router.push(LOGIN_PATH[role])}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-[16px] font-medium hover:bg-primary/90 transition-colors"
         >
           <Mail className="w-4 h-4" />
           Đăng nhập ngay
@@ -145,14 +145,14 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
           <button
             type="button"
             onClick={() => router.push(SETTINGS_PATH[role])}
-            className="w-full px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            className="w-full px-4 py-2 rounded-md bg-primary text-primary-foreground text-[16px] font-medium hover:bg-primary/90 transition-colors"
           >
             Gửi lại yêu cầu đổi email
           </button>
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="w-full px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
+            className="w-full px-4 py-2 rounded-md border text-[16px] font-medium hover:bg-muted transition-colors"
           >
             Về trang chủ
           </button>

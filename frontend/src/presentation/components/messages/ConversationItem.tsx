@@ -21,7 +21,7 @@ function Avatar({ name, src }: { name: string; src?: string | null }) {
   return (
     <div
       className={`w-full h-full bg-gradient-to-br ${color}
-      flex items-center justify-center text-white font-bold text-sm`}
+      flex items-center justify-center text-white font-bold text-[16px]`}
     >
       {name?.slice(0, 2).toUpperCase()}
     </div>
@@ -102,7 +102,7 @@ export function ConversationItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2 mb-0.5">
           <p
-            className={`text-sm truncate ${
+            className={`text-[16px] truncate ${
               active
                 ? "font-semibold text-blue-600"
                 : hasUnread

@@ -98,7 +98,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const inputCls = `w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl
+  const inputCls = `w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl
     focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
     placeholder:text-gray-300 transition-all bg-white`;
 
@@ -114,7 +114,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
         <div className="flex items-start justify-between mb-5">
           <div>
             <h2 className="text-base font-bold text-gray-900">Ứng tuyển vị trí</h2>
-            <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{jobTitle}</p>
+            <p className="text-[16px] text-gray-500 mt-0.5 line-clamp-1">{jobTitle}</p>
           </div>
           <button
             onClick={onClose}
@@ -135,7 +135,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
 
             {cvLoading ? (
               <div className="flex items-center gap-2 px-3 py-2.5 border border-gray-200
-                rounded-xl text-sm text-gray-400">
+                rounded-xl text-[16px] text-gray-400">
                 <Loader2 size={14} className="animate-spin shrink-0" />
                 Đang tải danh sách CV...
               </div>
@@ -147,7 +147,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             ) : cvList.length === 0 ? (
               <div className="px-3 py-3 border border-dashed border-gray-200 rounded-xl
                 text-center">
-                <p className="text-sm text-gray-400">Bạn chưa có CV nào.</p>
+                <p className="text-[16px] text-gray-400">Bạn chưa có CV nào.</p>
                 <a
                   href="/candidate/profile"
                   className="text-xs text-blue-600 hover:underline mt-0.5 inline-block"
@@ -192,7 +192,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
                       {/* Info */}
                       <span className="flex-1 min-w-0">
                         <span className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`text-sm truncate font-medium
+                          <span className={`text-[16px] truncate font-medium
                             ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
                             {displayTitle(cv.title)}
                           </span>
@@ -258,7 +258,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
           <div className="flex gap-2 pt-1">
             <button
               onClick={onClose}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-600 border
+              className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 border
                 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
             >
               Huỷ
@@ -266,7 +266,7 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
             <button
               onClick={handleSubmit}
               disabled={submitting || cvLoading || cvList.length === 0}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-blue-600
+              className="flex-1 py-2.5 text-[16px] font-semibold text-white bg-blue-600
                 rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors
                 flex items-center justify-center gap-2"
             >

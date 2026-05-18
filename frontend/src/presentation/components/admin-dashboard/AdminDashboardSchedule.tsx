@@ -12,7 +12,7 @@ export function AdminDashboardSchedule() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-gray-900">Hoạt động gần đây</h3>
+        <h3 className="text-[16px] font-bold text-gray-900">Hoạt động gần đây</h3>
         <div className="w-7 h-7 flex items-center justify-center rounded-lg
           bg-red-50 text-red-500">
           <Activity size={14} />

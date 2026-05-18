@@ -30,7 +30,7 @@ export function JobFormActions({
           type="button"
           disabled={isBusy}
           onClick={() => onSubmit(false)}
-          className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+          className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
             font-semibold text-blue-600 bg-white border border-blue-200 rounded-2xl
             hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 transition-all"
         >
@@ -47,7 +47,7 @@ export function JobFormActions({
           type="button"
           disabled={isBusy}
           onClick={() => onSubmit(false)}
-          className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+          className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
             font-semibold text-blue-600 bg-white border border-blue-200 rounded-2xl
             hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 transition-all"
         >
@@ -64,7 +64,7 @@ export function JobFormActions({
         disabled={isBusy}
         onClick={() => onSubmit(true)}
         className={`
-          flex-1 flex items-center justify-center gap-2 py-3 text-sm
+          flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
           font-semibold text-white rounded-2xl disabled:opacity-50 transition-all shadow-sm
           ${showFeatured && featured
             ? "bg-amber-500 hover:bg-amber-600"

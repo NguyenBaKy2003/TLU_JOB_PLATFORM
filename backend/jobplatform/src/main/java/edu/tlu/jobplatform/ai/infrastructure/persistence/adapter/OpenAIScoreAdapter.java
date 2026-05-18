@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.ai.infrastructure.adapter;
+package edu.tlu.jobplatform.ai.infrastructure.persistence.adapter;
 
 import edu.tlu.jobplatform.ai.domain.model.CvAnalysisRequest;
 import edu.tlu.jobplatform.ai.domain.model.CvAnalysisResult;

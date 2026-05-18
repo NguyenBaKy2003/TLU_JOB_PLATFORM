@@ -45,7 +45,7 @@ export function TestimonialsSection() {
                 ))}
               </div>
               
-              <p className="text-white/70 text-sm leading-relaxed mb-6 line-clamp-4">
+              <p className="text-white/70 text-[16px] leading-relaxed mb-6 line-clamp-4">
                 "{item.quote}"
               </p>
               
@@ -55,7 +55,7 @@ export function TestimonialsSection() {
                 </div>
                 <div>
                   <h4 className="text-white font-semibold">{item.name}</h4>
-                  <p className="text-white/40 text-sm">{item.role}</p>
+                  <p className="text-white/40 text-[16px]">{item.role}</p>
                 </div>
               </div>
             </motion.div>

@@ -24,7 +24,7 @@ export function CompanySectionWrapper({
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
         <div className="flex items-center gap-2.5">
           <span className="text-gray-400">{icon}</span>
-          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">{title}</h3>
         </div>
         <div className="flex items-center gap-2">
           {/* Action button (Thêm, Upload, etc.) - ưu tiên hiển thị trước */}

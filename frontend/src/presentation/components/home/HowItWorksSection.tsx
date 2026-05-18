@@ -51,7 +51,7 @@ export function HowItWorksSection() {
                     <span className="text-white font-bold text-xs">{step.step}</span>
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
+                  <p className="text-white/50 text-[16px] leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             );

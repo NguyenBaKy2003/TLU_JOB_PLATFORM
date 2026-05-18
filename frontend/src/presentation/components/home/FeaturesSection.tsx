@@ -60,7 +60,7 @@ export function FeaturesSection() {
                   <Icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{feature.desc}</p>
+                <p className="text-white/50 text-[16px] leading-relaxed">{feature.desc}</p>
               </motion.div>
             );
           })}

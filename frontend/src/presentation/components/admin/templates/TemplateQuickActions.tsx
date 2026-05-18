@@ -16,7 +16,7 @@ export function TemplateQuickActions({ templateId, active, toggling, onToggle }:
       <div className="flex flex-col gap-2">
         <Link
           href={`/admin/templates/${templateId}/edit`}
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-gray-300 dark:hover:bg-indigo-950 dark:hover:text-indigo-300"
+          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[16px] text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-700 dark:text-gray-300 dark:hover:bg-indigo-950 dark:hover:text-indigo-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -27,7 +27,7 @@ export function TemplateQuickActions({ templateId, active, toggling, onToggle }:
         <button
           onClick={onToggle}
           disabled={toggling}
-          className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition disabled:opacity-50 ${
+          className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[16px] transition disabled:opacity-50 ${
             active
               ? "text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950"
               : "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
@@ -48,7 +48,7 @@ export function TemplateQuickActions({ templateId, active, toggling, onToggle }:
 
         <Link
           href="/admin/templates"
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-gray-500 transition hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[16px] text-gray-500 transition hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

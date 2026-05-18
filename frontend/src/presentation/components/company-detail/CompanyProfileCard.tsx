@@ -70,7 +70,7 @@ export function CompanyProfileCard({ company }: Props) {
               </button>
               <button
                 onClick={() => setFollowing(v => !v)}
-                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[16px] font-semibold transition-all ${
                   following
                     ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"

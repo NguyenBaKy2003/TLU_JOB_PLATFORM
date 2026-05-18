@@ -31,7 +31,7 @@ export function UserFilters({ keyword, role, totalElements, onKeyword, onRole, o
           value={keyword}
           onChange={e => onKeyword(e.target.value)}
           placeholder="Tìm email hoặc tên..."
-          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl
+          className="w-full pl-9 pr-4 py-2 text-[16px] border border-gray-200 rounded-xl
             bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20
             focus:border-red-400 transition-all"
         />
@@ -46,7 +46,7 @@ export function UserFilters({ keyword, role, totalElements, onKeyword, onRole, o
 
       {/* Role filter */}
       <select value={role} onChange={e => onRole(e.target.value as AdminUserRole | "")}
-        className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white
+        className="px-3 py-2 text-[16px] border border-gray-200 rounded-xl bg-white
           focus:outline-none focus:ring-2 focus:ring-red-500/20 cursor-pointer">
         {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
       </select>

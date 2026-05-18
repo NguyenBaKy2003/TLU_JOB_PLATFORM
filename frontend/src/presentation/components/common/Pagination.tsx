@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             return (
               <span
                 key={`dots-${index}`}
-                className="px-3 py-2 text-sm text-muted-foreground"
+                className="px-3 py-2 text-[16px] text-muted-foreground"
               >
                 ...
               </span>
@@ -104,7 +104,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               key={pageNumber}
               onClick={() => onPageChange(pageNumber)}
               className={`
-                min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-all duration-200
+                min-w-[36px] h-9 px-3 rounded-lg text-[16px] font-medium transition-all duration-200
                 ${isActive 
                   ? 'bg-primary text-primary-foreground shadow-sm' 
                   : 'border border-border bg-background hover:bg-muted'

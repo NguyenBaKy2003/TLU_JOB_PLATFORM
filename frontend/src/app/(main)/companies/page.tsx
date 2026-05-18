@@ -165,7 +165,7 @@ export default function CompaniesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-blue-100 text-sm sm:text-base mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
+            className="text-blue-100 text-[16px] sm:text-base mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
           >
             Tìm kiếm công ty phù hợp với bạn qua hàng ngàn đánh giá thực tế
           </motion.p>
@@ -185,7 +185,7 @@ export default function CompaniesPage() {
                   onChange={e => setKeyword(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && setPage(1)}
                   placeholder="Tên công ty, ngành nghề..."
-                  className="flex-1 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
+                  className="flex-1 text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
                 />
               </div>
               <div className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-4 border-b sm:border-b-0 sm:border-r border-gray-100">
@@ -194,13 +194,13 @@ export default function CompaniesPage() {
                   value={location}
                   onChange={e => { setLocation(e.target.value); setPage(1); }}
                   placeholder="Địa điểm"
-                  className="text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent min-w-[100px] sm:min-w-[120px]"
+                  className="text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent min-w-[100px] sm:min-w-[120px]"
                 />
                 <ChevronDown size={14} className="text-gray-400 shrink-0 sm:hidden" />
               </div>
               <button
                 onClick={() => setPage(1)}
-                className="flex items-center justify-center gap-2 px-4 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
+                className="flex items-center justify-center gap-2 px-4 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[16px] font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
               >
                 <Search size={16} /> 
                 <span className="hidden sm:inline">Tìm kiếm</span>
@@ -235,7 +235,7 @@ export default function CompaniesPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {/* Result count */}
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <p className="text-xs sm:text-[16px] text-gray-600">
                     <span className="font-semibold text-gray-900">{totalElements.toLocaleString()}</span>{" "}
                     <span className="hidden sm:inline">công ty</span>
                     <span className="sm:hidden">cty</span>
@@ -339,7 +339,7 @@ export default function CompaniesPage() {
                     key={tab.value}
                     onClick={() => { setSortTab(tab.value); setPage(1); }}
                     className={`
-                      px-4 py-2 text-sm font-medium rounded-lg transition-all
+                      px-4 py-2 text-[16px] font-medium rounded-lg transition-all
                       ${sortTab === tab.value
                         ? "bg-blue-600 text-white shadow-md"
                         : "bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600"
@@ -379,10 +379,10 @@ export default function CompaniesPage() {
                   <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-100 mb-3 sm:mb-4">
                     <X className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
                   </div>
-                  <p className="text-sm sm:text-base text-gray-500 px-4">{error}</p>
+                  <p className="text-[16px] sm:text-base text-gray-500 px-4">{error}</p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-[16px] hover:bg-blue-700"
                   >
                     Thử lại
                   </button>
@@ -406,10 +406,10 @@ export default function CompaniesPage() {
                       <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 mb-3 sm:mb-4">
                         <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                       </div>
-                      <p className="text-sm sm:text-base text-gray-500">Không tìm thấy công ty phù hợp</p>
+                      <p className="text-[16px] sm:text-base text-gray-500">Không tìm thấy công ty phù hợp</p>
                       <button
                         onClick={handleClearAllFilters}
-                        className="mt-4 text-blue-600 text-sm hover:underline"
+                        className="mt-4 text-blue-600 text-[16px] hover:underline"
                       >
                         Xóa tất cả bộ lọc
                       </button>

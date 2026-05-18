@@ -88,8 +88,8 @@ export default function ApplicationDetailPage() {
     return (
       <div className="py-24 flex flex-col items-center gap-4 text-gray-400">
         <Briefcase size={40} strokeWidth={1.2} />
-        <p className="text-sm">Không tìm thấy đơn ứng tuyển</p>
-        <Link href="/candidate/applications" className="text-sm text-blue-600 hover:underline">
+        <p className="text-[16px]">Không tìm thấy đơn ứng tuyển</p>
+        <Link href="/candidate/applications" className="text-[16px] text-blue-600 hover:underline">
           Quay lại danh sách
         </Link>
       </div>
@@ -162,7 +162,7 @@ export default function ApplicationDetailPage() {
         <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
           <BadgeCheck size={20} className="text-emerald-600 shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-emerald-800">Bạn đã nhận được offer!</p>
+            <p className="text-[16px] font-semibold text-emerald-800">Bạn đã nhận được offer!</p>
             <p className="text-xs text-emerald-600 mt-0.5">
               Hãy xem xét và chấp nhận nếu bạn đồng ý với điều kiện của nhà tuyển dụng.
             </p>
@@ -174,20 +174,20 @@ export default function ApplicationDetailPage() {
 
       {/* Current status */}
       <div className="flex items-center justify-between px-1">
-        <span className="text-sm font-medium text-gray-500">Trạng thái hiện tại</span>
+        <span className="text-[16px] font-medium text-gray-500">Trạng thái hiện tại</span>
         <ApplicationStatusBadge status={app.status} />
       </div>
 
       {/* Details */}
       <div className="bg-white border border-gray-100 rounded-2xl divide-y divide-gray-50">
-        <div className="flex items-center justify-between px-5 py-3.5 text-sm">
+        <div className="flex items-center justify-between px-5 py-3.5 text-[16px]">
           <span className="text-gray-500">Ngày nộp đơn</span>
           <span className="font-medium text-gray-800">
             {new Date(app.appliedAt).toLocaleDateString("vi-VN")}
           </span>
         </div>
         {app.expectedSalary && (
-          <div className="flex items-center justify-between px-5 py-3.5 text-sm">
+          <div className="flex items-center justify-between px-5 py-3.5 text-[16px]">
             <span className="text-gray-500">Mức lương mong muốn</span>
             <span className="font-medium text-gray-800">
               {Number(app.expectedSalary).toLocaleString()} VND
@@ -195,7 +195,7 @@ export default function ApplicationDetailPage() {
           </div>
         )}
         {app.job?.deadline && (
-          <div className="flex items-center justify-between px-5 py-3.5 text-sm">
+          <div className="flex items-center justify-between px-5 py-3.5 text-[16px]">
             <span className="text-gray-500">Hạn nộp hồ sơ</span>
             <span className="font-medium text-gray-800">
               {new Date(app.job.deadline).toLocaleDateString("vi-VN")}
@@ -210,7 +210,7 @@ export default function ApplicationDetailPage() {
           <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
             <Clock size={12} /> Lịch phỏng vấn
           </p>
-          <p className="text-sm font-semibold text-gray-900">
+          <p className="text-[16px] font-semibold text-gray-900">
             {new Date(scheduledAt).toLocaleString("vi-VN")}
           </p>
           {app.interviewLocation && (
@@ -230,7 +230,7 @@ export default function ApplicationDetailPage() {
           <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
             Thư xin việc
           </p>
-          <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100
+          <p className="text-[16px] text-gray-700 leading-relaxed bg-gray-50 border border-gray-100
             rounded-xl p-4 whitespace-pre-line">
             {app.coverLetter}
           </p>
@@ -243,7 +243,7 @@ export default function ApplicationDetailPage() {
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200
-          rounded-xl text-sm font-medium text-gray-700 hover:border-blue-300
+          rounded-xl text-[16px] font-medium text-gray-700 hover:border-blue-300
           hover:text-blue-600 transition-colors w-fit"
       >
         <FileText size={14} /> Xem CV đã nộp
@@ -261,7 +261,7 @@ export default function ApplicationDetailPage() {
       <div className="flex gap-3 pt-2 pb-6">
         <Link
           href={`/jobs/${app.job?.slug ?? app.jobPostId}`}
-          className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+          className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
             font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
         >
           <Eye size={15} /> Xem tin tuyển dụng
@@ -272,7 +272,7 @@ export default function ApplicationDetailPage() {
           <button
             onClick={handleAcceptOffer}
             disabled={accepting}
-            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+            className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
               font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700
               transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -285,7 +285,7 @@ export default function ApplicationDetailPage() {
             <button
               onClick={handleDeclineOffer}
               disabled={declining || accepting}
-              className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+              className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
                 font-medium text-orange-600 bg-orange-50 rounded-xl hover:bg-orange-100
                 transition-colors border border-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -299,7 +299,7 @@ export default function ApplicationDetailPage() {
           <button
             onClick={handleWithdraw}
             disabled={withdrawing}
-            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm
+            className="flex-1 flex items-center justify-center gap-2 py-3 text-[16px]
               font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100
               transition-colors border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >

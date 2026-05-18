@@ -98,13 +98,13 @@ export default function AdminTemplatesPage() {
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">CV Templates</h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-[16px] text-gray-500 dark:text-gray-400">
               {templates.length} template · {templates.filter((t) => t.active).length} đang hiển thị
             </p>
           </div>
           <Link
             href="/admin/templates/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[16px] font-medium text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -123,7 +123,7 @@ export default function AdminTemplatesPage() {
         />
 
         {deleteConfirmId && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm dark:border-red-800 dark:bg-red-950">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[16px] dark:border-red-800 dark:bg-red-950">
             <span className="text-red-700 dark:text-red-300">
               Nhấn nút xóa lần nữa để xác nhận xóa template này. Thao tác không thể hoàn tác.
             </span>
@@ -136,7 +136,7 @@ export default function AdminTemplatesPage() {
         {!loading && error && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950">
             <p className="text-red-600 dark:text-red-300">{error}</p>
-            <button onClick={load} className="mt-3 text-sm text-red-500 underline hover:text-red-700">
+            <button onClick={load} className="mt-3 text-[16px] text-red-500 underline hover:text-red-700">
               Thử lại
             </button>
           </div>

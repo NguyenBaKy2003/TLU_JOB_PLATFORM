@@ -111,17 +111,17 @@ export default function CVUploadCard({
   if (showPrimaryAsk && pendingFile) {
     return (
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">Đặt làm CV chính?</h3>
+        <h3 className="text-[16px] font-semibold text-gray-900 mb-1">Đặt làm CV chính?</h3>
         <p className="text-xs text-gray-500 mb-4">
           Bạn có muốn đặt <span className="font-medium text-gray-700">{pendingFile.name}</span> làm CV chính không?
         </p>
         <div className="flex flex-col gap-2">
           <button onClick={() => doUpload(pendingFile, true)}
-            className="w-full py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+            className="w-full py-2.5 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
             Có, đặt làm CV chính
           </button>
           <button onClick={() => doUpload(pendingFile, false)}
-            className="w-full py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            className="w-full py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
             Không, giữ CV cũ làm chính
           </button>
           <button onClick={() => { setShowPrimaryAsk(false); setPendingFile(null); }}
@@ -140,7 +140,7 @@ export default function CVUploadCard({
       <>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-0.5">
-            <h3 className="text-sm font-semibold text-blue-600">CV đã tải lên</h3>
+            <h3 className="text-[16px] font-semibold text-blue-600">CV đã tải lên</h3>
             {/* Nút xem danh sách */}
             <button
               onClick={handleOpenList}
@@ -176,7 +176,7 @@ export default function CVUploadCard({
           </div>
 
           <button onClick={() => fileRef.current?.click()}
-            className="mt-3 w-full py-2.5 text-sm font-medium text-blue-600 bg-white
+            className="mt-3 w-full py-2.5 text-[16px] font-medium text-blue-600 bg-white
               border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
             Thay đổi tệp
           </button>
@@ -204,7 +204,7 @@ export default function CVUploadCard({
     <>
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-0.5">
-          <h3 className="text-sm font-semibold text-gray-900">Tải CV của bạn lên</h3>
+          <h3 className="text-[16px] font-semibold text-gray-900">Tải CV của bạn lên</h3>
           {cvList.length > 0 && (
             <button
               onClick={handleOpenList}
@@ -280,7 +280,7 @@ export default function CVUploadCard({
         <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
 
         <button onClick={() => fileRef.current?.click()} disabled={local?.phase === "uploading"}
-          className="mt-3 w-full py-2.5 text-sm font-medium text-white bg-blue-600
+          className="mt-3 w-full py-2.5 text-[16px] font-medium text-white bg-blue-600
             rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors">
           {local?.phase === "uploading" ? "Đang tải lên..." : "Tải lên CV"}
         </button>

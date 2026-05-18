@@ -61,7 +61,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
         >
           <Sparkles className="w-4 h-4 text-yellow-400" />
-          <span className="text-white/80 text-sm font-medium">Nền tảng tuyển dụng #1 Việt Nam</span>
+          <span className="text-white/80 text-[16px] font-medium">Nền tảng tuyển dụng #1 Việt Nam</span>
         </motion.div>
 
         {/* Title */}
@@ -150,12 +150,12 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex flex-wrap items-center justify-center gap-2 mt-8"
         >
-          <span className="text-white/40 text-sm">Phổ biến:</span>
+          <span className="text-white/40 text-[16px]">Phổ biến:</span>
           {POPULAR_SEARCHES.map((tag, i) => (
             <button
               key={i}
               onClick={() => setKeyword(tag)}
-              className="px-3 py-1.5 text-sm text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all duration-200"
+              className="px-3 py-1.5 text-[16px] text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all duration-200"
             >
               {tag}
             </button>
@@ -177,7 +177,7 @@ export function HeroSection() {
                 </div>
               ))}
             </div>
-            <span className="text-white/60 text-sm">+420,000 người dùng</span>
+            <span className="text-white/60 text-[16px]">+420,000 người dùng</span>
           </div>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -185,7 +185,7 @@ export function HeroSection() {
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-white/60 text-sm ml-2">4.9/5 từ 10,000+ đánh giá</span>
+            <span className="text-white/60 text-[16px] ml-2">4.9/5 từ 10,000+ đánh giá</span>
           </div>
         </motion.div>
 

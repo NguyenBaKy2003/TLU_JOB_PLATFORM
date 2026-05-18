@@ -159,7 +159,7 @@ export function CompanyDetailModal({
                           }
                         </span>
                         {company.industry && (
-                          <span className="text-sm text-gray-500">
+                          <span className="text-[16px] text-gray-500">
                             {company.industry}
                           </span>
                         )}
@@ -186,7 +186,7 @@ export function CompanyDetailModal({
                     <button
                       key={tab.key}
                       onClick={() => setActiveTab(tab.key as any)}
-                      className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      className={`flex-1 px-4 py-2 text-[16px] font-medium rounded-lg transition-colors ${
                         activeTab === tab.key
                           ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
                           : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -225,7 +225,7 @@ export function CompanyDetailModal({
                   <div className="space-y-6">
                     {/* Basic Information */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <Building2 className="w-4 h-4" />
                         Thông tin cơ bản
                       </h3>
@@ -235,7 +235,7 @@ export function CompanyDetailModal({
                             <Mail className="w-4 h-4 text-gray-400" />
                             <div>
                               <div className="text-xs text-gray-500">Email</div>
-                              <div className="text-sm font-medium">
+                              <div className="text-[16px] font-medium">
                                 {company.email}
                               </div>
                             </div>
@@ -253,7 +253,7 @@ export function CompanyDetailModal({
                                 href={company.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1"
+                                className="text-[16px] font-medium text-blue-600 hover:underline flex items-center gap-1"
                               >
                                 {company.website}
                                 <ExternalLink className="w-3 h-3" />
@@ -269,7 +269,7 @@ export function CompanyDetailModal({
                               <div className="text-xs text-gray-500">
                                 Điện thoại
                               </div>
-                              <div className="text-sm font-medium">
+                              <div className="text-[16px] font-medium">
                                 {company.phone}
                               </div>
                             </div>
@@ -283,7 +283,7 @@ export function CompanyDetailModal({
                               <div className="text-xs text-gray-500">
                                 Địa điểm
                               </div>
-                              <div className="text-sm font-medium">
+                              <div className="text-[16px] font-medium">
                                 {[company.city, company.country]
                                   .filter(Boolean)
                                   .join(", ")}
@@ -299,7 +299,7 @@ export function CompanyDetailModal({
                               <div className="text-xs text-gray-500">
                                 Quy mô
                               </div>
-                              <div className="text-sm font-medium">
+                              <div className="text-[16px] font-medium">
                                 {company.sizeLabel || company.size}
                               </div>
                             </div>
@@ -313,7 +313,7 @@ export function CompanyDetailModal({
                               <div className="text-xs text-gray-500">
                                 Ngành nghề
                               </div>
-                              <div className="text-sm font-medium">
+                              <div className="text-[16px] font-medium">
                                 {company.industry}
                               </div>
                             </div>
@@ -325,7 +325,7 @@ export function CompanyDetailModal({
                     {/* Description */}
                     {company.description && (
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                        <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-3">
                           Giới thiệu
                         </h3>
                         <div className="prose prose-sm max-w-none text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
@@ -337,10 +337,10 @@ export function CompanyDetailModal({
                     {/* Address */}
                     {company.address && (
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                        <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-3">
                           Địa chỉ
                         </h3>
-                        <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <div className="flex items-start gap-2 text-[16px] text-gray-600 dark:text-gray-300">
                           <MapPin className="w-4 h-4 mt-0.5 text-gray-400" />
                           {company.address}
                         </div>
@@ -349,13 +349,13 @@ export function CompanyDetailModal({
 
                     {/* Verification Info */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <h3 className="text-[16px] font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <Shield className="w-4 h-4" />
                         Thông tin xác thực
                       </h3>
                       <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-[16px] text-gray-600 dark:text-gray-400">
                             Trạng thái
                           </span>
                           <span
@@ -376,10 +376,10 @@ export function CompanyDetailModal({
 
                         {company.verifiedAt && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-[16px] text-gray-600 dark:text-gray-400">
                               Ngày xác thực
                             </span>
-                            <span className="text-sm font-medium flex items-center gap-1">
+                            <span className="text-[16px] font-medium flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {new Date(
                                 company.verifiedAt
@@ -389,11 +389,11 @@ export function CompanyDetailModal({
                         )}
 
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-[16px] text-gray-600 dark:text-gray-400">
                             Có thể đăng bài
                           </span>
                           <span
-                            className={`text-sm font-medium ${
+                            className={`text-[16px] font-medium ${
                               company.canPostJobs
                                 ? "text-green-600"
                                 : "text-red-600"
@@ -406,10 +406,10 @@ export function CompanyDetailModal({
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-[16px] text-gray-600 dark:text-gray-400">
                             Ngày tạo
                           </span>
-                          <span className="text-sm font-medium flex items-center gap-1">
+                          <span className="text-[16px] font-medium flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {new Date(
                               company.createdAt
@@ -446,12 +446,12 @@ export function CompanyDetailModal({
                                 {member.fullName}
                               </h4>
                               {member.jobTitle && (
-                                <p className="text-sm text-gray-500 mt-0.5">
+                                <p className="text-[16px] text-gray-500 mt-0.5">
                                   {member.jobTitle}
                                 </p>
                               )}
                               {member.bio && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                                <p className="text-[16px] text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
                                   {member.bio}
                                 </p>
                               )}
@@ -473,7 +473,7 @@ export function CompanyDetailModal({
                     ) : (
                       <div className="text-center py-12 text-gray-400">
                         <Users className="w-12 h-12 mx-auto mb-3" />
-                        <p className="text-sm">
+                        <p className="text-[16px]">
                           Chưa có thông tin thành viên
                         </p>
                       </div>
@@ -553,7 +553,7 @@ export function CompanyDetailModal({
                     ) : (
                       <div className="text-center py-12 text-gray-400">
                         <ImageIcon className="w-12 h-12 mx-auto mb-3" />
-                        <p className="text-sm">
+                        <p className="text-[16px]">
                           Chưa có hình ảnh thư viện
                         </p>
                       </div>
@@ -574,7 +574,7 @@ export function CompanyDetailModal({
                             <div className="flex items-center gap-3">
                               <FileText className="w-8 h-8 text-blue-600" />
                               <div>
-                                <p className="font-medium text-sm">
+                                <p className="font-medium text-[16px]">
                                   {doc.fileName}
                                 </p>
                                 <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
@@ -620,7 +620,7 @@ export function CompanyDetailModal({
                     ) : (
                       <div className="text-center py-12 text-gray-400">
                         <FileText className="w-12 h-12 mx-auto mb-3" />
-                        <p className="text-sm">
+                        <p className="text-[16px]">
                           Chưa có tài liệu
                         </p>
                       </div>
@@ -632,7 +632,7 @@ export function CompanyDetailModal({
           ) : (
             <div className="text-center py-12 text-gray-400">
               <Building2 className="w-12 h-12 mx-auto mb-3" />
-              <p className="text-sm">Không tìm thấy thông tin công ty</p>
+              <p className="text-[16px]">Không tìm thấy thông tin công ty</p>
             </div>
           )}
         </div>

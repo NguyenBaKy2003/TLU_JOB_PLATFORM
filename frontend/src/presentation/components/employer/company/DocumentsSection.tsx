@@ -191,7 +191,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
               <CheckCircle size={20} className="text-green-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-green-800">Đã xác thực thành công</p>
+              <p className="text-[16px] font-semibold text-green-800">Đã xác thực thành công</p>
               <p className="text-xs text-green-600 mt-0.5">Bạn có thể đăng tin tuyển dụng ngay</p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
               <XCircle size={20} className="text-red-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-800">Tài liệu bị từ chối</p>
+              <p className="text-[16px] font-semibold text-red-800">Tài liệu bị từ chối</p>
               <p className="text-xs text-red-600 mt-0.5">Vui lòng nộp lại tài liệu hợp lệ để được xác thực</p>
             </div>
           </div>
@@ -215,7 +215,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
               <FileText size={20} className="text-yellow-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-yellow-800">Đang chờ xác thực</p>
+              <p className="text-[16px] font-semibold text-yellow-800">Đang chờ xác thực</p>
               <p className="text-xs text-yellow-600 mt-0.5">
                 Công ty cần được xác thực trước khi có thể đăng tin tuyển dụng
               </p>
@@ -255,7 +255,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
       {showForm && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-gray-800">Nộp tài liệu xác thực</h4>
+            <h4 className="text-[16px] font-semibold text-gray-800">Nộp tài liệu xác thực</h4>
             <button
               onClick={() => {
                 setShowForm(false);
@@ -330,7 +330,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
                       <CheckCircle size={20} className="text-green-600" />
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-medium text-gray-800">{selectedFile.name}</p>
+                      <p className="text-[16px] font-medium text-gray-800">{selectedFile.name}</p>
                       <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
                     </div>
                     <button
@@ -346,7 +346,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
                 ) : (
                   <>
                     <Upload size={32} className="mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Kéo thả file vào đây hoặc nhấp để chọn</p>
+                    <p className="text-[16px] text-gray-600">Kéo thả file vào đây hoặc nhấp để chọn</p>
                     <p className="text-xs text-gray-400 mt-1">
                       Hỗ trợ: PDF, JPG, PNG, DOC (tối đa 10MB)
                     </p>
@@ -363,14 +363,14 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
                 setSelectedFile(null);
               }}
               disabled={uploading}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
               Hủy
             </button>
             <button
               onClick={handleUpload}
               disabled={uploading || !selectedFile}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {uploading ? (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -390,7 +390,7 @@ export function DocumentsSection({ documents, verificationStatus, onUpdate }: Pr
           className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-colors"
         >
           <FileText size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-sm text-gray-500">Chưa có tài liệu nào</p>
+          <p className="text-[16px] text-gray-500">Chưa có tài liệu nào</p>
           <p className="text-xs text-gray-400 mt-1">
             {!isVerified ? "Nhấp để nộp tài liệu xác thực" : "Tài liệu sẽ hiển thị sau khi xác thực"}
           </p>

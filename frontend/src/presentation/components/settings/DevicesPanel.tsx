@@ -10,7 +10,7 @@ export function DevicesPanel() {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-50">
         <Monitor size={16} className="text-gray-400" />
-        <h2 className="text-sm font-semibold text-gray-800">Thiết bị</h2>
+        <h2 className="text-[16px] font-semibold text-gray-800">Thiết bị</h2>
       </div>
       <div className="px-5 py-4 flex flex-col gap-3">
         <div>
@@ -20,7 +20,7 @@ export function DevicesPanel() {
         </div>
         <button
           onClick={() => toast.success("Đã đăng xuất", "Đã đăng xuất khỏi tất cả thiết bị khác.")}
-          className="flex items-center gap-2 w-full text-sm font-semibold text-red-500
+          className="flex items-center gap-2 w-full text-[16px] font-semibold text-red-500
             hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
           <LogOut size={15} />
           Đăng xuất khỏi tất cả các thiết bị khác

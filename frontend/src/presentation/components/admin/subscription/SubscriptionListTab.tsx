@@ -20,7 +20,7 @@ function SubRow({ sub, formatPrice }: {
   return (
     <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
       <td className="px-5 py-3.5">
-        <p className="text-sm font-medium text-gray-900">{sub.companyName}</p>
+        <p className="text-[16px] font-medium text-gray-900">{sub.companyName}</p>
         <p className="text-[11px] text-gray-400">{sub.companyId.slice(0, 8)}…</p>
       </td>
       <td className="px-5 py-3.5">
@@ -40,7 +40,7 @@ function SubRow({ sub, formatPrice }: {
       <td className="px-5 py-3.5 text-xs text-gray-600">
         {new Date(sub.expiresAt).toLocaleDateString("vi-VN")}
       </td>
-      <td className="px-5 py-3.5 text-sm font-semibold text-blue-600">
+      <td className="px-5 py-3.5 text-[16px] font-semibold text-blue-600">
         {formatPrice(sub.amount)}
       </td>
     </tr>
@@ -90,7 +90,7 @@ export function SubscriptionListTab({
 
       {/* Backend pending banner */}
       <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border
-        border-amber-200 rounded-xl text-sm text-amber-800">
+        border-amber-200 rounded-xl text-[16px] text-amber-800">
         <AlertCircle size={16} className="mt-0.5 shrink-0 text-amber-500" />
         <p>
           Cần endpoint{" "}
@@ -106,7 +106,7 @@ export function SubscriptionListTab({
         <select
           value={subsStatus}
           onChange={e => onStatusChange(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white
+          className="px-3 py-2 text-[16px] border border-gray-200 rounded-xl bg-white
             focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer
             text-gray-700"
         >
@@ -138,7 +138,7 @@ export function SubscriptionListTab({
               <tbody>
                 {subs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="px-5 py-16 text-center text-[16px] text-gray-400">
                       Không có subscription nào
                     </td>
                   </tr>

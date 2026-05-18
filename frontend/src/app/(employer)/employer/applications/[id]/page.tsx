@@ -140,7 +140,7 @@ export default function EmployerApplicationDetailPage() {
 
   if (!detail) {
     return (
-      <div className="p-6 text-sm text-gray-500">Không tìm thấy dữ liệu</div>
+      <div className="p-6 text-[16px] text-gray-500">Không tìm thấy dữ liệu</div>
     );
   }
 
@@ -151,7 +151,7 @@ export default function EmployerApplicationDetailPage() {
       <div className="max-w-3xl mx-auto px-4 py-4">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+          className="flex items-center gap-2 text-[16px] text-gray-600 hover:text-blue-600 transition-colors"
         >
           <ArrowLeft size={16} />
           Quay lại
@@ -223,7 +223,7 @@ export default function EmployerApplicationDetailPage() {
                       <button
                         key={s}
                         onClick={() => handleStatusChange(s)}
-                        className="block w-full px-4 py-2.5 text-sm text-left text-gray-700
+                        className="block w-full px-4 py-2.5 text-[16px] text-left text-gray-700
                           hover:bg-gray-50 transition-colors"
                       >
                         {APPLICATION_STATUS_LABELS[s]}
@@ -244,7 +244,7 @@ export default function EmployerApplicationDetailPage() {
                   <Calendar size={15} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-purple-800">Ứng viên đã được rút gọn</p>
+                  <p className="text-[16px] font-semibold text-purple-800">Ứng viên đã được rút gọn</p>
                   <p className="text-xs text-purple-500 mt-0.5">Bạn có thể lên lịch phỏng vấn ngay bây giờ</p>
                 </div>
               </div>
@@ -280,10 +280,10 @@ export default function EmployerApplicationDetailPage() {
           {/* ── Interview info ─── */}
           {detail.interviewScheduledAt && (
             <div className="bg-purple-50 border border-purple-100 p-4 rounded-2xl">
-              <p className="text-sm font-semibold text-purple-700 flex items-center gap-1.5 mb-2">
+              <p className="text-[16px] font-semibold text-purple-700 flex items-center gap-1.5 mb-2">
                 <Clock size={14} /> Lịch phỏng vấn
               </p>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-[16px] font-medium text-gray-900">
                 {new Date(detail.interviewScheduledAt).toLocaleString("vi-VN")}
               </p>
               {detail.interviewLocation && (
@@ -307,7 +307,7 @@ export default function EmployerApplicationDetailPage() {
                 onClick={handleViewCV}
                 disabled={cvViewing || cvDownloading}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200
-                  rounded-xl text-sm font-medium text-gray-700 hover:border-blue-300
+                  rounded-xl text-[16px] font-medium text-gray-700 hover:border-blue-300
                   hover:text-blue-600 transition-colors disabled:opacity-60"
               >
                 {cvViewing
@@ -321,7 +321,7 @@ export default function EmployerApplicationDetailPage() {
                 onClick={handleDownloadCV}
                 disabled={cvViewing || cvDownloading}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200
-                  rounded-xl text-sm font-medium text-gray-700 hover:border-green-300
+                  rounded-xl text-[16px] font-medium text-gray-700 hover:border-green-300
                   hover:text-green-600 transition-colors disabled:opacity-60"
               >
                 {cvDownloading
@@ -361,7 +361,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-gray-50 p-3 rounded-xl">
       <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-gray-800">{value}</p>
+      <p className="text-[16px] font-medium text-gray-800">{value}</p>
     </div>
   );
 }

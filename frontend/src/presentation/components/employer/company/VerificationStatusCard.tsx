@@ -45,7 +45,7 @@ export function VerificationStatusCard({ status, rejectionReason, onResubmit }: 
       <div className="flex items-start gap-3">
         <div className="shrink-0 mt-0.5">{cfg.icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 mb-0.5">{cfg.title}</p>
+          <p className="text-[16px] font-semibold text-gray-800 mb-0.5">{cfg.title}</p>
           <p className="text-xs text-gray-600 leading-relaxed">{cfg.desc}</p>
           {status === "REJECTED" && rejectionReason && (
             <p className="text-xs text-red-600 mt-2 bg-white/60 px-2 py-1.5 rounded-lg">

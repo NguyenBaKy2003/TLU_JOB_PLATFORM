@@ -26,7 +26,7 @@ export function UserTable({ users, togglingId, onView, onToggle }: Props) {
   if (users.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <p className="py-20 text-center text-sm text-gray-400">Không có người dùng nào</p>
+        <p className="py-20 text-center text-[16px] text-gray-400">Không có người dùng nào</p>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export function UserTable({ users, togglingId, onView, onToggle }: Props) {
                       {initials(user.fullName)}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{user.fullName}</p>
+                      <p className="text-[16px] font-semibold text-gray-900">{user.fullName}</p>
                       <p className="text-[11px] text-gray-400">{user.email}</p>
                     </div>
                   </div>

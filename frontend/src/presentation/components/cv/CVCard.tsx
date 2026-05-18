@@ -93,7 +93,7 @@ function CVCardMenu({ cv, onClose, onDuplicate, onDelete, onPublish, onArchive, 
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  const item = "flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors text-left";
+  const item = "flex items-center gap-2.5 w-full px-3 py-2 text-[16px] rounded-lg hover:bg-gray-50 transition-colors text-left";
 
   const action = (fn: () => void) => () => { fn(); onClose(); };
 
@@ -189,7 +189,7 @@ export function CVCard({ cv, onDuplicate, onDelete, onPublish, onArchive, onRest
         {/* Title + menu trigger */}
         <div className="flex items-start justify-between gap-2">
           <Link href={`/cv/${cv.id}/edit`} className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 truncate leading-snug hover:text-[#3D5A80] transition-colors">
+            <h3 className="text-[16px] font-semibold text-gray-900 truncate leading-snug hover:text-[#3D5A80] transition-colors">
               {cv.title}
             </h3>
           </Link>

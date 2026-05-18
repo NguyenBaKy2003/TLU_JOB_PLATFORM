@@ -19,7 +19,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
           <React.Fragment key={label}>
             <div className="flex items-center gap-2">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold transition-all
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[16px] font-semibold transition-all
                   ${isDone || isActive
                     ? "bg-slate-800 text-white"
                     : "bg-slate-100 text-slate-400"
@@ -28,7 +28,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                 {isDone ? "✓" : stepNum}
               </div>
               <span
-                className={`text-sm font-medium hidden sm:block ${
+                className={`text-[16px] font-medium hidden sm:block ${
                   isActive ? "text-slate-800" : "text-slate-400"
                 }`}
               >

@@ -46,7 +46,7 @@ function Field({
 }
 
 const INPUT =
-  "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-900/40";
+  "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[16px] text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-900/40";
 
 // ── HTML Preview pane ─────
 
@@ -157,7 +157,7 @@ export function TemplateFormFields({
     <div className="space-y-6">
       {/* Error banner */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[16px] text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       )}
@@ -216,7 +216,7 @@ export function TemplateFormFields({
             <div className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-4" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Premium</p>
+            <p className="text-[16px] font-medium text-gray-700 dark:text-gray-300">Premium</p>
             <p className="text-[11px] text-gray-400">Yêu cầu subscription</p>
           </div>
         </label>
@@ -235,7 +235,7 @@ export function TemplateFormFields({
               <div className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-4" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</p>
+              <p className="text-[16px] font-medium text-gray-700 dark:text-gray-300">Active</p>
               <p className="text-[11px] text-gray-400">Hiển thị với candidate</p>
             </div>
           </label>

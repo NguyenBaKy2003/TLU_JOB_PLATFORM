@@ -460,7 +460,7 @@ export default function AdminPaymentsPage() {
   const StatCard = ({ title, value, icon, color, trend }: any) => (
     <div className="bg-background rounded-lg border border-border p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-muted-foreground">{title}</span>
+        <span className="text-[16px] text-muted-foreground">{title}</span>
         <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
       </div>
       <div className="text-2xl font-bold text-foreground">{value}</div>
@@ -485,7 +485,7 @@ export default function AdminPaymentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý thanh toán</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[16px] text-muted-foreground mt-1">
             Quản lý và theo dõi các giao dịch thanh toán trên hệ thống
           </p>
         </div>
@@ -502,20 +502,20 @@ export default function AdminPaymentsPage() {
       <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border border-border flex-wrap">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Thống kê từ:</span>
+          <span className="text-[16px] font-medium">Thống kê từ:</span>
         </div>
         <input
           type="date"
           value={dateRange.from}
           onChange={(e) => handleDateRangeChange('from', e.target.value)}
-          className="px-3 py-1.5 text-sm rounded-lg border border-input bg-background"
+          className="px-3 py-1.5 text-[16px] rounded-lg border border-input bg-background"
         />
         <span className="text-muted-foreground">đến</span>
         <input
           type="date"
           value={dateRange.to}
           onChange={(e) => handleDateRangeChange('to', e.target.value)}
-          className="px-3 py-1.5 text-sm rounded-lg border border-input bg-background"
+          className="px-3 py-1.5 text-[16px] rounded-lg border border-input bg-background"
         />
       </div>
 

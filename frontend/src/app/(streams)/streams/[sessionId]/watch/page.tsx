@@ -197,14 +197,14 @@ export default function CandidateViewerPage() {
               <h2 className="text-lg font-semibold text-slate-800 mb-1">
                 {session?.title ?? "Live Stream"}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-[16px] text-slate-500">
                 Bấm vào xem để tham gia phiên live stream này
               </p>
             </div>
             <button
               onClick={handleJoin}
               disabled={joining}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-red-500 text-white rounded-xl font-semibold text-[16px] hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
             >
               {joining ? (
                 <>

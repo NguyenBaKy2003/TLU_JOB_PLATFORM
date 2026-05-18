@@ -10,7 +10,7 @@ import { SettingRepository }              from "@/infrastructure/repositories/Se
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
 const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+  "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -113,7 +113,7 @@ export function AccountSection({ email }: Props) {
           <div className="py-3 flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs text-gray-400 mb-0.5">Địa chỉ Email</p>
-              <p className="text-sm font-medium text-gray-800 truncate">{email}</p>
+              <p className="text-[16px] font-medium text-gray-800 truncate">{email}</p>
             </div>
             <button
               onClick={() => setShowEmail(true)}
@@ -127,7 +127,7 @@ export function AccountSection({ email }: Props) {
           <div className="py-3 flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs text-gray-400 mb-0.5">Mật khẩu</p>
-              <p className="text-sm font-medium text-gray-800 tracking-widest">{"•".repeat(15)}</p>
+              <p className="text-[16px] font-medium text-gray-800 tracking-widest">{"•".repeat(15)}</p>
             </div>
             <button
               onClick={() => setShowPassword(true)}
@@ -174,14 +174,14 @@ export function AccountSection({ email }: Props) {
               <button
                 onClick={closeEmail}
                 disabled={emailLoading}
-                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={handleChangeEmail}
                 disabled={emailLoading || !newEmail || !confirmEmail}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[16px] font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {emailLoading && <Loader2 size={14} className="animate-spin" />}
                 Gửi xác nhận
@@ -227,14 +227,14 @@ export function AccountSection({ email }: Props) {
               <button
                 onClick={closePassword}
                 disabled={pwLoading}
-                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={handleChangePassword}
                 disabled={pwLoading || !currentPw || !newPw || !confirmPw}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[16px] font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {pwLoading && <Loader2 size={14} className="animate-spin" />}
                 Đổi mật khẩu

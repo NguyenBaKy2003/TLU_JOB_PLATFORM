@@ -55,7 +55,7 @@ export function StatusTimeline({ logs, loading }: Props) {
                   : "border-gray-300 bg-white"
               }`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${
+                <p className={`text-[16px] font-semibold ${
                   isLatest ? "text-gray-900" : "text-gray-500"
                 }`}>
                   {log.fromStatus

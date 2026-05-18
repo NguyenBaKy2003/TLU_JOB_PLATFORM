@@ -51,7 +51,7 @@ export function TypeSelector({ value, onChange }: TypeSelectorProps) {
                 }`}
               />
             </div>
-            <p className={`font-semibold text-sm mb-1 ${
+            <p className={`font-semibold text-[16px] mb-1 ${
               isSelected ? "text-slate-800" : "text-slate-600"
             }`}>
               {label}

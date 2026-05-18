@@ -43,7 +43,7 @@ export function ChatInput({ onSend, disabled, placeholder }: Props) {
         disabled={disabled}
         placeholder={placeholder ?? "Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)"}
         rows={1}
-        className="flex-1 resize-none outline-none text-sm text-gray-800
+        className="flex-1 resize-none outline-none text-[16px] text-gray-800
           placeholder:text-gray-400 bg-transparent leading-relaxed
           disabled:opacity-50 max-h-[120px]"
       />

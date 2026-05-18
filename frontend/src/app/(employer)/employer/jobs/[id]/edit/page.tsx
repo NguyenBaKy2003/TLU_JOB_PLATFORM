@@ -165,7 +165,7 @@ export default function EditJobPage() {
       <div className="w-full pb-12 flex items-center justify-center min-h-[40vh]">
         <div className="flex flex-col items-center gap-3 text-gray-400">
           <Loader2 size={28} className="animate-spin text-blue-500" />
-          <span className="text-sm">Đang tải dữ liệu...</span>
+          <span className="text-[16px]">Đang tải dữ liệu...</span>
         </div>
       </div>
     );
@@ -178,13 +178,13 @@ export default function EditJobPage() {
         <button
           type="button"
           onClick={() => router.push("/employer/jobs")}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+          className="flex items-center gap-1.5 text-[16px] text-gray-500 hover:text-blue-600 transition-colors"
         >
           <ArrowLeft size={15} />
           Quay lại
         </button>
         <span className="text-gray-300">|</span>
-        <h1 className="text-sm font-semibold text-gray-700">Chỉnh sửa tin tuyển dụng</h1>
+        <h1 className="text-[16px] font-semibold text-gray-700">Chỉnh sửa tin tuyển dụng</h1>
         {jobStatus && (
           <span className={`ml-auto text-[11px] font-semibold px-2.5 py-1 rounded-full
             ${jobStatus === "PUBLISHED"

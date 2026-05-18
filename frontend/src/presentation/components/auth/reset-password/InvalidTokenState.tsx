@@ -11,13 +11,13 @@ export function InvalidTokenState() {
         </svg>
       </div>
       <h2 className="text-xl font-bold text-gray-900 mb-2">Link không hợp lệ</h2>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-[16px] text-gray-500 mb-6">
         Link đặt lại mật khẩu đã hết hạn hoặc không hợp lệ.<br />
         Vui lòng yêu cầu gửi lại.
       </p>
       <Link
         href="/auth/forgot-password"
-        className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors text-center"
+        className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-[16px] font-semibold rounded-lg transition-colors text-center"
       >
         Gửi lại yêu cầu
       </Link>

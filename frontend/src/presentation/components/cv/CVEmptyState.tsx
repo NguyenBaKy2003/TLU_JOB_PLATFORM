@@ -22,7 +22,7 @@ export function CVEmptyState({ onCreateClick }: Props) {
       <h2 className="text-xl font-bold text-gray-900 mb-2">
         Chưa có CV nào
       </h2>
-      <p className="text-sm text-gray-500 max-w-xs mb-8 leading-relaxed">
+      <p className="text-[16px] text-gray-500 max-w-xs mb-8 leading-relaxed">
         Tạo CV online đầu tiên của bạn và chia sẻ với nhà tuyển dụng chỉ qua một đường link.
       </p>
 
@@ -31,7 +31,7 @@ export function CVEmptyState({ onCreateClick }: Props) {
         className="
           flex items-center gap-2 px-6 py-3
           bg-[#3D5A80] hover:bg-[#2E4565]
-          text-white text-sm font-semibold
+          text-white text-[16px] font-semibold
           rounded-xl transition-all duration-150
           shadow-sm hover:shadow-md active:scale-95
         "

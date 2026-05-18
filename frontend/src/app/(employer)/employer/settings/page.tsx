@@ -15,7 +15,7 @@ function EmployerInfoPanel() {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-50">
         <Building2 size={16} className="text-gray-400" />
-        <h2 className="text-sm font-semibold text-gray-800">Tài khoản doanh nghiệp</h2>
+        <h2 className="text-[16px] font-semibold text-gray-800">Tài khoản doanh nghiệp</h2>
       </div>
       <div className="px-5 py-4 flex flex-col gap-2">
         <Link
@@ -23,7 +23,7 @@ function EmployerInfoPanel() {
           className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors group"
         >
           <div>
-            <p className="text-sm font-medium text-gray-800">Hồ sơ doanh nghiệp</p>
+            <p className="text-[16px] font-medium text-gray-800">Hồ sơ doanh nghiệp</p>
             <p className="text-xs text-gray-400 mt-0.5">Logo, mô tả, địa chỉ công ty</p>
           </div>
           <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
@@ -33,7 +33,7 @@ function EmployerInfoPanel() {
           className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors group"
         >
           <div>
-            <p className="text-sm font-medium text-gray-800">Quản lý tin tuyển dụng</p>
+            <p className="text-[16px] font-medium text-gray-800">Quản lý tin tuyển dụng</p>
             <p className="text-xs text-gray-400 mt-0.5">Xem, chỉnh sửa và đóng tin đăng</p>
           </div>
           <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
@@ -43,7 +43,7 @@ function EmployerInfoPanel() {
           className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors group"
         >
           <div>
-            <p className="text-sm font-medium text-gray-800">Đơn ứng tuyển</p>
+            <p className="text-[16px] font-medium text-gray-800">Đơn ứng tuyển</p>
             <p className="text-xs text-gray-400 mt-0.5">Xem và xử lý hồ sơ ứng viên</p>
           </div>
           <ChevronRight size={15} className="text-gray-300 group-hover:text-gray-500 transition-colors" />

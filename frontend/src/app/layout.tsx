@@ -4,8 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
 import { WebSocketProvider } from "@/application/contexts/WebSocketContext";
-
-export const dynamic = "force-dynamic";
+import { ReactQueryProvider } from "@/presentation/components/providers/ReactQueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,11 +29,15 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <AuthProvider>
-          <WebSocketProvider>
-            <ToastProvider defaultPosition="top-right" maxToasts={5}>{children}</ToastProvider>
-          </WebSocketProvider>
-        </AuthProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              <ToastProvider defaultPosition="top-right" maxToasts={5}>
+                {children}
+              </ToastProvider>
+            </WebSocketProvider>
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

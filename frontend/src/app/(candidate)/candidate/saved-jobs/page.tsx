@@ -38,13 +38,13 @@ function EmptyState() {
       </div>
       <div>
         <p className="text-base font-medium text-gray-500">Chưa có việc làm nào được lưu</p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-[16px] text-gray-400 mt-1">
           Hãy khám phá các cơ hội việc làm và lưu lại những vị trí bạn quan tâm
         </p>
       </div>
       <Link
         href="/jobs"
-        className="mt-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl
+        className="mt-2 px-5 py-2.5 bg-blue-600 text-white text-[16px] font-medium rounded-xl
           hover:bg-blue-700 transition-colors"
       >
         Khám phá việc làm
@@ -94,7 +94,7 @@ function JobCard({ job, onRemove, isRemoving }: JobCardProps) {
               >
                 {job.title}
               </Link>
-              <p className="text-sm text-gray-500 mt-0.5">{job.companyName}</p>
+              <p className="text-[16px] text-gray-500 mt-0.5">{job.companyName}</p>
             </div>
 
             {/* Actions */}
@@ -256,10 +256,10 @@ export default function SavedJobsPage() {
   if (error && jobs.length === 0) {
     return (
       <div className="py-24 flex flex-col items-center gap-4 text-center">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-[16px] text-red-500">{error}</p>
         <button
           onClick={() => fetchSavedJobs()}
-          className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50
+          className="px-4 py-2 text-[16px] font-medium text-blue-600 hover:bg-blue-50
             rounded-lg transition-colors"
         >
           Thử lại
@@ -275,7 +275,7 @@ export default function SavedJobsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">Việc đã lưu</h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-[16px] text-gray-400 mt-1">
               {totalElements > 0
                 ? `${totalElements} việc làm đã lưu`
                 : "Danh sách các công việc bạn đã đánh dấu"}
@@ -283,7 +283,7 @@ export default function SavedJobsPage() {
           </div>
           <Link
             href="/jobs"
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600
+            className="flex items-center gap-1.5 px-4 py-2 text-[16px] font-medium text-blue-600
               bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
           >
             <Eye size={15} />
@@ -314,7 +314,7 @@ export default function SavedJobsPage() {
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 0}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600
+                className="flex items-center gap-1 px-3 py-2 text-[16px] font-medium text-gray-600
                   hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed
                   transition-colors"
               >
@@ -327,7 +327,7 @@ export default function SavedJobsPage() {
                   <button
                     key={i}
                     onClick={() => handlePageChange(i)}
-                    className={`w-8 h-8 text-sm rounded-lg transition-colors ${
+                    className={`w-8 h-8 text-[16px] rounded-lg transition-colors ${
                       i === page
                         ? "bg-blue-600 text-white font-medium"
                         : "text-gray-600 hover:bg-gray-100"
@@ -341,7 +341,7 @@ export default function SavedJobsPage() {
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages - 1}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600
+                className="flex items-center gap-1 px-3 py-2 text-[16px] font-medium text-gray-600
                   hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed
                   transition-colors"
               >

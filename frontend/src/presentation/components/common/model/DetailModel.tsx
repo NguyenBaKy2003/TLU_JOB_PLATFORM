@@ -180,12 +180,12 @@ export const DetailModel: React.FC<DetailModelProps> = ({
             {fields.map(field => (
               <div key={field.key} className="grid grid-cols-3 gap-4">
                 <div className="col-span-1">
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-[16px] font-medium text-muted-foreground">
                     {field.label}
                   </dt>
                 </div>
                 <div className="col-span-2">
-                  <dd className="text-sm text-foreground">
+                  <dd className="text-[16px] text-foreground">
                     {renderValue(field)}
                   </dd>
                 </div>

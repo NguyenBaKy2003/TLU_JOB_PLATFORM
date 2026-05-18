@@ -1,9 +1,9 @@
 package edu.tlu.jobplatform.ai.presentation;
 
-import edu.tlu.jobplatform.ai.domain.application.usecase.CheckJdGuidelinesUseCase;
-import edu.tlu.jobplatform.ai.domain.application.usecase.CompareCandidatesUseCase;
-import edu.tlu.jobplatform.ai.domain.application.usecase.OptimizeJdUseCase;
-import edu.tlu.jobplatform.ai.domain.application.usecase.RetriggerAIScoreUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.CheckJdGuidelinesUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.CompareCandidatesUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.OptimizeJdUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.RetriggerAIScoreUseCase;
 import edu.tlu.jobplatform.ai.domain.model.CandidateComparisonResult;
 import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckResult;
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationResult;

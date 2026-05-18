@@ -24,7 +24,7 @@ export function StatsSection() {
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
-                <p className="text-white/60 text-sm">{stat.label}</p>
+                <p className="text-white/60 text-[16px]">{stat.label}</p>
               </motion.div>
             );
           })}

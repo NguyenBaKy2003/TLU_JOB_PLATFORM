@@ -133,7 +133,7 @@ export default function AiJobAssistant({ form, onApplyOptimized }: Props) {
             <Sparkles size={16} className="text-white" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-semibold text-gray-800">AI Assistant</p>
+            <p className="text-[16px] font-semibold text-gray-800">AI Assistant</p>
             <p className="text-[11px] text-gray-500">Tối ưu & kiểm tra JD</p>
           </div>
         </div>
@@ -209,7 +209,7 @@ function OptimizeTab({
         <button
           onClick={onOptimize}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl disabled:opacity-50 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-[16px] font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl disabled:opacity-50 transition-all"
         >
           {loading ? (
             <Loader2 size={15} className="animate-spin" />
@@ -228,7 +228,7 @@ function OptimizeTab({
               <span className="text-lg font-bold text-white">{result.qualityScore}</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-blue-800">Điểm chất lượng</p>
+              <p className="text-[16px] font-semibold text-blue-800">Điểm chất lượng</p>
               <p className="text-[11px] text-blue-600">
                 {result.qualityScore >= 80 ? "JD rất tốt" : result.qualityScore >= 60 ? "Có thể cải thiện" : "Cần cải thiện nhiều"}
               </p>
@@ -283,7 +283,7 @@ function OptimizeTab({
           {/* Apply Button */}
           <button
             onClick={onApply}
-            className="w-full py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition-all"
+            className="w-full py-2.5 text-[16px] font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition-all"
           >
             Áp dụng JD đã tối ưu
           </button>
@@ -352,7 +352,7 @@ function CheckTab({
         <button
           onClick={onCheck}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl disabled:opacity-50 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-[16px] font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl disabled:opacity-50 transition-all"
         >
           {loading ? (
             <Loader2 size={15} className="animate-spin" />
@@ -371,7 +371,7 @@ function CheckTab({
               <span className="text-lg font-bold">{result.qualityScore}</span>
             </div>
             <div className="flex-1">
-              <p className={`text-sm font-semibold ${severityConfig[result.severity].text}`}>
+              <p className={`text-[16px] font-semibold ${severityConfig[result.severity].text}`}>
                 {severityConfig[result.severity].label}
               </p>
               <p className="text-[11px] text-gray-500">{result.overallFeedback}</p>

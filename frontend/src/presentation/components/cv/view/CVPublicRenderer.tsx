@@ -138,7 +138,7 @@ function CVSectionBlock({ section }: { section: CVSection }) {
         <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#3D5A80]/10 text-[#3D5A80] flex-shrink-0">
           {SECTION_ICONS[section.type] ?? <FileText className="w-3.5 h-3.5" />}
         </div>
-        <h2 className="text-sm font-black uppercase tracking-widest text-[#3D5A80]">
+        <h2 className="text-[16px] font-black uppercase tracking-widest text-[#3D5A80]">
           {section.title}
         </h2>
         <div className="flex-1 h-px bg-[#3D5A80]/15" />
@@ -148,7 +148,7 @@ function CVSectionBlock({ section }: { section: CVSection }) {
       {section.content ? (
         <MD content={section.content} />
       ) : (
-        <p className="text-sm text-gray-300 italic">Chưa có nội dung</p>
+        <p className="text-[16px] text-gray-300 italic">Chưa có nội dung</p>
       )}
     </section>
   );
@@ -231,7 +231,7 @@ export function CVPublicRenderer({ cv }: Props) {
                     {info?.fullName || <span className="text-white/40">Chưa cập nhật tên</span>}
                   </h1>
                   {info?.headline && (
-                    <p className="text-sm text-white/75 font-medium mb-4">{info.headline}</p>
+                    <p className="text-[16px] text-white/75 font-medium mb-4">{info.headline}</p>
                   )}
 
                   {/* Contact grid */}
@@ -264,7 +264,7 @@ export function CVPublicRenderer({ cv }: Props) {
               {visibleSections.length === 0 ? (
                 <div className="py-16 text-center text-gray-400">
                   <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">CV này chưa có nội dung</p>
+                  <p className="text-[16px]">CV này chưa có nội dung</p>
                 </div>
               ) : (
                 visibleSections.map((section) => (

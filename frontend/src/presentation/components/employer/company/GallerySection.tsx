@@ -102,7 +102,7 @@ const handleUpload = async (file: File, caption?: string) => {
           className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-colors"
         >
           <Upload size={40} className="mx-auto mb-2 text-gray-300" />
-          <p className="text-sm text-gray-400">Chưa có ảnh nào</p>
+          <p className="text-[16px] text-gray-400">Chưa có ảnh nào</p>
           <p className="text-xs text-gray-400 mt-1">Nhấp để tải ảnh lên</p>
         </div>
       ) : (
@@ -172,7 +172,7 @@ const handleUpload = async (file: File, caption?: string) => {
               className="max-w-full max-h-[90vh] object-contain"
             />
             {selectedImage.caption && (
-              <p className="text-center text-white mt-4 text-sm">{selectedImage.caption}</p>
+              <p className="text-center text-white mt-4 text-[16px]">{selectedImage.caption}</p>
             )}
           </div>
         </div>

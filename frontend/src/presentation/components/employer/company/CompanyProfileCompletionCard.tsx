@@ -101,7 +101,7 @@ export function CompanyProfileCompletionCard({ profile }: { profile: CompanyProf
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-800">Độ hoàn thiện hồ sơ</h3>
+        <h3 className="text-[16px] font-semibold text-gray-800">Độ hoàn thiện hồ sơ</h3>
         <span className={`text-xs font-bold ${statusColor}`}>{percentage}%</span>
       </div>
 
@@ -115,7 +115,7 @@ export function CompanyProfileCompletionCard({ profile }: { profile: CompanyProf
 
       {/* Motivation message */}
       <div className="flex items-center gap-1.5 mt-2 mb-4">
-        <span className="text-sm">{motivation.emoji}</span>
+        <span className="text-[16px]">{motivation.emoji}</span>
         <p className="text-xs text-gray-500">{motivation.message}</p>
       </div>
 
@@ -159,7 +159,7 @@ export function CompanyProfileCompletionCard({ profile }: { profile: CompanyProf
         <div className="flex flex-col items-center gap-2 pt-2">
           <div className="flex items-center gap-2 text-green-600">
             <CheckCircle2 size={18} />
-            <span className="text-sm font-semibold">Hồ sơ hoàn hảo!</span>
+            <span className="text-[16px] font-semibold">Hồ sơ hoàn hảo!</span>
           </div>
           <p className="text-xs text-gray-500 text-center">
             {isVerified 

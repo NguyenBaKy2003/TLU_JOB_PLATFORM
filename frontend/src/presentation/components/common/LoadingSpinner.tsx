@@ -40,7 +40,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         `}
       />
       {text && (
-        <p className="text-sm text-muted-foreground animate-pulse">
+        <p className="text-[16px] text-muted-foreground animate-pulse">
           {text}
         </p>
       )}

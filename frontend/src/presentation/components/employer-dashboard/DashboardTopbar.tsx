@@ -22,7 +22,7 @@ export function DashboardTopbar() {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Tìm kiếm"
-          className="flex-1 text-sm bg-transparent placeholder:text-gray-400
+          className="flex-1 text-[16px] bg-transparent placeholder:text-gray-400
             focus:outline-none text-gray-700 min-w-0"
         />
         {query && (
@@ -36,7 +36,7 @@ export function DashboardTopbar() {
       <Link
         href="/employer/jobs/new"
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white
-          text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+          text-[16px] font-semibold rounded-xl hover:bg-blue-700 transition-colors"
       >
         <PlusSquare size={15} /> Đăng tin
       </Link>
@@ -51,7 +51,7 @@ export function DashboardTopbar() {
 
       {/* Company avatar */}
       <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-        <span className="text-blue-700 font-bold text-sm">FP</span>
+        <span className="text-blue-700 font-bold text-[16px]">FP</span>
       </div>
     </header>
   );

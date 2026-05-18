@@ -38,7 +38,7 @@ function ReadField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-medium text-gray-800">{value}</p>
+      <p className="text-[16px] font-medium text-gray-800">{value}</p>
     </div>
   );
 }
@@ -99,7 +99,7 @@ export default function JobReviewPage() {
         {/* ── 4. Lương ───────────  */}
         <PostSection icon={<DollarSign size={16} />} title="Mức lương & Phúc lợi" onEdit={goEdit("salary")}>
           <div className="flex flex-col gap-3">
-            <p className="text-sm font-medium text-gray-800">{job.salary}</p>
+            <p className="text-[16px] font-medium text-gray-800">{job.salary}</p>
             {job.showSalary && (
               <p className="text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded-xl">
                 Hiển thị mức lương trên tin tuyển dụng
@@ -156,14 +156,14 @@ export default function JobReviewPage() {
           <div className="flex flex-col gap-3">
             <TagRow items={[job.workSchedule]} />
             <TagRow items={[job.travelReq]} />
-            <p className="text-sm text-gray-700 leading-relaxed">{job.description}</p>
+            <p className="text-[16px] text-gray-700 leading-relaxed">{job.description}</p>
           </div>
         </PostSection>
 
         {/* ── Save ── */}
         <button
           onClick={handleSave}
-          className="w-full py-3.5 bg-blue-500 text-white text-sm font-semibold rounded-2xl
+          className="w-full py-3.5 bg-blue-500 text-white text-[16px] font-semibold rounded-2xl
             hover:bg-blue-800 transition-colors shadow-sm"
         >
           Lưu

@@ -43,7 +43,7 @@ function PendingOrderBanner({
     <div className="flex items-start gap-3 px-5 py-4 rounded-2xl border mb-6 bg-amber-50 border-amber-200 text-amber-900">
       <AlertCircle size={20} className="text-amber-500 shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold">Bạn có đơn hàng đang chờ thanh toán</p>
+        <p className="text-[16px] font-semibold">Bạn có đơn hàng đang chờ thanh toán</p>
         <p className="text-xs mt-0.5 opacity-80">
           Mã đơn:{" "}
           <span className="font-mono font-bold tracking-wide">{orderId}</span>.
@@ -168,7 +168,7 @@ export default function SubscriptionPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-gray-900">Chọn gói phù hợp</h2>
             <div className="flex items-center gap-3">
-              <span className={`text-sm ${!yearly ? "font-semibold text-gray-900" : "text-gray-400"}`}>
+              <span className={`text-[16px] ${!yearly ? "font-semibold text-gray-900" : "text-gray-400"}`}>
                 Hàng tháng
               </span>
               <button
@@ -180,7 +180,7 @@ export default function SubscriptionPage() {
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm
                   transition-transform ${yearly ? "translate-x-6" : "translate-x-0"}`} />
               </button>
-              <span className={`text-sm ${yearly ? "font-semibold text-gray-900" : "text-gray-400"}`}>
+              <span className={`text-[16px] ${yearly ? "font-semibold text-gray-900" : "text-gray-400"}`}>
                 Hàng năm
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold
                   bg-green-100 text-green-700 rounded-full">
@@ -227,7 +227,7 @@ export default function SubscriptionPage() {
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                 <span className="text-xl">📦</span>
               </div>
-              <p className="text-sm font-semibold text-gray-800 mb-1">Chưa có gói dịch vụ</p>
+              <p className="text-[16px] font-semibold text-gray-800 mb-1">Chưa có gói dịch vụ</p>
               <p className="text-xs text-gray-400">Chọn một gói bên trái để bắt đầu đăng tin.</p>
             </div>
           )}

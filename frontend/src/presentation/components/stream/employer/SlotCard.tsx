@@ -49,7 +49,7 @@ export function SlotCard({ slot, index, onInvite, sessionId }: SlotCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-slate-700">
+            <span className="text-[16px] font-medium text-slate-700">
               {new Date(slot.startTime).toLocaleString("vi-VN", {
                 hour: "2-digit",
                 minute: "2-digit",

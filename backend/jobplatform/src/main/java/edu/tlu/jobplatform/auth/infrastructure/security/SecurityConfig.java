@@ -81,16 +81,17 @@ public class SecurityConfig {
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
                                                 .requestMatchers("/api/v1/ws/**").permitAll()
-                                                .requestMatchers("/api/webhooks/**").permitAll() // xác thực bằng
-                                                                                                 // signature riêng
+                                                .requestMatchers("/api/webhooks/**").permitAll()
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
 
                                                 .requestMatchers("/api/v1/subscriptions/**").permitAll()
                                                 .requestMatchers("/api/v1/jobs/**").permitAll()
+                                                .requestMatchers("/api/v1/jobs/search/**").permitAll()
                                                 .requestMatchers("/api/v1/payments/callback/**").permitAll()
                                                 .requestMatchers("/api/v1/settings/**").authenticated()
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
                                                 .requestMatchers("/api/v1/applications/**").permitAll()
+                                                .requestMatchers("/api/v1/ai/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/streams/*/leave")
                                                 .authenticated()
 

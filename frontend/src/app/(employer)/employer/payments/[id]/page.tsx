@@ -15,8 +15,8 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   return (
     <div className="flex items-start justify-between py-3
       border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-400 w-36 shrink-0">{label}</span>
-      <span className="text-sm text-gray-800 text-right">{value}</span>
+      <span className="text-[16px] text-gray-400 w-36 shrink-0">{label}</span>
+      <span className="text-[16px] text-gray-800 text-right">{value}</span>
     </div>
   );
 }
