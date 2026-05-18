@@ -28,14 +28,14 @@ export function TemplateFilters({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Tìm tên template..."
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3.5 text-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3.5 text-[16px] transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
         />
       </div>
 
       <select
         value={filterCategory}
         onChange={(e) => onCategoryChange(e.target.value)}
-        className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-[16px] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
       >
         <option value="">Tất cả danh mục</option>
         <option value="professional">Professional</option>
@@ -46,7 +46,7 @@ export function TemplateFilters({
       <select
         value={filterStatus}
         onChange={(e) => onStatusChange(e.target.value as "" | "active" | "inactive")}
-        className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-[16px] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
       >
         <option value="">Tất cả trạng thái</option>
         <option value="active">Đang hiển thị</option>

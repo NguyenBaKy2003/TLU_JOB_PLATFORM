@@ -7,7 +7,7 @@ export function EmptyChat() {
       <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
         <MessageSquare size={28} className="text-gray-300" />
       </div>
-      <p className="text-sm text-gray-400">Chọn một cuộc trò chuyện để bắt đầu</p>
+      <p className="text-[16px] text-gray-400">Chọn một cuộc trò chuyện để bắt đầu</p>
     </div>
   );
 }

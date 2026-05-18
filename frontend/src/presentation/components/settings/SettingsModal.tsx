@@ -11,7 +11,7 @@ export function SettingsModal({ title, onClose, children }: {
     >
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">{title}</h3>
           <button onClick={onClose}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
             <X size={16} />

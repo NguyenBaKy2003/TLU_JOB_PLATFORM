@@ -60,7 +60,7 @@ function ExperienceForm({
         <div key={key}>
           <label className="block text-[11px] text-gray-400 uppercase tracking-wide mb-1">{label}</label>
           <input value={value[key] as string} onChange={(e) => set(key)(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+            className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
               focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       ))}
@@ -75,7 +75,7 @@ function ExperienceForm({
             <input value={value[key] as string} type="date"
               disabled={key === "endDate" && value.current}
               onChange={(e) => set(key)(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+              className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
                 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400" />
           </div>
         ))}
@@ -88,7 +88,7 @@ function ExperienceForm({
           {value.current && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5"
             stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>}
         </div>
-        <span className="text-sm text-gray-600">Vẫn đang làm</span>
+        <span className="text-[16px] text-gray-600">Vẫn đang làm</span>
       </label>
 
       <div>
@@ -96,7 +96,7 @@ function ExperienceForm({
         <div className="relative">
           <textarea value={value.description} rows={3} placeholder="Mô tả công việc..."
             onChange={(e) => set("description")(e.target.value.slice(0, MAX))}
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg resize-none bg-white
+            className="w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-lg resize-none bg-white
               focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-300" />
           <span className="absolute bottom-2.5 right-3 text-[11px] text-gray-400">
             {value.description.length}/{MAX}
@@ -164,11 +164,11 @@ export default function WorkExperienceSection({
               <ExperienceForm value={formState} onChange={setFormState} />
               <div className="flex justify-end gap-2 mt-3">
                 <button onClick={handleCancel} disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">
+                  className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">
                   Hủy
                 </button>
                 <button onClick={handleSave} disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700
+                  className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700
                     disabled:opacity-50 flex items-center gap-2">
                   {saving && <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
                   Lưu
@@ -180,7 +180,7 @@ export default function WorkExperienceSection({
               className="flex items-start justify-between py-3 px-4 rounded-xl border border-gray-100
                 hover:border-gray-200 hover:bg-gray-50/60 transition-colors group">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-800">{exp.position}</p>
+                <p className="text-[16px] font-medium text-gray-800">{exp.position}</p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {exp.companyName} · {exp.startDate} – {exp.current ? "Hiện tại" : exp.endDate}
                 </p>
@@ -210,11 +210,11 @@ export default function WorkExperienceSection({
             <ExperienceForm value={formState} onChange={setFormState} />
             <div className="flex justify-end gap-2 mt-3">
               <button onClick={handleCancel} disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">
+                className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">
                 Hủy
               </button>
               <button onClick={handleSave} disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700
+                className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700
                   disabled:opacity-50 flex items-center gap-2">
                 {saving && <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
                 Lưu
@@ -226,7 +226,7 @@ export default function WorkExperienceSection({
         {/* Add button (only when not editing) */}
         {!editingId && (
           <button onClick={startAdd}
-            className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1">
+            className="flex items-center gap-1.5 text-[16px] font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1">
             <Plus size={15} /> Thêm kinh nghiệm
           </button>
         )}

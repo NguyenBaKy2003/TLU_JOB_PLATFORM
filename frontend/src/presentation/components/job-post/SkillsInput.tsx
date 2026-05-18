@@ -11,7 +11,7 @@ const POPULAR = [
   "Node.js", "SQL", "Docker", "AWS", "Figma",
 ];
 
-const inputCls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+const inputCls = "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -61,7 +61,7 @@ export function SkillsInput({ skills, onChange }: Props) {
           Bắt buộc
         </label>
         <button onClick={() => add()} type="button"
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white text-sm
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white text-[16px]
             font-medium rounded-xl hover:bg-blue-800 transition-colors shrink-0 whitespace-nowrap">
           <Plus size={15} /> Thêm
         </button>
@@ -87,7 +87,7 @@ export function SkillsInput({ skills, onChange }: Props) {
               ${s.required ? "bg-blue-50/50 border-blue-100" : "bg-gray-50 border-gray-100"}`}>
 
               {/* Name */}
-              <span className="flex-1 text-sm font-medium text-gray-800 truncate">{s.skillName}</span>
+              <span className="flex-1 text-[16px] font-medium text-gray-800 truncate">{s.skillName}</span>
 
               {/* Level selector */}
               <select value={s.level} onChange={e => setSkillLevel(i, e.target.value)}

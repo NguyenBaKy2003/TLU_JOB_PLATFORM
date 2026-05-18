@@ -49,14 +49,14 @@ export function ForgotPasswordForm({ onSent }: Props) {
       <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
         Quên Mật Khẩu?
       </h1>
-      <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
+      <p className="text-[16px] text-gray-500 text-center mb-8 leading-relaxed">
         Nhập email tài khoản JobLin của bạn bên dưới, chúng
         tôi sẽ gửi liên kết để đặt lại mật khẩu.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-[16px] font-medium text-gray-700 mb-1.5">
             Địa chỉ Email <span className="text-red-500">*</span>
           </label>
           <input
@@ -64,7 +64,7 @@ export function ForgotPasswordForm({ onSent }: Props) {
             value={email}
             onChange={e => { setEmail(e.target.value); setError(""); }}
             className={`
-              w-full px-4 py-2.5 border rounded-lg text-sm text-gray-900
+              w-full px-4 py-2.5 border rounded-lg text-[16px] text-gray-900
               outline-none transition-all bg-white
               ${error
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
@@ -78,7 +78,7 @@ export function ForgotPasswordForm({ onSent }: Props) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-[16px] font-semibold rounded-lg transition-colors"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -94,7 +94,7 @@ export function ForgotPasswordForm({ onSent }: Props) {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-[16px] text-gray-500 mt-6">
         Bạn đã nhớ mật khẩu?{" "}
         <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
           Quay lại Đăng nhập

@@ -45,7 +45,7 @@ export function StartConversationButton({
   const base = "flex items-center gap-1.5 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
   const sizeClass  = size === "sm"
     ? "px-3 py-1.5 text-xs"
-    : "px-4 py-2 text-sm";
+    : "px-4 py-2 text-[16px]";
   const variantClass = variant === "primary"
     ? "bg-blue-600 hover:bg-blue-700 text-white"
     : "bg-gray-100 hover:bg-gray-200 text-gray-700";

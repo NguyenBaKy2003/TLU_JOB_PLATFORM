@@ -125,7 +125,7 @@ export function ChatbotButton() {
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white">TLU Career Advisor</p>
+              <p className="text-[16px] font-semibold text-white">TLU Career Advisor</p>
               <p className="text-xs text-blue-100">● Trực tuyến</p>
             </div>
             {/* Mở full page */}
@@ -154,7 +154,7 @@ export function ChatbotButton() {
                   <Bot className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">Xin chào! 👋</p>
+                  <p className="text-[16px] font-semibold text-gray-800">Xin chào! 👋</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Tôi có thể giúp bạn tư vấn nghề nghiệp, viết CV và chuẩn bị phỏng vấn.
                   </p>
@@ -214,7 +214,7 @@ export function ChatbotButton() {
                 placeholder="Nhập tin nhắn..."
                 rows={1}
                 className="flex-1 resize-none bg-transparent outline-none
-                  text-sm text-gray-800 placeholder:text-gray-400
+                  text-[16px] text-gray-800 placeholder:text-gray-400
                   disabled:opacity-50 max-h-[80px] leading-relaxed"
               />
               <button

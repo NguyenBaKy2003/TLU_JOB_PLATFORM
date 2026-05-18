@@ -103,7 +103,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addLang()}
                 placeholder="Tiếng Anh, Tiếng Nhật..."
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
+                className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg
                   focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-300"
               />
             </div>
@@ -115,7 +115,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg
+                  className="flex-1 px-3 py-2 text-[16px] border border-gray-200 rounded-lg
                     focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   {LEVEL_OPTIONS.map((o) => (
@@ -138,7 +138,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
             {draft.map((lang, i) => (
               <span
                 key={i}
-                className="flex items-center gap-1.5 px-3 py-1 text-sm bg-gray-100
+                className="flex items-center gap-1.5 px-3 py-1 text-[16px] bg-gray-100
                   text-gray-700 rounded-full"
               >
                 {lang.name}
@@ -158,7 +158,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
             <button
               onClick={handleCancel}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100
+              className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100
                 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
               Hủy
@@ -166,7 +166,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600
+              className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600
                 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
             >
               {saving && (
@@ -183,7 +183,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
             profile.languages.map((l, i) => (
               <span
                 key={i}
-                className="px-3 py-1.5 text-sm text-gray-700 bg-gray-100
+                className="px-3 py-1.5 text-[16px] text-gray-700 bg-gray-100
                   rounded-full border border-gray-200"
               >
                 {l.name}
@@ -191,7 +191,7 @@ export default function LanguagesSection({ profile, saving, error, onSave }: Pro
               </span>
             ))
           ) : (
-            <p className="text-sm text-gray-400 italic">Chưa có ngoại ngữ</p>
+            <p className="text-[16px] text-gray-400 italic">Chưa có ngoại ngữ</p>
           )}
         </div>
       )}

@@ -1,7 +1,7 @@
 package edu.tlu.jobplatform.ai.presentation;
 
-import edu.tlu.jobplatform.ai.domain.application.usecase.CalculateCompetitionRateUseCase;
-import edu.tlu.jobplatform.ai.domain.application.usecase.CalculatePassProbabilityUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.CalculateCompetitionRateUseCase;
+import edu.tlu.jobplatform.ai.application.usecase.CalculatePassProbabilityUseCase;
 import edu.tlu.jobplatform.ai.domain.model.CompetitionRateResult;
 import edu.tlu.jobplatform.ai.domain.model.PassProbabilityResult;
 import edu.tlu.jobplatform.shared.response.ApiResponse;

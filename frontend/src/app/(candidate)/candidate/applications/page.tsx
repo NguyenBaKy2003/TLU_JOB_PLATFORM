@@ -128,8 +128,8 @@ export default function CandidateApplicationsPage() {
       ) : filtered.length === 0 ? (
         <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
           <Briefcase size={36} strokeWidth={1.2} />
-          <p className="text-sm">Không có đơn ứng tuyển nào</p>
-          <Link href="/jobs" className="text-sm text-blue-600 hover:underline">
+          <p className="text-[16px]">Không có đơn ứng tuyển nào</p>
+          <Link href="/jobs" className="text-[16px] text-blue-600 hover:underline">
             Tìm việc làm ngay
           </Link>
         </div>
@@ -155,7 +155,7 @@ export default function CandidateApplicationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-gray-400 truncate">{app.company.name}</p>
-                    <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600
+                    <p className="text-[16px] font-semibold text-gray-900 group-hover:text-blue-600
                       transition-colors truncate">{app.job.title}</p>
                   </div>
                   <ApplicationStatusBadge status={app.status} />

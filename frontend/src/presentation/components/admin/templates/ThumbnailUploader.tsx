@@ -107,7 +107,7 @@ export function ThumbnailUploader({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
         Thumbnail
       </label>
 
@@ -159,7 +159,7 @@ export function ThumbnailUploader({
                 dragging ? "text-indigo-500" : "text-gray-400 dark:text-gray-500",
               ].join(" ")}
             />
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <p className="text-[16px] font-medium text-gray-600 dark:text-gray-400">
               Kéo thả hoặc{" "}
               <span className="underline underline-offset-2 text-indigo-600 dark:text-indigo-400">
                 chọn file

@@ -209,13 +209,13 @@ export const FormModel: React.FC<FormModelProps> = ({
           <div className="space-y-4">
             {fields.map(field => (
               <div key={field.name}>
-                <label htmlFor={field.name} className="block text-sm font-medium mb-1.5">
+                <label htmlFor={field.name} className="block text-[16px] font-medium mb-1.5">
                   {field.label}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {renderField(field)}
                 {errors[field.name] && touched[field.name] && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                  <p className="mt-1 text-[16px] text-red-500 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" />
                     {errors[field.name]}
                   </p>

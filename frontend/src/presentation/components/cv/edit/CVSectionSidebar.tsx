@@ -75,7 +75,7 @@ function AddSectionPicker({ onAdd }: AddSectionPickerProps) {
                   onAdd(type, SECTION_TYPE_LABELS[type]);
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[16px] text-gray-700 hover:bg-gray-50 transition-colors text-left"
               >
                 <span className={`p-1.5 rounded-lg ${SECTION_COLORS[type]}`}>
                   {SECTION_ICONS[type]}

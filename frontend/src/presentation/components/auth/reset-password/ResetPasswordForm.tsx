@@ -73,7 +73,7 @@ export function ResetPasswordForm({ token, userId }: Props) {
       <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
         Thiết Lập Mật Khẩu Mới
       </h1>
-      <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
+      <p className="text-[16px] text-gray-500 text-center mb-8 leading-relaxed">
         Nhập mật khẩu mới cho tài khoản của bạn.
       </p>
 
@@ -94,7 +94,7 @@ export function ResetPasswordForm({ token, userId }: Props) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-[16px] font-semibold rounded-lg transition-colors"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -110,7 +110,7 @@ export function ResetPasswordForm({ token, userId }: Props) {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-[16px] text-gray-500 mt-6">
         Bạn không muốn đổi mật khẩu?{" "}
         <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
           Quay lại Đăng nhập

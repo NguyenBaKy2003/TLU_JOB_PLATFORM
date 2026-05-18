@@ -27,7 +27,7 @@ export const TableCell: React.FC<TableCellProps> = ({
   }
   
   return (
-    <td className={`px-4 py-3 text-sm text-foreground ${alignClass} ${column.className || ''}`}>
+    <td className={`px-4 py-3 text-[16px] text-foreground ${alignClass} ${column.className || ''}`}>
       {content}
     </td>
   );

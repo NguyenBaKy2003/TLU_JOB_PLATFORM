@@ -30,7 +30,7 @@ export function IntroTab({ company }: Props) {
     <div className="flex flex-col gap-8">
       <section>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Giới thiệu</h2>
-        <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+        <div className="text-[16px] text-gray-700 leading-relaxed space-y-3">
           {company.description ? (
             company.description.split("\n\n").filter(Boolean).map((para, i) => (
               <p key={i}>{para}</p>
@@ -95,7 +95,7 @@ export function IntroTab({ company }: Props) {
               className="max-w-full max-h-[90vh] object-contain"
             />
             {galleryImages[selectedImageIndex].caption && (
-              <p className="text-center text-white/80 mt-4 text-sm">{galleryImages[selectedImageIndex].caption}</p>
+              <p className="text-center text-white/80 mt-4 text-[16px]">{galleryImages[selectedImageIndex].caption}</p>
             )}
             <p className="text-center text-white/50 text-xs mt-2">{selectedImageIndex + 1} / {galleryImages.length}</p>
           </div>
@@ -107,7 +107,7 @@ export function IntroTab({ company }: Props) {
           <h2 className="text-lg font-bold text-gray-900 mb-4">Thư viện ảnh</h2>
           <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
             <ImageIcon size={40} className="mx-auto mb-2 text-gray-300" />
-            <p className="text-sm text-gray-400">Chưa có ảnh nào</p>
+            <p className="text-[16px] text-gray-400">Chưa có ảnh nào</p>
           </div>
         </section>
       )}

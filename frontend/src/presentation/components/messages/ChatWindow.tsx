@@ -28,7 +28,7 @@ function ParticipantAvatar({ name, src }: { name: string; src?: string | null })
 
   return (
     <div className={`w-full h-full bg-gradient-to-br ${color}
-      flex items-center justify-center text-white font-bold text-sm`}>
+      flex items-center justify-center text-white font-bold text-[16px]`}>
       {name?.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -180,7 +180,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
         </div>
 
         <div className="flex-1">
-          <p className="text-sm font-semibold">{displayName}</p>
+          <p className="text-[16px] font-semibold">{displayName}</p>
           <p className="text-xs text-gray-400">
             {conv.lastMessageAt
               ? `${timeAgo(conv.lastMessageAt)}`
@@ -214,7 +214,7 @@ export function ChatWindow({ conv, role, onBack }: Props) {
           ref={inputRef}
           value={text}
           onChange={e => setText(e.target.value)}
-          className="flex-1 border rounded-lg px-3 py-2 text-sm"
+          className="flex-1 border rounded-lg px-3 py-2 text-[16px]"
           placeholder="Nhắn tin..."
         />
         <button onClick={sendMessage}>

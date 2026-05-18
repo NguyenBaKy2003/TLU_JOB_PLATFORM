@@ -41,7 +41,7 @@ export function DashboardChart() {
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-sm font-bold text-gray-900">Biểu đồ thống kê</h2>
+          <h2 className="text-[16px] font-bold text-gray-900">Biểu đồ thống kê</h2>
           <p className="text-xs text-gray-400 mt-0.5">Hiển thị thống kê từ 19 – 25 tháng 3</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">

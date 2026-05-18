@@ -77,7 +77,7 @@ export function CVEditTopBar({
               onBlur={commitTitle}
               onKeyDown={handleTitleKeyDown}
               className="
-                text-sm font-semibold text-gray-900 bg-transparent border-b-2 border-[#3D5A80]
+                text-[16px] font-semibold text-gray-900 bg-transparent border-b-2 border-[#3D5A80]
                 outline-none px-0.5 min-w-0 w-48
               "
             />
@@ -86,7 +86,7 @@ export function CVEditTopBar({
               onClick={() => setEditingTitle(true)}
               className="flex items-center gap-1.5 group"
             >
-              <span className="text-sm font-semibold text-gray-900 truncate max-w-[200px]">
+              <span className="text-[16px] font-semibold text-gray-900 truncate max-w-[200px]">
                 {cv.title}
               </span>
               <Pencil className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />

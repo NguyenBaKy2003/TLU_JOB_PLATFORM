@@ -54,14 +54,14 @@ export function SentConfirmation({ email }: Props) {
       <h1 className="text-2xl font-bold text-gray-900 text-center mb-3">
         Kiểm tra email của bạn
       </h1>
-      <p className="text-sm text-gray-500 text-center leading-relaxed">
+      <p className="text-[16px] text-gray-500 text-center leading-relaxed">
         Chúng tôi đã gửi link đặt lại mật khẩu tới{" "}
         <span className="font-semibold text-gray-700">{email}</span>.
         <br />
         Vui lòng kiểm tra hộp thư đến và làm theo hướng dẫn.
       </p>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-[16px] text-gray-500 mt-6">
         Bạn chưa nhận được email?{" "}
         {cooldown > 0 ? (
           <span className="text-gray-400">Gửi lại sau {cooldown}s</span>
@@ -77,7 +77,7 @@ export function SentConfirmation({ email }: Props) {
         )}
       </p>
 
-      <p className="text-center text-sm text-gray-500 mt-3">
+      <p className="text-center text-[16px] text-gray-500 mt-3">
         <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
           Quay lại đăng nhập
         </Link>

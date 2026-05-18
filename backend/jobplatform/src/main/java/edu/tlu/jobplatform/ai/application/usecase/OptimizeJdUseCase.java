@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.ai.domain.application.usecase;
+package edu.tlu.jobplatform.ai.application.usecase;
 
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationRequest;
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationResult;

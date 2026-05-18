@@ -30,7 +30,7 @@ function FormField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="
-          w-full px-3.5 py-2.5 text-sm text-gray-900
+          w-full px-3.5 py-2.5 text-[16px] text-gray-900
           bg-white border border-gray-200 rounded-xl
           focus:outline-none focus:ring-2 focus:ring-[#3D5A80]/25 focus:border-[#3D5A80]
           placeholder:text-gray-300 transition-all
@@ -108,7 +108,7 @@ function PersonalInfoEditor({
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2">
           <UserCircle2 className="w-4 h-4 text-[#3D5A80]" />
-          <h2 className="text-sm font-bold text-gray-800">Thông tin cá nhân</h2>
+          <h2 className="text-[16px] font-bold text-gray-800">Thông tin cá nhân</h2>
         </div>
         <button
           type="button"
@@ -258,7 +258,7 @@ function SectionEditor({
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             className="
-              w-full px-3.5 py-2.5 text-sm font-semibold text-gray-900
+              w-full px-3.5 py-2.5 text-[16px] font-semibold text-gray-900
               bg-white border border-gray-200 rounded-xl
               focus:outline-none focus:ring-2 focus:ring-[#3D5A80]/25 focus:border-[#3D5A80]
               transition-all
@@ -308,7 +308,7 @@ function SectionEditor({
               rows={16}
               placeholder={`Nhập nội dung cho mục "${title}"...\n\nHỗ trợ Markdown:\n- **in đậm**, _in nghiêng_\n- Danh sách: bắt đầu với "- "\n- Tách đoạn bằng dòng trống`}
               className="
-                w-full px-4 py-3 text-sm text-gray-800 font-mono
+                w-full px-4 py-3 text-[16px] text-gray-800 font-mono
                 bg-white resize-none outline-none
                 placeholder:text-gray-300 placeholder:font-sans
                 leading-relaxed
@@ -386,7 +386,7 @@ export function CVEditorPanel({
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-400">
-            <p className="text-sm">Chọn một mục ở sidebar để chỉnh sửa</p>
+            <p className="text-[16px]">Chọn một mục ở sidebar để chỉnh sửa</p>
           </div>
         )}
       </div>

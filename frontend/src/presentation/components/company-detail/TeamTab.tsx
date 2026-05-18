@@ -40,7 +40,7 @@ export function TeamTab({ company }: Props) {
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-6">Đội ngũ</h2>
         <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
-          <p className="text-sm text-gray-400">Chưa có thông tin đội ngũ</p>
+          <p className="text-[16px] text-gray-400">Chưa có thông tin đội ngũ</p>
         </div>
       </div>
     );
@@ -54,7 +54,7 @@ export function TeamTab({ company }: Props) {
           <div key={member.id} className="flex flex-col items-center text-center gap-3">
             <TeamMemberAvatar name={member.fullName} avatarUrl={member.avatarUrl} />
             <div>
-              <p className="text-sm font-semibold text-gray-800 leading-tight">{member.fullName}</p>
+              <p className="text-[16px] font-semibold text-gray-800 leading-tight">{member.fullName}</p>
               <p className="text-xs text-gray-500 mt-0.5">{member.jobTitle}</p>
               {member.bio && (
                 <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{member.bio}</p>

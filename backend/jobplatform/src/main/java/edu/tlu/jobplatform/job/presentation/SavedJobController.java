@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.job.presentation;
 
+import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.job.application.usecase.candidate.SaveJobUseCase;
 import edu.tlu.jobplatform.job.domain.repository.SavedJobRepository;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
@@ -32,6 +33,7 @@ public class SavedJobController {
 
     private final SaveJobUseCase saveJobUseCase;
     private final SavedJobRepository savedJobRepository;
+    private final TrackCandidateBehaviorUseCase trackUseCase;
 
     @Operation(summary = "Lưu / bỏ lưu bài đăng (toggle)")
     @SecurityRequirement(name = "bearerAuth")
@@ -42,6 +44,11 @@ public class SavedJobController {
         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
         boolean saved = saveJobUseCase.toggle(candidateId, jobPostId);
         String message = saved ? "Đã lưu bài đăng." : "Đã bỏ lưu bài đăng.";
+
+        // ✅ Chỉ track khi lưu, không track khi bỏ lưu
+        if (saved) {
+            trackUseCase.trackJobSave(candidateId, jobPostId);
+        }
 
         return ResponseEntity.ok(ApiResponse.success(saved, message));
     }

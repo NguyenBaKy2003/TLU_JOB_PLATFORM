@@ -18,7 +18,7 @@ const SIZE_OPTIONS: { value: CompanySize; label: string }[] = [
   { value: "CORPORATION", label: "Tập đoàn"          },
 ];
 
-const inputCls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+const inputCls = "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -52,7 +52,7 @@ function ReadRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5 min-w-0 overflow-hidden">
       <span className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</span>
-      <span className="text-sm font-medium text-gray-800 truncate" title={value}>{value || "—"}</span>
+      <span className="text-[16px] font-medium text-gray-800 truncate" title={value}>{value || "—"}</span>
     </div>
   );
 }
@@ -158,12 +158,12 @@ export function BasicInfoSection({ profile, saving, error, onSave }: Props) {
           <div className="flex justify-end gap-2 mt-5">
             <button onClick={() => { setDraft(toDraft(profile)); setEditing(false); }}
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600
+              className="flex items-center gap-1.5 px-4 py-2 text-[16px] font-medium text-gray-600
                 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors">
               <X size={14} /> Hủy
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white
+              className="flex items-center gap-1.5 px-4 py-2 text-[16px] font-medium text-white
                 bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors">
               {saving
                 ? <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />

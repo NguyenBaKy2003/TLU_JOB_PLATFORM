@@ -473,12 +473,12 @@ export default function AdminJobsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Quản lý tin tuyển dụng</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[16px] text-muted-foreground mt-1">
             Quản lý và kiểm soát các tin tuyển dụng trên hệ thống
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-[16px] text-muted-foreground">
             Tổng số: <span className="font-semibold text-foreground">{totalElements}</span> tin
           </div>
         </div>

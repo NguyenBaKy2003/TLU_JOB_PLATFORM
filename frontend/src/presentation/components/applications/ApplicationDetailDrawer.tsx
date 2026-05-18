@@ -128,7 +128,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
 
         {/* ── Header ────── */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
-          <h3 className="text-sm font-semibold text-gray-800">Chi tiết đơn ứng tuyển</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">Chi tiết đơn ứng tuyển</h3>
           <button
             onClick={onClose}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
@@ -167,7 +167,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-[16px] font-semibold text-gray-900 truncate">
                       {detail.candidate.fullName}
                     </p>
                     {detail.candidate.email && (
@@ -241,7 +241,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                     value={statusNote}
                     onChange={e => setStatusNote(e.target.value)}
                     placeholder="Nhập ghi chú..."
-                    className="border border-gray-200 rounded-xl px-3 py-2 text-sm
+                    className="border border-gray-200 rounded-xl px-3 py-2 text-[16px]
                       outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
@@ -267,7 +267,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                   <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
                     <Clock size={12} /> Lịch phỏng vấn
                   </p>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-[16px] font-semibold text-gray-900">
                     {new Date(detail.interviewScheduledAt).toLocaleString("vi-VN")}
                   </p>
                   {detail.interviewLocation && (
@@ -287,7 +287,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                   <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                     Thư xin việc
                   </p>
-                  <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-3 whitespace-pre-line">
+                  <p className="text-[16px] text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-3 whitespace-pre-line">
                     {detail.coverLetter}
                   </p>
                 </div>
@@ -307,7 +307,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                     onClick={handleViewCV}
                     disabled={cvViewing || cvDownloading}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200
-                      rounded-xl text-sm font-medium text-gray-700 hover:border-blue-300
+                      rounded-xl text-[16px] font-medium text-gray-700 hover:border-blue-300
                       hover:text-blue-600 transition-colors disabled:opacity-60"
                   >
                     {cvViewing
@@ -321,7 +321,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                     onClick={handleDownloadCV}
                     disabled={cvViewing || cvDownloading}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200
-                      rounded-xl text-sm font-medium text-gray-700 hover:border-green-300
+                      rounded-xl text-[16px] font-medium text-gray-700 hover:border-green-300
                       hover:text-green-600 transition-colors disabled:opacity-60"
                   >
                     {cvDownloading
@@ -348,7 +348,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
         <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600
+            className="px-4 py-2 rounded-xl text-[16px] font-medium text-gray-600
               hover:bg-gray-100 transition-colors"
           >
             Đóng
@@ -363,7 +363,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-gray-50 rounded-xl px-3.5 py-2.5">
       <p className="text-[11px] text-gray-400">{label}</p>
-      <p className="text-sm font-medium text-gray-800">{value}</p>
+      <p className="text-[16px] font-medium text-gray-800">{value}</p>
     </div>
   );
 }

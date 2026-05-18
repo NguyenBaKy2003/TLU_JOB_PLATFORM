@@ -9,7 +9,7 @@ interface TemplateFormBreadcrumbProps {
 
 export function TemplateFormBreadcrumb({ templateName, isEdit }: TemplateFormBreadcrumbProps) {
   return (
-    <nav className="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+    <nav className="mb-6 flex items-center gap-2 text-[16px] text-gray-500 dark:text-gray-400">
       <Link href="/admin/templates" className="hover:text-gray-700 dark:hover:text-gray-200">
         CV Templates
       </Link>

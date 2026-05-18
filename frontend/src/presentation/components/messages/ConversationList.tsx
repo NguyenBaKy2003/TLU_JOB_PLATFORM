@@ -92,7 +92,7 @@ export function ConversationList({
       {/* Header */}
       <div className="px-4 pt-4 pb-3 border-b border-gray-50 shrink-0">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-gray-800">
+          <h3 className="text-[16px] font-semibold text-gray-800">
             Tất cả tin nhắn
           </h3>
 
@@ -128,7 +128,7 @@ export function ConversationList({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Tìm kiếm"
-            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-100
+            className="w-full pl-9 pr-4 py-2 text-[16px] bg-gray-50 border border-gray-100
               rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
               focus:border-blue-300 placeholder:text-gray-300 transition-all"
           />
@@ -158,7 +158,7 @@ export function ConversationList({
             )}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+          <div className="flex items-center justify-center py-12 text-[16px] text-gray-400">
             {query ? "Không tìm thấy kết quả" : "Chưa có tin nhắn nào"}
           </div>
         ) : (

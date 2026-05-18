@@ -120,7 +120,7 @@ export default function PostingJobPage() {
                   </svg>
                 )}
               </div>
-              <span className="text-sm text-gray-700">Hiển thị mức lương trên tin tuyển dụng</span>
+              <span className="text-[16px] text-gray-700">Hiển thị mức lương trên tin tuyển dụng</span>
             </label>
             {form.showSalary && (
               <p className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-xl -mt-1">
@@ -344,7 +344,7 @@ export default function PostingJobPage() {
         {/* ── Save button ─────────── */}
         <button
           onClick={handleSave}
-          className="w-full py-3.5 bg-blue-500 text-white text-sm font-semibold rounded-2xl
+          className="w-full py-3.5 bg-blue-500 text-white text-[16px] font-semibold rounded-2xl
             hover:bg-blue-800 transition-colors shadow-sm"
         >
           Lưu

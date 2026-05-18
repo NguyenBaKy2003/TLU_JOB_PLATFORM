@@ -56,7 +56,7 @@ function HtmlPreview({ htmlContent }: { htmlContent: string | null }) {
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <p className="text-sm">Chưa có HTML content</p>
+          <p className="text-[16px]">Chưa có HTML content</p>
         </div>
       </div>
     );
@@ -119,7 +119,7 @@ export function TemplateFormFields({
     <div className="space-y-6">
       {/* ── Global error ────────────────────────────────────────────── */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[16px] text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       )}
@@ -135,7 +135,7 @@ export function TemplateFormFields({
 
       {/* ── Name ────────────────────────────────────────────────────── */}
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
           Tên template <span className="text-red-500">*</span>
         </label>
         <input
@@ -144,7 +144,7 @@ export function TemplateFormFields({
           maxLength={100}
           placeholder="Vd: Professional Blue, Creative Modern..."
           onChange={(e) => onChange("name", e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500"
+          className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-[16px] text-gray-900 placeholder-gray-400 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500"
         />
         <p className="text-right text-xs text-gray-400">{data.name.length}/100</p>
       </div>
@@ -152,13 +152,13 @@ export function TemplateFormFields({
       {/* ── Category + Premium ───────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
             Danh mục
           </label>
           <select
             value={data.category}
             onChange={(e) => onChange("category", e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-[16px] text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           >
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -169,7 +169,7 @@ export function TemplateFormFields({
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
             Loại
           </label>
           <div className="flex h-[42px] items-center gap-3 rounded-lg border border-gray-200 bg-white px-3.5 dark:border-gray-700 dark:bg-gray-900">
@@ -188,7 +188,7 @@ export function TemplateFormFields({
                 }`}
               />
             </button>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+            <span className="text-[16px] text-gray-700 dark:text-gray-300">
               {data.premium ? (
                 <span className="font-medium text-indigo-600 dark:text-indigo-400">Premium</span>
               ) : (
@@ -202,7 +202,7 @@ export function TemplateFormFields({
       {/* ── Active toggle (edit only) ────────────────────────────────── */}
       {isEdit && (
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
             Trạng thái
           </label>
           <div className="flex h-[42px] items-center gap-3 rounded-lg border border-gray-200 bg-white px-3.5 dark:border-gray-700 dark:bg-gray-900">
@@ -221,7 +221,7 @@ export function TemplateFormFields({
                 }`}
               />
             </button>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+            <span className="text-[16px] text-gray-700 dark:text-gray-300">
               {data.active ? (
                 <span className="font-medium text-green-600 dark:text-green-400">Đang hiển thị</span>
               ) : (
@@ -236,7 +236,7 @@ export function TemplateFormFields({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
               HTML Content (Thymeleaf) <span className="text-red-500">*</span>
             </label>
 

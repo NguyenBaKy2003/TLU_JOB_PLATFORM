@@ -3,7 +3,7 @@
 
 // ── Input ──
 export const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+  "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -45,7 +45,7 @@ export function Checkbox({ checked, onChange, label }: { checked: boolean; onCha
           </svg>
         )}
       </div>
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-[16px] text-gray-700">{label}</span>
     </label>
   );
 }
@@ -58,7 +58,7 @@ export function Radio({ checked, onChange, label }: { checked: boolean; onChange
         ${checked ? "border-blue-600 bg-blue-600" : "border-gray-300 group-hover:border-gray-400"}`}>
         {checked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
       </div>
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-[16px] text-gray-700">{label}</span>
     </label>
   );
 }
@@ -68,7 +68,7 @@ export function TagChip({ label, onRemove }: { label: string; onRemove: () => vo
   return (
     <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
       {label}
-      <button onClick={onRemove} className="text-gray-400 hover:text-red-500 transition-colors text-sm leading-none">×</button>
+      <button onClick={onRemove} className="text-gray-400 hover:text-red-500 transition-colors text-[16px] leading-none">×</button>
     </span>
   );
 }
@@ -82,7 +82,7 @@ export function PostSection({ icon, title, onEdit, children }: {
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
         <div className="flex items-center gap-2.5">
           <span className="text-gray-400">{icon}</span>
-          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">{title}</h3>
         </div>
         {onEdit && (
           <button onClick={onEdit} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">

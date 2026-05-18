@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -13,6 +13,7 @@
     "@livekit/components-styles": "^1.2.0",
     "@stomp/stompjs": "^7.2.1",
     "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/react-query": "^5.100.10",
     "@tiptap/extension-character-count": "^3.22.1",
     "@tiptap/extension-placeholder": "^3.22.1",
     "@tiptap/extension-text-align": "^3.22.1",

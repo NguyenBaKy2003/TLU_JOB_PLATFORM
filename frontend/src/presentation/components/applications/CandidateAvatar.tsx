@@ -28,7 +28,7 @@ export function CandidateAvatar({
       ) : (
         <div
           className={`w-full h-full bg-gradient-to-br ${color} flex items-center justify-center
-            text-white font-bold text-sm`}
+            text-white font-bold text-[16px]`}
         >
           {name?.slice(0, 2).toUpperCase()}
         </div>

@@ -83,7 +83,7 @@ export default function EmployerPaymentPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Lịch sử thanh toán</h1>
-        <p className="text-sm text-gray-400 mt-0.5">
+        <p className="text-[16px] text-gray-400 mt-0.5">
           Tất cả giao dịch thanh toán của công ty bạn
         </p>
       </div>

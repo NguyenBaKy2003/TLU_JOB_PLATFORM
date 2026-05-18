@@ -36,7 +36,7 @@ export function CVAuthRequired({
         </h1>
 
         {/* Description */}
-        <p className="text-sm text-gray-500 mb-8">
+        <p className="text-[16px] text-gray-500 mb-8">
           {isNotLoggedIn ? (
             "Vui lòng đăng nhập với tài khoản ứng viên để tạo và quản lý CV của bạn."
           ) : (
@@ -58,14 +58,14 @@ export function CVAuthRequired({
             <>
               <button
                 onClick={() => router.push("/auth/login")}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3D5A80] hover:bg-[#2E4565] text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3D5A80] hover:bg-[#2E4565] text-white text-[16px] font-semibold rounded-xl transition-colors shadow-sm"
               >
                 <LogIn className="w-4 h-4" />
                 Đăng nhập
               </button>
               <button
                 onClick={() => router.push("/auth/signup")}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-[#3D5A80] text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-[#3D5A80] text-[16px] font-semibold rounded-xl border border-gray-200 transition-colors"
               >
                 <UserPlus className="w-4 h-4" />
                 Tạo tài khoản mới
@@ -75,14 +75,14 @@ export function CVAuthRequired({
             <>
               <button
                 onClick={() => router.push("/")}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3D5A80] hover:bg-[#2E4565] text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3D5A80] hover:bg-[#2E4565] text-white text-[16px] font-semibold rounded-xl transition-colors shadow-sm"
               >
                 <FileText className="w-4 h-4" />
                 Về trang chủ
               </button>
               <button
                 onClick={() => router.push("/jobs")}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-600 text-[16px] font-semibold rounded-xl border border-gray-200 transition-colors"
               >
                 Xem tin tuyển dụng
               </button>

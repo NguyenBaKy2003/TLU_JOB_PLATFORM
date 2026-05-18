@@ -73,7 +73,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         {displayTitle}
       </h3>
       
-      <p className="text-sm text-muted-foreground max-w-md mb-6">
+      <p className="text-[16px] text-muted-foreground max-w-md mb-6">
         {displayMessage}
       </p>
       
@@ -122,7 +122,7 @@ export const InlineError: React.FC<InlineErrorProps> = ({
   className = '' 
 }) => {
   return (
-    <div className={`flex items-center gap-2 text-red-500 text-sm ${className}`}>
+    <div className={`flex items-center gap-2 text-red-500 text-[16px] ${className}`}>
       <AlertCircle className="w-4 h-4" />
       <span>{message}</span>
     </div>

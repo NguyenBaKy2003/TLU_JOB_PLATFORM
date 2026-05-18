@@ -52,7 +52,7 @@ export function UserDetailModal({ user, onClose, onToggle, onChangeRole }: Props
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-gray-900">Chi tiết người dùng</h2>
+          <h2 className="text-[16px] font-bold text-gray-900">Chi tiết người dùng</h2>
           <button onClick={onClose}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100
               rounded-lg transition-colors">
@@ -79,7 +79,7 @@ export function UserDetailModal({ user, onClose, onToggle, onChangeRole }: Props
           </div>
 
           {/* Info rows */}
-          <div className="flex flex-col gap-2.5 text-sm">
+          <div className="flex flex-col gap-2.5 text-[16px]">
             <div className="flex items-center gap-2.5 text-gray-600">
               <Mail size={14} className="text-gray-400 shrink-0" />
               <span>{user.email}</span>
@@ -103,7 +103,7 @@ export function UserDetailModal({ user, onClose, onToggle, onChangeRole }: Props
             <div className="flex gap-2">
               <select value={newRole}
                 onChange={e => setNewRole(e.target.value as AdminUserRole)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl
+                className="flex-1 px-3 py-2 text-[16px] border border-gray-200 rounded-xl
                   bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 cursor-pointer">
                 {ALL_ROLES.map(r => (
                   <option key={r} value={r}>{ROLE_LABELS[r]}</option>

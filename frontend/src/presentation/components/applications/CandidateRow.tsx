@@ -32,7 +32,7 @@ export function CandidateRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+          <p className="text-[16px] font-semibold text-gray-900 truncate">{name}</p>
           <ApplicationStatusBadge status={app.status} />
         </div>
 

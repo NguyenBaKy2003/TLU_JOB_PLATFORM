@@ -72,7 +72,7 @@ function NavLink({ label, icon, href, active, collapsed, badge, onClick }: {
 }) {
   return (
     <Link href={href} onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px] transition-all
         ${active
           ? "bg-red-50 text-red-600 font-medium"
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -129,7 +129,7 @@ function SidebarContent({
         </div>
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">Joblin Admin</p>
+            <p className="text-[16px] font-bold text-gray-900 truncate">Joblin Admin</p>
             <p className="text-[11px] text-red-500 font-medium">Quản trị viên</p>
           </div>
         )}
@@ -183,13 +183,13 @@ function SidebarContent({
       {/* Bottom */}
       <div className="px-2 pb-4 border-t border-gray-100 pt-3 flex flex-col gap-0.5">
         <Link href="/admin/help" onClick={isMobile ? onClose : undefined}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
             text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
           <HelpCircle size={18} className="shrink-0" />
           {(!collapsed || isMobile) && <span>Trợ giúp</span>}
         </Link>
         <button onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
             text-red-500 hover:bg-red-50 transition-colors w-full text-left">
           <LogOut size={18} className="shrink-0" />
           {(!collapsed || isMobile) && <span>Đăng xuất</span>}

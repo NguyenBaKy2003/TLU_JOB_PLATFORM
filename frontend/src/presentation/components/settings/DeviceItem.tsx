@@ -18,7 +18,7 @@ export function DeviceItem({ icon, name, detail, location, current, onLogout }: 
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-800 truncate">{name}</p>
+          <p className="text-[16px] font-medium text-gray-800 truncate">{name}</p>
           {current && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold text-blue-600 bg-blue-100 rounded-full shrink-0">
               Hiện tại

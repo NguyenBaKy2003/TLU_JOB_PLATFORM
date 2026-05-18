@@ -154,7 +154,7 @@ export function VideoArea({ viewerCount, showControls = false, canPublish = fals
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-3">
                   <div className="w-12 h-12 rounded-full border-2 border-slate-600 border-t-blue-500 animate-spin" />
-                  <p className="text-sm text-slate-400">Đang chờ người tham gia...</p>
+                  <p className="text-[16px] text-slate-400">Đang chờ người tham gia...</p>
                   <p className="text-xs text-slate-500">Chia sẻ link để mời ứng viên</p>
                 </div>
               )}
@@ -215,7 +215,7 @@ export function VideoArea({ viewerCount, showControls = false, canPublish = fals
           {isInterviewCandidate && localCameraTrack && localCameraTrack.publication?.isMuted && (
             <div className="absolute bottom-3 right-3 w-40 sm:w-48 aspect-video rounded-lg overflow-hidden border-2 border-slate-500 shadow-lg z-10 bg-slate-700 flex flex-col items-center justify-center gap-1">
               <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">B</span>
+                <span className="text-white text-[16px] font-bold">B</span>
               </div>
               <p className="text-[10px] text-slate-400">Cam tắt</p>
               <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">Bạn</div>
@@ -225,7 +225,7 @@ export function VideoArea({ viewerCount, showControls = false, canPublish = fals
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
           <div className="w-10 h-10 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin" />
-          <p className="text-sm text-slate-400">Đang kết nối stream...</p>
+          <p className="text-[16px] text-slate-400">Đang kết nối stream...</p>
           <p className="text-xs text-slate-500">Chờ host bật camera</p>
           {isInterviewCandidate && localCameraTrack && !localCameraTrack.publication?.isMuted && (
             <div className="mt-2 w-40 aspect-video rounded-lg overflow-hidden border-2 border-green-500 bg-slate-700">

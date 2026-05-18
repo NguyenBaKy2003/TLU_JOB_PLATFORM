@@ -55,13 +55,13 @@ function EduForm({ value, onChange }: { value: EduFormState; onChange: (v: EduFo
         <div>
           <label className="block text-[11px] text-gray-400 uppercase tracking-wide mb-1">Tên trường</label>
           <input value={value.school} onChange={(e) => set("school")(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+            className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
               focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="block text-[11px] text-gray-400 uppercase tracking-wide mb-1">Chuyên ngành</label>
           <input value={value.major} onChange={(e) => set("major")(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+            className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
               focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
@@ -76,7 +76,7 @@ function EduForm({ value, onChange }: { value: EduFormState; onChange: (v: EduFo
                 transition-colors ${value.degree === d.value ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}>
                 {value.degree === d.value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <span className="text-sm text-gray-700">{d.label}</span>
+              <span className="text-[16px] text-gray-700">{d.label}</span>
             </label>
           ))}
         </div>
@@ -89,7 +89,7 @@ function EduForm({ value, onChange }: { value: EduFormState; onChange: (v: EduFo
             <input type="date" value={value[key] as string}
               disabled={key === "endDate" && value.current}
               onChange={(e) => set(key)(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+              className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
                 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400" />
           </div>
         ))}
@@ -101,7 +101,7 @@ function EduForm({ value, onChange }: { value: EduFormState; onChange: (v: EduFo
           {value.current && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5"
             stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" /></svg>}
         </div>
-        <span className="text-sm text-gray-600">Vẫn đang học</span>
+        <span className="text-[16px] text-gray-600">Vẫn đang học</span>
       </label>
 
       <div>
@@ -109,7 +109,7 @@ function EduForm({ value, onChange }: { value: EduFormState; onChange: (v: EduFo
         <div className="relative">
           <textarea value={value.description} rows={3}
             onChange={(e) => set("description")(e.target.value.slice(0, MAX))}
-            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg resize-none bg-white
+            className="w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-lg resize-none bg-white
               focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-300" />
           <span className="absolute bottom-2.5 right-3 text-[11px] text-gray-400">{value.description.length}/{MAX}</span>
         </div>
@@ -159,9 +159,9 @@ export default function EducationSection({ profile, saving, error, onAdd, onUpda
               <EduForm value={formState} onChange={setFormState} />
               <div className="flex justify-end gap-2 mt-3">
                 <button onClick={() => setEditingId(null)} disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">Hủy</button>
+                  className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">Hủy</button>
                 <button onClick={handleSave} disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+                  className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
                   {saving && <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}Lưu</button>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function EducationSection({ profile, saving, error, onAdd, onUpda
               className="flex items-start justify-between py-3 px-4 rounded-xl border border-gray-100
                 hover:border-gray-200 hover:bg-gray-50/60 transition-colors group">
               <div>
-                <p className="text-sm font-medium text-gray-800">
+                <p className="text-[16px] font-medium text-gray-800">
                   {edu.degree ? `${DEGREE_LABELS[edu.degree] ?? edu.degree} of ${edu.major ?? ""}` : edu.school}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -194,9 +194,9 @@ export default function EducationSection({ profile, saving, error, onAdd, onUpda
             <EduForm value={formState} onChange={setFormState} />
             <div className="flex justify-end gap-2 mt-3">
               <button onClick={() => setEditingId(null)} disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">Hủy</button>
+                className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50">Hủy</button>
               <button onClick={handleSave} disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+                className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
                 {saving && <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}Lưu</button>
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function EducationSection({ profile, saving, error, onAdd, onUpda
 
         {!editingId && (
           <button onClick={startAdd}
-            className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1">
+            className="flex items-center gap-1.5 text-[16px] font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1">
             <Plus size={15} /> Thêm học vấn
           </button>
         )}

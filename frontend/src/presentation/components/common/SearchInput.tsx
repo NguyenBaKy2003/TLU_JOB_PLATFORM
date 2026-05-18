@@ -17,7 +17,7 @@ export interface SearchInputProps {
 }
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm pl-9 pr-8',
+  sm: 'px-3 py-1.5 text-[16px] pl-9 pr-8',
   md: 'px-4 py-2 text-base pl-10 pr-9',
   lg: 'px-5 py-3 text-lg pl-12 pr-10'
 };
@@ -120,7 +120,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       {onSearch && (
         <button
           onClick={handleSearchClick}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg text-[16px] font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Tìm
         </button>

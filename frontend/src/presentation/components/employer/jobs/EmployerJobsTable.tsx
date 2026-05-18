@@ -59,7 +59,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
 
                   {/* Job info */}
                   <td className="px-5 py-4">
-                    <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600
+                    <p className="text-[16px] font-semibold text-gray-900 group-hover:text-blue-600
                       transition-colors truncate max-w-[400px]">
                       {job.title}
                     </p>
@@ -83,7 +83,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
                   {/* Applications */}
                   <td className="px-5 py-4">
                     <Link href={`/employer/jobs/${job.id}/applications`}
-                      className="flex items-center gap-1.5 text-sm text-gray-700
+                      className="flex items-center gap-1.5 text-[16px] text-gray-700
                         hover:text-blue-600 transition-colors w-fit">
                       <Users size={13} className="text-gray-400" />
                       <span className="font-semibold">{job?.applicationCount}</span>
@@ -93,7 +93,7 @@ export function EmployerJobsTable({ jobs, onPublish, onClose, onDelete }: Props)
 
                   {/* Salary */}
                   <td className="px-5 py-4">
-                    <span className="text-sm font-semibold text-blue-600">
+                    <span className="text-[16px] font-semibold text-blue-600">
                       {job?.salaryDisplay}
                     </span>
                   </td>

@@ -7,10 +7,10 @@ export function CategoryBadge({ category }: { category: string | null }) {
     simple: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
   };
   
-  if (!category) return <span className="text-sm text-gray-400">—</span>;
+  if (!category) return <span className="text-[16px] text-gray-400">—</span>;
   
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ring-1 ring-inset ${map[category] ?? "bg-gray-100 text-gray-600"}`}>
+    <span className={`inline-flex items-center rounded-full px-3 py-1 text-[16px] font-medium ring-1 ring-inset ${map[category] ?? "bg-gray-100 text-gray-600"}`}>
       {category.charAt(0).toUpperCase() + category.slice(1)}
     </span>
   );

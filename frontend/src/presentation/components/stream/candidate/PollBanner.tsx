@@ -23,7 +23,7 @@ export function PollBanner({ poll, onAnswer }: PollBannerProps) {
       <p className="text-[11px] font-semibold text-slate-500 uppercase mb-1">
         📊 Poll {isAnswered && "• Đã trả lời"}
       </p>
-      <p className="text-sm font-semibold text-slate-800 mb-3">
+      <p className="text-[16px] font-semibold text-slate-800 mb-3">
         {poll.question}
       </p>
       <div className="flex flex-col gap-2">

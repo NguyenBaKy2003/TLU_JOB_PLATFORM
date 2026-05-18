@@ -43,7 +43,7 @@ export function CVPreviewPanel({ cv, refreshKey = 0 }: Props) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-[#3D5A80]" />
-          <h3 className="text-sm font-semibold text-gray-800">Preview CV</h3>
+          <h3 className="text-[16px] font-semibold text-gray-800">Preview CV</h3>
         </div>
         
         <button

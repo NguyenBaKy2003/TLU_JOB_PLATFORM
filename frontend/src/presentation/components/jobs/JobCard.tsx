@@ -196,7 +196,7 @@ export function JobCard({ job, onSave, saved = false, featured = false, competit
                   </div>
                 </div>
 
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-blue-600
+                <h3 className="text-[16px] font-bold text-gray-900 group-hover:text-blue-600
                   transition-colors line-clamp-1 mb-2">
                   {job.title}
                 </h3>

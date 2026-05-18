@@ -99,7 +99,7 @@ export function MinimumSalaryStep({ onNext, onSkip }: MinimumSalaryStepProps) {
             placeholder="Nhập Mức Lương"
             value={formatDisplay(salary)}
             onChange={handleSalaryChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-[16px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
           />
           <p className="mt-1 text-[11px] text-gray-400 flex items-center gap-1">
             <svg
@@ -129,7 +129,7 @@ export function MinimumSalaryStep({ onNext, onSkip }: MinimumSalaryStepProps) {
               setCycle(e.target.value);
               setError("");
             }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-[16px] text-gray-800 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
           >
             <option value="" disabled>
               Chọn Chu Kỳ
@@ -162,7 +162,7 @@ export function MinimumSalaryStep({ onNext, onSkip }: MinimumSalaryStepProps) {
       <button
         type="button"
         onClick={onSkip}
-        className="w-full text-center text-sm text-gray-500 hover:text-gray-700 mt-3 transition-colors"
+        className="w-full text-center text-[16px] text-gray-500 hover:text-gray-700 mt-3 transition-colors"
       >
         Bỏ qua
       </button>

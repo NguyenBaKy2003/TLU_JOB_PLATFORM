@@ -103,7 +103,7 @@ export default function CreateStreamPage() {
             {step === 2 && (isInterview ? "Cài đặt interview slots" : "Cài đặt thêm")}
             {step === 3 && "Xem lại & xác nhận"}
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-[16px] mt-1">
             {step === 1 && "Điền thông tin cơ bản cho phiên tuyển dụng trực tiếp"}
             {step === 2 && (isInterview
               ? "Tạo các khung giờ phỏng vấn cho ứng viên"
@@ -169,7 +169,7 @@ export default function CreateStreamPage() {
               <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
                 <Briefcase className="w-8 h-8 text-slate-300" />
               </div>
-              <p className="text-slate-500 text-sm font-medium">Job Fair không cần cài đặt slots</p>
+              <p className="text-slate-500 text-[16px] font-medium">Job Fair không cần cài đặt slots</p>
               <p className="text-slate-400 text-xs mt-1">Ứng viên có thể apply trực tiếp trong khi stream</p>
             </div>
           )}
@@ -179,7 +179,7 @@ export default function CreateStreamPage() {
 
           {/* Submit error */}
           {errors.submit && (
-            <p className="text-sm text-red-500 text-center bg-red-50 py-2 rounded-lg">{errors.submit}</p>
+            <p className="text-[16px] text-red-500 text-center bg-red-50 py-2 rounded-lg">{errors.submit}</p>
           )}
 
           {/* Actions */}
@@ -188,7 +188,7 @@ export default function CreateStreamPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="flex-1 bg-slate-800 text-white text-sm font-semibold py-3 rounded-xl hover:bg-slate-900 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-slate-800 text-white text-[16px] font-semibold py-3 rounded-xl hover:bg-slate-900 transition-colors flex items-center justify-center gap-2"
               >
                 Tiếp theo
                 <ChevronRight className="w-4 h-4" />
@@ -198,7 +198,7 @@ export default function CreateStreamPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 bg-slate-800 text-white text-sm font-semibold py-3 rounded-xl hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-slate-800 text-white text-[16px] font-semibold py-3 rounded-xl hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

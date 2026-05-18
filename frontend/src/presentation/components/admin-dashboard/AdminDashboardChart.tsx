@@ -61,7 +61,7 @@ export function AdminDashboardChart() {
     <div className="bg-white rounded-2xl border border-gray-100 p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-sm font-bold text-gray-900">Thống kê hệ thống</h2>
+          <h2 className="text-[16px] font-bold text-gray-900">Thống kê hệ thống</h2>
           <p className="text-xs text-gray-400 mt-0.5">Người dùng, doanh thu, tin đăng</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">

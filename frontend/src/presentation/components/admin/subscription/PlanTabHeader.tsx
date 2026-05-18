@@ -15,7 +15,7 @@ export function PlanTabHeader({ count, onCreate }: Props) {
       <button
         onClick={onCreate}
         className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white
-          text-sm font-semibold rounded-xl hover:bg-blue-800 transition-colors shadow-sm"
+          text-[16px] font-semibold rounded-xl hover:bg-blue-800 transition-colors shadow-sm"
       >
         <Plus size={16} /> Tạo gói mới
       </button>

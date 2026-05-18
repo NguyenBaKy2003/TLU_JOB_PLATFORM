@@ -63,9 +63,9 @@ export function EmployerRegisterPage({ onGoogleLogin, oauthLoading = false }: Pr
             </svg>
           </div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">Đăng ký thành công!</h2>
-          <p className="text-sm text-gray-500 mb-6">Tài khoản nhà tuyển dụng của bạn đã được tạo.</p>
+          <p className="text-[16px] text-gray-500 mb-6">Tài khoản nhà tuyển dụng của bạn đã được tạo.</p>
           <a href="/employer/dashboard"
-            className="inline-block px-6 py-2.5 bg-blue-500 text-white text-sm font-semibold rounded hover:bg-blue-800 transition-colors">
+            className="inline-block px-6 py-2.5 bg-blue-500 text-white text-[16px] font-semibold rounded hover:bg-blue-800 transition-colors">
             Vào trang quản lý
           </a>
         </div>

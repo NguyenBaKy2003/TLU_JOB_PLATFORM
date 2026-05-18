@@ -32,7 +32,7 @@ function InputField({ label, value, onChange, placeholder, type = "text", disabl
       <input
         type={type} value={value} placeholder={placeholder} disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white
+        className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg bg-white
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
           placeholder:text-gray-300 text-gray-800 disabled:bg-gray-50 disabled:text-gray-400"
       />
@@ -57,7 +57,7 @@ function RadioGroup({ label, options, value, onChange }: {
                 : "border-gray-300 group-hover:border-gray-400"}`}>
               {value === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
             </div>
-            <span className="text-sm text-gray-700">{opt.label}</span>
+            <span className="text-[16px] text-gray-700">{opt.label}</span>
           </label>
         ))}
       </div>
@@ -70,8 +70,8 @@ function ReadField({ label, value, isLink }: { label: string; value: string; isL
     <div className="flex flex-col gap-0.5 min-w-0 overflow-hidden">
       <span className="text-[11px] text-gray-400 uppercase tracking-wide">{label}</span>
       {isLink
-        ? <button className="text-sm font-medium text-blue-500 hover:underline text-left truncate w-full">{value || "Thêm"}</button>
-        : <span className="text-sm font-medium text-gray-800 truncate block" title={value}>{value || "—"}</span>
+        ? <button className="text-[16px] font-medium text-blue-500 hover:underline text-left truncate w-full">{value || "Thêm"}</button>
+        : <span className="text-[16px] font-medium text-gray-800 truncate block" title={value}>{value || "—"}</span>
       }
     </div>
   );
@@ -170,12 +170,12 @@ export default function PersonalInfoSection({ profile, saving, error, onSave }: 
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <button onClick={handleCancel} disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg
+              className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg
                 hover:bg-gray-200 disabled:opacity-50 transition-colors">
               Hủy
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg
+              className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg
                 hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2">
               {saving && (
                 <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />

@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.ai.infrastructure.adapter;
+package edu.tlu.jobplatform.ai.infrastructure.persistence.adapter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckRequest;

@@ -5,7 +5,7 @@ import { X, Check, Infinity }          from "lucide-react";
 import type { SubscriptionPlan }       from "@/domain/models/CompanySubscription";
 import { PlanPayload } from "@/domain/repositories/IAdminSubscriptionRepository";
 
-const inputCls = "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white " +
+const inputCls = "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
@@ -68,7 +68,7 @@ function ToggleRow({ label, desc, checked, onChange }: {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-medium text-gray-800">{label}</p>
+        <p className="text-[16px] font-medium text-gray-800">{label}</p>
         <p className="text-xs text-gray-400">{desc}</p>
       </div>
       <button
@@ -155,7 +155,7 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-800">
+          <h3 className="text-[16px] font-semibold text-gray-800">
             {isEdit ? `Chỉnh sửa gói: ${plan.name}` : "Tạo gói mới"}
           </h3>
           <button onClick={onCancel}
@@ -262,12 +262,12 @@ export function PlanFormModal({ plan, onSave, onCancel }: Props) {
           {/* ── Actions ────── */}
           <div className="flex gap-2 pt-1">
             <button onClick={onCancel} disabled={saving}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100
+              className="flex-1 py-2.5 text-[16px] font-medium text-gray-600 bg-gray-100
                 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors">
               Hủy
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[16px]
                 font-semibold text-white bg-blue-500 rounded-xl hover:bg-blue-800
                 disabled:opacity-50 transition-colors">
               {saving

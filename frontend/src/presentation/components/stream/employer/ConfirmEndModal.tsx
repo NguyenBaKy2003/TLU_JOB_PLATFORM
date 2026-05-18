@@ -15,19 +15,19 @@ export function ConfirmEndModal({ onConfirm, onCancel }: ConfirmEndModalProps) {
           <TriangleAlert className="w-5.5 h-5.5" />
         </div>
         <h3 className="text-lg font-semibold text-slate-800 mb-2">Kết thúc stream?</h3>
-        <p className="text-sm text-slate-500 leading-relaxed mb-6">
+        <p className="text-[16px] text-slate-500 leading-relaxed mb-6">
           Stream sẽ kết thúc ngay lập tức. Hệ thống sẽ tự động xử lý recording và tạo AI summary.
         </p>
         <div className="flex gap-2.5">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-[10px] border border-slate-200 bg-white text-slate-500 text-sm font-medium cursor-pointer hover:bg-slate-50"
+            className="flex-1 py-2.5 rounded-[10px] border border-slate-200 bg-white text-slate-500 text-[16px] font-medium cursor-pointer hover:bg-slate-50"
           >
             Huỷ
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-[10px] border-none bg-red-500 text-white text-sm font-semibold cursor-pointer hover:bg-red-600"
+            className="flex-1 py-2.5 rounded-[10px] border-none bg-red-500 text-white text-[16px] font-semibold cursor-pointer hover:bg-red-600"
           >
             Kết thúc
           </button>

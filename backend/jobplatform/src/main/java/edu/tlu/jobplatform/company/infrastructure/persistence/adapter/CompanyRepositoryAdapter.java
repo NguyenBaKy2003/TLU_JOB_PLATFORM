@@ -13,8 +13,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -107,8 +110,40 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                 .toList();
     }
 
+    // Thêm vào CompanyRepositoryAdapter — giữ nguyên phần cũ
+
+    @Override
+    public List<CompanyProfile> findByNamesIgnoreCase(List<String> names) {
+        if (names == null || names.isEmpty())
+            return List.of();
+        List<String> lowerNames = names.stream()
+                .map(String::toLowerCase)
+                .toList();
+        return jpaRepo.findByNamesIgnoreCase(lowerNames)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CompanyProfile> findVerifiedCompaniesWithOpenJobs(Pageable pageable) {
+        return jpaRepo.findVerifiedWithOpenJobs(pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Map<UUID, Long> countOpenJobsByCompanyIds(Set<UUID> companyIds) {
+        if (companyIds == null || companyIds.isEmpty())
+            return Map.of();
+        return jpaRepo.countOpenJobsByCompanyIds(companyIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        CompanyJpaRepository.CompanyJobCountProjection::getCompanyId,
+                        CompanyJpaRepository.CompanyJobCountProjection::getCount));
+    }
+
     @Override
     public void deleteById(UUID id) {
         jpaRepo.deleteById(id);
     }
+
 }

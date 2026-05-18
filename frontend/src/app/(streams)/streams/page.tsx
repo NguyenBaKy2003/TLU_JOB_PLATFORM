@@ -105,7 +105,7 @@ function FeaturedCard({
               {session.title}
             </h3>
             {session.description && (
-              <p className="text-white/50 text-sm line-clamp-2 leading-relaxed">
+              <p className="text-white/50 text-[16px] line-clamp-2 leading-relaxed">
                 {session.description}
               </p>
             )}
@@ -187,7 +187,7 @@ function StreamCard({
             )}
           </div>
 
-          <h3 className="font-semibold text-slate-800 text-sm truncate">
+          <h3 className="font-semibold text-slate-800 text-[16px] truncate">
             {session.title}
           </h3>
 
@@ -241,7 +241,7 @@ function EmptyState({ query }: { query: string }) {
       <h3 className="text-slate-700 font-semibold text-lg mb-1">
         {query ? `Không tìm thấy "${query}"` : "Chưa có phiên stream"}
       </h3>
-      <p className="text-slate-400 text-sm max-w-xs">
+      <p className="text-slate-400 text-[16px] max-w-xs">
         {query ? "Thử tìm kiếm với từ khoá khác" : "Quay lại sau để xem các phiên mới"}
       </p>
     </div>
@@ -311,7 +311,7 @@ export default function StreamMarketplacePage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm phiên stream..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[16px] text-slate-700 placeholder:text-slate-300 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50 transition-all"
             />
           </div>
 

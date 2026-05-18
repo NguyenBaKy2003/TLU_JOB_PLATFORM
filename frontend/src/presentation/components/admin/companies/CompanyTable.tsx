@@ -38,7 +38,7 @@ export function CompanyTable({
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
         flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
         <Building2 size={40} className="text-gray-200" />
-        <p className="text-sm">Không có công ty nào</p>
+        <p className="text-[16px]">Không có công ty nào</p>
       </div>
     );
   }
@@ -46,7 +46,7 @@ export function CompanyTable({
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-[16px]">
           <thead>
             <tr className="border-b border-gray-50 bg-gray-50/60">
               <th className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Công ty</th>

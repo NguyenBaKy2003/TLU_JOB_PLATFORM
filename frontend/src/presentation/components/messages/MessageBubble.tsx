@@ -11,7 +11,7 @@ export function MessageBubble({ msg }: Props) {
   if (msg.type === "text") {
     return (
       <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-        <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
+        <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-[16px] leading-relaxed
           ${isMe
             ? "bg-blue-500 text-white rounded-br-sm"
             : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>

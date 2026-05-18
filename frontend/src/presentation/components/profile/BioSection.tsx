@@ -55,7 +55,7 @@ export default function BioSection({ profile, saving, error, onSave }: Props) {
               onChange={(e) => setDraft(e.target.value.slice(0, MAX))}
               placeholder="Giới thiệu về bản thân bạn..."
               rows={5}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white
+              className="w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-lg bg-white
                 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500
                 placeholder:text-gray-300 text-gray-800"
             />
@@ -67,7 +67,7 @@ export default function BioSection({ profile, saving, error, onSave }: Props) {
             <button
               onClick={handleCancel}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg
+              className="px-4 py-2 text-[16px] font-medium text-gray-600 bg-gray-100 rounded-lg
                 hover:bg-gray-200 disabled:opacity-50 transition-colors"
             >
               Hủy
@@ -75,7 +75,7 @@ export default function BioSection({ profile, saving, error, onSave }: Props) {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg
+              className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg
                 hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
             >
               {saving && (
@@ -86,7 +86,7 @@ export default function BioSection({ profile, saving, error, onSave }: Props) {
           </div>
         </>
       ) : (
-        <p className="text-sm text-gray-700 leading-relaxed">
+        <p className="text-[16px] text-gray-700 leading-relaxed">
           {profile.summary || (
             <span className="text-gray-400 italic">Chưa có giới thiệu</span>
           )}

@@ -86,7 +86,7 @@ export function FormInput({
         <label
           className={`
           absolute -top-2.5 left-3 bg-white px-1
-          text-sm  leading-none
+          text-[16px]  leading-none
           ${error ? "text-red-500" : "text-gray-800  "}
         `}
         >
@@ -99,7 +99,7 @@ export function FormInput({
           <input
             {...props}
             className={`
-              w-full bg-transparent text-sm text-gray-700
+              w-full bg-transparent text-[16px] text-gray-700
               placeholder-gray-400 outline-none
               [&::-ms-reveal]:hidden
               [&::-ms-clear]:hidden
@@ -180,7 +180,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled || loading}
-      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded text-[16px] font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {loading ? <Spinner className="text-gray-400" /> : <GoogleIcon />}
       Đăng nhập bằng Google
@@ -202,7 +202,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={disabled || loading}
-      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded text-[16px] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
     >
       {loading && <Spinner />}
       {loading ? "Đang xử lý..." : children}

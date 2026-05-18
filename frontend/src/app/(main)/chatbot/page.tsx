@@ -139,7 +139,7 @@ export default function ChatbotPage() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-semibold text-gray-800">Career Advisor</span>
+            <span className="text-[16px] font-semibold text-gray-800">Career Advisor</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -174,7 +174,7 @@ export default function ChatbotPage() {
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">TLU Career Advisor</p>
+              <p className="text-[16px] font-semibold text-gray-800">TLU Career Advisor</p>
               <p className="text-xs text-emerald-600">● Trực tuyến</p>
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function ChatbotPage() {
               </div>
               <div>
                 <p className="text-lg font-semibold text-gray-800">Xin chào! 👋</p>
-                <p className="text-sm text-gray-500 mt-1 max-w-sm">
+                <p className="text-[16px] text-gray-500 mt-1 max-w-sm">
                   Tôi là TLU Career Advisor. Tôi có thể giúp bạn tư vấn nghề nghiệp,
                   viết CV, chuẩn bị phỏng vấn và nhiều hơn nữa.
                 </p>

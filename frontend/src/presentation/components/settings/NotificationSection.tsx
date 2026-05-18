@@ -48,7 +48,7 @@ export function NotificationSection() {
         {ITEMS.map(({ key, label, desc }) => (
           <div key={key} className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">{label}</p>
+              <p className="text-[16px] font-medium text-gray-800">{label}</p>
               <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
             </div>
             <div className="relative shrink-0 flex items-center">

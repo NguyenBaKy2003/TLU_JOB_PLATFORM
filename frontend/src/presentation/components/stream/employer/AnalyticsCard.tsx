@@ -16,7 +16,7 @@ export function AnalyticsCard({ onClick }: AnalyticsCardProps) {
         <BarChart2 className="w-5 h-5 text-emerald-600" />
       </div>
       <div className="flex-1">
-        <p className="font-medium text-slate-700 text-sm">Xem Analytics</p>
+        <p className="font-medium text-slate-700 text-[16px]">Xem Analytics</p>
         <p className="text-xs text-slate-400">Viewers, apply rate, AI summary</p>
       </div>
       <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500" />

@@ -37,7 +37,7 @@ function resolveReason(raw: string | null): { title: string; desc: string } {
 
 function Tip({ text }: { text: string }) {
   return (
-    <li className="flex items-start gap-2 text-sm text-gray-500">
+    <li className="flex items-start gap-2 text-[16px] text-gray-500">
       <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
       {text}
     </li>
@@ -78,7 +78,7 @@ export default function PaymentFailurePage() {
           <h1 className="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">
             {title}
           </h1>
-          <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
+          <p className="text-[16px] text-gray-500 leading-relaxed max-w-xs mx-auto">
             {desc}
           </p>
 
@@ -108,13 +108,13 @@ export default function PaymentFailurePage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/employer/subscription"
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-200"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-blue-600 text-white text-[16px] font-bold hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-200"
           >
             <RefreshCw size={15} /> Thử lại
           </Link>
           <a
             href="mailto:support@jobplatform.vn"
-            className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-[16px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
           >
             <MessageCircle size={15} /> Liên hệ hỗ trợ
           </a>

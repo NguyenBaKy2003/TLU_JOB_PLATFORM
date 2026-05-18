@@ -23,7 +23,7 @@ export function TemplateFormActions({
     <div className={`mt-8 flex items-center gap-3 border-t border-gray-100 pt-6 dark:border-gray-800 ${isEdit ? "justify-between" : "justify-end"}`}>
       <Link
         href={backHref}
-        className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+        className="rounded-lg border border-gray-200 px-4 py-2 text-[16px] text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
       >
         {isEdit ? "← Quay lại" : "Hủy"}
       </Link>
@@ -33,7 +33,7 @@ export function TemplateFormActions({
           <button
             type="button"
             onClick={onToggleActive}
-            className={`rounded-lg border px-4 py-2 text-sm transition active:scale-95 ${
+            className={`rounded-lg border px-4 py-2 text-[16px] transition active:scale-95 ${
               active
                 ? "border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400"
                 : "border-green-200 text-green-600 hover:bg-green-50 dark:border-green-800 dark:text-green-400"
@@ -46,7 +46,7 @@ export function TemplateFormActions({
         <button
           type="submit"
           disabled={saving || !isValid}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-[16px] font-medium text-white transition hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? (
             <>

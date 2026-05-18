@@ -14,7 +14,7 @@ function ScoreRing({ value }: { value: number }) {
   return (
     <div className={`text-2xl font-bold tabular-nums ${color}`}>
       {value}
-      <span className="text-sm font-medium text-gray-400">/100</span>
+      <span className="text-[16px] font-medium text-gray-400">/100</span>
     </div>
   );
 }
@@ -59,7 +59,7 @@ export function AIScorePanel({ score, compact }: Props) {
       {/* Score + label */}
       <div className="flex items-end gap-3">
         <ScoreRing value={score.score} />
-        <span className="text-sm text-gray-600 mb-0.5">{score.label}</span>
+        <span className="text-[16px] text-gray-600 mb-0.5">{score.label}</span>
       </div>
 
       {/* Sub scores */}

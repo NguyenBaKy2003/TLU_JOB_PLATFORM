@@ -170,14 +170,14 @@ export function CandidateDetailPanel({
           Thông tin đơn
         </p>
         <div className="flex flex-col gap-2.5">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-[16px]">
             <span className="text-gray-500">Ngày nộp</span>
             <span className="font-medium text-gray-800">
               {new Date(current.appliedAt).toLocaleDateString("vi-VN")}
             </span>
           </div>
           {current.expectedSalary != null && (
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-[16px]">
               <span className="text-gray-500">Lương mong muốn</span>
               <span className="font-medium text-blue-600">
                 {Number(current.expectedSalary).toLocaleString()} VND
@@ -200,7 +200,7 @@ export function CandidateDetailPanel({
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
             Thư xin việc
           </p>
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+          <p className="text-[16px] text-gray-700 leading-relaxed whitespace-pre-line">
             {current.coverLetter}
           </p>
         </div>
@@ -212,7 +212,7 @@ export function CandidateDetailPanel({
           <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
             <Clock size={12} /> Lịch phỏng vấn
           </p>
-          <p className="text-sm font-semibold text-gray-900">
+          <p className="text-[16px] font-semibold text-gray-900">
             {new Date(current.scheduledAt).toLocaleString("vi-VN")}
           </p>
           {current.interviewLocation && (

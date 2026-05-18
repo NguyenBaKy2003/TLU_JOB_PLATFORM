@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.job.presentation;
 
+import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.job.application.usecase.candidate.GetJobDetailUseCase;
 import edu.tlu.jobplatform.job.application.usecase.candidate.SearchJobsUseCase;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
@@ -7,6 +8,7 @@ import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class JobSearchController {
     private final GetJobDetailUseCase getJobDetailUseCase;
     private final SearchJobsUseCase searchJobsUseCase;
     private final JobPostRepository jobPostRepository;
+    private final TrackCandidateBehaviorUseCase trackUseCase;
 
     @Operation(summary = "Danh sách việc làm đang tuyển")
     @GetMapping("/api/v1/jobs")
@@ -60,6 +63,10 @@ public class JobSearchController {
     @Operation(summary = "Chi tiết bài đăng theo ID")
     @GetMapping("/api/v1/jobs/{id}")
     public ResponseEntity<ApiResponse<JobPostDetailResponse>> getById(@PathVariable UUID id) {
+
+        SecurityUtils.getCurrentUserId().ifPresent(userId -> trackUseCase.trackJobView(userId, id, 10)); // dwell mặc
+                                                                                                         // định 10s
+
         return ResponseEntity.ok(ApiResponse.success(
                 JobPostDetailResponse.from(getJobDetailUseCase.executeById(id))));
     }

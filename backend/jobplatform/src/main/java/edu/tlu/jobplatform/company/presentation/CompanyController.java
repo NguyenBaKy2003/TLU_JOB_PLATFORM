@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.company.presentation;
 
+import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.company.application.usecase.*;
 import edu.tlu.jobplatform.company.domain.model.*;
 import edu.tlu.jobplatform.company.domain.repository.*;
@@ -9,6 +10,7 @@ import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,13 +73,13 @@ public class CompanyController {
         private final UploadTeamMemberAvatarUseCase uploadTeamMemberAvatarUseCase;
         private final UploadDocumentUseCase uploadDocumentUseCase;
         private final UploadGalleryImageUseCase uploadGalleryImageUseCase;
+        private final TrackCandidateBehaviorUseCase trackUseCase;
 
         // ── Repositories
         private final CompanyRepository companyRepository;
         private final CompanyTeamMemberRepository teamMemberRepository;
         private final CompanyDocumentRepository documentRepository;
         private final CompanyGalleryRepository galleryRepository;
-
         // ════════════════════════════════════════════════════════════
         // Public endpoints
         // ════════════════════════════════════════════════════════════
@@ -105,6 +107,8 @@ public class CompanyController {
 
                 CompanyProfile company = companyRepository.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", id));
+
+                SecurityUtils.getCurrentUserId().ifPresent(userId -> trackUseCase.trackCompanyView(userId, id));
 
                 return ResponseEntity.ok(ApiResponse.success(buildResponse(company, auth)));
         }
