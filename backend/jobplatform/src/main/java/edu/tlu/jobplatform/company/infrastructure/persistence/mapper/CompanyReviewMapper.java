@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.company.infrastructure.persistence.mapper;
 import org.springframework.stereotype.Component;
 
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
+import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyReviewJpaEntity;
 
 @Component
@@ -26,6 +27,10 @@ public class CompanyReviewMapper {
                 .anonymous(e.isAnonymous())
                 .employed(e.isEmployed())
                 .visible(e.isVisible())
+                .status(e.getStatus() != null ? e.getStatus() : ReviewStatus.PENDING)
+                .rejectionReason(e.getRejectionReason())
+                .reviewedBy(e.getReviewedBy())
+                .reviewedAt(e.getReviewedAt())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
@@ -48,10 +53,14 @@ public class CompanyReviewMapper {
                 .anonymous(r.isAnonymous())
                 .employed(r.isEmployed())
                 .visible(r.isVisible())
+                .status(r.getStatus() != null ? r.getStatus() : ReviewStatus.PENDING)
+                .rejectionReason(r.getRejectionReason())
+                .reviewedBy(r.getReviewedBy())
+                .reviewedAt(r.getReviewedAt())
                 .build();
     }
 
-    // ── Update Entity
+    // ── Update Entity ─
 
     public void updateEntity(CompanyReviewJpaEntity e, CompanyReview r) {
         if (e == null || r == null)
@@ -65,11 +74,10 @@ public class CompanyReviewMapper {
         e.setAnonymous(r.isAnonymous());
         e.setEmployed(r.isEmployed());
         e.setVisible(r.isVisible());
+        e.setStatus(r.getStatus());
+        e.setRejectionReason(r.getRejectionReason());
+        e.setReviewedBy(r.getReviewedBy());
+        e.setReviewedAt(r.getReviewedAt());
 
-        // ❗ Không update:
-        // - companyId
-        // - reviewerId
-        // - id
-        // - createdAt
     }
 }
