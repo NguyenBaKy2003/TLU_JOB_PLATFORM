@@ -1,4 +1,5 @@
-// src/app/(main)/companies/[id]/page.tsx
+// D:\TLU_JOB_PLATFORM\frontend\src\app\(main)\companies\[id]\page.tsx
+
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { use } from "react";
@@ -13,7 +14,7 @@ import { CompanyService } from "@/application/services/CompanyService";
 import { CompanyRepository } from "@/infrastructure/repositories/CompanyRepository";
 
 const SECTION_IDS = ["intro", "team", "overview", "jobs"] as const;
-type SectionId = typeof SECTION_IDS[number];
+type SectionId = (typeof SECTION_IDS)[number];
 const companyService = new CompanyService(new CompanyRepository());
 
 export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,19 +28,30 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
     setLoading(true);
     setError(null);
 
-    companyService.getById(id).then(data => {
-      if (!cancelled) setCompany(data);
-    }).catch(e => {
-      if (!cancelled) setError(e?.message ?? "Không tải được dữ liệu");
-    }).finally(() => {
-      if (!cancelled) setLoading(false);
-    });
+    companyService
+      .getById(id)
+      .then((data) => {
+        if (!cancelled) setCompany(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? "Không tải được dữ liệu");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const [activeTab, setActiveTab] = useState<SectionId>("intro");
-  const sectionRefs = useRef<Record<SectionId, HTMLElement | null>>({ intro: null, team: null, overview: null, jobs: null });
+  const sectionRefs = useRef<Record<SectionId, HTMLElement | null>>({
+    intro: null,
+    team: null,
+    overview: null,
+    jobs: null,
+  });
 
   const handleTabChange = (id: string) => {
     const el = sectionRefs.current[id as SectionId];
@@ -65,45 +77,78 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const setRef = (sid: SectionId) => (el: HTMLElement | null) => { sectionRefs.current[sid] = el; };
+  const setRef = (sid: SectionId) => (el: HTMLElement | null) => {
+    sectionRefs.current[sid] = el;
+  };
 
-  if (loading) return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="h-44 sm:h-56 bg-gray-200 animate-pulse" />
-      <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+  if (loading)
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="h-44 sm:h-56 bg-gray-200 animate-pulse" />
+        <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10">
+          <div className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  if (error || !company) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <p className="text-red-500 text-[16px]">{error ?? "Không tìm thấy công ty"}</p>
-    </div>
-  );
+  if (error || !company)
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-red-500 text-[16px]">{error ?? "Không tìm thấy công ty"}</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Cover */}
       <div className="relative h-44 sm:h-56 bg-gradient-to-r from-slate-700 via-slate-600 to-blue-700 overflow-hidden">
-        {company.coverImageUrl && <img src={company.coverImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+        {company.coverImageUrl && (
+          <img
+            src={company.coverImageUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+            backgroundSize: "32px 32px",
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30" />
       </div>
 
+      {/* Profile Card */}
       <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10 mb-4">
         <CompanyProfileCard company={company} />
       </div>
 
+      {/* Tabs */}
       <CompanyTabs active={activeTab} onChange={handleTabChange} />
 
+      {/* Content Sections */}
       <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-12">
-        <section ref={setRef("intro")}><IntroTab company={company} /></section>
+        <section ref={setRef("intro")}>
+          <IntroTab company={company} />
+        </section>
         <div className="border-t border-gray-100" />
-        <section ref={setRef("team")}><TeamTab company={company} /></section>
+
+        <section ref={setRef("team")}>
+          <TeamTab company={company} />
+        </section>
         <div className="border-t border-gray-100" />
-        <section ref={setRef("overview")}><OverviewTab company={company} reviews={[]} /></section>
+
+        <section ref={setRef("overview")}>
+          {/* OverviewTab tự fetch reviews, không cần truyền props reviews nữa */}
+          <OverviewTab company={company} />
+        </section>
         <div className="border-t border-gray-100" />
-        <section ref={setRef("jobs")}><JobsTab company={company} jobs={[]} /></section>
+
+        <section ref={setRef("jobs")}>
+          <JobsTab company={company} jobs={[]} />
+        </section>
       </div>
     </div>
   );

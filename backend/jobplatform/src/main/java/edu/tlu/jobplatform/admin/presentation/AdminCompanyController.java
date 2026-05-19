@@ -7,7 +7,7 @@ import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyDocumentRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyGalleryRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyTeamMemberRepository;
-import edu.tlu.jobplatform.company.presentation.dto.CompanyResponse;
+import edu.tlu.jobplatform.company.presentation.dto.response.CompanyResponse;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;

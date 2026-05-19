@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.company.presentation.dto;
+package edu.tlu.jobplatform.company.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.tlu.jobplatform.company.domain.model.*;

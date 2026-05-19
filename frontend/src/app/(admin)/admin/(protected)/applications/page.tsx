@@ -5,10 +5,8 @@ import {
   DataTable,
   Column,
   ActionItem,
-  StatusBadge,
   AdminFilter,
   useFilter,
-  ConfirmModel,
   TableActions,
   FormModel,
   FormField,
@@ -26,7 +24,7 @@ import type {
 import { AdminApplicationService } from '@/application/services/AdminApplicationService';
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
-import { Eye, FileText, User, Briefcase, Calendar, Star, AlertCircle, CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
+import { Eye, FileText, Calendar, Star, AlertCircle, CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
 
 // Status options for filter
 const statusOptions = [
