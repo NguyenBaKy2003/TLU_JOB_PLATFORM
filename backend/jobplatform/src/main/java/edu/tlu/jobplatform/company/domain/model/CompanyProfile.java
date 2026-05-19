@@ -70,6 +70,12 @@ public class CompanyProfile {
         return verificationStatus == VerificationStatus.VERIFIED;
     }
 
+    /** Công ty đang bị đình chỉ */
+
+    public boolean isSuspended() {
+        return verificationStatus == VerificationStatus.SUSPENDED;
+    }
+
     /** Admin duyệt xác thực công ty */
     public void verify(UUID adminId) {
         this.verificationStatus = VerificationStatus.VERIFIED;

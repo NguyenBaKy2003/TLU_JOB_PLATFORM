@@ -11,24 +11,27 @@ import java.util.UUID;
  * Helper lấy thông tin user đang đăng nhập từ SecurityContext.
  *
  * Cách dùng trong UseCase:
+ * 
  * <pre>
- *   UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
+ * UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
  * </pre>
  *
  * Cách dùng trong Controller (ưu tiên hơn):
+ * 
  * <pre>
  *   public ResponseEntity<?> myProfile({@literal @}CurrentUserId UUID userId) { ... }
  * </pre>
  */
 public final class SecurityUtils {
 
-    private SecurityUtils() {}
+    private SecurityUtils() {
+    }
 
     /** Authentication hiện tại */
     public static Optional<Authentication> getAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()
-            || "anonymousUser".equals(auth.getPrincipal())) {
+                || "anonymousUser".equals(auth.getPrincipal())) {
             return Optional.empty();
         }
         return Optional.of(auth);
@@ -54,20 +57,28 @@ public final class SecurityUtils {
      */
     public static UUID getCurrentUserIdOrThrow() {
         return getCurrentUserId().orElseThrow(
-            () -> new BusinessRuleException("Vui lòng đăng nhập để tiếp tục.", "UNAUTHORIZED"));
+                () -> new BusinessRuleException("Vui lòng đăng nhập để tiếp tục.", "UNAUTHORIZED"));
     }
 
     /** Kiểm tra có role cụ thể không */
     public static boolean hasRole(String role) {
         return getAuthentication()
-            .map(auth -> auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(role)))
-            .orElse(false);
+                .map(auth -> auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals(role)))
+                .orElse(false);
     }
 
-    public static boolean isAdmin()     { return hasRole("ROLE_ADMIN") || hasRole("ROLE_SUPER_ADMIN"); }
-    public static boolean isEmployer()  { return hasRole("ROLE_EMPLOYER"); }
-    public static boolean isCandidate() { return hasRole("ROLE_CANDIDATE"); }
+    public static boolean isAdmin() {
+        return hasRole("ROLE_ADMIN") || hasRole("ROLE_SUPER_ADMIN");
+    }
+
+    public static boolean isEmployer() {
+        return hasRole("ROLE_EMPLOYER");
+    }
+
+    public static boolean isCandidate() {
+        return hasRole("ROLE_CANDIDATE");
+    }
 
     /** Kiểm tra user hiện tại có phải chủ của resource không */
     public static boolean isOwner(UUID ownerId) {

@@ -1,4 +1,4 @@
-package edu.tlu.jobplatform.company.presentation.dto;
+package edu.tlu.jobplatform.company.presentation.dto.request;
 
 import edu.tlu.jobplatform.company.domain.model.CompanySize;
 import io.swagger.v3.oas.annotations.media.Schema;
