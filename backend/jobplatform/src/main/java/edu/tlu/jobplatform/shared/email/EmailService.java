@@ -20,18 +20,29 @@ import java.util.Map;
 /**
  * Core email service — render Thymeleaf template rồi gửi qua JavaMail.
  *
- * Tất cả method đều @Async (dùng aiTaskExecutor từ AsyncConfig) —
- * không block request thread khi gửi email.
+ * Template reuse strategy:
+ * ─────────────────────────────────────────────────────────────────
+ * Candidate email TÁI SỬ DỤNG 2 template của Company:
+ *
+ * subscription-activated.html → dùng cho cả Employer và Candidate
+ * - Phân biệt bằng biến `userType` ("employer" | "candidate")
+ * - Employer: màu xanh dương (#2563eb), CTA "Đăng tin tuyển dụng"
+ * - Candidate: màu tím (#7c3aed), CTA "Tìm kiếm việc làm"
+ * - Các section chỉ Employer có (featuredPosts, durationDays)
+ * ẩn bằng th:if khi userType = "candidate"
+ * - Candidate có thêm section features (aiCvWriter, mock interview...)
+ *
+ * subscription-expired.html → dùng cho cả Employer và Candidate
+ * - Employer: màu đỏ (#dc2626), link gia hạn → /employer/plans
+ * - Candidate: màu đỏ cam (#ea580c), link gia hạn → /candidate/plans
+ * - Danh sách hậu quả thay đổi theo userType
  *
  * Template locations: src/main/resources/templates/email/
- * ├── reset-password.html (forgot password link)
- * ├── password-changed.html (thông báo đổi mật khẩu thành công)
- * ├── verify-email.html (OTP xác thực đăng ký)
- * ├── interview-scheduled.html (lịch phỏng vấn)
- * ├── email-change-confirm.html (link xác nhận đổi email → gửi đến email MỚI)
- * ├── email-changed-notification.html (thông báo đổi email thành công → gửi đến
- * email CŨ)
- * └── account-deleted.html (thông báo xóa tài khoản)
+ * ├── payment-success.html (Company only — giữ nguyên)
+ * ├── subscription-activated.html (Company + Candidate — đã cập nhật)
+ * ├── subscription-expired.html (Company + Candidate — đã cập nhật)
+ * └── ... (các template khác giữ nguyên)
+ * ─────────────────────────────────────────────────────────────────
  */
 @Slf4j
 @Service
@@ -45,6 +56,9 @@ public class EmailService {
         @Value("${app.mail.from:noreply@jobplatform.vn}")
         private String fromAddress;
 
+        @Value("${app.frontend-url:https://jobplatform.vn}")
+        private String frontendUrl;
+
         public EmailService(
                         JavaMailSender mailSender,
                         @Qualifier("emailTemplateEngine") TemplateEngine templateEngine) {
@@ -52,152 +66,200 @@ public class EmailService {
                 this.templateEngine = templateEngine;
         }
 
-        // ── Auth emails ─
+        // ── Auth emails ───────────────────────────────────────────────────
 
-        /**
-         * Gửi link đặt lại mật khẩu.
-         *
-         * Template variables: fullName, resetLink, expireMinutes
-         */
         @Async("aiTaskExecutor")
         public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Đặt lại mật khẩu của bạn",
-                                "reset-password",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "resetLink", resetLink,
-                                                "expireMinutes", "15"));
+                send(toEmail, "[JobPlatform] Đặt lại mật khẩu của bạn", "reset-password",
+                                Map.of("fullName", fullName, "resetLink", resetLink, "expireMinutes", "15"));
         }
 
-        /**
-         * Gửi thông báo mật khẩu vừa được thay đổi.
-         * Giúp user phát hiện nếu tài khoản bị xâm phạm.
-         *
-         * Template variables: fullName, supportEmail
-         */
         @Async("aiTaskExecutor")
         public void sendPasswordChangedNotification(String toEmail, String fullName) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Mật khẩu của bạn vừa được thay đổi",
-                                "password-changed",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "supportEmail", "support@jobplatform.vn"));
+                send(toEmail, "[JobPlatform] Mật khẩu của bạn vừa được thay đổi", "password-changed",
+                                Map.of("fullName", fullName, "supportEmail", "support@jobplatform.vn"));
         }
 
-        /**
-         * Gửi OTP xác thực email đăng ký.
-         *
-         * Template variables: fullName, otpCode, expireMinutes
-         */
         @Async("aiTaskExecutor")
         public void sendVerificationOtp(String toEmail, String fullName, String otpCode) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Mã xác thực tài khoản của bạn",
-                                "verify-email",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "otpCode", otpCode,
-                                                "expireMinutes", "10"));
+                send(toEmail, "[JobPlatform] Mã xác thực tài khoản của bạn", "verify-email",
+                                Map.of("fullName", fullName, "otpCode", otpCode, "expireMinutes", "10"));
         }
 
-        // ── Settings emails
+        // ── Settings emails ───────────────────────────────────────────────
 
-        /**
-         * Bước 1 đổi email: gửi link xác nhận đến email MỚI.
-         *
-         * Template variables: fullName, newEmail, confirmLink, expireMinutes
-         *
-         * @param toOldEmail    email hiện tại (chỉ để log — link gửi đến newEmail)
-         * @param recipientName tên user
-         * @param newEmail      email mới — nơi nhận link xác nhận
-         * @param confirmLink   link xác nhận (TTL 15 phút)
-         */
         @Async("aiTaskExecutor")
         public void sendEmailChangeConfirmation(String toOldEmail, String recipientName,
                         String newEmail, String confirmLink) {
-                send(
-                                newEmail, // ← gửi đến email MỚI
-                                "[JobPlatform] Xác nhận địa chỉ email mới của bạn",
+                send(newEmail, "[JobPlatform] Xác nhận địa chỉ email mới của bạn",
                                 "email-change-confirm",
-                                Map.of(
-                                                "fullName", recipientName,
-                                                "newEmail", newEmail,
-                                                "confirmLink", confirmLink,
-                                                "expireMinutes", "15"));
-
-                log.info("Email change confirmation sent: userId related oldEmail={} → newEmail={}", toOldEmail,
-                                newEmail);
+                                Map.of("fullName", recipientName, "newEmail", newEmail,
+                                                "confirmLink", confirmLink, "expireMinutes", "15"));
+                log.info("Email change confirmation sent: oldEmail={} → newEmail={}", toOldEmail, newEmail);
         }
 
-        /**
-         * Bước 2 đổi email: thông báo đổi email thành công — gửi đến email CŨ.
-         * Giúp user phát hiện nếu tài khoản bị xâm phạm.
-         *
-         * Template variables: fullName, oldEmail, newEmail, changedAt
-         *
-         * @param toOldEmail    email cũ (nơi nhận thông báo)
-         * @param recipientName tên user
-         * @param newEmail      email mới vừa được xác nhận
-         */
         @Async("aiTaskExecutor")
-        public void sendEmailChangedNotification(String toOldEmail, String recipientName, String newEmail) {
-                send(
-                                toOldEmail, // ← gửi đến email CŨ
-                                "[JobPlatform] Địa chỉ email của bạn đã thay đổi",
+        public void sendEmailChangedNotification(String toOldEmail, String recipientName,
+                        String newEmail) {
+                send(toOldEmail, "[JobPlatform] Địa chỉ email của bạn đã thay đổi",
                                 "email-changed-notification",
-                                Map.of(
-                                                "fullName", recipientName,
-                                                "oldEmail", toOldEmail,
+                                Map.of("fullName", recipientName, "oldEmail", toOldEmail,
                                                 "newEmail", newEmail,
                                                 "changedAt", LocalDateTime.now().format(DATETIME_FMT)));
         }
 
-        /**
-         * Thông báo tài khoản đã bị xóa.
-         *
-         * Template variables: fullName, email, deletedAt
-         *
-         * @param toEmail       địa chỉ email người nhận (email của tài khoản vừa xóa)
-         * @param recipientName tên user
-         */
         @Async("aiTaskExecutor")
         public void sendAccountDeletedNotification(String toEmail, String recipientName) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Tài khoản của bạn đã được xóa",
-                                "account-deleted",
-                                Map.of(
-                                                "fullName", recipientName,
-                                                "email", toEmail,
+                send(toEmail, "[JobPlatform] Tài khoản của bạn đã được xóa", "account-deleted",
+                                Map.of("fullName", recipientName, "email", toEmail,
                                                 "deletedAt", LocalDateTime.now().format(DATETIME_FMT)));
         }
 
-        // ── Other emails
+        // ── Other emails ──────────────────────────────────────────────────
 
         @Async("aiTaskExecutor")
-        public void sendInterviewScheduledEmail(
-                        String toEmail, String candidateName, String jobTitle,
-                        String companyName, String scheduledAt, String location, String note) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Bạn có lịch phỏng vấn tại " + companyName,
+        public void sendInterviewScheduledEmail(String toEmail, String candidateName,
+                        String jobTitle, String companyName,
+                        String scheduledAt, String location, String note) {
+                send(toEmail, "[JobPlatform] Bạn có lịch phỏng vấn tại " + companyName,
                                 "interview-scheduled",
-                                Map.of(
-                                                "candidateName", candidateName,
-                                                "jobTitle", jobTitle,
-                                                "companyName", companyName,
-                                                "scheduledAt", scheduledAt,
-                                                "location", location,
-                                                "note", note != null ? note : "",
+                                Map.of("candidateName", candidateName, "jobTitle", jobTitle,
+                                                "companyName", companyName, "scheduledAt", scheduledAt,
+                                                "location", location, "note", note != null ? note : "",
                                                 "supportEmail", "support@jobplatform.vn"));
         }
 
-        // ── Core send
+        @Async("aiTaskExecutor")
+        public void sendWelcomeEmail(String toEmail, String fullName) {
+                send(toEmail, "[JobPlatform] Chào mừng bạn đến với JobPlatform!", "welcome",
+                                Map.of("fullName", fullName,
+                                                "loginLink", frontendUrl + "/dashboard",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        // ── Company subscription emails ───────────────────────────────────
+
+        @Async("aiTaskExecutor")
+        public void sendPaymentSuccessEmail(String toEmail, String fullName,
+                        String planCode, BigDecimal amount,
+                        String gateway, String transactionId) {
+                send(toEmail, "[JobPlatform] Thanh toán thành công", "payment-success",
+                                Map.of("fullName", fullName,
+                                                "planCode", planCode,
+                                                "amount", String.format("%,.0f VND", amount),
+                                                "gateway", gateway,
+                                                "transactionId", transactionId,
+                                                "paidAt", LocalDateTime.now().format(DATETIME_FMT),
+                                                "dashboardLink", frontendUrl + "/employer/dashboard",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        /**
+         * Gói Employer kích hoạt — dùng template subscription-activated.html.
+         * userType = "employer" → hiện section đăng tin, màu xanh dương.
+         */
+        @Async("aiTaskExecutor")
+        public void sendSubscriptionActivatedEmail(String toEmail, String fullName,
+                        String planName, LocalDateTime expiresAt,
+                        int jobPostLimit) {
+                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
+                                "subscription-activated",
+                                Map.of("fullName", fullName,
+                                                "planName", planName,
+                                                "expiresAt", expiresAt.format(DATETIME_FMT),
+                                                "jobPostLimit", String.valueOf(jobPostLimit),
+                                                "userType", "employer",
+                                                "dashboardLink", frontendUrl + "/employer/dashboard",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        /**
+         * Gói Employer hết hạn — dùng template subscription-expired.html.
+         * userType = "employer" → link gia hạn tới /employer/plans, màu đỏ.
+         */
+        @Async("aiTaskExecutor")
+        public void sendSubscriptionExpiredEmail(String toEmail, String fullName,
+                        String planCode) {
+                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
+                                "subscription-expired",
+                                Map.of("fullName", fullName,
+                                                "planCode", planCode,
+                                                "expiredAt", LocalDateTime.now().format(DATETIME_FMT),
+                                                "userType", "employer",
+                                                "renewLink", frontendUrl + "/employer/plans",
+                                                "upgradeLink", frontendUrl + "/employer/plans",
+                                                "promoCode", "RENEW10",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        // ── Candidate subscription emails ─────────────────────────────────
+
+        /**
+         * Gói Candidate kích hoạt — TÁI SỬ DỤNG subscription-activated.html.
+         *
+         * Dùng Map.ofEntries() thay Map.of() vì:
+         * 1. Map.of() chỉ hỗ trợ tối đa 10 key-value pairs.
+         * 2. Map<String, Object> không nhận boolean literal trực tiếp khi
+         * compiler không thể infer type — phải ép tường minh qua Map.entry().
+         *
+         * Template dùng th:if="${userType == 'candidate'}" để phân nhánh UI.
+         */
+        @Async("aiTaskExecutor")
+        public void sendCandidateSubscriptionActivatedEmail(String toEmail, String fullName,
+                        String planName,
+                        LocalDateTime expiresAt,
+                        BigDecimal amount,
+                        String gateway,
+                        String paymentId) {
+                // Resolve feature flags từ planCode — Pro trở lên có profileAnalytics,
+                // chỉ Premium có AI CV Writer, Mock Interview, Salary Insights.
+                boolean isPremium = planName != null && ("PREMIUM".equalsIgnoreCase(planName)
+                                || planName.toLowerCase().contains("premium"));
+
+                Map<String, Object> vars = new java.util.HashMap<>();
+                vars.put("fullName", fullName);
+                vars.put("planName", planName);
+                vars.put("expiresAt", expiresAt.format(DATETIME_FMT));
+                vars.put("amount", String.format("%,.0f VND", amount));
+                vars.put("gateway", gateway);
+                vars.put("transactionId", paymentId);
+                vars.put("paidAt", LocalDateTime.now().format(DATETIME_FMT));
+                vars.put("userType", "candidate");
+                vars.put("aiCvWriter", isPremium);
+                vars.put("profileAnalytics", true); // Pro trở lên đều có
+                vars.put("mockInterview", isPremium);
+                vars.put("salaryInsights", isPremium);
+                vars.put("dashboardLink", frontendUrl + "/candidate/dashboard");
+                vars.put("supportEmail", "support@jobplatform.vn");
+
+                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
+                                "subscription-activated", vars);
+        }
+
+        /**
+         * Gói Candidate hết hạn — TÁI SỬ DỤNG subscription-expired.html.
+         *
+         * Biến khác so với Employer:
+         * - userType = "candidate" → template hiện danh sách hậu quả candidate
+         * - renewLink → /candidate/plans
+         * - Không hiện upgradeLink (candidate chỉ có 3 tier)
+         */
+        @Async("aiTaskExecutor")
+        public void sendCandidateSubscriptionExpiredEmail(String toEmail, String fullName,
+                        String planCode) {
+                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
+                                "subscription-expired",
+                                Map.of("fullName", fullName,
+                                                "planCode", planCode,
+                                                "expiredAt", LocalDateTime.now().format(DATETIME_FMT),
+                                                "userType", "candidate",
+                                                "renewLink", frontendUrl + "/candidate/plans",
+                                                "upgradeLink", frontendUrl + "/candidate/plans",
+                                                "promoCode", "UPGRADE10",
+                                                "supportEmail", "support@jobplatform.vn"));
+        }
+
+        // ── Core send ─────────────────────────────────────────────────────
 
         /**
          * Render Thymeleaf template → HTML → gửi MimeMessage.
@@ -217,95 +279,11 @@ public class EmailService {
                         helper.setText(html, true);
 
                         mailSender.send(message);
-                        log.info("Email sent: template={} to={}", template, to);
+                        log.info("[Email] Sent: template={} to={}", template, to);
 
                 } catch (MessagingException e) {
-                        log.error("Failed to send email: template={} to={} error={}",
+                        log.error("[Email] Failed: template={} to={} error={}",
                                         template, to, e.getMessage());
                 }
-        }
-
-        /**
-         * Gửi email chào mừng sau khi xác thực email thành công.
-         *
-         * Template variables: fullName, loginLink
-         */
-        @Async("aiTaskExecutor")
-        public void sendWelcomeEmail(String toEmail, String fullName) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Chào mừng bạn đến với JobPlatform!",
-                                "welcome",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "loginLink", "https://jobplatform.vn/dashboard",
-                                                "supportEmail", "support@jobplatform.vn"));
-        }
-
-        /**
-         * Xác nhận thanh toán thành công.
-         *
-         * Template variables: fullName, planCode, amount, gateway, transactionId,
-         * paidAt
-         */
-        @Async("aiTaskExecutor")
-        public void sendPaymentSuccessEmail(String toEmail, String fullName,
-                        String planCode, BigDecimal amount,
-                        String gateway, String transactionId) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Thanh toán thành công",
-                                "payment-success",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "planCode", planCode,
-                                                "amount", String.format("%,.0f VND", amount),
-                                                "gateway", gateway,
-                                                "transactionId", transactionId,
-                                                "paidAt", LocalDateTime.now().format(DATETIME_FMT),
-                                                "supportEmail", "support@jobplatform.vn"));
-        }
-
-        /**
-         * Thông báo gói dịch vụ đã được kích hoạt.
-         *
-         * Template variables: fullName, planName, expiresAt, jobPostLimit,
-         * dashboardLink
-         */
-        @Async("aiTaskExecutor")
-        public void sendSubscriptionActivatedEmail(String toEmail, String fullName,
-                        String planName, LocalDateTime expiresAt,
-                        int jobPostLimit) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
-                                "subscription-activated",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "planName", planName,
-                                                "expiresAt", expiresAt.format(DATETIME_FMT),
-                                                "jobPostLimit", String.valueOf(jobPostLimit),
-                                                "dashboardLink", "https://jobplatform.vn/employer/dashboard",
-                                                "supportEmail", "support@jobplatform.vn"));
-        }
-
-        /**
-         * Thông báo gói dịch vụ đã hết hạn.
-         *
-         * Template variables: fullName, planCode, expiredAt, renewLink
-         */
-        @Async("aiTaskExecutor")
-        public void sendSubscriptionExpiredEmail(String toEmail, String fullName,
-                        String planCode) {
-                send(
-                                toEmail,
-                                "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
-                                "subscription-expired",
-                                Map.of(
-                                                "fullName", fullName,
-                                                "planCode", planCode,
-                                                "expiredAt", LocalDateTime.now().format(DATETIME_FMT),
-                                                "renewLink", "https://jobplatform.vn/employer/plans",
-                                                "supportEmail", "support@jobplatform.vn"));
         }
 }

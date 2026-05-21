@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
+import edu.tlu.jobplatform.subscription.application.usecase.HandleCandidatePaymentCallbackUseCase;
 import edu.tlu.jobplatform.subscription.application.usecase.HandlePaymentCallbackUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
 
 @Slf4j
 @RestController
@@ -26,6 +26,7 @@ public class PaymentController {
     private String frontendUrl;
 
     private final HandlePaymentCallbackUseCase callbackUseCase;
+    private final HandleCandidatePaymentCallbackUseCase candidateCallbackUseCase;
 
     @Operation(summary = "VNPay Return URL (redirect từ VNPay)")
     @GetMapping("/vnpay/return")
@@ -33,22 +34,29 @@ public class PaymentController {
             @RequestParam Map<String, String> params,
             HttpServletResponse response) throws IOException {
 
-        log.info("VNPay return callback: txnRef={}", params.get("vnp_TxnRef"));
+        String txnRef = params.get("vnp_TxnRef");
+        boolean isCandidate = txnRef != null && txnRef.startsWith("CP-");
+        String successPath = isCandidate ? "/candidate/payment-success" : "/employer/payment-success";
+        String failurePath = isCandidate ? "/candidate/payment-failure" : "/employer/payment-failure";
+
+        log.info("VNPay return callback: txnRef={}", txnRef);
 
         String responseCode = params.getOrDefault("vnp_ResponseCode", "99");
         if (!"00".equals(responseCode)) {
-            log.warn("VNPay return non-success: responseCode={} txnRef={}",
-                    responseCode, params.get("vnp_TxnRef"));
-            response.sendRedirect(frontendUrl + "/payment/failure?reason=" + responseCode);
+            log.warn("VNPay return non-success: responseCode={} txnRef={}", responseCode, txnRef);
+            response.sendRedirect(frontendUrl + failurePath + "?reason=" + responseCode);
             return;
         }
 
         try {
-            callbackUseCase.execute(params);
-            response.sendRedirect(frontendUrl + "/payment/success");
+            if (isCandidate)
+                candidateCallbackUseCase.execute(params);
+            else
+                callbackUseCase.execute(params);
+            response.sendRedirect(frontendUrl + successPath);
         } catch (Exception e) {
             log.error("VNPay return error: {}", e.getMessage());
-            response.sendRedirect(frontendUrl + "/payment/failure?reason=99");
+            response.sendRedirect(frontendUrl + failurePath + "?reason=99");
         }
     }
 
@@ -56,14 +64,16 @@ public class PaymentController {
     @PostMapping("/vnpay/ipn")
     public ResponseEntity<String> vnpayIpn(@RequestParam Map<String, String> params) {
 
-        log.info("=== VNPAY IPN PARAMS (sorted) ===");
-        new TreeMap<>(params).forEach((k, v) -> log.info("  [{}] = [{}]", k, v));
-        log.info("=== END PARAMS ===");
+        String txnRef = params.get("vnp_TxnRef");
+        boolean isCandidate = txnRef != null && txnRef.startsWith("CP-");
 
-        log.info("VNPay IPN received: txnRef={}", params.get("vnp_TxnRef"));
+        log.info("VNPay IPN received: txnRef={}", txnRef);
 
         try {
-            callbackUseCase.execute(params);
+            if (isCandidate)
+                candidateCallbackUseCase.execute(params);
+            else
+                callbackUseCase.execute(params);
             return ResponseEntity.ok("RspCode=00&Message=Confirm Success");
         } catch (BusinessRuleException e) {
             log.warn("VNPay IPN business error: {}", e.getMessage());

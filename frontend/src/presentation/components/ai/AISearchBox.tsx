@@ -168,14 +168,14 @@ export function AISearchBox({
             animate-in fade-in slide-in-from-top-2 duration-150"
         >
           {isAutocompleteLoading && (
-            <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400">
+            <div className="flex items-center gap-2 px-4 py-3 text-[16px] text-gray-400">
               <Loader2 size={14} className="animate-spin" />
               Đang tìm kiếm...
             </div>
           )}
 
           {!isAutocompleteLoading && suggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-400">
+            <div className="px-4 py-3 text-[16px] text-gray-400">
               Nhấn Enter để tìm "{query}"
             </div>
           )}
