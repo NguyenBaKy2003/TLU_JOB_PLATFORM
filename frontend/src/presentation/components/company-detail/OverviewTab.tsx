@@ -102,7 +102,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
               setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl
-              text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+              text-[16px] font-medium hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
           >
             <MessageSquare size={16} />
             Viết đánh giá
@@ -134,7 +134,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
                   ))}
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-[16px] text-gray-500">
                 <div>{stats.totalReviews} đánh giá</div>
               </div>
             </div>
@@ -194,7 +194,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
                 setShowForm(true);
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white 
-                rounded-xl text-sm font-medium hover:bg-blue-700"
+                rounded-xl text-[16px] font-medium hover:bg-blue-700"
             >
               <MessageSquare size={16} />
               Viết đánh giá đầu tiên
@@ -220,7 +220,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 
+                className="px-3 py-1.5 rounded-lg text-[16px] text-gray-600 hover:bg-gray-100 
                   disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Trước
@@ -229,7 +229,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-8 h-8 rounded-lg text-[16px] font-medium transition-colors ${
                     i === page
                       ? "bg-blue-600 text-white"
                       : "text-gray-600 hover:bg-gray-100"
@@ -241,7 +241,7 @@ export function OverviewTab({ company, reviews: initialReviews }: OverviewTabPro
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page === totalPages - 1}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 
+                className="px-3 py-1.5 rounded-lg text-[16px] text-gray-600 hover:bg-gray-100 
                   disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Sau
@@ -289,7 +289,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete, isDeleting }: Rev
         <div className="flex items-center gap-3">
           {/* Avatar */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 
-            flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+            flex items-center justify-center text-white text-[16px] font-bold flex-shrink-0">
             {review.reviewerName?.charAt(0)?.toUpperCase() || "A"}
           </div>
           <div>
@@ -362,13 +362,13 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete, isDeleting }: Rev
 
       {/* Content with expand/collapse */}
       <div className="relative">
-        <p className={`text-sm text-gray-600 whitespace-pre-wrap ${!expanded && isLongContent ? "line-clamp-4" : ""}`}>
+        <p className={`text-[16px] text-gray-600 whitespace-pre-wrap ${!expanded && isLongContent ? "line-clamp-4" : ""}`}>
           {review.content}
         </p>
         {isLongContent && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 mt-1 text-sm text-blue-600 hover:text-blue-700 
+            className="flex items-center gap-1 mt-1 text-[16px] text-blue-600 hover:text-blue-700 
               font-medium"
           >
             {expanded ? (
@@ -395,7 +395,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete, isDeleting }: Rev
                 <ThumbsUp size={14} className="text-green-500" />
                 <span className="text-xs font-medium text-green-700">Điểm tốt</span>
               </div>
-              <p className="text-sm text-gray-600">{review.pros}</p>
+              <p className="text-[16px] text-gray-600">{review.pros}</p>
             </div>
           )}
           {review.cons && (
@@ -404,7 +404,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete, isDeleting }: Rev
                 <ThumbsDown size={14} className="text-red-500" />
                 <span className="text-xs font-medium text-red-700">Điểm chưa tốt</span>
               </div>
-              <p className="text-sm text-gray-600">{review.cons}</p>
+              <p className="text-[16px] text-gray-600">{review.cons}</p>
             </div>
           )}
         </div>

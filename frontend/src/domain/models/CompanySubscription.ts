@@ -1,4 +1,3 @@
-// src/domain/models/CompanySubscription.ts
 
 // ── Enums ──
 

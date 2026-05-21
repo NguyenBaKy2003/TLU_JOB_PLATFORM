@@ -21,6 +21,7 @@ const CANDIDATE_NAV = [
   { label: "Thông báo",          icon: <Bell size={18} />,             href: "/candidate/notifications",     badgeKey: "notification" },
   { label: "Tin nhắn",           icon: <MessageSquare size={18} />,    href: "/candidate/messages",          badgeKey: null           },
   { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/candidate/settings",          badgeKey: null           },
+  { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/candidate/subscription",  badgeKey: null           },
   { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/candidate/activity",          badgeKey: null           },
 ];
 

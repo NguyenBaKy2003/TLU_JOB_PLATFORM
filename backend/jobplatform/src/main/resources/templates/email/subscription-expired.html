@@ -6,320 +6,306 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <title>Gói dịch vụ đã hết hạn</title>
   <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      margin: 0; padding: 0; 
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f0f4f8; 
+      background-color: #f0f4f8;
     }
     table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
-    a { color: #dc2626; text-decoration: none; }
-    
+
     .wrapper { width: 100%; max-width: 600px; margin: 0 auto; }
-    
-    .header-bg { 
-      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #ef4444 100%); 
-      padding: 40px 32px; 
-      text-align: center; 
-      border-radius: 12px 12px 0 0; 
+
+    /* ── Header — Employer: đỏ | Candidate: đỏ cam ── */
+    .header-employer {
+      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #ef4444 100%);
+      padding: 40px 32px; text-align: center; border-radius: 12px 12px 0 0;
     }
-    .header-icon { 
-      width: 64px; height: 64px; 
-      background: rgba(255,255,255,0.2); 
-      border-radius: 50%; 
-      display: inline-block; 
-      margin-bottom: 16px;
-      line-height: 64px;
-      font-size: 32px;
+    .header-candidate {
+      background: linear-gradient(135deg, #c2410c 0%, #ea580c 50%, #fb923c 100%);
+      padding: 40px 32px; text-align: center; border-radius: 12px 12px 0 0;
     }
-    .header-title { 
-      color: #ffffff; 
-      font-size: 24px; 
-      font-weight: 700; 
-      margin: 0; 
-      line-height: 1.3;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    .header-icon {
+      width: 64px; height: 64px; background: rgba(255,255,255,0.2);
+      border-radius: 50%; display: inline-block; margin-bottom: 16px;
+      line-height: 64px; font-size: 32px;
     }
-    .header-subtitle {
-      color: rgba(255,255,255,0.9);
-      font-size: 14px;
-      margin-top: 8px;
-      font-weight: 400;
+    .header-title {
+      color: #ffffff; font-size: 24px; font-weight: 700;
+      margin: 0; line-height: 1.3; text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    
-    .body-wrap { 
-      background: #ffffff; 
-      padding: 0; 
-      border-radius: 0 0 12px 12px;
+    .header-subtitle { color: rgba(255,255,255,0.9); font-size: 14px; margin-top: 8px; }
+
+    /* ── Body ── */
+    .body-wrap {
+      background: #ffffff; border-radius: 0 0 12px 12px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
     .body-inner { padding: 32px; }
-    
-    .greeting { 
-      font-size: 16px; 
-      color: #1a202c; 
-      margin-bottom: 8px; 
-      line-height: 1.6; 
+    .greeting { font-size: 16px; color: #1a202c; margin-bottom: 8px; line-height: 1.6; }
+    .greeting-employer strong { color: #dc2626; }
+    .greeting-candidate strong { color: #ea580c; }
+    .message { font-size: 14px; color: #4a5568; line-height: 1.7; margin-bottom: 20px; }
+
+    /* ── Expired box ── */
+    .expired-box-employer {
+      background: #fef2f2; border: 2px solid #fecaca;
+      border-radius: 12px; padding: 20px 24px;
+      margin-bottom: 24px; text-align: center;
     }
-    .greeting strong { color: #dc2626; }
-    
-    .message { 
-      font-size: 14px; 
-      color: #4a5568; 
-      line-height: 1.7; 
-      margin-bottom: 20px; 
-    }
-    
-    .expired-box {
-      background: #fef2f2;
-      border: 2px solid #fecaca;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 24px;
-      text-align: center;
+    .expired-box-candidate {
+      background: #fff7ed; border: 2px solid #fed7aa;
+      border-radius: 12px; padding: 20px 24px;
+      margin-bottom: 24px; text-align: center;
     }
     .expired-icon { font-size: 40px; margin-bottom: 8px; }
-    .expired-plan {
-      font-weight: 700;
-      color: #991b1b;
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-    .expired-date {
-      color: #b91c1c;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    
+    .expired-plan-employer { font-weight: 700; color: #991b1b; font-size: 16px; margin-bottom: 4px; }
+    .expired-plan-candidate { font-weight: 700; color: #9a3412; font-size: 16px; margin-bottom: 4px; }
+    .expired-date-employer { color: #b91c1c; font-size: 14px; font-weight: 500; }
+    .expired-date-candidate { color: #c2410c; font-size: 14px; font-weight: 500; }
+
+    /* ── Warning box ── */
     .warning-box {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-left: 4px solid #f59e0b;
-      border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
+      background: #fffbeb; border: 1px solid #fde68a;
+      border-left: 4px solid #f59e0b; border-radius: 8px;
+      padding: 16px 20px; margin-bottom: 24px;
     }
-    .warning-icon { font-size: 20px; flex-shrink: 0; }
     .warning-text { font-size: 13px; color: #92400e; line-height: 1.6; }
     .warning-text strong { color: #78350f; }
-    
+
+    /* ── Consequence list ── */
     .consequence-list {
-      background: #f9fafb;
-      border-radius: 10px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
+      background: #f9fafb; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;
     }
     .consequence-list p { font-weight: 600; color: #374151; margin-bottom: 10px; font-size: 13px; }
-    .consequence-list ul { padding-left: 18px; margin: 0; }
-    .consequence-list li { 
-      font-size: 13px; 
-      color: #6b7280; 
-      line-height: 1.8; 
-      padding-left: 4px;
-    }
-    .consequence-list li::marker { color: #ef4444; content: "✕ "; }
-    
-    .cta-button {
+    .consequence-list ul { padding-left: 0; margin: 0; list-style: none; }
+    .consequence-list li { font-size: 13px; color: #6b7280; line-height: 1.8; padding-left: 4px; }
+    .consequence-employer li::before { content: "✕ "; color: #ef4444; }
+    .consequence-candidate li::before { content: "✕ "; color: #f97316; }
+
+    /* ── CTA buttons ── */
+    .cta-employer {
       display: inline-block;
       background: linear-gradient(135deg, #dc2626, #ef4444);
-      color: #ffffff;
-      text-decoration: none;
-      padding: 14px 40px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 15px;
-      margin: 8px 0 20px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-      transition: all 0.2s;
+      color: #ffffff; text-decoration: none;
+      padding: 14px 40px; border-radius: 8px;
+      font-weight: 600; font-size: 15px;
+      box-shadow: 0 4px 12px rgba(220,38,38,0.3);
     }
-    
-    .secondary-button {
+    .cta-candidate {
       display: inline-block;
-      background: #ffffff;
-      color: #dc2626;
-      text-decoration: none;
-      padding: 12px 32px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      border: 2px solid #fecaca;
-      margin: 4px 0 20px;
-      text-align: center;
+      background: linear-gradient(135deg, #ea580c, #f97316);
+      color: #ffffff; text-decoration: none;
+      padding: 14px 40px; border-radius: 8px;
+      font-weight: 600; font-size: 15px;
+      box-shadow: 0 4px 12px rgba(234,88,12,0.3);
     }
-    
-    .divider {
-      border: none;
-      border-top: 1px solid #e5e7eb;
-      margin: 20px 0;
+    .secondary-employer {
+      display: inline-block; background: #ffffff; color: #dc2626;
+      border: 2px solid #fecaca; padding: 12px 32px; border-radius: 8px;
+      font-weight: 600; font-size: 14px; text-decoration: none;
     }
-    
-    .offer-box {
+    .secondary-candidate {
+      display: inline-block; background: #ffffff; color: #ea580c;
+      border: 2px solid #fed7aa; padding: 12px 32px; border-radius: 8px;
+      font-weight: 600; font-size: 14px; text-decoration: none;
+    }
+
+    /* ── Offer box ── */
+    .offer-box-employer {
       background: linear-gradient(135deg, #fef2f2, #fff5f5);
-      border: 2px dashed #fecaca;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-      text-align: center;
+      border: 2px dashed #fecaca; border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 24px; text-align: center;
     }
-    .offer-text { font-size: 13px; color: #991b1b; }
-    .offer-code { 
-      font-size: 20px; 
-      font-weight: 800; 
-      color: #dc2626; 
-      letter-spacing: 2px;
-      background: #ffffff;
-      padding: 4px 16px;
-      border-radius: 4px;
-      display: inline-block;
-      margin-top: 4px;
+    .offer-box-candidate {
+      background: linear-gradient(135deg, #fff7ed, #fffbf5);
+      border: 2px dashed #fed7aa; border-radius: 12px;
+      padding: 16px 20px; margin-bottom: 24px; text-align: center;
     }
-    
-    .support-text {
-      font-size: 13px;
-      color: #9ca3af;
-      line-height: 1.6;
+    .offer-text { font-size: 13px; }
+    .offer-text-employer { color: #991b1b; }
+    .offer-text-candidate { color: #9a3412; }
+    .offer-code-employer {
+      font-size: 20px; font-weight: 800; color: #dc2626;
+      letter-spacing: 2px; background: #ffffff;
+      padding: 4px 16px; border-radius: 4px;
+      display: inline-block; margin-top: 4px;
     }
-    .support-text a { color: #dc2626; font-weight: 500; }
-    
-    .footer { 
-      padding: 24px 32px; 
-      text-align: center; 
-      background: #f9fafb;
-      border-radius: 0 0 12px 12px;
+    .offer-code-candidate {
+      font-size: 20px; font-weight: 800; color: #ea580c;
+      letter-spacing: 2px; background: #ffffff;
+      padding: 4px 16px; border-radius: 4px;
+      display: inline-block; margin-top: 4px;
+    }
+
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+    .support-text { font-size: 13px; color: #9ca3af; line-height: 1.6; }
+
+    .footer {
+      padding: 24px 32px; text-align: center;
+      background: #f9fafb; border-radius: 0 0 12px 12px;
     }
     .footer p { font-size: 12px; color: #9ca3af; margin: 4px 0; }
-    .footer a { color: #9ca3af; text-decoration: underline; }
-    .footer-links { margin-top: 8px; }
-    .footer-links a { margin: 0 8px; }
-    
+    .footer a { color: #9ca3af; text-decoration: underline; margin: 0 8px; }
+
     @media only screen and (max-width: 480px) {
-      .header-bg { padding: 28px 20px; }
+      .header-employer, .header-candidate { padding: 28px 20px; }
       .header-title { font-size: 20px; }
       .body-inner { padding: 24px 20px; }
-      .cta-button { display: block; }
-      .secondary-button { display: block; }
-      .warning-box { flex-direction: column; }
+      .cta-employer, .cta-candidate,
+      .secondary-employer, .secondary-candidate { display: block; text-align: center; }
     }
   </style>
 </head>
 <body>
-  <table role="presentation" class="wrapper" cellpadding="0" cellspacing="0" border="0" align="center">
-    <tr>
-      <td style="padding: 24px 16px;">
-        
-        <!-- HEADER -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr>
-            <td class="header-bg">
-              <div class="header-icon">⚠️</div>
-              <h1 class="header-title">Gói dịch vụ đã hết hạn</h1>
-              <p class="header-subtitle">Đừng bỏ lỡ ứng viên tiềm năng</p>
-            </td>
-          </tr>
-        </table>
-        
-        <!-- BODY -->
-        <table role="presentation" class="body-wrap" cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr>
-            <td class="body-inner">
-              <p class="greeting">Xin chào <strong th:text="${fullName}">Quý khách</strong>,</p>
-              
-              <div class="expired-box">
-                <div class="expired-icon">⏰</div>
-                <div class="expired-plan">Gói <span th:text="${planCode}">PROFESSIONAL</span> đã hết hạn</div>
-                <div class="expired-date" th:text="'Ngày hết hạn: ' + ${expiredAt}">Ngày hết hạn: 10/05/2026</div>
+<table role="presentation" class="wrapper" cellpadding="0" cellspacing="0" border="0" align="center">
+  <tr>
+    <td style="padding: 24px 16px;">
+
+      <!-- HEADER -->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td th:if="${userType == 'employer'}" class="header-employer">
+            <div class="header-icon">⚠️</div>
+            <h1 class="header-title">Gói dịch vụ đã hết hạn</h1>
+            <p class="header-subtitle">Đừng bỏ lỡ ứng viên tiềm năng</p>
+          </td>
+          <td th:if="${userType == 'candidate'}" class="header-candidate">
+            <div class="header-icon">⏰</div>
+            <h1 class="header-title">Gói dịch vụ đã hết hạn</h1>
+            <p class="header-subtitle">Đừng để cơ hội việc làm vụt mất</p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- BODY -->
+      <table role="presentation" class="body-wrap" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td class="body-inner">
+
+            <!-- Greeting -->
+            <p th:class="${userType == 'candidate'} ? 'greeting greeting-candidate' : 'greeting greeting-employer'">
+              Xin chào <strong th:text="${fullName}">Quý khách</strong>,
+            </p>
+
+            <!-- Expired box -->
+            <div th:class="${userType == 'candidate'} ? 'expired-box-candidate' : 'expired-box-employer'">
+              <div class="expired-icon">⏰</div>
+              <div th:class="${userType == 'candidate'} ? 'expired-plan-candidate' : 'expired-plan-employer'">
+                Gói <span th:text="${planCode}">PRO</span> đã hết hạn
               </div>
-              
-              <div class="warning-box">
-                <span class="warning-icon">⚠️</span>
-                <div class="warning-text">
-                  <strong>Lưu ý quan trọng:</strong> Các tin tuyển dụng đang chạy có thể bị 
-                  <strong>tạm ngừng hiển thị</strong> trong vòng 24 giờ tới. 
+              <div th:class="${userType == 'candidate'} ? 'expired-date-candidate' : 'expired-date-employer'"
+                   th:text="'Ngày hết hạn: ' + ${expiredAt}">
+                Ngày hết hạn: 10/05/2026
+              </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="warning-box">
+              <div class="warning-text">
+                <strong>⚠️ Lưu ý quan trọng:</strong>
+                <span th:if="${userType == 'employer'}">
+                  Các tin tuyển dụng đang chạy có thể bị
+                  <strong>tạm ngừng hiển thị</strong> trong vòng 24 giờ tới.
                   Ứng viên sẽ không thể tìm thấy tin của bạn.
-                </div>
+                </span>
+                <span th:if="${userType == 'candidate'}">
+                  Hồ sơ của bạn sẽ <strong>không còn được ưu tiên hiển thị</strong>
+                  với nhà tuyển dụng. Gia hạn ngay để tiếp tục được tìm thấy.
+                </span>
               </div>
-              
-              <div class="consequence-list">
-                <p>📋 Hậu quả khi gói hết hạn:</p>
-                <ul>
-                  <li>Tin tuyển dụng bị ẩn khỏi kết quả tìm kiếm</li>
-                  <li>Không nhận được hồ sơ ứng viên mới</li>
-                  <li>Mất lượt hiển thị ưu tiên</li>
-                  <li>Tạm dừng tính năng AI Matching</li>
-                  <li>Dữ liệu được lưu trữ trong 30 ngày trước khi xóa</li>
-                </ul>
-              </div>
-              
-              <p style="font-size: 15px; color: #1a202c; font-weight: 600; text-align: center; margin-bottom: 12px;">
-                Gia hạn ngay để tiếp tục tuyển dụng hiệu quả
+            </div>
+
+            <!-- Consequence list: phân nhánh theo userType -->
+            <div class="consequence-list">
+              <p>📋 Những gì bạn mất khi gói hết hạn:</p>
+
+              <!-- Employer consequences -->
+              <ul th:if="${userType == 'employer'}" class="consequence-employer">
+                <li>Tin tuyển dụng bị ẩn khỏi kết quả tìm kiếm</li>
+                <li>Không nhận được hồ sơ ứng viên mới</li>
+                <li>Mất lượt hiển thị ưu tiên (featured jobs)</li>
+                <li>Tạm dừng tính năng AI Matching</li>
+                <li>Dữ liệu lưu trong 30 ngày trước khi xóa</li>
+              </ul>
+
+              <!-- Candidate consequences -->
+              <ul th:if="${userType == 'candidate'}" class="consequence-candidate">
+                <li>Hồ sơ không còn nổi bật trong kết quả tìm kiếm</li>
+                <li>Mất lượt ứng tuyển không giới hạn — giới hạn còn 5 đơn/tháng</li>
+                <li>Tắt tính năng xem lượt xem hồ sơ (Profile Analytics)</li>
+                <li>Tạm dừng gợi ý việc làm AI Matching</li>
+                <li>Tắt tính năng AI viết CV &amp; Mock Interview (nếu có)</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 15px; color: #1a202c; font-weight: 600; text-align: center; margin-bottom: 12px;">
+              <span th:if="${userType == 'employer'}">Gia hạn ngay để tiếp tục tuyển dụng hiệu quả</span>
+              <span th:if="${userType == 'candidate'}">Gia hạn ngay để không bỏ lỡ cơ hội việc làm</span>
+            </p>
+
+            <!-- CTA buttons -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="center" style="padding-bottom: 12px;">
+                  <a th:if="${userType == 'employer'}" th:href="${renewLink}"
+                     class="cta-employer" target="_blank">🔄 Gia hạn ngay</a>
+                  <a th:if="${userType == 'candidate'}" th:href="${renewLink}"
+                     class="cta-candidate" target="_blank">🔄 Gia hạn ngay</a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding-bottom: 8px;">
+                  <a th:if="${userType == 'employer'}" th:href="${upgradeLink}"
+                     class="secondary-employer" target="_blank">⬆️ Nâng cấp gói cao hơn</a>
+                  <a th:if="${userType == 'candidate'}" th:href="${upgradeLink}"
+                     class="secondary-candidate" target="_blank">⬆️ Xem các gói dịch vụ</a>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Offer box -->
+            <div th:class="${userType == 'candidate'} ? 'offer-box-candidate' : 'offer-box-employer'"
+                 style="margin-top: 20px;">
+              <p th:class="${userType == 'candidate'} ? 'offer-text offer-text-candidate' : 'offer-text offer-text-employer'">
+                🎁 <strong>Ưu đãi đặc biệt:</strong> Giảm 10% khi gia hạn trong 48h
               </p>
-              
-              <!-- CTA -->
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
-                <tr>
-                  <td align="center">
-                    <a th:href="${renewLink}" class="cta-button" target="_blank">
-                      🔄 Gia hạn ngay
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center">
-                    <a th:href="${upgradeLink}" class="secondary-button" target="_blank">
-                      ⬆️ Nâng cấp gói cao hơn
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Special Offer -->
-              <div class="offer-box">
-                <p class="offer-text">🎁 <strong>Ưu đãi đặc biệt:</strong> Giảm thêm 10% khi gia hạn trong 48h</p>
-                <span class="offer-code" th:text="${promoCode}">RENEW10</span>
-              </div>
-              
-              <hr class="divider"/>
-              
-              <p class="support-text">
-                💡 <strong>Cần hỗ trợ?</strong> Đội ngũ chúng tôi luôn sẵn sàng giúp đỡ bạn.<br/>
-                Email: <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@jobplatform.vn</a><br/>
-                Hotline: <strong>1900 1234</strong> (8:00 - 22:00)
-              </p>
-            </td>
-          </tr>
-          
-          <!-- FOOTER -->
-          <tr>
-            <td class="footer">
-              <p style="font-weight: 600; color: #6b7280; font-size: 13px; margin-bottom: 8px;">JobPlatform</p>
-              <p>© 2026 JobPlatform. Mọi quyền được bảo lưu.</p>
-              <p class="footer-links">
-                <a th:href="${unsubscribeLink}" target="_blank">Hủy đăng ký</a>
-                <span style="color: #d1d5db;">|</span>
-                <a th:href="${privacyLink}" target="_blank">Chính sách bảo mật</a>
-                <span style="color: #d1d5db;">|</span>
-                <a th:href="${termsLink}" target="_blank">Điều khoản</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-        
-      </td>
-    </tr>
-  </table>
+              <span th:class="${userType == 'candidate'} ? 'offer-code-candidate' : 'offer-code-employer'"
+                    th:text="${promoCode}">RENEW10</span>
+            </div>
+
+            <hr class="divider"/>
+
+            <p class="support-text">
+              💡 <strong>Cần hỗ trợ?</strong> Đội ngũ chúng tôi luôn sẵn sàng giúp đỡ bạn.<br/>
+              Email: <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@jobplatform.vn</a><br/>
+              Hotline: <strong>1900 1234</strong> (8:00 – 22:00)
+            </p>
+
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td class="footer">
+            <p style="font-weight: 600; color: #6b7280; font-size: 13px; margin-bottom: 8px;">JobPlatform</p>
+            <p>© 2026 JobPlatform. Mọi quyền được bảo lưu.</p>
+            <p style="margin-top: 8px;">
+              <a href="#" target="_blank">Hủy đăng ký</a>
+              <span style="color: #d1d5db;">|</span>
+              <a href="#" target="_blank">Chính sách bảo mật</a>
+              <span style="color: #d1d5db;">|</span>
+              <a href="#" target="_blank">Điều khoản</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
 </body>
 </html>

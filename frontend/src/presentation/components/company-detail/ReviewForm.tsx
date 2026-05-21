@@ -120,7 +120,7 @@ export function ReviewForm({
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Rating Stars */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[16px] font-medium text-gray-700 mb-2">
               Đánh giá của bạn *
             </label>
             <div className="flex items-center gap-1">
@@ -144,7 +144,7 @@ export function ReviewForm({
                 </button>
               ))}
               {rating > 0 && (
-                <span className="ml-2 text-sm font-medium text-gray-600">
+                <span className="ml-2 text-[16px] font-medium text-gray-600">
                   {ratingLabels[rating]}
                 </span>
               )}
@@ -153,7 +153,7 @@ export function ReviewForm({
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[16px] font-medium text-gray-700 mb-2">
               Tiêu đề
             </label>
             <input
@@ -163,14 +163,14 @@ export function ReviewForm({
               maxLength={200}
               placeholder="VD: Môi trường làm việc tốt"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none 
-                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-sm"
+                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-[16px]"
             />
             <p className="text-xs text-gray-400 mt-1">{title.length}/200</p>
           </div>
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[16px] font-medium text-gray-700 mb-2">
               Nội dung đánh giá *
             </label>
             <textarea
@@ -181,14 +181,14 @@ export function ReviewForm({
               required
               placeholder="Chia sẻ trải nghiệm của bạn về công ty..."
               className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none 
-                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-sm resize-none"
+                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-[16px] resize-none"
             />
             <p className="text-xs text-gray-400 mt-1">{content.length}/2000</p>
           </div>
 
           {/* Pros */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[16px] font-medium text-gray-700 mb-2">
               Điểm tốt
             </label>
             <textarea
@@ -198,14 +198,14 @@ export function ReviewForm({
               rows={3}
               placeholder="Những điểm bạn thích về công ty..."
               className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none 
-                focus:border-green-400 focus:ring-2 focus:ring-green-100 text-sm resize-none"
+                focus:border-green-400 focus:ring-2 focus:ring-green-100 text-[16px] resize-none"
             />
             <p className="text-xs text-gray-400 mt-1">{pros.length}/1000</p>
           </div>
 
           {/* Cons */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[16px] font-medium text-gray-700 mb-2">
               Điểm chưa tốt
             </label>
             <textarea
@@ -215,7 +215,7 @@ export function ReviewForm({
               rows={3}
               placeholder="Những điểm cần cải thiện..."
               className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none 
-                focus:border-red-400 focus:ring-2 focus:ring-red-100 text-sm resize-none"
+                focus:border-red-400 focus:ring-2 focus:ring-red-100 text-[16px] resize-none"
             />
             <p className="text-xs text-gray-400 mt-1">{cons.length}/1000</p>
           </div>
@@ -231,7 +231,7 @@ export function ReviewForm({
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 
                     focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Ẩn danh</span>
+                <span className="text-[16px] text-gray-700">Ẩn danh</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -242,7 +242,7 @@ export function ReviewForm({
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 
                     focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">
+                <span className="text-[16px] text-gray-700">
                   Tôi đã/đang làm việc tại công ty này
                 </span>
               </label>
@@ -255,7 +255,7 @@ export function ReviewForm({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-[16px] 
                 font-medium text-gray-700 hover:bg-gray-50 transition-colors
                 disabled:opacity-50"
             >
@@ -264,7 +264,7 @@ export function ReviewForm({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm 
+              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[16px] 
                 font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed
                 transition-colors flex items-center justify-center gap-2"
             >
