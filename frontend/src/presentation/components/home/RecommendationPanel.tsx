@@ -29,7 +29,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
     return (
       <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
         <Loader2 size={16} className="animate-spin" />
-        <span className="text-sm">Đang tải gợi ý...</span>
+        <span className="text-[16px]">Đang tải gợi ý...</span>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Briefcase size={14} className="text-blue-500" />
-            <h3 className="text-sm font-medium text-gray-500">Công việc phù hợp</h3>
+            <h3 className="text-[16px] font-medium text-gray-500">Công việc phù hợp</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {data.jobs.slice(0, 6).map((job) => (
@@ -67,7 +67,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">
+                    <h4 className="text-[16px] font-medium text-gray-900 truncate group-hover:text-blue-600">
                       {job.title}
                     </h4>
                     <p className="text-xs text-gray-500 mt-0.5">{job.companyName}</p>
@@ -94,7 +94,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
   <div>
     <div className="flex items-center gap-2 mb-3">
       <Building2 size={14} className="text-green-500" />
-      <h3 className="text-sm font-medium text-gray-500">Công ty nổi bật</h3>
+      <h3 className="text-[16px] font-medium text-gray-500">Công ty nổi bật</h3>
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {data.companies.slice(0, 6).map((company, idx) => (
@@ -113,7 +113,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
               />
             )}
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-medium text-gray-900 group-hover:text-green-600">
+              <h4 className="text-[16px] font-medium text-gray-900 group-hover:text-green-600">
                 {company.companyName}
               </h4>
               {company.industry && (
