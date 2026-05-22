@@ -75,19 +75,26 @@ public class CandidateSubscription {
     // ── Business Rules ───────────────────────────────────────────────
 
     public boolean isActive() {
-        return status == CandidateSubscriptionStatus.ACTIVE
-                && expiresAt != null
-                && LocalDateTime.now().isBefore(expiresAt);
+        if (status != CandidateSubscriptionStatus.ACTIVE)
+            return false;
+        if (expiresAt == null)
+            return true;
+        return LocalDateTime.now().isBefore(expiresAt);
     }
 
     public boolean isExpired() {
-        return status == CandidateSubscriptionStatus.EXPIRED
-                || (expiresAt != null && LocalDateTime.now().isAfter(expiresAt));
+        if (status == CandidateSubscriptionStatus.EXPIRED)
+            return true;
+        if (expiresAt == null)
+            return false;
+        return LocalDateTime.now().isAfter(expiresAt);
     }
 
     public long daysRemaining() {
         if (!isActive())
             return 0;
+        if (expiresAt == null)
+            return Long.MAX_VALUE;
         return java.time.Duration.between(LocalDateTime.now(), expiresAt).toDays();
     }
 
@@ -108,6 +115,9 @@ public class CandidateSubscription {
     }
 
     // ── State transitions ────────────────────────────────────────────
+    public boolean isFree() {
+        return PlanCode.FREE_CANDIDATE.equalsIgnoreCase(planCode);
+    }
 
     public void activate(UUID paymentId, LocalDateTime expiresAt) {
         this.status = CandidateSubscriptionStatus.ACTIVE;

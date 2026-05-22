@@ -20,6 +20,8 @@ public interface CompanySubscriptionRepository {
 
         Page<CompanySubscription> findAll(Pageable pageable);
 
+        List<CompanySubscription> findByPlanCode(String planCode);
+
         /** Tìm ACTIVE subscription sắp hết hạn — scheduler dùng */
         List<CompanySubscription> findByStatusAndExpiresAtBefore(
                         SubscriptionStatus status, LocalDateTime threshold);

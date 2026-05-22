@@ -40,6 +40,6 @@ public class SubscriptionPlanJpaEntity extends BaseJpaEntity {
     private boolean aiFeatures;
     @Column(name = "analytics_access", nullable = false)
     private boolean analyticsAccess;
-    @Column(name = "duration_days", nullable = false)
-    private int durationDays;
+    @Column(name = "duration_days")
+    private Integer durationDays;
 }

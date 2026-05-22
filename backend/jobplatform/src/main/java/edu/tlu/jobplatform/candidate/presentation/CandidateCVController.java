@@ -4,6 +4,7 @@ import edu.tlu.jobplatform.candidate.application.usecase.cv.*;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.CVUploadRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.CVResponse;
+import edu.tlu.jobplatform.candidate.presentation.dto.response.UnifiedCVResponse;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
@@ -24,8 +25,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/v1/candidate/cv")
@@ -35,24 +38,30 @@ import java.util.UUID;
 @PreAuthorize("hasRole('CANDIDATE')")
 public class CandidateCVController {
 
-        private final ListCVUseCase listCVUseCase;
         private final UploadCVUseCase uploadCVUseCase;
         private final SetPrimaryCVUseCase setPrimaryCVUseCase;
         private final DeleteCVUseCase deleteCVUseCase;
         private final DownloadCVUseCase downloadCVUseCase;
-
+        private final ListAllCVsUseCase listAllCVsUseCase;
         // ── GET /api/v1/candidate/cv ──
 
-        @Operation(summary = "Danh sách CV của tôi")
+        @Operation(summary = "Danh sách tất cả CV (uploaded + online)")
         @GetMapping
-        public ResponseEntity<ApiResponse<List<CVResponse>>> listMyCVs(
+        public ResponseEntity<ApiResponse<List<UnifiedCVResponse>>> listMyCVs(
                         @CurrentUser UUID userId) {
 
-                List<CVResponse> cvs = listCVUseCase.execute(userId)
-                                .stream().map(CVResponse::from).toList();
-                return ResponseEntity.ok(ApiResponse.success(cvs));
-        }
+                ListAllCVsUseCase.Result result = listAllCVsUseCase.execute(userId);
 
+                List<UnifiedCVResponse> response = Stream.concat(
+                                result.uploadedCVs().stream().map(UnifiedCVResponse::fromUploaded),
+                                result.onlineCVs().stream().map(UnifiedCVResponse::fromOnline))
+                                .sorted(Comparator.comparing(
+                                                UnifiedCVResponse::getCreatedAt,
+                                                Comparator.nullsLast(Comparator.reverseOrder())))
+                                .toList();
+
+                return ResponseEntity.ok(ApiResponse.success(response));
+        }
         // ── POST /api/v1/candidate/cv/upload ──
 
         @Operation(summary = "Upload CV (PDF / DOC / DOCX)", description = """
