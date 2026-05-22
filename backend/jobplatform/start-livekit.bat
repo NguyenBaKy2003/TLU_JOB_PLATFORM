@@ -6,3 +6,5 @@ docker run --rm \
   --bind 0.0.0.0
 
    ngrok start --all --config ngrok.yml
+
+   ngrok start --all --config D:/TLU_JOB_PLATFORM/backend/jobplatform/ngrok.yml

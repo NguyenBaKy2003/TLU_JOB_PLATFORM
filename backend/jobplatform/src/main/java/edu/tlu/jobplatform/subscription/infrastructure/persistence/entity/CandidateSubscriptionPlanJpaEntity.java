@@ -95,9 +95,6 @@ public class CandidateSubscriptionPlanJpaEntity extends BaseJpaEntity {
     @Column(name = "duration_days")
     private Integer durationDays;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive;
-
     /** true = gói miễn phí (BASIC) — dùng để tự động gán khi candidate đăng ký */
     @Column(name = "is_free", nullable = false)
     private boolean free;

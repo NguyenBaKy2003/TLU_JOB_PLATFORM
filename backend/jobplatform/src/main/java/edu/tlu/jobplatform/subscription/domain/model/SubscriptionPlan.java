@@ -30,7 +30,7 @@ public class SubscriptionPlan {
     private final int cvViewLimit; // -1 = unlimited
     private final boolean aiFeatures;
     private final boolean analyticsAccess;
-    private final int durationDays; // 30 hoặc 365
+    private final Integer durationDays; // 30 hoặc 365
     private final boolean active;
 
     public boolean isUnlimitedJobs() {
@@ -45,5 +45,9 @@ public class SubscriptionPlan {
         if (priceYearly == null || priceMonthly == null)
             return BigDecimal.ZERO;
         return priceMonthly.multiply(BigDecimal.valueOf(12)).subtract(priceYearly);
+    }
+
+    public boolean isFree() {
+        return PlanCode.FREE_COMPANY.equalsIgnoreCase(code);
     }
 }

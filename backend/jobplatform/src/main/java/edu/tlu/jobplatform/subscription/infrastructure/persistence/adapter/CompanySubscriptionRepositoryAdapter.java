@@ -35,6 +35,12 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
     }
 
     @Override
+    public List<CompanySubscription> findByPlanCode(String planCode) {
+        return jpaRepo.findByPlanCode(planCode)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public Optional<CompanySubscription> findActiveByCompanyId(UUID companyId) {
         // fix: truyền enum thay vì dùng JPQL string literal
         return jpaRepo.findByCompanyIdAndStatus(companyId, SubscriptionStatus.ACTIVE)
