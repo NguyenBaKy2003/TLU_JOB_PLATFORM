@@ -145,7 +145,9 @@ public class CandidateSubscriptionMapper {
                 .durationDays(d.getDurationDays())
                 .free(d.isFree())
                 .build();
-        entity.setActive(d.isActive());
+        if (d.getId() != null) {
+            entity.setId(d.getId());
+        }
         return entity;
     }
 
@@ -163,6 +165,9 @@ public class CandidateSubscriptionMapper {
         e.setProfileAnalytics(d.isProfileAnalytics());
         e.setAdvancedFilters(d.isAdvancedFilters());
         e.setDurationDays(d.getDurationDays());
-        e.setActive(d.isActive());
+        e.setFree(d.isFree());
+        if (!d.isActive()) {
+            e.softDelete();
+        }
     }
 }

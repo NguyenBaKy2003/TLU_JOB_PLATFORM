@@ -33,19 +33,26 @@ public class CompanySubscription {
     // ── Business Rules ─
 
     public boolean isActive() {
-        return status == SubscriptionStatus.ACTIVE
-                && expiresAt != null
-                && LocalDateTime.now().isBefore(expiresAt);
+        if (status != SubscriptionStatus.ACTIVE)
+            return false;
+        if (expiresAt == null)
+            return true;
+        return LocalDateTime.now().isBefore(expiresAt);
     }
 
     public boolean isExpired() {
-        return status == SubscriptionStatus.EXPIRED
-                || (expiresAt != null && LocalDateTime.now().isAfter(expiresAt));
+        if (status == SubscriptionStatus.EXPIRED)
+            return true;
+        if (expiresAt == null)
+            return false;
+        return LocalDateTime.now().isAfter(expiresAt);
     }
 
     public long daysRemaining() {
         if (!isActive())
             return 0;
+        if (expiresAt == null)
+            return Long.MAX_VALUE;
         return java.time.Duration.between(LocalDateTime.now(), expiresAt).toDays();
     }
 
@@ -104,5 +111,9 @@ public class CompanySubscription {
         this.jobPostQuota = jobPostQuota.reset();
         this.featuredJobQuota = featuredJobQuota.reset();
         this.cvViewQuota = cvViewQuota.reset();
+    }
+
+    public boolean isFree() {
+        return PlanCode.FREE_COMPANY.equalsIgnoreCase(planCode);
     }
 }

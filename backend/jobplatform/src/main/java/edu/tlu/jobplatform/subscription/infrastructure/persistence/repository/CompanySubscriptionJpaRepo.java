@@ -19,6 +19,8 @@ public interface CompanySubscriptionJpaRepo
 
         List<CompanySubscriptionJpaEntity> findByCompanyIdOrderByCreatedAtDesc(UUID companyId);
 
+        List<CompanySubscriptionJpaEntity> findByPlanCode(String planCode);
+
         List<CompanySubscriptionJpaEntity> findByStatusAndExpiresAtBefore(
                         SubscriptionStatus status, LocalDateTime threshold);
 }

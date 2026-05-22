@@ -10,8 +10,10 @@ const inputCls = "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
-// ── Field wrapper ─────────
+// ── Plan code constants khớp với backend PlanCode.java ──
+const CANDIDATE_PLAN_CODES = ["FREE_CANDIDATE", "PRO", "PREMIUM"] as const;
 
+// ── Field wrapper ─────────
 function Field({ label, required, hint, children }: {
   label: string; required?: boolean; hint?: string; children: React.ReactNode;
 }) {
@@ -27,7 +29,6 @@ function Field({ label, required, hint, children }: {
 }
 
 // ── Limit input (-1 = unlimited) ─
-
 function LimitInput({ label, value, onChange }: {
   label: string; value: number; onChange: (v: number) => void;
 }) {
@@ -62,7 +63,6 @@ function LimitInput({ label, value, onChange }: {
 }
 
 // ── Toggle ─
-
 function ToggleRow({ label, desc, checked, onChange }: {
   label: string; desc: string; checked: boolean; onChange: (v: boolean) => void;
 }) {
@@ -87,7 +87,6 @@ function ToggleRow({ label, desc, checked, onChange }: {
 }
 
 // ── Toggle nhỏ (checkbox style) ─
-
 function ToggleSmall({ label, checked, onChange }: {
   label: string; checked: boolean; onChange: (v: boolean) => void;
 }) {
@@ -104,8 +103,80 @@ function ToggleSmall({ label, checked, onChange }: {
   );
 }
 
-// ── Default form ──────────
+// ── Code Selector ─────────
+function CodeSelector({ value, onChange, disabled, codes }: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  codes: readonly string[];
+}) {
+  // ✅ State riêng để track việc user đã chọn "Khác" — không phụ thuộc vào value
+  const [showCustom, setShowCustom] = useState(
+    // Khi edit: nếu value không nằm trong danh sách → hiện ô custom ngay
+    value !== "" && !codes.includes(value as any)
+  );
 
+  // Giá trị hiển thị trong select:
+  // - value nằm trong codes → chọn đúng option đó
+  // - showCustom (đang nhập tùy chỉnh) → chọn "__custom__"
+  // - còn lại → "" (chưa chọn)
+  const selectValue = codes.includes(value as any)
+    ? value
+    : showCustom
+      ? "__custom__"
+      : "";
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-gray-700">
+        Mã gói (code)<span className="text-red-500 ml-0.5">*</span>
+      </label>
+
+      <select
+        value={selectValue}
+        onChange={e => {
+          const val = e.target.value;
+          if (val === "__custom__") {
+            setShowCustom(true);
+            if (codes.includes(value as any)) {
+              onChange("");
+            }
+          } else {
+            setShowCustom(false);
+            onChange(val);
+          }
+        }}
+        disabled={disabled}
+        className={inputCls + (disabled ? " opacity-60" : "")}
+      >
+        <option value="">-- Chọn code --</option>
+        {codes.map(code => (
+          <option key={code} value={code}>{code}</option>
+        ))}
+        <option value="__custom__">Khác (tự nhập)...</option>
+      </select>
+
+      {showCustom && !disabled && (
+        <input
+          value={value}
+          onChange={e => onChange(e.target.value.toUpperCase())}
+          placeholder="Nhập code tùy chỉnh (vd: CUSTOM_PLAN)..."
+          autoFocus
+          className={inputCls + " mt-1"}
+        />
+      )}
+
+      {/* Hint khi đang nhập custom */}
+      {showCustom && !disabled && (
+        <p className="text-[11px] text-gray-400">
+          Chỉ dùng CHỮ HOA và dấu gạch dưới, ví dụ: ENTERPRISE_PLUS
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Default form ──────────
 const DEFAULT: CandidatePlanPayload = {
   code: "", name: "", description: "",
   priceMonthly: 0, priceYearly: 0,
@@ -117,9 +188,8 @@ const DEFAULT: CandidatePlanPayload = {
 };
 
 // ── Props ──
-
 interface Props {
-  plan?:     CandidateSubscriptionPlan;  // undefined = tạo mới
+  plan?:     CandidateSubscriptionPlan;
   onSave:    (payload: CandidatePlanPayload) => Promise<void>;
   onCancel:  () => void;
 }
@@ -155,18 +225,20 @@ export function CandidatePlanFormModal({ plan, onSave, onCancel }: Props) {
     setErrors(p => ({ ...p, [key]: undefined }));
   };
 
-  const validate = (): boolean => {
-    const e: typeof errors = {};
-    if (!form.code.trim())  e.code = "Vui lòng nhập code";
-    if (!form.name.trim())  e.name = "Vui lòng nhập tên gói";
-    if (form.durationDays < 1) e.durationDays = "Phải ≥ 1 ngày";
-    // Nếu là gói free thì bắt buộc giá = 0
-    if (form.free && (form.priceMonthly > 0 || form.priceYearly > 0)) {
-      e.priceMonthly = "Gói miễn phí phải có giá = 0";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+const validate = (): boolean => {
+  const e: typeof errors = {};
+  if (!form.code.trim()) e.code = "Vui lòng chọn hoặc nhập code";
+  if (!form.name.trim()) e.name = "Vui lòng nhập tên gói";
+
+  if (!form.free && form.durationDays < 1)
+    e.durationDays = "Phải ≥ 1 ngày";
+
+  if (form.free && (form.priceMonthly > 0 || form.priceYearly > 0))
+    e.priceMonthly = "Gói miễn phí phải có giá = 0";
+
+  setErrors(e);
+  return Object.keys(e).length === 0;
+};
 
   const handleSave = async () => {
     if (!validate()) return;
@@ -185,7 +257,7 @@ export function CandidatePlanFormModal({ plan, onSave, onCancel }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-[16px] font-semibold text-gray-800">
-            {isEdit ? `Chỉnh sửa gói: ${plan?.name}` : "Tạo gói Candidate mới"}
+            {isEdit ? `Chỉnh sửa gói Candidate: ${plan?.name}` : "Tạo gói Candidate mới"}
           </h3>
           <button onClick={onCancel}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
@@ -201,17 +273,16 @@ export function CandidatePlanFormModal({ plan, onSave, onCancel }: Props) {
               Thông tin cơ bản
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Mã gói (code)" required>
-                <input value={form.code}
-                  onChange={e => set("code", e.target.value.toUpperCase())}
-                  disabled={isEdit}
-                  placeholder="FREE / BASIC / PRO / PREMIUM"
-                  className={inputCls + (isEdit ? " opacity-60" : "")} />
-                {errors.code && <p className="text-[11px] text-red-500">{errors.code}</p>}
-              </Field>
+              <CodeSelector
+                value={form.code}
+                onChange={v => set("code", v)}
+                disabled={isEdit}
+                codes={CANDIDATE_PLAN_CODES}
+              />
+              {errors.code && <p className="text-[11px] text-red-500">{errors.code}</p>}
               <Field label="Tên gói" required>
                 <input value={form.name} onChange={e => set("name", e.target.value)}
-                  placeholder="Gói Cơ Bản" className={inputCls} />
+                  placeholder="Gói Chuyên Nghiệp" className={inputCls} />
                 {errors.name && <p className="text-[11px] text-red-500">{errors.name}</p>}
               </Field>
               <div className="sm:col-span-2">
@@ -230,7 +301,7 @@ export function CandidatePlanFormModal({ plan, onSave, onCancel }: Props) {
           <section>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Giá (VND — nhập 0 cho gói miễn phí)
+                Giá (VND)
               </p>
               <ToggleSmall
                 label="Gói miễn phí"

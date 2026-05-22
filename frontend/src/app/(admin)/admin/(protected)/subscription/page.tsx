@@ -465,7 +465,7 @@ export default function AdminSubscriptionPage() {
     {
       key: 'applicationLimit',
       title: 'Đơn ứng tuyển',
-      width: '110px',
+      width: '140px',
       render: (value) => formatQuota(value)
     },
     {
