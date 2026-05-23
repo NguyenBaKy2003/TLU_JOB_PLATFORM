@@ -4,7 +4,7 @@ import edu.tlu.jobplatform.notification.domain.model.Notification;
 import edu.tlu.jobplatform.notification.domain.model.NotificationType;
 import edu.tlu.jobplatform.notification.domain.repository.NotificationRepository;
 import edu.tlu.jobplatform.notification.domain.service.NotificationDomainService;
-import edu.tlu.jobplatform.notification.infrastructure.event.NotificationCreatedEvent;
+import edu.tlu.jobplatform.shared.event.notification.NotificationCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

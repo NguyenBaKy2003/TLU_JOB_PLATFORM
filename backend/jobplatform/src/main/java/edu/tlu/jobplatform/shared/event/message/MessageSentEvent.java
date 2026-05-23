@@ -1,4 +1,5 @@
-package edu.tlu.jobplatform.message.infrastructure.event;
+// shared/event/message/MessageSentEvent.java
+package edu.tlu.jobplatform.shared.event.message;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

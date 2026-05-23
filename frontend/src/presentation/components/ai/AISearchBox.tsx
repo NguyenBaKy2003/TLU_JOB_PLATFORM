@@ -65,19 +65,13 @@ export function AISearchBox({
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  const handleSearch = useCallback(
-    (searchQuery: string) => {
-      if (!searchQuery.trim()) return;
-      trackSearch(searchQuery.trim()); // service tự skip nếu chưa login
-      setIsOpen(false);
-      if (onSearch) {
-        onSearch(searchQuery.trim());
-      } else {
-        router.push(`/jobs?q=${encodeURIComponent(searchQuery.trim())}`);
-      }
-    },
-    [router, onSearch, trackSearch],
-  );
+const handleSearch = useCallback((searchQuery: string) => {
+  if (!searchQuery.trim()) return;
+  trackSearch(searchQuery.trim());
+  setIsOpen(false);
+  onSearch?.(searchQuery.trim());
+  router.push(`/jobs?keyword=${encodeURIComponent(searchQuery.trim())}`);
+}, [router, onSearch, trackSearch]);
 
   const handleSelectSuggestion = (suggestion: AutocompleteSuggestion) => {
     setQuery(suggestion.query);
@@ -128,7 +122,7 @@ export function AISearchBox({
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      <div className="relative">
+      <div className="relative ">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           ref={inputRef}
