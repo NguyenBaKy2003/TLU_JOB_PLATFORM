@@ -23,6 +23,7 @@ const CANDIDATE_NAV = [
   { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/candidate/settings",          badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/candidate/subscription",  badgeKey: null           },
   { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/candidate/activity",          badgeKey: null           },
+  { label: "Bình luận",          icon: <Activity size={18} />,         href: "/candidate/reviews",          badgeKey: null           },
 ];
 
 const EMPLOYER_NAV = [
@@ -36,6 +37,7 @@ const EMPLOYER_NAV = [
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
   { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },
   { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
+  { label: "Bình luận",          icon: <Activity size={18} />,         href: "/employer/reviews",          badgeKey: null           },
 
 ];
 

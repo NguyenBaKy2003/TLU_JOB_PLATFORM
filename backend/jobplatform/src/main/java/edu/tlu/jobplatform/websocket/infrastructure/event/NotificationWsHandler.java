@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.websocket.infrastructure.event;
 
-import edu.tlu.jobplatform.notification.infrastructure.event.NotificationCreatedEvent;
+import edu.tlu.jobplatform.shared.event.notification.NotificationCreatedEvent;
 import edu.tlu.jobplatform.websocket.application.port.out.WsPushPort;
 import edu.tlu.jobplatform.websocket.domain.model.WsPayload;
 import lombok.RequiredArgsConstructor;
