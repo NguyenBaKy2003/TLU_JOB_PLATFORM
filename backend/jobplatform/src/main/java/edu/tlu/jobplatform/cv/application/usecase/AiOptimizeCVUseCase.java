@@ -20,25 +20,15 @@ import java.util.UUID;
 
 /**
  * UseCase: AI tối ưu CV theo một JD cụ thể.
- *
- * Tính năng chỉ dành cho gói PREMIUM (aiCvWriter = true).
+ * Chỉ dành cho gói PREMIUM (aiCvWriter = true).
  *
  * Flow:
- * 1. Check feature flag aiCvWriter từ CandidateSubscription
+ * 1. Check feature flag aiCvWriter
  * 2. Load CV + verify ownership
- * 3. Load JobPost để lấy JD text
- * 4. Serialize CV thành plain text → build CvOptimizationRequest
- * 5. Gọi AiCvOptimizePort → trả về CvOptimizationResult
- *
- * Candidate tự quyết định áp dụng gợi ý nào — UseCase KHÔNG tự sửa CV.
- *
- * Lý do không tự sửa CV:
- * - Tránh mất dữ liệu nếu AI gợi ý sai
- * - Candidate cần review trước khi commit thay đổi
- * - Tách biệt "đề xuất" và "áp dụng" → UX tốt hơn
- *
- * Quota: aiCvWriter là feature flag (boolean), không phải quota đếm số lần.
- * Nếu muốn giới hạn số lần gọi AI/tháng, thêm aiOptimizeQuota sau.
+ * 3. Load JobPost lấy JD
+ * 4. Serialize CV → plain text
+ * 5. Gọi AiCvOptimizePort → CvOptimizationResult
+ * 6. Trả về gợi ý — KHÔNG tự sửa CV
  */
 @Slf4j
 @Service
@@ -70,23 +60,17 @@ public class AiOptimizeCVUseCase {
         JobPost job = jobPostRepository.findById(cmd.jobPostId())
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", cmd.jobPostId()));
 
-        // 4. Serialize CV → plain text để gửi cho AI
-        String cvText = serializeCvToText(cv);
-
-        // 5. Parse các field JD từ toFullText()
+        // 4. Parse JD — cùng format với AIScorePort
         String jobFullText = job.toFullText();
         String jobTitle = parseSection(jobFullText, "Vị trí: ");
         String jobDesc = parseSection(jobFullText, "Mô tả: ");
         String jobReqs = parseSection(jobFullText, "Yêu cầu: ");
-        String jobBenefits = parseSection(jobFullText, "Phúc lợi: ");
+        String jobBenefits = parseSection(jobFullText, "Quyền lợi: ");
 
-        log.info("[AiOptimizeCV] Optimizing: cvId={} jobPostId={} candidateId={}",
-                cmd.cvId(), cmd.jobPostId(), cmd.candidateId());
-
-        // 6. Build request và gọi AI port
+        // 5. Build request domain model
         CvOptimizationRequest request = CvOptimizationRequest.builder()
                 .cvId(cmd.cvId())
-                .cvText(cvText)
+                .cvText(serializeCvToText(cv))
                 .jobTitle(jobTitle)
                 .jobDescription(jobDesc)
                 .jobRequirements(jobReqs)
@@ -94,24 +78,17 @@ public class AiOptimizeCVUseCase {
                 .outputLanguage("vi")
                 .build();
 
-        CvOptimizationResult result = aiCvOptimizePort.optimize(request);
+        log.info("[AiOptimizeCV] Calling AI: cvId={} jobPostId={}", cmd.cvId(), cmd.jobPostId());
 
-        log.info("[AiOptimizeCV] Done: cvId={} missingKeywords={} matchScore={}",
-                cmd.cvId(),
-                result.getMissingKeywords() != null ? result.getMissingKeywords().size() : 0,
-                result.getMatchScore());
-
-        return result;
+        // 6. Gọi port
+        return aiCvOptimizePort.optimize(request);
     }
 
-    /**
-     * Serialize OnlineCV → plain text để AI đọc được.
-     * Format: tiêu đề section + nội dung dạng text.
-     */
+    // ── Helpers ───────────────────────────────────────────────────────
+
     private String serializeCvToText(OnlineCV cv) {
         StringBuilder sb = new StringBuilder();
 
-        // Thông tin cá nhân
         if (cv.getPersonalInfo() != null) {
             var pi = cv.getPersonalInfo();
             sb.append("Họ tên: ").append(pi.getFullName()).append("\n");
@@ -120,17 +97,16 @@ public class AiOptimizeCVUseCase {
             sb.append("\n");
         }
 
-        // Từng section — chỉ lấy section visible, sắp xếp theo displayOrder
         if (cv.getSections() != null) {
             cv.getSections().stream()
                     .filter(CVSection::isVisible)
                     .sorted(java.util.Comparator.comparingInt(CVSection::getDisplayOrder))
-                    .forEach(section -> {
-                        sb.append("=== ").append(section.getType()).append(" ===\n");
-                        if (section.getTitle() != null)
-                            sb.append(section.getTitle()).append("\n");
-                        if (section.getContent() != null)
-                            sb.append(section.getContent()).append("\n");
+                    .forEach(s -> {
+                        sb.append("=== ").append(s.getType()).append(" ===\n");
+                        if (s.getTitle() != null)
+                            sb.append(s.getTitle()).append("\n");
+                        if (s.getContent() != null)
+                            sb.append(s.getContent()).append("\n");
                         sb.append("\n");
                     });
         }
@@ -151,11 +127,6 @@ public class AiOptimizeCVUseCase {
                 : fullText.substring(start).trim();
     }
 
-    /**
-     * @param cvId        CV cần tối ưu
-     * @param jobPostId   JD để đối chiếu
-     * @param candidateId người dùng hiện tại (để verify ownership + check quota)
-     */
     public record Command(UUID cvId, UUID jobPostId, UUID candidateId) {
     }
 }
