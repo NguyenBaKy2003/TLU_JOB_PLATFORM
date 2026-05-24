@@ -1,12 +1,9 @@
-package edu.tlu.jobplatform.notification.infrastructure.event;
+// shared/event/notification/NotificationCreatedEvent.java
+package edu.tlu.jobplatform.shared.event.notification;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Fired sau khi Notification được lưu vào DB.
- * NotificationEventHandler lắng nghe để push WS.
- */
 public record NotificationCreatedEvent(
                 UUID notificationId,
                 UUID userId,

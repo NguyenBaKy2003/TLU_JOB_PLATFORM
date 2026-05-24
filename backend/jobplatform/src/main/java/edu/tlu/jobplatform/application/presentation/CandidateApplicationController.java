@@ -16,6 +16,7 @@ import edu.tlu.jobplatform.application.usecase.candidate.DeclineOfferUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.GetMyApplicationsUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.SubmitApplicationUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.WithdrawApplicationUseCase;
+import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -107,6 +108,7 @@ public class CandidateApplicationController {
         @GetMapping("/api/v1/applications/{id}")
         @PreAuthorize("isAuthenticated()")
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getDetail(@PathVariable UUID id) {
+
                 Application app = applicationRepo.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
 
@@ -115,8 +117,7 @@ public class CandidateApplicationController {
                                 || app.getCompanyId().equals(currentUser)
                                 || SecurityUtils.hasRole("ADMIN");
                 if (!isOwner)
-                        throw new edu.tlu.jobplatform.shared.exception.BusinessRuleException(
-                                        "Bạn không có quyền xem đơn này.", "FORBIDDEN");
+                        throw new BusinessRuleException("Bạn không có quyền xem đơn này.", "FORBIDDEN");
 
                 var logs = logRepo.findByApplicationId(id);
 
@@ -132,13 +133,32 @@ public class CandidateApplicationController {
                                 ApplicationDetailResponse.from(app, logs, jobInfo, companyInfo)));
         }
 
+        /**
+         * Rút đơn ứng tuyển.
+         *
+         * Thay đổi so với controller cũ:
+         * - withdrawUseCase.execute() trả về void (không trả Application) vì
+         * WithdrawApplicationUseCase mới nhận thêm candidateId để authorize
+         * và hoàn quota — không cần return Application.
+         * - Sau khi rút thành công, load lại Application từ repo để build response
+         * thay vì nhận từ useCase — tách biệt concern rõ ràng hơn.
+         */
         @Operation(summary = "Rút đơn ứng tuyển")
         @DeleteMapping("/api/v1/applications/{id}/withdraw")
         @PreAuthorize("hasRole('CANDIDATE')")
         public ResponseEntity<ApiResponse<ApplicationResponse>> withdraw(@PathVariable UUID id) {
-                Application app = withdrawUseCase.execute(id);
+
+                UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
+
+                // execute() kiểm tra ownership bên trong — ném FORBIDDEN nếu không phải owner
+                withdrawUseCase.execute(id, candidateId);
+
+                // Load lại để build response với status WITHDRAWN mới nhất
+                Application updated = applicationRepo.findById(id)
+                                .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
+
                 return ResponseEntity.ok(
-                                ApiResponse.success(ApplicationResponse.from(app), "Đơn ứng tuyển đã được rút."));
+                                ApiResponse.success(ApplicationResponse.from(updated), "Đơn ứng tuyển đã được rút."));
         }
 
         @Operation(summary = "Kiểm tra đã nộp đơn vào bài đăng này chưa")
@@ -174,5 +194,4 @@ public class CandidateApplicationController {
                 return ResponseEntity.ok(
                                 ApiResponse.success(ApplicationResponse.from(app), "Bạn đã từ chối offer."));
         }
-
 }

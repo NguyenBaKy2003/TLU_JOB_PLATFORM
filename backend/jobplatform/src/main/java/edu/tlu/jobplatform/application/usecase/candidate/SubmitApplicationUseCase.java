@@ -10,6 +10,7 @@ import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
+import edu.tlu.jobplatform.subscription.application.usecase.ConsumeCandidateQuotaUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -24,10 +25,24 @@ import java.util.UUID;
  *
  * Flow:
  * 1. Validate: job đang nhận CV, chưa nộp trước đó, có CV
- * 2. Tạo Application (SUBMITTED)
- * 3. Tăng applicationCount của JobPost
- * 4. Fire ApplicationSubmittedEvent (email xác nhận)
- * 5. Trigger AI scoring bất đồng bộ
+ * 2. Trừ applicationQuota (ConsumeCandidateQuotaUseCase)
+ * 3. Tạo Application (SUBMITTED)
+ * 4. Tăng applicationCount của JobPost
+ * 5. Fire ApplicationSubmittedEvent (email xác nhận)
+ * 6. Trigger AI scoring bất đồng bộ
+ *
+ * Quota rollback:
+ * Nếu bước 3-4 thất bại sau khi đã trừ quota ở bước 2,
+ * 
+ * @Transactional sẽ rollback toàn bộ DB — bao gồm cả việc
+ *                trừ quota (vì ConsumeCandidateQuotaUseCase.execute() cũng
+ *                chạy trong cùng transaction này, không có REQUIRES_NEW).
+ *                → Không cần try/catch hoàn quota thủ công.
+ *
+ *                Candidate KHÔNG có gói (BASIC free hoặc chưa mua):
+ *                ConsumeCandidateQuotaUseCase ném BusinessRuleException
+ *                "NO_ACTIVE_CANDIDATE_SUBSCRIPTION" → trả 400 cho client.
+ *                Frontend cần bắt errorCode này để hiện popup "Mua gói".
  */
 @Slf4j
 @Service
@@ -39,22 +54,31 @@ public class SubmitApplicationUseCase {
     private final ApplicationDomainService domainService;
     private final ApplicationDomainEventPublisher eventPublisher;
     private final AIScorePort aiScorePort;
+    private final ConsumeCandidateQuotaUseCase consumeQuotaUseCase;
 
     @Transactional
     public Application execute(Command cmd) {
 
-        // Load bài đăng
+        // 1. Load bài đăng
         JobPost job = jobPostRepo.findById(cmd.jobPostId())
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", cmd.jobPostId()));
 
-        // BR: job phải đang nhận CV
+        // 2. Validate: job đang nhận CV, CV hợp lệ
         domainService.validateSubmission(cmd.cvUrl(), job.isAcceptingApplications());
 
-        // BR: không được nộp 2 lần
+        // 3. Validate: chưa nộp đơn trước đó
         if (applicationRepo.existsByJobPostIdAndCandidateId(cmd.jobPostId(), cmd.candidateId()))
             throw new BusinessRuleException(
                     "Bạn đã nộp đơn vào vị trí này rồi.", "ALREADY_APPLIED");
 
+        // 4. Trừ quota ứng tuyển — phải trước khi tạo Application
+        // Ném BusinessRuleException nếu:
+        // - Không có gói active → "NO_ACTIVE_CANDIDATE_SUBSCRIPTION"
+        // - Đã hết lượt trong tháng → "APPLICATION_QUOTA_EXCEEDED"
+        // Cả hai lỗi đều rollback toàn bộ transaction (quota + application).
+        consumeQuotaUseCase.execute(cmd.candidateId(), ConsumeCandidateQuotaUseCase.QuotaType.APPLICATION);
+
+        // 5. Tạo Application
         Application application = Application.builder()
                 .id(UUID.randomUUID())
                 .jobPostId(cmd.jobPostId())
@@ -70,17 +94,17 @@ public class SubmitApplicationUseCase {
 
         Application saved = applicationRepo.save(application);
 
-        // Tăng applicationCount
+        // 6. Tăng applicationCount trên JobPost
         job.incrementApplications();
         jobPostRepo.save(job);
 
-        // Fire event → email xác nhận
+        // 7. Fire event → email xác nhận ứng tuyển
         eventPublisher.publishApplicationSubmitted(saved, job.getTitle());
 
-        // AI scoring bất đồng bộ
+        // 8. AI scoring bất đồng bộ — không block response
         triggerAIScoring(saved.getId(), cmd.cvUrl(), job.toFullText());
 
-        log.info("Application submitted: id={} candidate={} job={}",
+        log.info("[SubmitApplication] Submitted: id={} candidate={} job={}",
                 saved.getId(), cmd.candidateId(), cmd.jobPostId());
         return saved;
     }
@@ -94,11 +118,12 @@ public class SubmitApplicationUseCase {
                 applicationRepo.findById(applicationId).ifPresent(app -> {
                     app.attachAIScore(score);
                     applicationRepo.save(app);
-                    log.info("AI score attached: applicationId={} score={}", applicationId, score.getScore());
+                    log.info("[AIScore] Attached: applicationId={} score={}",
+                            applicationId, score.getScore());
                 });
             }
         } catch (Exception e) {
-            log.warn("AI scoring failed for applicationId={}: {}", applicationId, e.getMessage());
+            log.warn("[AIScore] Failed: applicationId={} reason={}", applicationId, e.getMessage());
         }
     }
 
