@@ -68,7 +68,7 @@ export function EmployerLoginClient() {
       setRefreshToken(token.refreshToken);
       setUserFromToken(token.user);
 
-      toast.success("Đăng nhập thành công!", "Chào mừng bạn trở lại Joblin!");
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn trở lại CareerUp!");
       router.push("/employer/dashboard");
     } catch (err: any) {
       toast.error(

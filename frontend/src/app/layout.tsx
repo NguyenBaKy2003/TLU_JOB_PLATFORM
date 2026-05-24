@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Joblin - Nền tảng tuyển dụng Thông Minh",
-  description: "Joblin - Nền tảng tuyển dụng Thông Minh",
+  title: "CareerUp - Nền tảng tuyển dụng Thông Minh",
+  description: "CareerUp - Nền tảng tuyển dụng Thông Minh",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}  bg-#DFEAFE`}>
       <body>
         <ReactQueryProvider>
           <AuthProvider>

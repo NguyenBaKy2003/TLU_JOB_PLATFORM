@@ -46,7 +46,7 @@ export const TESTIMONIALS = [
   { 
     name: "Nguyễn Văn An", 
     role: "Frontend Developer", 
-    quote: "Joblin giúp tôi tìm được công việc mơ ước chỉ sau 2 tuần. Quy trình phỏng vấn qua livestream rất chuyên nghiệp và tiện lợi.",
+    quote: "CareerUp giúp tôi tìm được công việc mơ ước chỉ sau 2 tuần. Quy trình phỏng vấn qua livestream rất chuyên nghiệp và tiện lợi.",
     avatar: "A", 
     color: "from-blue-600 to-cyan-600" 
   },
@@ -60,7 +60,7 @@ export const TESTIMONIALS = [
   { 
     name: "Lê Văn Cường", 
     role: "Software Engineer", 
-    quote: "Giao diện đẹp, trải nghiệm mượt mà. Tôi đã tham gia nhiều buổi phỏng vấn thành công qua Joblin.",
+    quote: "Giao diện đẹp, trải nghiệm mượt mà. Tôi đã tham gia nhiều buổi phỏng vấn thành công qua CareerUp.",
     avatar: "C", 
     color: "from-emerald-600 to-teal-600" 
   },

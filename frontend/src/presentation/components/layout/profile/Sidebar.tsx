@@ -152,7 +152,7 @@ function SidebarContent({
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
             <p className="text-[16px] font-bold text-gray-900 truncate">
-              <Link href={homeHref}>Joblin</Link>
+              <Link href={homeHref}>CareerUp</Link>
             </p>
             <p className="text-[11px] text-gray-400">{brandLabel}</p>
           </div>

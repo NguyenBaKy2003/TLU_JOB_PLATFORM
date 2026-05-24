@@ -5,7 +5,9 @@ import { FeaturesSection } from "@/presentation/components/home/FeaturesSection"
 import { HeroSection } from "@/presentation/components/home/HeroSection";
 import { HowItWorksSection } from "@/presentation/components/home/HowItWorksSection";
 import { RecommendationPanel } from "@/presentation/components/home/RecommendationPanel";
-import { StatsSection } from "@/presentation/components/home/StatsSection";
+import { RecruiterBanner } from "@/presentation/components/home/RecruiterBanner";
+import { FindJobsSection } from "@/presentation/components/home/FindJobsSection";
+import { ChooseCompaniesSection } from "@/presentation/components/home/ChooseCompaniesSection";
 import { TestimonialsSection } from "@/presentation/components/home/TestimonialsSection";
 import { Footer } from "@/presentation/components/layout/Footer";
 import { Header } from "@/presentation/components/layout/Header";
@@ -19,8 +21,10 @@ export default function HomePage() {
       <section className="max-w-[1232px] mx-auto px-4 py-10">
         <RecommendationPanel />
       </section>
-      <StatsSection />
       <CategoriesSection />
+      <RecruiterBanner/>
+      <FindJobsSection/>
+      <ChooseCompaniesSection/>
       <HowItWorksSection />
       <FeaturesSection />
       <TestimonialsSection />

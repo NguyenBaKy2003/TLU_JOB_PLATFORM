@@ -14,7 +14,7 @@ export const mockUser: UserProfile = {
   jobTitle: "Product Designer",
   university: "Trường Đại học Thăng Long",
   completionPercent: 0,
-  profileUrl: "Joblin.com/u/LF-8752322",
+  profileUrl: "CareerUp.com/u/LF-8752322",
   bio: undefined,
   skills: [],
   experiences: [],
