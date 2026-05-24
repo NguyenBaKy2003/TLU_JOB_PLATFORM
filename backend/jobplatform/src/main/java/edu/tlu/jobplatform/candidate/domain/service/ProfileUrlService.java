@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 /**
  * Domain service sinh và validate profileUrl.
  *
- * Format: joblin.com/u/{slug}
+ * Format: CareerUp.com/u/{slug}
  * Slug rules:
  * - Chỉ chứa a-z, 0-9, dấu gạch ngang
  * - 3–30 ký tự
@@ -25,7 +25,7 @@ public class ProfileUrlService {
     private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$");
     private static final Pattern NON_SLUG_CHARS = Pattern.compile("[^a-z0-9-]");
     private static final Pattern CONSECUTIVE_DASH = Pattern.compile("-{2,}");
-    private static final String BASE_URL = "joblin.com/u/";
+    private static final String BASE_URL = "CareerUp.com/u/";
 
     private final CandidateProfileRepository profileRepository;
 

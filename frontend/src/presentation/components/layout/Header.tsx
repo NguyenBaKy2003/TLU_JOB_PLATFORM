@@ -74,7 +74,7 @@ export function Header() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef    = useRef<HTMLDivElement>(null);
-  const searchRef   = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Shadow on scroll
   useEffect(() => {
@@ -90,14 +90,12 @@ export function Header() {
         setDropdownOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node))
         setNotifOpen(false);
-      if (searchRef.current && !searchRef.current.contains(e.target as Node))
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node))
         setSearchOpen(false);
     };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
   }, []);
-
-
 
   // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); }, [pathname]);
@@ -158,7 +156,7 @@ export function Header() {
           <div className="flex items-center gap-1 ml-auto">
 
             {/* Search */}
-            <div ref={searchRef} className="relative">
+            <div ref={searchContainerRef} className="relative">
               <button
                 onClick={() => setSearchOpen((v) => !v)}
                 className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500
@@ -167,17 +165,21 @@ export function Header() {
                 {searchOpen ? <X size={18} /> : <Search size={18} />}
               </button>
 
-             {searchOpen && (
-                  <div
-                    className="absolute right-0 top-[calc(100%+8px)] w-80
-                      animate-in fade-in slide-in-from-top-1 duration-150"
-                  >
+              {searchOpen && (
+                <div className="fixed left-0 right-0 top-[80px] z-40 md:absolute md:left-auto md:right-0 md:top-[calc(100%+8px)] md:w-80">
+                  {/* Backdrop overlay for mobile */}
+                  <div 
+                    className="fixed inset-0 bg-black/20 z-[-1] md:hidden"
+                    onClick={() => setSearchOpen(false)}
+                  />
+                  <div className="px-4 py-3 bg-white border-b border-gray-100 shadow-lg md:rounded-xl md:border md:border-gray-100 md:shadow-xl md:p-0">
                     <AISearchBox
                       placeholder="Tìm kiếm việc làm..."
                       onSearch={() => setSearchOpen(false)}
                     />
                   </div>
-                )}
+                </div>
+              )}
             </div>
 
             {/* ── Notification bell (logged-in only) ──────────────────────── */}
@@ -330,17 +332,17 @@ export function Header() {
               </div>
             ) : (
               /* ── Not logged in ────────────────────────────────────────────── */
-              <div className="flex items-center gap-2">
+              <div className="flex items-center sm:gap-2 gap-1">
                 <Link
                   href="/auth/login"
-                  className="text-[16px] font-medium text-gray-600 hover:text-blue-600 px-4 py-2
+                  className="sm:text-[16px] text-[14px] font-medium text-gray-600 hover:text-blue-600 px-4 py-2
                     rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="text-[16px] font-semibold text-white px-4 py-2 rounded-xl
+                  className="sm:text-[16px] text-[14px] font-semibold text-white px-4 py-2 rounded-xl
                     bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
                     shadow-sm shadow-blue-200"
                 >
@@ -385,25 +387,7 @@ export function Header() {
               </Link>
             ))}
 
-            {!isAuthenticated && (
-              <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100">
-                <Link
-                  href="/auth/login"
-                  className="flex-1 text-center py-2.5 border border-gray-200 rounded-xl
-                    text-[16px] font-semibold text-gray-700"
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="flex-1 text-center py-2.5 bg-blue-600 rounded-xl
-                    text-[16px] font-semibold text-white"
-                >
-                  Đăng ký
-                </Link>
-              </div>
-            )}
-
+            
             {isAuthenticated && user && (
               <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
                 {dropdownItems.map(({ label, href, Icon }) => (

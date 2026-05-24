@@ -8,7 +8,7 @@ const FAQS = [
   },
   {
     question: "Những thông tin nào có thể chỉnh sửa?",
-    answer:   "Thông tin Joblin sử dụng để xác minh danh tính của bạn không thể thay đổi. Thông tin liên hệ và một số thông tin cá nhân có thể được chỉnh sửa, nhưng chúng tôi có thể yêu cầu bạn xác minh danh tính vào lần ứng tuyển tiếp theo.",
+    answer:   "Thông tin CareerUp sử dụng để xác minh danh tính của bạn không thể thay đổi. Thông tin liên hệ và một số thông tin cá nhân có thể được chỉnh sửa, nhưng chúng tôi có thể yêu cầu bạn xác minh danh tính vào lần ứng tuyển tiếp theo.",
   },
 ];
 

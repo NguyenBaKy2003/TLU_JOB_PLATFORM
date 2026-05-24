@@ -94,7 +94,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <div className="w-full">
       <div className="text-center mb-3">
-        <Link href="/"><img src="/Logo.svg" alt="Joblin" className="h-16 w-36 mx-auto" /></Link>
+        <Link href="/"><img src="/Logo.svg" alt="CareerUp" className="h-16 w-36 mx-auto" /></Link>
       </div>
       <h2 className="text-xl font-bold text-gray-900 text-center mb-1">
         Cung cấp thông tin của công ty

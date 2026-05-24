@@ -208,7 +208,7 @@ function SidebarContent({
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
             <p className="text-[16px] font-bold text-gray-900 truncate">
-              Joblin Admin
+              CareerUp Admin
             </p>
             <p className="text-[11px] text-red-500 font-medium">
               Quản trị viên

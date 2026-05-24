@@ -70,19 +70,19 @@ public class EmailService {
 
         @Async("aiTaskExecutor")
         public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
-                send(toEmail, "[JobPlatform] Đặt lại mật khẩu của bạn", "reset-password",
+                send(toEmail, "[CareerUp] Đặt lại mật khẩu của bạn", "reset-password",
                                 Map.of("fullName", fullName, "resetLink", resetLink, "expireMinutes", "15"));
         }
 
         @Async("aiTaskExecutor")
         public void sendPasswordChangedNotification(String toEmail, String fullName) {
-                send(toEmail, "[JobPlatform] Mật khẩu của bạn vừa được thay đổi", "password-changed",
+                send(toEmail, "[CareerUp] Mật khẩu của bạn vừa được thay đổi", "password-changed",
                                 Map.of("fullName", fullName, "supportEmail", "support@jobplatform.vn"));
         }
 
         @Async("aiTaskExecutor")
         public void sendVerificationOtp(String toEmail, String fullName, String otpCode) {
-                send(toEmail, "[JobPlatform] Mã xác thực tài khoản của bạn", "verify-email",
+                send(toEmail, "[CareerUp] Mã xác thực tài khoản của bạn", "verify-email",
                                 Map.of("fullName", fullName, "otpCode", otpCode, "expireMinutes", "10"));
         }
 
@@ -91,7 +91,7 @@ public class EmailService {
         @Async("aiTaskExecutor")
         public void sendEmailChangeConfirmation(String toOldEmail, String recipientName,
                         String newEmail, String confirmLink) {
-                send(newEmail, "[JobPlatform] Xác nhận địa chỉ email mới của bạn",
+                send(newEmail, "[CareerUp] Xác nhận địa chỉ email mới của bạn",
                                 "email-change-confirm",
                                 Map.of("fullName", recipientName, "newEmail", newEmail,
                                                 "confirmLink", confirmLink, "expireMinutes", "15"));
@@ -101,7 +101,7 @@ public class EmailService {
         @Async("aiTaskExecutor")
         public void sendEmailChangedNotification(String toOldEmail, String recipientName,
                         String newEmail) {
-                send(toOldEmail, "[JobPlatform] Địa chỉ email của bạn đã thay đổi",
+                send(toOldEmail, "[CareerUp] Địa chỉ email của bạn đã thay đổi",
                                 "email-changed-notification",
                                 Map.of("fullName", recipientName, "oldEmail", toOldEmail,
                                                 "newEmail", newEmail,
@@ -110,7 +110,7 @@ public class EmailService {
 
         @Async("aiTaskExecutor")
         public void sendAccountDeletedNotification(String toEmail, String recipientName) {
-                send(toEmail, "[JobPlatform] Tài khoản của bạn đã được xóa", "account-deleted",
+                send(toEmail, "[CareerUp] Tài khoản của bạn đã được xóa", "account-deleted",
                                 Map.of("fullName", recipientName, "email", toEmail,
                                                 "deletedAt", LocalDateTime.now().format(DATETIME_FMT)));
         }
@@ -121,7 +121,7 @@ public class EmailService {
         public void sendInterviewScheduledEmail(String toEmail, String candidateName,
                         String jobTitle, String companyName,
                         String scheduledAt, String location, String note) {
-                send(toEmail, "[JobPlatform] Bạn có lịch phỏng vấn tại " + companyName,
+                send(toEmail, "[CareerUp] Bạn có lịch phỏng vấn tại " + companyName,
                                 "interview-scheduled",
                                 Map.of("candidateName", candidateName, "jobTitle", jobTitle,
                                                 "companyName", companyName, "scheduledAt", scheduledAt,
@@ -131,7 +131,7 @@ public class EmailService {
 
         @Async("aiTaskExecutor")
         public void sendWelcomeEmail(String toEmail, String fullName) {
-                send(toEmail, "[JobPlatform] Chào mừng bạn đến với JobPlatform!", "welcome",
+                send(toEmail, "[CareerUp] Chào mừng bạn đến với CareerUp!", "welcome",
                                 Map.of("fullName", fullName,
                                                 "loginLink", frontendUrl + "/dashboard",
                                                 "supportEmail", "support@jobplatform.vn"));
@@ -143,7 +143,7 @@ public class EmailService {
         public void sendPaymentSuccessEmail(String toEmail, String fullName,
                         String planCode, BigDecimal amount,
                         String gateway, String transactionId) {
-                send(toEmail, "[JobPlatform] Thanh toán thành công", "payment-success",
+                send(toEmail, "[CareerUp] Thanh toán thành công", "payment-success",
                                 Map.of("fullName", fullName,
                                                 "planCode", planCode,
                                                 "amount", String.format("%,.0f VND", amount),
@@ -162,7 +162,7 @@ public class EmailService {
         public void sendSubscriptionActivatedEmail(String toEmail, String fullName,
                         String planName, LocalDateTime expiresAt,
                         int jobPostLimit) {
-                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
+                send(toEmail, "[CareerUp] Gói dịch vụ của bạn đã được kích hoạt",
                                 "subscription-activated",
                                 Map.of("fullName", fullName,
                                                 "planName", planName,
@@ -180,7 +180,7 @@ public class EmailService {
         @Async("aiTaskExecutor")
         public void sendSubscriptionExpiredEmail(String toEmail, String fullName,
                         String planCode) {
-                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
+                send(toEmail, "[CareerUp] Gói dịch vụ của bạn đã hết hạn",
                                 "subscription-expired",
                                 Map.of("fullName", fullName,
                                                 "planCode", planCode,
@@ -232,7 +232,7 @@ public class EmailService {
                 vars.put("dashboardLink", frontendUrl + "/candidate/dashboard");
                 vars.put("supportEmail", "support@jobplatform.vn");
 
-                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã được kích hoạt",
+                send(toEmail, "[CareerUp] Gói dịch vụ của bạn đã được kích hoạt",
                                 "subscription-activated", vars);
         }
 
@@ -247,7 +247,7 @@ public class EmailService {
         @Async("aiTaskExecutor")
         public void sendCandidateSubscriptionExpiredEmail(String toEmail, String fullName,
                         String planCode) {
-                send(toEmail, "[JobPlatform] Gói dịch vụ của bạn đã hết hạn",
+                send(toEmail, "[CareerUp] Gói dịch vụ của bạn đã hết hạn",
                                 "subscription-expired",
                                 Map.of("fullName", fullName,
                                                 "planCode", planCode,

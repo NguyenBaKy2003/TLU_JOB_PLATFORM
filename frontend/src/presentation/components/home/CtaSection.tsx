@@ -33,7 +33,7 @@ export function CtaSection() {
               Sẵn sàng tìm việc mơ ước?
             </h2>
             <p className="text-white/60 mb-8 max-w-md mx-auto">
-              Tham gia cùng hơn 420,000 ứng viên đang xây dựng sự nghiệp với Joblin
+              Tham gia cùng hơn 420,000 ứng viên đang xây dựng sự nghiệp với CareerUp
             </p>
             
             <div className="flex flex-wrap gap-4 justify-center">

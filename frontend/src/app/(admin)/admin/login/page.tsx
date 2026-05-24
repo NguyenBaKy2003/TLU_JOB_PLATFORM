@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
       const token = await authService.login({ email, password, portalType: "ADMIN" });
 
       setAdminFromToken(token.user, token.accessToken, token.refreshToken);
-      toast.success("Đăng nhập thành công!", "Chào mừng bạn trở lại Joblin!");
+      toast.success("Đăng nhập thành công!", "Chào mừng bạn trở lại CareerUp!");
       router.replace("/admin/dashboard");
     } catch (e:any) {
       toast.error(
@@ -122,7 +122,7 @@ export default function AdminLoginPage() {
             mx-auto mb-4 shadow-lg shadow-red-200">
             <Shield size={28} className="text-white" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Joblin Admin</h1>
+          <h1 className="text-xl font-bold text-gray-900">CareerUp Admin</h1>
           <p className="text-[16px] text-gray-500 mt-1">Đăng nhập vào trang quản trị</p>
         </div>
 

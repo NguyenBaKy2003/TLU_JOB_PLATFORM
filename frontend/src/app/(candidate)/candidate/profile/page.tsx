@@ -275,7 +275,7 @@ export default function ProfilePage() {
             onRefreshList={refreshCvList}
           />
           <ProfileShareCard
-            profileUrl={profile.profileUrl ?? `Joblin.com/u/${profile.id.slice(0, 8)}`}
+            profileUrl={profile.profileUrl ?? `CareerUp.com/u/${profile.id.slice(0, 8)}`}
           />
         </div>
 

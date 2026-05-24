@@ -23,7 +23,7 @@ export function TestimonialsSection() {
             Niềm tin từ người dùng
           </h2>
           <p className="text-white/50 max-w-2xl mx-auto">
-            Hàng ngàn người dùng đã tin tưởng và thành công cùng Joblin
+            Hàng ngàn người dùng đã tin tưởng và thành công cùng CareerUp
           </p>
         </motion.div>
 
