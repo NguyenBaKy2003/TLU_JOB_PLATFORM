@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.cv.presentation;
 
+import edu.tlu.jobplatform.ai.domain.model.CvOptimizationResult;
 import edu.tlu.jobplatform.cv.application.usecase.*;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.model.vo.PersonalInfo;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -47,59 +47,59 @@ public class OnlineCVController {
         private final ImportFromProfileUseCase importFromProfileUseCase;
         private final PreviewCVUseCase previewCVUseCase;
         private final DownloadExportedCVUseCase downloadExportedCVUseCase;
-        // ── GET /api/v1/cv ─
+        private final AiOptimizeCVUseCase aiOptimizeCVUseCase;
+
+        // ── GET /api/v1/cv ────────────────────────────────────────────────
 
         @Operation(summary = "Danh sách CV của tôi")
         @GetMapping
         public ResponseEntity<ApiResponse<List<OnlineCVResponse>>> listMyCVs(
                         @CurrentUser UUID candidateId) {
-
                 List<OnlineCVResponse> list = getMyCVsUseCase.execute(candidateId)
                                 .stream().map(OnlineCVResponse::from).toList();
                 return ResponseEntity.ok(ApiResponse.success(list));
         }
 
-        // ── POST /api/v1/cv
+        // ── POST /api/v1/cv ───────────────────────────────────────────────
 
         @Operation(summary = "Tạo CV mới", description = """
                         Tạo CV mới ở trạng thái DRAFT từ template được chọn.
-                        Tối đa **10 CV** mỗi tài khoản.
+                        - Tối đa **10 CV** mỗi tài khoản.
+                        - Template **premium** (có nhãn ⭐) yêu cầu gói **PRO trở lên**.
+                          Gửi `templateId` của template thường nếu chưa có gói.
                         """)
         @PostMapping
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> createCV(
                         @CurrentUser UUID candidateId,
                         @Valid @RequestBody CreateOnlineCVRequest req) {
-
                 OnlineCV cv = createUseCase.execute(new CreateOnlineCVUseCase.Command(
                                 candidateId, req.getTitle(), req.getTemplateId()));
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "CV đã được tạo thành công."));
         }
 
-        // ── GET /api/v1/cv/{cvId} ──
+        // ── GET /api/v1/cv/{cvId} ─────────────────────────────────────────
 
         @Operation(summary = "Chi tiết CV (để chỉnh sửa)")
         @GetMapping("/{cvId}")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> getCVDetail(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = getCVDetailUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(OnlineCVDetailResponse.from(cv)));
         }
 
-        // ── PUT /api/v1/cv/{cvId} ──
+        // ── PUT /api/v1/cv/{cvId} ─────────────────────────────────────────
 
         @Operation(summary = "Cập nhật metadata CV", description = """
                         Cập nhật: tiêu đề, thông tin cá nhân, template, visibility.
-                        Không ảnh hưởng đến nội dung sections.
+                        Đổi sang **premium template** yêu cầu gói **PRO trở lên**.
                         """)
         @PutMapping("/{cvId}")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> updateCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
                         @Valid @RequestBody UpdateOnlineCVRequest req) {
-
                 PersonalInfo pi = buildPersonalInfo(req.getPersonalInfo());
                 OnlineCV cv = updateUseCase.execute(new UpdateOnlineCVUseCase.Command(
                                 cvId, candidateId, req.getTitle(), pi, req.getTemplateId(), req.getVisibility()));
@@ -107,19 +107,18 @@ public class OnlineCVController {
                                 OnlineCVDetailResponse.from(cv), "CV đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/cv/{cvId} ──
+        // ── DELETE /api/v1/cv/{cvId} ──────────────────────────────────────
 
-        @Operation(summary = "Xóa CV", description = "Xóa hoàn toàn CV và file PDF trên S3 (nếu có).")
+        @Operation(summary = "Xóa CV")
         @DeleteMapping("/{cvId}")
         public ResponseEntity<ApiResponse<Void>> deleteCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 deleteUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success("CV đã được xóa."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/sections
+        // ── POST /api/v1/cv/{cvId}/sections ──────────────────────────────
 
         @Operation(summary = "Thêm section mới vào CV")
         @PostMapping("/{cvId}/sections")
@@ -127,7 +126,6 @@ public class OnlineCVController {
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
                         @Valid @RequestBody UpdateCVSectionRequest req) {
-
                 var section = updateSectionUseCase.execute(new UpdateCVSectionUseCase.Command(
                                 cvId, candidateId, null, req.getType(),
                                 req.getTitle(), req.getContent(), req.isVisible()));
@@ -135,7 +133,7 @@ public class OnlineCVController {
                                 CVSectionResponse.from(section), "Section đã được thêm."));
         }
 
-        // ── PUT /api/v1/cv/{cvId}/sections/{sectionId} ─
+        // ── PUT /api/v1/cv/{cvId}/sections/{sectionId} ───────────────────
 
         @Operation(summary = "Cập nhật nội dung section")
         @PutMapping("/{cvId}/sections/{sectionId}")
@@ -144,7 +142,6 @@ public class OnlineCVController {
                         @PathVariable UUID cvId,
                         @PathVariable UUID sectionId,
                         @Valid @RequestBody UpdateCVSectionRequest req) {
-
                 var section = updateSectionUseCase.execute(new UpdateCVSectionUseCase.Command(
                                 cvId, candidateId, sectionId, null,
                                 req.getTitle(), req.getContent(), req.isVisible()));
@@ -152,7 +149,7 @@ public class OnlineCVController {
                                 CVSectionResponse.from(section), "Section đã được cập nhật."));
         }
 
-        // ── DELETE /api/v1/cv/{cvId}/sections/{sectionId} ─
+        // ── DELETE /api/v1/cv/{cvId}/sections/{sectionId} ────────────────
 
         @Operation(summary = "Xóa section khỏi CV")
         @DeleteMapping("/{cvId}/sections/{sectionId}")
@@ -160,100 +157,85 @@ public class OnlineCVController {
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
                         @PathVariable UUID sectionId) {
-
                 deleteSectionUseCase.execute(cvId, candidateId, sectionId);
                 return ResponseEntity.ok(ApiResponse.success("Section đã được xóa."));
         }
 
-        // ── PATCH /api/v1/cv/{cvId}/sections/reorder
+        // ── PATCH /api/v1/cv/{cvId}/sections/reorder ─────────────────────
 
-        @Operation(summary = "Sắp xếp lại thứ tự sections", description = """
-                        Truyền vào mảng sectionIds theo thứ tự mới.
-                        Phải chứa đủ tất cả section IDs hiện có.
-                        """)
+        @Operation(summary = "Sắp xếp lại thứ tự sections")
         @PatchMapping("/{cvId}/sections/reorder")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> reorderSections(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
                         @Valid @RequestBody ReorderSectionsRequest req) {
-
                 OnlineCV cv = reorderUseCase.execute(new ReorderSectionsUseCase.Command(
                                 cvId, candidateId, req.getSectionIds()));
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "Thứ tự sections đã được cập nhật."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/publish ─
+        // ── POST /api/v1/cv/{cvId}/publish ───────────────────────────────
 
-        @Operation(summary = "Publish CV", description = """
-                        Chuyển CV từ DRAFT → PUBLISHED.
-                        Yêu cầu: họ tên, email và ít nhất 1 section hiển thị.
-                        Sau khi publish, CV có thể truy cập qua `/public/cv/{slug}`.
-                        """)
+        @Operation(summary = "Publish CV")
         @PostMapping("/{cvId}/publish")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> publishCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = publishUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv),
                                 "CV đã được publish. Slug: " + cv.getSlug()));
         }
 
-        // ── POST /api/v1/cv/{cvId}/archive ─
+        // ── POST /api/v1/cv/{cvId}/archive ───────────────────────────────
 
         @Operation(summary = "Archive CV")
         @PostMapping("/{cvId}/archive")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> archiveCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = archiveUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "CV đã được archive."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/restore ─
+        // ── POST /api/v1/cv/{cvId}/restore ───────────────────────────────
 
         @Operation(summary = "Restore CV từ ARCHIVED → DRAFT")
         @PostMapping("/{cvId}/restore")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> restoreCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = restoreUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "CV đã được restore về DRAFT."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/duplicate ──
+        // ── POST /api/v1/cv/{cvId}/duplicate ─────────────────────────────
 
-        @Operation(summary = "Nhân bản CV", description = "Clone CV hiện tại thành bản DRAFT mới.")
+        @Operation(summary = "Nhân bản CV")
         @PostMapping("/{cvId}/duplicate")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> duplicateCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = duplicateUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "CV đã được nhân bản."));
         }
 
-        // ── POST /api/v1/cv/{cvId}/export ──
+        // ── POST /api/v1/cv/{cvId}/export ────────────────────────────────
 
-        @Operation(summary = "Xuất CV thành PDF và tải về", description = """
-                        Nếu CV chưa có PDF → render + upload S3 → stream về máy.
-                        Nếu đã có PDF → tải thẳng từ S3 về.
+        @Operation(summary = "Xuất CV thành PDF", description = """
+                        Export CV ra PDF — **miễn phí cho tất cả gói**.
+                        Lần đầu: render + upload S3. Lần sau: tải từ cache S3.
                         """)
         @PostMapping("/{cvId}/export")
         public ResponseEntity<InputStreamResource> exportCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
-                        @RequestParam(defaultValue = "attachment") String disposition) { // "inline" hoặc "attachment"
-
+                        @RequestParam(defaultValue = "attachment") String disposition) {
                 ExportCVUseCase.Result result = exportUseCase.execute(cvId, candidateId);
-
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                                 disposition + "; filename=\"" + result.fileName() + "\"")
@@ -263,47 +245,78 @@ public class OnlineCVController {
                                                 new java.io.ByteArrayInputStream(result.pdfBytes())));
         }
 
-        // ── POST /api/v1/cv/{cvId}/import-from-profile ─
+        // ── POST /api/v1/cv/{cvId}/ai-optimize ───────────────────────────
 
-        @Operation(summary = "Import từ hồ sơ ứng viên", description = """
-                        Tự động điền thông tin cá nhân, kinh nghiệm, học vấn, kỹ năng
-                        từ CandidateProfile vào CV này.
-                        Dữ liệu hiện có sẽ bị ghi đè.
+        /**
+         * AI tối ưu CV theo JD — chỉ dành cho gói PREMIUM.
+         *
+         * Không tự động sửa CV — chỉ trả về gợi ý để candidate review.
+         * Candidate tự áp dụng gợi ý vào từng section qua PUT /sections/{id}.
+         *
+         * Response gồm:
+         * - overallSummary : nhận xét tổng thể + matchScore (0-100)
+         * - suggestedSummary : đề xuất viết lại phần tóm tắt
+         * - skillsToAdd : kỹ năng nên thêm vào
+         * - skillsToRemove : kỹ năng không liên quan JD này
+         * - experienceSuggestions: cách viết lại mục kinh nghiệm
+         * - missingKeywords : từ khóa quan trọng trong JD mà CV đang thiếu
+         * - matchScore : điểm phù hợp tổng thể (0-100)
+         *
+         * Error codes:
+         * - AI_CV_WRITER_NOT_AVAILABLE : không có gói PREMIUM
+         */
+        @Operation(summary = "AI tối ưu CV theo JD ⭐ PREMIUM", description = """
+                        Phân tích CV của bạn so với một tin tuyển dụng cụ thể.
+                        AI sẽ gợi ý cách tối ưu nội dung để tăng tỷ lệ được nhà tuyển dụng chú ý.
+
+                        **Yêu cầu:** Gói **PREMIUM**.
+
+                        Kết quả chỉ là gợi ý — bạn tự quyết định áp dụng hay không.
                         """)
+        @PostMapping("/{cvId}/ai-optimize")
+        public ResponseEntity<ApiResponse<CvOptimizationResult>> aiOptimize(
+                        @CurrentUser UUID candidateId,
+                        @PathVariable UUID cvId,
+                        @RequestParam UUID jobPostId) {
+
+                CvOptimizationResult result = aiOptimizeCVUseCase.execute(
+                                new AiOptimizeCVUseCase.Command(cvId, jobPostId, candidateId));
+
+                return ResponseEntity.ok(ApiResponse.success(result,
+                                "Phân tích hoàn tất. Xem gợi ý bên dưới để tối ưu CV của bạn."));
+        }
+
+        // ── POST /api/v1/cv/{cvId}/import-from-profile ───────────────────
+
+        @Operation(summary = "Import từ hồ sơ ứng viên")
         @PostMapping("/{cvId}/import-from-profile")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> importFromProfile(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 OnlineCV cv = importFromProfileUseCase.execute(cvId, candidateId);
                 return ResponseEntity.ok(ApiResponse.success(
                                 OnlineCVDetailResponse.from(cv), "Dữ liệu hồ sơ đã được import vào CV."));
         }
+
+        // ── GET /api/v1/cv/{cvId}/preview-html ───────────────────────────
 
         @Operation(summary = "Preview CV dưới dạng HTML")
         @GetMapping("/{cvId}/preview-html")
         public ResponseEntity<ApiResponse<String>> previewHTML(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 String renderedHtml = previewCVUseCase.execute(cvId, candidateId);
-                // Gọi overload success(T data, String message) để tránh nhầm overload
                 return ResponseEntity.ok(ApiResponse.success(renderedHtml, "Thành công"));
         }
 
-        // ── GET /api/v1/cv/{cvId}/view
+        // ── GET /api/v1/cv/{cvId}/view ────────────────────────────────────
 
-        @Operation(summary = "Xem CV PDF (inline)", description = """
-                        Hiển thị PDF trực tiếp trong browser.
-                        CV phải được export trước.
-                        """)
+        @Operation(summary = "Xem CV PDF (inline)")
         @GetMapping("/{cvId}/view")
         public ResponseEntity<InputStreamResource> viewCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
-
                 DownloadExportedCVUseCase.Result result = downloadExportedCVUseCase.execute(candidateId, cvId);
-
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.CONTENT_DISPOSITION,
                                                 "inline; filename=\"" + result.fileName() + "\"")
@@ -312,7 +325,7 @@ public class OnlineCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── Helpers
+        // ── Helpers ───────────────────────────────────────────────────────
 
         private PersonalInfo buildPersonalInfo(PersonalInfoRequest req) {
                 if (req == null)
