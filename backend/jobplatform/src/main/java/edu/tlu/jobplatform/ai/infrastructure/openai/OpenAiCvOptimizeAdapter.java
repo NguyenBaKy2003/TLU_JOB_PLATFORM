@@ -1,10 +1,10 @@
 package edu.tlu.jobplatform.ai.infrastructure.openai;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.tlu.jobplatform.ai.domain.model.CvOptimizationRequest;
 import edu.tlu.jobplatform.ai.domain.model.CvOptimizationResult;
-import edu.tlu.jobplatform.ai.domain.port.CvOptimizationPort;
+import edu.tlu.jobplatform.cv.application.port.out.AiCvOptimizePort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,10 +16,24 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Implements AiCvOptimizePort → gọi Spring AI ChatClient.
+ *
+ * Cùng pattern với OpenAIJdOptimizationAdapter:
+ * - Đọc prompt từ file .st (classpath:prompts/cv-optimizer.st)
+ * - Replace placeholder bằng String.replace()
+ * - Gọi chatClient.prompt().user(prompt).call().content()
+ * - Parse JSON → CvOptimizationResult
+ * - Fallback result nếu AI lỗi (không crash request)
+ *
+ * Đặt tại: ai/infrastructure/openai/ — cùng package với các adapter AI khác.
+ * Spring scan thấy @Component → inject vào AiOptimizeCVUseCase qua
+ * AiCvOptimizePort.
+ */
 @Slf4j
 @Component
 @Profile("!test")
-public class OpenAiCvOptimizeAdapter implements CvOptimizationPort {
+public class OpenAiCvOptimizeAdapter implements AiCvOptimizePort {
 
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
@@ -27,8 +41,6 @@ public class OpenAiCvOptimizeAdapter implements CvOptimizationPort {
     @Value("classpath:prompts/cv-optimizer.st")
     private Resource promptTemplate;
 
-    // Inject jsonChatClient (temperature thấp, JSON mode) — giống
-    // OpenAICvAnalysisAdapter
     public OpenAiCvOptimizeAdapter(
             @Qualifier("jsonChatClient") ChatClient chatClient,
             ObjectMapper objectMapper) {
@@ -38,46 +50,80 @@ public class OpenAiCvOptimizeAdapter implements CvOptimizationPort {
 
     @Override
     public CvOptimizationResult optimize(CvOptimizationRequest request) {
-        log.info("[CvOptimize] Starting: cvId={} jobTitle='{}'",
-                request.getCvId(), request.getJobTitle());
+        log.info("[AiCvOptimize] Start: cvId={} jobTitle='{}'",
+                request.getCvId(), truncate(request.getJobTitle(), 50));
+
         try {
             String prompt = promptTemplate
                     .getContentAsString(StandardCharsets.UTF_8)
-                    .replace("$outputLanguage$", nullSafe(request.getOutputLanguage()))
-                    .replace("$cvText$", truncate(nullSafe(request.getCvText()), 6000))
+                    .replace("$cvText$", nullSafe(request.getCvText()))
                     .replace("$jobTitle$", nullSafe(request.getJobTitle()))
                     .replace("$jobDescription$", nullSafe(request.getJobDescription()))
                     .replace("$jobRequirements$", nullSafe(request.getJobRequirements()))
-                    .replace("$jobBenefits$", nullSafe(request.getJobBenefits()));
+                    .replace("$jobBenefits$", nullSafe(request.getJobBenefits()))
+                    .replace("$outputLanguage$", nullSafe(request.getOutputLanguage(), "vi"));
 
-            String raw = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .content();
+            String raw = chatClient.prompt().user(prompt).call().content();
+            String clean = cleanJsonResponse(raw);
 
-            CvOptimizationResult result = parseResponse(raw);
+            JsonNode root = objectMapper.readTree(clean);
 
-            log.info("[CvOptimize] Done: cvId={} matchScore={} missingKeywords={}",
-                    request.getCvId(), result.getMatchScore(),
+            // Defensive: fix các field AI có thể trả sai kiểu
+            fixFieldToString(root, "overallSummary");
+            fixFieldToString(root, "suggestedSummary");
+
+            CvOptimizationResult result = objectMapper.treeToValue(root, CvOptimizationResult.class);
+
+            log.info("[AiCvOptimize] Done: cvId={} matchScore={} missingKeywords={}",
+                    request.getCvId(),
+                    result.getMatchScore(),
                     result.getMissingKeywords() != null ? result.getMissingKeywords().size() : 0);
 
             return result;
 
         } catch (Exception e) {
-            log.error("[CvOptimize] Failed: cvId={} error={}", request.getCvId(), e.getMessage());
-            return fallbackResult();
+            log.error("[AiCvOptimize] Failed: cvId={} error={}",
+                    request.getCvId(), e.getMessage());
+            return buildFallbackResult();
         }
     }
 
-    private CvOptimizationResult parseResponse(String raw) throws JsonProcessingException {
+    // ── Helpers — cùng pattern với OpenAIJdOptimizationAdapter ────────
+
+    private String cleanJsonResponse(String raw) {
+        if (raw == null || raw.isBlank())
+            return "{}";
         String clean = raw.trim()
-                .replaceAll("(?s)^```json\\s*", "")
+                .replaceAll("(?s)^```(?:json)?\\s*", "")
                 .replaceAll("(?s)```\\s*$", "")
                 .trim();
-        return objectMapper.readValue(clean, CvOptimizationResult.class);
+        int start = clean.indexOf('{');
+        int end = clean.lastIndexOf('}');
+        if (start >= 0 && end > start)
+            clean = clean.substring(start, end + 1);
+        return clean;
     }
 
-    private CvOptimizationResult fallbackResult() {
+    /**
+     * Fix field bị AI trả về dạng Object/Array thay vì String.
+     * Cùng pattern với OpenAIJdOptimizationAdapter.fixFieldToString().
+     */
+    private void fixFieldToString(JsonNode root, String field) {
+        JsonNode node = root.get(field);
+        if (node == null || node.isNull()) {
+            if (root instanceof com.fasterxml.jackson.databind.node.ObjectNode on)
+                on.put(field, "");
+            return;
+        }
+        if (node.isObject() || node.isArray()) {
+            if (root instanceof com.fasterxml.jackson.databind.node.ObjectNode on)
+                on.put(field, node.toString());
+            log.debug("[AiCvOptimize] Fixed field '{}' from {} to String",
+                    field, node.getNodeType());
+        }
+    }
+
+    private CvOptimizationResult buildFallbackResult() {
         return CvOptimizationResult.builder()
                 .overallSummary("Không thể phân tích CV lúc này. Vui lòng thử lại.")
                 .suggestedSummary(null)
@@ -89,12 +135,17 @@ public class OpenAiCvOptimizeAdapter implements CvOptimizationPort {
                 .build();
     }
 
-    private String truncate(String text, int maxChars) {
-        return text.length() <= maxChars ? text
-                : text.substring(0, maxChars) + "\n...[truncated]";
-    }
-
     private String nullSafe(String s) {
         return s != null ? s : "";
+    }
+
+    private String nullSafe(String s, String defaultVal) {
+        return (s != null && !s.isBlank()) ? s : defaultVal;
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null)
+            return "null";
+        return s.length() <= max ? s : s.substring(0, max) + "...";
     }
 }
