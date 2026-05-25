@@ -43,6 +43,7 @@ public class CandidateMapper {
                                 .jobSearchStatus(e.getJobSearchStatus())
                                 .expectedSalary(e.getExpectedSalary())
                                 .currency(e.getCurrency())
+                                .boostedUntil(e.getBoostedUntil())
                                 .skills(e.getSkills().stream()
                                                 .map(this::toDomain)
                                                 .collect(Collectors.toCollection(ArrayList::new)))
@@ -93,6 +94,7 @@ public class CandidateMapper {
                                 .jobSearchStatus(p.getJobSearchStatus())
                                 .expectedSalary(p.getExpectedSalary())
                                 .currency(p.getCurrency())
+                                .boostedUntil(p.getBoostedUntil())
                                 .build();
         }
 
@@ -112,6 +114,7 @@ public class CandidateMapper {
                 e.setJobSearchStatus(p.getJobSearchStatus());
                 e.setExpectedSalary(p.getExpectedSalary());
                 e.setCurrency(p.getCurrency());
+                e.setBoostedUntil(p.getBoostedUntil());
 
                 // Skills — dedup theo name (case-insensitive) trước khi insert
                 e.getSkills().clear();

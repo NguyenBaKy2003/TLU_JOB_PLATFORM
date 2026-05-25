@@ -53,23 +53,57 @@ public class AdminCandidateSubscriptionPlanController {
     // ── POST / ────────────────────────────────────────────────────────
 
     /**
+     * Ví dụ body tạo gói FREE_CANDIDATE (miễn phí):
+     * {
+     * "code": "FREE_CANDIDATE",
+     * "name": "Gói Cơ Bản",
+     * "description": "Miễn phí, 5 đơn/tháng, tạo 1 CV, template thường",
+     * "priceMonthly": null,
+     * "priceYearly": null,
+     * "applicationLimit": 5,
+     * "cvBoostLimit": 0,
+     * "cvCreateLimit": 1,
+     * "aiCvWriter": false,
+     * "premiumTemplateAccess": false,
+     * "durationDays": null,
+     * "free": true,
+     * "active": true
+     * }
+     * 
      * Ví dụ body tạo gói PRO:
      * {
      * "code": "PRO",
-     * "name": "Gói Pro",
-     * "description": "Dành cho ứng viên tích cực",
+     * "name": "Gói Chuyên Nghiệp",
+     * "description": "99k/tháng, unlimited apply, boost CV, tạo 5 CV, template
+     * premium",
      * "priceMonthly": 99000,
      * "priceYearly": 899000,
      * "applicationLimit": -1,
      * "cvBoostLimit": 3,
-     * "jobAlertLimit": 10,
-     * "mockInterviewLimit": 0,
+     * "cvCreateLimit": 5,
      * "aiCvWriter": false,
-     * "salaryInsights": false,
-     * "profileAnalytics": true,
-     * "advancedFilters": true,
+     * "premiumTemplateAccess": true,
      * "durationDays": 30,
-     * "free": false
+     * "free": false,
+     * "active": true
+     * }
+     * 
+     * Ví dụ body tạo gói PREMIUM:
+     * {
+     * "code": "PREMIUM",
+     * "name": "Gói Cao Cấp",
+     * "description": "199k/tháng, tất cả Pro + AI viết CV, tạo unlimited CV,
+     * template premium",
+     * "priceMonthly": 199000,
+     * "priceYearly": 1799000,
+     * "applicationLimit": -1,
+     * "cvBoostLimit": 10,
+     * "cvCreateLimit": -1,
+     * "aiCvWriter": true,
+     * "premiumTemplateAccess": true,
+     * "durationDays": 30,
+     * "free": false,
+     * "active": true
      * }
      */
     @PostMapping
@@ -78,13 +112,18 @@ public class AdminCandidateSubscriptionPlanController {
             @Valid @RequestBody CreateCandidatePlanRequest req) {
 
         CreateCandidatePlanUseCase.Command cmd = new CreateCandidatePlanUseCase.Command(
-                req.code(), req.name(), req.description(),
-                req.priceMonthly(), req.priceYearly(),
-                req.applicationLimit(), req.cvBoostLimit(),
-                req.jobAlertLimit(), req.mockInterviewLimit(),
-                req.aiCvWriter(), req.salaryInsights(),
-                req.profileAnalytics(), req.advancedFilters(),
-                req.durationDays(), req.free());
+                req.code(),
+                req.name(),
+                req.description(),
+                req.priceMonthly(),
+                req.priceYearly(),
+                req.applicationLimit(),
+                req.cvBoostLimit(),
+                req.cvCreateLimit(),
+                req.aiCvWriter(),
+                req.premiumTemplateAccess(),
+                req.durationDays(),
+                req.free());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(createPlanUseCase.execute(cmd)));
@@ -93,25 +132,33 @@ public class AdminCandidateSubscriptionPlanController {
     // ── PATCH /{planId} ───────────────────────────────────────────────
 
     /**
-     * Toggle deactivate: { "active": false }
-     * Toggle activate: { "active": true }
-     * Đổi giá: { "priceMonthly": 120000, "priceYearly": 1090000 }
-     * Bật tính năng AI: { "aiCvWriter": true, "salaryInsights": true }
+     * Partial update - chỉ gửi các field muốn thay đổi.
+     * 
+     * Ví dụ toggle active: { "active": false }
+     * Ví dụ đổi giá: { "priceMonthly": 120000, "priceYearly": 1090000 }
+     * Ví dụ nâng cấp tính năng: { "aiCvWriter": true, "premiumTemplateAccess": true
+     * }
+     * Ví dụ tăng quota: { "applicationLimit": -1, "cvBoostLimit": 5,
+     * "cvCreateLimit": -1 }
      */
     @PatchMapping("/{planId}")
-    @Operation(summary = "Cập nhật gói Candidate (partial update). { \"active\": false } để deactivate.")
+    @Operation(summary = "Cập nhật gói Candidate (partial update). Chỉ gửi các field cần thay đổi.")
     public ResponseEntity<ApiResponse<CandidateSubscriptionPlan>> update(
             @PathVariable UUID planId,
-            @RequestBody UpdateCandidatePlanRequest req) {
+            @Valid @RequestBody UpdateCandidatePlanRequest req) {
 
         UpdateCandidatePlanUseCase.Command cmd = new UpdateCandidatePlanUseCase.Command(
-                req.name(), req.description(),
-                req.priceMonthly(), req.priceYearly(),
-                req.applicationLimit(), req.cvBoostLimit(),
-                req.jobAlertLimit(), req.mockInterviewLimit(),
-                req.aiCvWriter(), req.salaryInsights(),
-                req.profileAnalytics(), req.advancedFilters(),
-                req.durationDays(), req.active());
+                req.name(),
+                req.description(),
+                req.priceMonthly(),
+                req.priceYearly(),
+                req.applicationLimit(),
+                req.cvBoostLimit(),
+                req.cvCreateLimit(),
+                req.aiCvWriter(),
+                req.premiumTemplateAccess(),
+                req.durationDays(),
+                req.active());
 
         return ResponseEntity.ok(ApiResponse.success(updatePlanUseCase.execute(planId, cmd)));
     }

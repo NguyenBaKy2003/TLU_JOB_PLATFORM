@@ -110,7 +110,7 @@ export default function CandidatePaymentSuccessPage() {
           <Package size={40} className="text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg font-bold text-gray-800 mb-2">Không tìm thấy thông tin gói</h2>
           <p className="text-[16px] text-gray-400 mb-6">Giao dịch đã được ghi nhận. Vui lòng kiểm tra trong phần quản lý gói.</p>
-          <Link href="/candidate/pricing" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 text-white text-[16px] font-semibold hover:bg-violet-700 transition-colors">
+          <Link href="/candidate/subscription" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 text-white text-[16px] font-semibold hover:bg-violet-700 transition-colors">
             Xem gói dịch vụ <ArrowRight size={15} />
           </Link>
         </div>
@@ -210,7 +210,7 @@ export default function CandidatePaymentSuccessPage() {
           <Link href="/candidate/profile" className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-violet-600 text-white text-[16px] font-bold hover:bg-violet-700 active:scale-[0.98] transition-all shadow-sm shadow-violet-200">
             Cập nhật hồ sơ <ArrowRight size={15} />
           </Link>
-          <Link href="/candidate/pricing" className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-[16px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all">
+          <Link href="/candidate/subscription" className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-[16px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all">
             <Home size={15} /> Quản lý gói
           </Link>
         </div>

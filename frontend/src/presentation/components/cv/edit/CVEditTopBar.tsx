@@ -5,8 +5,9 @@ import Link from "next/link";
 import {
   ArrowLeft, Eye, EyeOff, Download, Globe,
   Check, Loader2, Pencil, ChevronDown,
+  Sparkles,
 } from "lucide-react";
-import type { OnlineCVDetail } from "@/domain/models/Cv";
+import type { CVVisibility, OnlineCVDetail } from "@/domain/models/Cv";
 import { CV_STATUS_LABELS } from "@/domain/models/Cv";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
   exportingPdf: boolean;
   showPreview: boolean;
   onTogglePreview: () => void;
+   onAiOptimize: () => void;
   onPublish: () => void;
   onExportPdf: () => void;
   onUpdateVisibility: (v: CVVisibility) => Promise<void>;
@@ -30,7 +32,7 @@ const STATUS_PILL: Record<string, string> = {
 
 export function CVEditTopBar({
   cv, saving, exportingPdf, showPreview,
-  onTogglePreview, onPublish,onUpdateVisibility, onExportPdf, onUpdateTitle, onBack,
+  onTogglePreview, onPublish,onUpdateVisibility,onAiOptimize, onExportPdf, onUpdateTitle, onBack,
 }: Props) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(cv.title);
@@ -170,6 +172,21 @@ export function CVEditTopBar({
           >
             <Globe className="w-3.5 h-3.5" />
             Publish
+          </button>
+        )}
+
+         {cv.status !== "ARCHIVED" && (
+          <button
+            onClick={onAiOptimize}
+            className="
+              flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+              bg-gradient-to-r from-purple-500 to-violet-600
+              text-white hover:from-purple-600 hover:to-violet-700
+              transition-all active:scale-95 shadow-sm
+            "
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Optimize
           </button>
         )}
 

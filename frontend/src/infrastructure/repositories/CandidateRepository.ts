@@ -3,18 +3,19 @@ import {
   CandidateProfile, CandidateCV, JobSearchStatus,
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
+  BoostResult, BoostStatus,
 } from "@/domain/models/Candidate";
 import api from "@/lib/axios";
 
 interface ApiResponse<T> {
   success: boolean;
-  data:    T;
+  data: T;
   message: string | null;
 }
 
 export class CandidateRepository implements ICandidateRepository {
 
-  // ── Profile ──────
+  // ── Profile ──────────────────────────────────────────────────────────────
 
   async getProfile(): Promise<CandidateProfile> {
     const res = await api.get<ApiResponse<CandidateProfile>>("/candidate/profile/me");
@@ -40,7 +41,19 @@ export class CandidateRepository implements ICandidateRepository {
     await api.patch("/candidate/profile/me/job-search-status", null, { params: { status } });
   }
 
-  // ── Experience ───
+  // ── Boost ─────────────────────────────────────────────────────────────────
+
+  async boostCv(): Promise<BoostResult> {
+    const res = await api.post<ApiResponse<BoostResult>>("/candidate/profile/boost");
+    return res.data.data;
+  }
+
+  async getBoostStatus(): Promise<BoostStatus> {
+    const res = await api.get<ApiResponse<BoostStatus>>("/candidate/profile/boost/status");
+    return res.data.data;
+  }
+
+  // ── Experience ────────────────────────────────────────────────────────────
 
   async addExperience(data: ExperiencePayload): Promise<CandidateProfile> {
     const res = await api.post<ApiResponse<CandidateProfile>>(
@@ -58,7 +71,7 @@ export class CandidateRepository implements ICandidateRepository {
     await api.delete(`/candidate/profile/me/experiences/${id}`);
   }
 
-  // ── Education ────
+  // ── Education ─────────────────────────────────────────────────────────────
 
   async addEducation(data: EducationPayload): Promise<CandidateProfile> {
     const res = await api.post<ApiResponse<CandidateProfile>>(
@@ -76,7 +89,7 @@ export class CandidateRepository implements ICandidateRepository {
     await api.delete(`/candidate/profile/me/educations/${id}`);
   }
 
-  // ── CV ────
+  // ── CV ────────────────────────────────────────────────────────────────────
 
   async listCVs(): Promise<CandidateCV[]> {
     const res = await api.get<ApiResponse<CandidateCV[]>>("/candidate/cv");
@@ -95,7 +108,6 @@ export class CandidateRepository implements ICandidateRepository {
     });
     return res.data.data;
   }
- 
 
   async createOnlineCV(data: CreateOnlineCVPayload): Promise<CandidateCV> {
     const res = await api.post<ApiResponse<CandidateCV>>("/candidate/cv/online", data);

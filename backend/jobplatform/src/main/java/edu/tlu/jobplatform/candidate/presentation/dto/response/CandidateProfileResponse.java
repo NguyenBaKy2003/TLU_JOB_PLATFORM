@@ -33,6 +33,8 @@ public class CandidateProfileResponse {
         private JobSearchStatus jobSearchStatus;
         private int expectedSalary;
         private String currency;
+        private boolean boosted;
+        private LocalDateTime boostedUntil;
         private List<SkillResponse> skills;
         private List<WorkExperienceResponse> experiences;
         private List<EducationResponse> educations;
@@ -63,6 +65,8 @@ public class CandidateProfileResponse {
                                 .jobSearchStatus(p.getJobSearchStatus())
                                 .expectedSalary(p.getExpectedSalary())
                                 .currency(p.getCurrency())
+                                .boosted(p.isBoosted())
+                                .boostedUntil(p.getBoostedUntil())
                                 .skills(p.getSkills().stream()
                                                 .map(SkillResponse::from).toList())
                                 .experiences(p.getExperiences().stream()
@@ -82,7 +86,7 @@ public class CandidateProfileResponse {
                                 .build();
         }
 
-        // ── Nested responses
+        // ── Nested responses ──────────────────────────────────────────────────────
 
         @Getter
         @Builder

@@ -1,16 +1,15 @@
 import { ChatbotButton } from "@/presentation/components/ai/ChatbotButton";
 import { CategoriesSection } from "@/presentation/components/home/CategoriesSection";
-import { CtaSection } from "@/presentation/components/home/CtaSection";
-import { FeaturesSection } from "@/presentation/components/home/FeaturesSection";
 import { HeroSection } from "@/presentation/components/home/HeroSection";
 import { HowItWorksSection } from "@/presentation/components/home/HowItWorksSection";
 import { RecommendationPanel } from "@/presentation/components/home/RecommendationPanel";
 import { RecruiterBanner } from "@/presentation/components/home/RecruiterBanner";
 import { FindJobsSection } from "@/presentation/components/home/FindJobsSection";
 import { ChooseCompaniesSection } from "@/presentation/components/home/ChooseCompaniesSection";
-import { TestimonialsSection } from "@/presentation/components/home/TestimonialsSection";
 import { Footer } from "@/presentation/components/layout/Footer";
 import { Header } from "@/presentation/components/layout/Header";
+import { MottoAndTeamSection } from "@/presentation/components/home/MottoAndTeamSection";
+import { LocationAndCTASection } from "@/presentation/components/home/LocationAndCTASection";
 
 export default function HomePage() {
   return (
@@ -26,9 +25,8 @@ export default function HomePage() {
       <FindJobsSection/>
       <ChooseCompaniesSection/>
       <HowItWorksSection />
-      <FeaturesSection />
-      <TestimonialsSection />
-      <CtaSection />
+      <MottoAndTeamSection/>
+      <LocationAndCTASection/>
       <ChatbotButton></ChatbotButton>
       <Footer></Footer>
     </main>

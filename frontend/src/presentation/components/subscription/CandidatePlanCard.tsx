@@ -16,7 +16,7 @@ export const CANDIDATE_PLAN_BADGE: Record<string, { label: string; cls: string }
 };
 
 export const CANDIDATE_PLAN_HIGHLIGHTS: Record<string, string[]> = {
-  FREE: [
+  FREE_CANDIDATE: [
     "Ứng tuyển tối đa 5 vị trí/tháng",
     "Xem tin tuyển dụng không giới hạn",
     "Tạo 1 CV cơ bản",

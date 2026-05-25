@@ -39,7 +39,7 @@ import java.util.UUID;
  *                chạy trong cùng transaction này, không có REQUIRES_NEW).
  *                → Không cần try/catch hoàn quota thủ công.
  *
- *                Candidate KHÔNG có gói (BASIC free hoặc chưa mua):
+ *                Candidate KHÔNG có gói (FREE_CANDIDATE free hoặc chưa mua):
  *                ConsumeCandidateQuotaUseCase ném BusinessRuleException
  *                "NO_ACTIVE_CANDIDATE_SUBSCRIPTION" → trả 400 cho client.
  *                Frontend cần bắt errorCode này để hiện popup "Mua gói".

@@ -148,12 +148,15 @@ public class ApplicationDetailResponse {
         private final String email;
         private final String phone;
         private final String avatarUrl;
+        private final boolean boosted;
 
         public static CandidateInfo of(UUID id, String fullName,
-                String email, String phone, String avatarUrl) {
+                String email, String phone, String avatarUrl, boolean boosted) {
             return CandidateInfo.builder()
                     .id(id).fullName(fullName).email(email)
-                    .phone(phone).avatarUrl(avatarUrl).build();
+                    .phone(phone).avatarUrl(avatarUrl)
+                    .boosted(boosted)
+                    .build();
         }
     }
 

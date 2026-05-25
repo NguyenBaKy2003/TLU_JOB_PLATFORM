@@ -29,36 +29,41 @@ public class AssignDefaultCandidatePlanUseCase {
             return existing.get();
         }
 
-        // 2. Lấy FREE_CANDIDATE plan
-        CandidateSubscriptionPlan freePlan = planRepo.findByCode(PlanCode.FREE_CANDIDATE)
+        // 2. Lấy FREE_CANDIDATE plan (free plan mặc định)
+        CandidateSubscriptionPlan basicPlan = planRepo.findByCode("FREE_CANDIDATE")
                 .filter(CandidateSubscriptionPlan::isActive)
                 .orElseThrow(() -> new IllegalStateException(
                         "FREE_CANDIDATE plan not found — run DB seed script!"));
 
-        // 3. Tạo thẳng ACTIVE
+        // 3. Xác định expiry date dựa trên durationDays
+        LocalDateTime expiresAt = null;
+        if (basicPlan.getDurationDays() != null) {
+            expiresAt = LocalDateTime.now().plusDays(basicPlan.getDurationDays());
+        }
+        // Nếu durationDays = null (free plan vĩnh viễn) thì expiresAt = null
+
+        // 4. Tạo subscription với status ACTIVE
         CandidateSubscription subscription = CandidateSubscription.builder()
                 .id(UUID.randomUUID())
                 .candidateId(candidateId)
-                .planId(freePlan.getId())
-                .planCode(freePlan.getCode())
+                .planId(basicPlan.getId())
+                .planCode(basicPlan.getCode())
                 .yearly(false)
                 .status(CandidateSubscriptionStatus.ACTIVE)
                 .startedAt(LocalDateTime.now())
-                .expiresAt(null) // Free = vĩnh viễn
-                .applicationQuota(CandidateQuota.of(freePlan.getApplicationLimit()))
-                .cvBoostQuota(CandidateQuota.of(freePlan.getCvBoostLimit()))
-                .jobAlertQuota(CandidateQuota.of(freePlan.getJobAlertLimit()))
-                .mockInterviewQuota(CandidateQuota.of(freePlan.getMockInterviewLimit()))
-                .aiCvWriter(freePlan.isAiCvWriter())
-                .salaryInsights(freePlan.isSalaryInsights())
-                .profileAnalytics(freePlan.isProfileAnalytics())
-                .advancedFilters(freePlan.isAdvancedFilters())
+                .expiresAt(expiresAt)
+                .applicationQuota(CandidateQuota.of(basicPlan.getApplicationLimit()))
+                .cvBoostQuota(CandidateQuota.of(basicPlan.getCvBoostLimit()))
+                .cvCreateQuota(CandidateQuota.of(basicPlan.getCvCreateLimit()))
+                .aiCvWriter(basicPlan.isAiCvWriter())
+                .premiumTemplateAccess(basicPlan.isPremiumTemplateAccess())
                 .createdAt(LocalDateTime.now())
                 .lastQuotaResetAt(LocalDateTime.now())
                 .build();
 
         CandidateSubscription saved = subscriptionRepo.save(subscription);
-        log.info("FREE_CANDIDATE plan assigned: candidateId={}", candidateId);
+        log.info("FREE_CANDIDATE plan assigned: candidateId={}, planCode={}, expiresAt={}",
+                candidateId, basicPlan.getCode(), expiresAt);
         return saved;
     }
 }

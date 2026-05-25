@@ -1,3 +1,4 @@
+import { AiOptimizeResult } from './../../domain/models/Cv';
 // src/application/services/CvService.ts
 
 import type { ICvRepository } from "@/domain/repositories/ICvRepository";
@@ -151,5 +152,7 @@ export class CvService {
   getPublicHtml(slug: string): Promise<string> {
   return this.repo.getPublicHtml(slug);
 }
-
+  aiOptimize(cvId: string, jobPostId: string): Promise<AiOptimizeResult> {
+    return this.repo.aiOptimize(cvId, jobPostId);
+  }
 }

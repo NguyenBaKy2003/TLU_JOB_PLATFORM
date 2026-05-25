@@ -4,18 +4,6 @@ import edu.tlu.jobplatform.subscription.domain.model.*;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.*;
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper: chuyển đổi giữa domain model và JPA entity.
- *
- * Tuân theo pattern của SubscriptionMapper (Company):
- * - toDomain() — entity → aggregate root
- * - toNewEntity() — aggregate root → entity mới (chưa có id trong DB)
- * - updateEntity() — cập nhật các mutable fields vào entity đang managed
- *
- * updateEntity chỉ cập nhật các field có thể thay đổi sau khi tạo.
- * Các field immutable (candidateId, planId, planCode, yearly, feature flags)
- * không được cập nhật — đây là bất biến thiết kế.
- */
 @Component
 public class CandidateSubscriptionMapper {
 
@@ -39,18 +27,12 @@ public class CandidateSubscriptionMapper {
                         .limit(e.getCvBoostQuotaLimit())
                         .used(e.getCvBoostQuotaUsed())
                         .build())
-                .jobAlertQuota(CandidateQuota.builder()
-                        .limit(e.getJobAlertQuotaLimit())
-                        .used(e.getJobAlertQuotaUsed())
-                        .build())
-                .mockInterviewQuota(CandidateQuota.builder()
-                        .limit(e.getMockInterviewQuotaLimit())
-                        .used(e.getMockInterviewQuotaUsed())
+                .cvCreateQuota(CandidateQuota.builder()
+                        .limit(e.getCvCreateQuotaLimit())
+                        .used(e.getCvCreateQuotaUsed())
                         .build())
                 .aiCvWriter(e.isAiCvWriter())
-                .salaryInsights(e.isSalaryInsights())
-                .profileAnalytics(e.isProfileAnalytics())
-                .advancedFilters(e.isAdvancedFilters())
+                .premiumTemplateAccess(e.isPremiumTemplateAccess())
                 .currentPaymentId(e.getCurrentPaymentId())
                 .lastQuotaResetAt(e.getLastQuotaResetAt())
                 .createdAt(e.getCreatedAt())
@@ -70,14 +52,10 @@ public class CandidateSubscriptionMapper {
                 .applicationQuotaUsed(d.getApplicationQuota().getUsed())
                 .cvBoostQuotaLimit(d.getCvBoostQuota().getLimit())
                 .cvBoostQuotaUsed(d.getCvBoostQuota().getUsed())
-                .jobAlertQuotaLimit(d.getJobAlertQuota().getLimit())
-                .jobAlertQuotaUsed(d.getJobAlertQuota().getUsed())
-                .mockInterviewQuotaLimit(d.getMockInterviewQuota().getLimit())
-                .mockInterviewQuotaUsed(d.getMockInterviewQuota().getUsed())
+                .cvCreateQuotaLimit(d.getCvCreateQuota().getLimit())
+                .cvCreateQuotaUsed(d.getCvCreateQuota().getUsed())
                 .aiCvWriter(d.isAiCvWriter())
-                .salaryInsights(d.isSalaryInsights())
-                .profileAnalytics(d.isProfileAnalytics())
-                .advancedFilters(d.isAdvancedFilters())
+                .premiumTemplateAccess(d.isPremiumTemplateAccess())
                 .currentPaymentId(d.getCurrentPaymentId())
                 .lastQuotaResetAt(d.getLastQuotaResetAt())
                 .build();
@@ -86,21 +64,16 @@ public class CandidateSubscriptionMapper {
         return entity;
     }
 
-    /**
-     * Chỉ cập nhật các mutable fields.
-     * Feature flags, planCode, candidateId, yearly là immutable sau khi tạo.
-     */
+    /** Chỉ update mutable fields — immutable fields (planCode, flags) giữ nguyên */
     public void updateEntity(CandidateSubscriptionJpaEntity e, CandidateSubscription d) {
         e.setStatus(d.getStatus());
         e.setStartedAt(d.getStartedAt());
         e.setExpiresAt(d.getExpiresAt());
         e.setCurrentPaymentId(d.getCurrentPaymentId());
         e.setLastQuotaResetAt(d.getLastQuotaResetAt());
-        // quota used fields
         e.setApplicationQuotaUsed(d.getApplicationQuota().getUsed());
         e.setCvBoostQuotaUsed(d.getCvBoostQuota().getUsed());
-        e.setJobAlertQuotaUsed(d.getJobAlertQuota().getUsed());
-        e.setMockInterviewQuotaUsed(d.getMockInterviewQuota().getUsed());
+        e.setCvCreateQuotaUsed(d.getCvCreateQuota().getUsed());
     }
 
     // ── CandidateSubscriptionPlan ─────────────────────────────────────
@@ -115,12 +88,9 @@ public class CandidateSubscriptionMapper {
                 .priceYearly(e.getPriceYearly())
                 .applicationLimit(e.getApplicationLimit())
                 .cvBoostLimit(e.getCvBoostLimit())
-                .jobAlertLimit(e.getJobAlertLimit())
-                .mockInterviewLimit(e.getMockInterviewLimit())
+                .cvCreateLimit(e.getCvCreateLimit())
                 .aiCvWriter(e.isAiCvWriter())
-                .salaryInsights(e.isSalaryInsights())
-                .profileAnalytics(e.isProfileAnalytics())
-                .advancedFilters(e.isAdvancedFilters())
+                .premiumTemplateAccess(e.isPremiumTemplateAccess())
                 .durationDays(e.getDurationDays())
                 .active(e.isActive())
                 .free(e.isFree())
@@ -136,18 +106,15 @@ public class CandidateSubscriptionMapper {
                 .priceYearly(d.getPriceYearly())
                 .applicationLimit(d.getApplicationLimit())
                 .cvBoostLimit(d.getCvBoostLimit())
-                .jobAlertLimit(d.getJobAlertLimit())
-                .mockInterviewLimit(d.getMockInterviewLimit())
+                .cvCreateLimit(d.getCvCreateLimit())
                 .aiCvWriter(d.isAiCvWriter())
-                .salaryInsights(d.isSalaryInsights())
-                .profileAnalytics(d.isProfileAnalytics())
-                .advancedFilters(d.isAdvancedFilters())
+                .premiumTemplateAccess(d.isPremiumTemplateAccess())
                 .durationDays(d.getDurationDays())
                 .free(d.isFree())
                 .build();
-        if (d.getId() != null) {
+        entity.setActive(d.isActive());
+        if (d.getId() != null)
             entity.setId(d.getId());
-        }
         return entity;
     }
 
@@ -158,16 +125,10 @@ public class CandidateSubscriptionMapper {
         e.setPriceYearly(d.getPriceYearly());
         e.setApplicationLimit(d.getApplicationLimit());
         e.setCvBoostLimit(d.getCvBoostLimit());
-        e.setJobAlertLimit(d.getJobAlertLimit());
-        e.setMockInterviewLimit(d.getMockInterviewLimit());
+        e.setCvCreateLimit(d.getCvCreateLimit());
         e.setAiCvWriter(d.isAiCvWriter());
-        e.setSalaryInsights(d.isSalaryInsights());
-        e.setProfileAnalytics(d.isProfileAnalytics());
-        e.setAdvancedFilters(d.isAdvancedFilters());
+        e.setPremiumTemplateAccess(d.isPremiumTemplateAccess());
         e.setDurationDays(d.getDurationDays());
-        e.setFree(d.isFree());
-        if (!d.isActive()) {
-            e.softDelete();
-        }
+        e.setActive(d.isActive());
     }
 }

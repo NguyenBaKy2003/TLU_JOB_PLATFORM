@@ -1,4 +1,4 @@
-// ─── Enums ─
+// ─── Enums ───────────────────────────────────────────────────────────────────
 
 export type JobSearchStatus =
   | "ACTIVELY_LOOKING"
@@ -18,7 +18,7 @@ export type SocialPlatform =
   | "PORTFOLIO"
   | "BEHANCE";
 
-// ─── Sub-models ───────────
+// ─── Sub-models ───────────────────────────────────────────────────────────────
 
 export interface Skill {
   name: string;
@@ -31,8 +31,8 @@ export interface WorkExperience {
   companyName: string;
   position: string;
   description: string | null;
-  startDate: string; // ISO "YYYY-MM-DD"
-  endDate: string | null; // null khi current = true
+  startDate: string;
+  endDate: string | null;
   current: boolean;
 }
 
@@ -67,13 +67,24 @@ export interface DesiredJob {
   levels: JobLevel[] | string[];
 }
 
-// Fix: backend trả về Benefit object {id, name}, không phải string[]
 export interface Benefit {
   id: string;
   name: string;
 }
 
-// ─── Candidate Profile ────
+// ─── Boost ───────────────────────────────────────────────────────────────────
+
+export interface BoostResult {
+  boostedUntil: string; // ISO datetime
+  boostsRemaining: number; // -1 = unlimited (PREMIUM)
+}
+
+export interface BoostStatus {
+  currentlyBoosted: boolean;
+  boostedUntil: string | null;
+}
+
+// ─── Candidate Profile ────────────────────────────────────────────────────────
 
 export interface CandidateProfile {
   id: string;
@@ -85,6 +96,7 @@ export interface CandidateProfile {
   summary: string | null;
   phone: string | null;
   location: string | null;
+  postalCode: string | null;
   avatarUrl: string | null;
   dateOfBirth: string | null;
   gender: string | null;
@@ -93,18 +105,20 @@ export interface CandidateProfile {
   jobSearchStatus: JobSearchStatus | null;
   expectedSalary: number;
   currency: string | null;
+  boosted: boolean;           // thêm mới
+  boostedUntil: string | null; // thêm mới — ISO datetime
   skills: Skill[];
   experiences: WorkExperience[];
   educations: Education[];
   languages: Language[];
   socialLinks: SocialLink[];
   desiredJobs: DesiredJob[];
-  benefits: Benefit[]; // Fix: Benefit object, không phải string[]
+  benefits: Benefit[];
   createdAt: string;
   updatedAt: string;
 }
 
-// ─── CV ────
+// ─── CV ──────────────────────────────────────────────────────────────────────
 
 export interface CandidateCV {
   id: string;
@@ -117,7 +131,7 @@ export interface CandidateCV {
   updatedAt: string;
 }
 
-// ─── Request Payloads ─────
+// ─── Request Payloads ────────────────────────────────────────────────────────
 
 export interface UpdateProfilePayload {
   firstName?: string;
@@ -136,7 +150,7 @@ export interface UpdateProfilePayload {
   languages?: LanguagePayload[];
   socialLinks?: SocialLinkPayload[];
   desiredJob?: DesiredJobPayload;
-  benefits?: string[]; // gửi lên chỉ cần name string
+  benefits?: string[];
 }
 
 export interface SkillPayload {
@@ -167,8 +181,8 @@ export interface ExperiencePayload {
   companyName: string;
   position: string;
   description?: string;
-  startDate: string; // ISO "YYYY-MM-DD"
-  endDate?: string; // null/omit khi current = true
+  startDate: string;
+  endDate?: string;
   current: boolean;
 }
 

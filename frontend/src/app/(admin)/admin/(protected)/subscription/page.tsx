@@ -643,7 +643,7 @@ export default function AdminSubscriptionPage() {
               }
             }}
             className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 
-              transition-colors flex items-center gap-2 text-sm font-medium"
+              transition-colors flex items-center gap-2 text-[16px] font-medium"
           >
             <Plus className="w-4 h-4" />
             {isCompanyTab ? 'Thêm gói Employer' : 'Thêm gói Candidate'}
@@ -657,7 +657,7 @@ export default function AdminSubscriptionPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors
+            className={`flex items-center gap-2 px-4 py-2.5 text-[16px] font-medium rounded-t-lg transition-colors
               border-b-2 -mb-[2px]
               ${activeTab === tab.key
                 ? 'text-primary border-primary bg-primary/5'

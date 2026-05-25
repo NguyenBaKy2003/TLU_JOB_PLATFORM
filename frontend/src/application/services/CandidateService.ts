@@ -3,12 +3,13 @@ import {
   CandidateProfile, CandidateCV, JobSearchStatus,
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
+  BoostResult, BoostStatus,
 } from "@/domain/models/Candidate";
 
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_AVATAR_SIZE       = 5 * 1024 * 1024;
-const MAX_CV_SIZE           = 10 * 1024 * 1024;
-const ALLOWED_CV_TYPES      = [
+const MAX_AVATAR_SIZE      = 5 * 1024 * 1024;
+const MAX_CV_SIZE          = 10 * 1024 * 1024;
+const ALLOWED_CV_TYPES     = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -17,7 +18,7 @@ const ALLOWED_CV_TYPES      = [
 export class CandidateService {
   constructor(private readonly repo: ICandidateRepository) {}
 
-  // ── Profile ──────
+  // ── Profile ──────────────────────────────────────────────────────────────
 
   async getProfile(): Promise<CandidateProfile> {
     return this.repo.getProfile();
@@ -42,7 +43,17 @@ export class CandidateService {
     return this.repo.updateJobSearchStatus(status);
   }
 
-  // ── Experience ───
+  // ── Boost ─────────────────────────────────────────────────────────────────
+
+  async boostCv(): Promise<BoostResult> {
+    return this.repo.boostCv();
+  }
+
+  async getBoostStatus(): Promise<BoostStatus> {
+    return this.repo.getBoostStatus();
+  }
+
+  // ── Experience ────────────────────────────────────────────────────────────
 
   async addExperience(data: ExperiencePayload): Promise<CandidateProfile> {
     this.validateExperience(data);
@@ -60,7 +71,7 @@ export class CandidateService {
     return this.repo.deleteExperience(id);
   }
 
-  // ── Education ────
+  // ── Education ─────────────────────────────────────────────────────────────
 
   async addEducation(data: EducationPayload): Promise<CandidateProfile> {
     if (!data.school?.trim()) throw new Error("Tên trường không được để trống");
@@ -78,13 +89,13 @@ export class CandidateService {
     return this.repo.deleteEducation(id);
   }
 
-  // ── CV ────
+  // ── CV ────────────────────────────────────────────────────────────────────
 
   async listCVs(): Promise<CandidateCV[]> {
     return this.repo.listCVs();
   }
 
-  async uploadCV(data: UploadCVPayload): Promise<CandidateCV> {
+  async uploadCV(data: UploadCVPayload & { setAsPrimary?: boolean }): Promise<CandidateCV> {
     if (!data.file) throw new Error("File không được để trống");
     if (data.file.size > MAX_CV_SIZE) throw new Error("CV tối đa 10MB");
     if (!ALLOWED_CV_TYPES.includes(data.file.type))
@@ -128,7 +139,7 @@ export class CandidateService {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
   }
 
-  // ── Private validators ──────────
+  // ── Private validators ────────────────────────────────────────────────────
 
   private validateExperience(data: ExperiencePayload): void {
     if (!data.companyName?.trim()) throw new Error("Tên công ty không được để trống");

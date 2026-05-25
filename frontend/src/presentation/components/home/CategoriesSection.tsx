@@ -108,7 +108,7 @@ export function CategoriesSection() {
             </h2>
             <Link
               href="/jobs"
-              className="hidden sm:inline-flex items-center gap-1.5 text-blue-600 font-semibold text-sm hover:text-blue-700 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 text-blue-600 font-semibold text-[16px] hover:text-blue-700 transition-colors"
             >
               Xem tất cả <ArrowRight className="w-4 h-4" />
             </Link>
@@ -151,7 +151,7 @@ export function CategoriesSection() {
                     </p>
 
                     {/* Count */}
-                    <p className={`text-sm flex items-center gap-1
+                    <p className={`text-[16px] flex items-center gap-1
                       ${cat.active ? "text-white/80" : "text-gray-500"}`}
                     >
                       {cat.count} việc làm
@@ -167,7 +167,7 @@ export function CategoriesSection() {
           <div className="sm:hidden text-center mt-8">
             <Link
               href="/jobs"
-              className="inline-flex items-center gap-1.5 text-blue-600 font-semibold text-sm"
+              className="inline-flex items-center gap-1.5 text-blue-600 font-semibold text-[16px]"
             >
               Xem tất cả <ArrowRight className="w-4 h-4" />
             </Link>

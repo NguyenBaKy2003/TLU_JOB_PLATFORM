@@ -20,7 +20,7 @@ public class GetApplicationsForJobUseCase {
     @Transactional(readOnly = true)
     public Page<Application> execute(UUID jobPostId, ApplicationStatus status, Pageable pageable) {
         if (status != null)
-            return applicationRepo.findByJobPostIdAndStatus(jobPostId, status, pageable);
-        return applicationRepo.findByJobPostId(jobPostId, pageable);
+            return applicationRepo.findByJobPostIdAndStatusOrderByBoostFirst(jobPostId, status, pageable);
+        return applicationRepo.findByJobPostIdOrderByBoostFirst(jobPostId, pageable);
     }
 }
