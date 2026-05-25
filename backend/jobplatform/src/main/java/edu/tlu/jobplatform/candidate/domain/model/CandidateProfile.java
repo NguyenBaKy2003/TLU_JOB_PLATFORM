@@ -43,6 +43,36 @@ public class CandidateProfile {
     private int expectedSalary;
     private String currency;
 
+    private LocalDateTime boostedUntil;
+
+    /**
+     * Kiểm tra profile đang được boost hiệu lực hay không.
+     * Tính tại runtime — không cần scheduler hay DB flag.
+     */
+    public boolean isBoosted() {
+        return boostedUntil != null
+                && LocalDateTime.now().isBefore(boostedUntil);
+    }
+
+    /**
+     * Boost profile lên top tìm kiếm.
+     * Luôn set từ now() + duration, không cộng dồn từ boostedUntil cũ.
+     *
+     * @param until thời điểm hết hiệu lực, phải là tương lai
+     */
+    public void boost(LocalDateTime until) {
+        if (until == null || !LocalDateTime.now().isBefore(until))
+            throw new IllegalArgumentException("boostedUntil phải là thời điểm trong tương lai.");
+        this.boostedUntil = until;
+    }
+
+    /**
+     * Xóa boost — admin revoke hoặc candidate tự tắt.
+     */
+    public void clearBoost() {
+        this.boostedUntil = null;
+    }
+
     @Builder.Default
     private List<Skill> skills = new ArrayList<>();
     @Builder.Default

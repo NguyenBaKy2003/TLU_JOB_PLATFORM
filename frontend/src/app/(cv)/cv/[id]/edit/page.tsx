@@ -1,35 +1,45 @@
-// src/app/(cv)/cv/[id]/edit/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CvService } from "@/application/services/CvService";
 import { CvRepository } from "@/infrastructure/repositories/CvRepository";
-import type { OnlineCVDetail, CVSection, UpdateCVSectionPayload, CVVisibility } from "@/domain/models/Cv";
-import { CVEditSkeleton } from "@/presentation/components/cv/edit/CVEditSkeleton";
-import { CVEditTopBar } from "@/presentation/components/cv/edit/CVEditTopBar";
-import { CVSectionSidebar } from "@/presentation/components/cv/edit/CVSectionSidebar";
-import { CVEditorPanel } from "@/presentation/components/cv/edit/CVEditorPanel";
-import { CVPreviewPanel } from "@/presentation/components/cv/edit/CVPreviewPanel";
+import type {
+  OnlineCVDetail, CVSection, UpdateCVSectionPayload,
+  CVVisibility, AiOptimizeResult,
+} from "@/domain/models/Cv";
+import { CVEditSkeleton }     from "@/presentation/components/cv/edit/CVEditSkeleton";
+import { CVEditTopBar }       from "@/presentation/components/cv/edit/CVEditTopBar";
+import { CVSectionSidebar }   from "@/presentation/components/cv/edit/CVSectionSidebar";
+import { CVEditorPanel }      from "@/presentation/components/cv/edit/CVEditorPanel";
+import { CVPreviewPanel }     from "@/presentation/components/cv/edit/CVPreviewPanel";
+import { AiOptimizeModal }    from "@/presentation/components/cv/edit/AiOptimizeModal";
 
 const cvService = new CvService(new CvRepository());
 
 export type EditorTab = "personal" | "section";
 
 export default function CVEditPage() {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const { id }   = useParams<{ id: string }>();
+  const router   = useRouter();
 
-  const [cv, setCv] = useState<OnlineCVDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<EditorTab>("personal");
+  const [cv,              setCv]              = useState<OnlineCVDetail | null>(null);
+  const [loading,         setLoading]         = useState(true);
+  const [saving,          setSaving]          = useState(false);
+  const [activeTab,       setActiveTab]       = useState<EditorTab>("personal");
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
-  const [previewKey, setPreviewKey] = useState(0); // Tăng key để force preview reload
+  const [showPreview,     setShowPreview]     = useState(false);
+  const [exportingPdf,    setExportingPdf]    = useState(false);
+  const [previewKey,      setPreviewKey]      = useState(0);
 
-  // Load CV
+  // ── AI Optimize state ──────────────────────────────────────────────────────
+  const [showAiModal,   setShowAiModal]   = useState(false);
+  const [aiOptimizing,  setAiOptimizing]  = useState(false);
+  const [aiResult,      setAiResult]      = useState<AiOptimizeResult | null>(null);
+  const [aiError,       setAiError]       = useState<string | null>(null);
+
+  // ── Load CV ───────────────────────────────────────────────────────────────
+
   useEffect(() => {
     if (!id) return;
     cvService.getById(id).then((data) => {
@@ -41,15 +51,17 @@ export default function CVEditPage() {
     });
   }, [id, router]);
 
-  // ── Personal Info ──────
+  // ── Personal Info ─────────────────────────────────────────────────────────
 
-  const handleSavePersonalInfo = useCallback(async (form: Parameters<typeof cvService.updatePersonalInfo>[1]) => {
+  const handleSavePersonalInfo = useCallback(async (
+    form: Parameters<typeof cvService.updatePersonalInfo>[1]
+  ) => {
     if (!cv) return;
     setSaving(true);
     try {
       const updated = await cvService.updatePersonalInfo(cv.id, form, cv);
       setCv(updated);
-      setPreviewKey(prev => prev + 1); // Force preview reload
+      setPreviewKey((k) => k + 1);
     } finally {
       setSaving(false);
     }
@@ -61,18 +73,24 @@ export default function CVEditPage() {
     setCv(updated);
   }, [cv]);
 
-  // ── Sections ───────────
+  // ── Sections ──────────────────────────────────────────────────────────────
 
-  const handleAddSection = useCallback(async (type: Parameters<typeof cvService.addSection>[1], title: string) => {
+  const handleAddSection = useCallback(async (
+    type: Parameters<typeof cvService.addSection>[1],
+    title: string,
+  ) => {
     if (!cv) return;
     const newSection = await cvService.addSection(cv.id, type, title);
     setCv((prev) => prev ? { ...prev, sections: [...prev.sections, newSection] } : prev);
     setActiveSectionId(newSection.id);
     setActiveTab("section");
-    setPreviewKey(prev => prev + 1); // Force preview reload
+    setPreviewKey((k) => k + 1);
   }, [cv]);
 
-  const handleUpdateSection = useCallback(async (sectionId: string, payload: UpdateCVSectionPayload) => {
+  const handleUpdateSection = useCallback(async (
+    sectionId: string,
+    payload: UpdateCVSectionPayload,
+  ) => {
     if (!cv) return;
     setSaving(true);
     try {
@@ -81,7 +99,7 @@ export default function CVEditPage() {
         ...prev,
         sections: prev.sections.map((s) => s.id === sectionId ? updated : s),
       } : prev);
-      setPreviewKey(prev => prev + 1); // Force preview reload
+      setPreviewKey((k) => k + 1);
     } finally {
       setSaving(false);
     }
@@ -90,12 +108,15 @@ export default function CVEditPage() {
   const handleDeleteSection = useCallback(async (sectionId: string) => {
     if (!cv) return;
     await cvService.deleteSection(cv.id, sectionId);
-    setCv((prev) => prev ? { ...prev, sections: prev.sections.filter((s) => s.id !== sectionId) } : prev);
+    setCv((prev) => prev ? {
+      ...prev,
+      sections: prev.sections.filter((s) => s.id !== sectionId),
+    } : prev);
     if (activeSectionId === sectionId) {
       setActiveSectionId(null);
       setActiveTab("personal");
     }
-    setPreviewKey(prev => prev + 1); // Force preview reload
+    setPreviewKey((k) => k + 1);
   }, [cv, activeSectionId]);
 
   const handleReorderSections = useCallback(async (sectionIds: string[]) => {
@@ -105,26 +126,27 @@ export default function CVEditPage() {
       .filter(Boolean) as CVSection[];
     setCv((prev) => prev ? { ...prev, sections: reordered } : prev);
     await cvService.reorderSections(cv.id, sectionIds);
-    setPreviewKey(prev => prev + 1); // Force preview reload
+    setPreviewKey((k) => k + 1);
   }, [cv]);
 
-  const handleToggleSectionVisibility = useCallback(async (sectionId: string, visible: boolean) => {
+  const handleToggleSectionVisibility = useCallback(async (
+    sectionId: string,
+    visible: boolean,
+  ) => {
     setCv((prev) => prev ? {
       ...prev,
-      sections: prev.sections.map((s) => 
-        s.id === sectionId ? { ...s, visible } : s
-      ),
+      sections: prev.sections.map((s) => s.id === sectionId ? { ...s, visible } : s),
     } : prev);
     await handleUpdateSection(sectionId, { visible });
   }, [handleUpdateSection]);
 
-  // ── Lifecycle ──────────
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   const handlePublish = useCallback(async () => {
     if (!cv) return;
     const updated = await cvService.publish(cv.id);
     setCv(updated);
-    setPreviewKey(prev => prev + 1);
+    setPreviewKey((k) => k + 1);
   }, [cv]);
 
   const handleExportPdf = useCallback(async () => {
@@ -132,14 +154,14 @@ export default function CVEditPage() {
     setExportingPdf(true);
     try {
       const blob = await cvService.exportPdf(cv.id);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${cv.title || 'cv'}.pdf`;
+      const url  = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href     = url;
+      link.download = `${cv.title || "cv"}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Export PDF failed:', err);
+      console.error("Export PDF failed:", err);
     } finally {
       setExportingPdf(false);
     }
@@ -151,22 +173,47 @@ export default function CVEditPage() {
     try {
       const updated = await cvService.importFromProfile(cv.id);
       setCv(updated);
-      setPreviewKey(prev => prev + 1);
+      setPreviewKey((k) => k + 1);
     } finally {
       setSaving(false);
     }
   }, [cv]);
 
   const handleUpdateVisibility = useCallback(async (visibility: CVVisibility) => {
-  if (!cv) return;
-  const updated = await cvService.updateVisibility(cv.id, visibility, cv);
-  setCv(updated);
-}, [cv]);
+    if (!cv) return;
+    const updated = await cvService.updateVisibility(cv.id, visibility, cv);
+    setCv(updated);
+  }, [cv]);
 
-  // ── Render ─────────────
+  // ── AI Optimize ───────────────────────────────────────────────────────────
+
+  /** Mở modal — user nhập jobPostId rồi bấm Phân tích */
+  const handleOpenAiModal = useCallback(() => {
+    setAiResult(null);
+    setAiError(null);
+    setShowAiModal(true);
+  }, []);
+
+  /** Gọi API AI optimize với jobPostId do user nhập */
+  const handleAiOptimize = useCallback(async (jobPostId: string) => {
+    if (!cv) return;
+    setAiOptimizing(true);
+    setAiError(null);
+    try {
+      const result = await cvService.aiOptimize(cv.id, jobPostId);
+      setAiResult(result);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Phân tích thất bại. Vui lòng thử lại.";
+      setAiError(msg);
+    } finally {
+      setAiOptimizing(false);
+    }
+  }, [cv]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) return <CVEditSkeleton />;
-  if (!cv) return null;
+  if (!cv)     return null;
 
   const activeSection = cv.sections.find((s) => s.id === activeSectionId) ?? null;
 
@@ -181,7 +228,8 @@ export default function CVEditPage() {
         onPublish={handlePublish}
         onExportPdf={handleExportPdf}
         onUpdateTitle={handleUpdateTitle}
-        onUpdateVisibility={handleUpdateVisibility} 
+        onUpdateVisibility={handleUpdateVisibility}
+        onAiOptimize={handleOpenAiModal} 
         onBack={() => router.push("/cv")}
       />
 
@@ -212,6 +260,17 @@ export default function CVEditPage() {
           <CVPreviewPanel cv={cv} refreshKey={previewKey} />
         )}
       </div>
+
+      {/* ── AI Optimize Modal ── */}
+      {showAiModal && (
+        <AiOptimizeModal
+          optimizing={aiOptimizing}
+          result={aiResult}
+          error={aiError}
+          onAnalyze={handleAiOptimize}
+          onClose={() => setShowAiModal(false)}
+        />
+      )}
     </div>
   );
 }

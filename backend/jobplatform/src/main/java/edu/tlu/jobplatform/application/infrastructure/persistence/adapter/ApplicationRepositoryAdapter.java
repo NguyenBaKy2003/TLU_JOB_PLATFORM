@@ -192,4 +192,27 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
             e.setAiModelVersion(s.getModelVersion());
         }
     }
+
+    @Override
+    public Page<Application> findByJobPostIdOrderByBoostFirst(UUID jobPostId, Pageable pageable) {
+        return jpaRepo.findByJobPostIdOrderByBoostFirst(jobPostId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Application> findByJobPostIdAndStatusOrderByBoostFirst(UUID jobPostId, ApplicationStatus status,
+            Pageable pageable) {
+        return jpaRepo.findByJobPostIdAndStatusOrderByBoostFirst(jobPostId, status, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Application> findByCompanyIdOrderByBoostFirst(UUID companyId, Pageable pageable) {
+        return jpaRepo.findByCompanyIdOrderByBoostFirst(companyId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Application> findByCompanyIdAndStatusOrderByBoostFirst(UUID companyId, ApplicationStatus status,
+            Pageable pageable) {
+        return jpaRepo.findByCompanyIdAndStatusOrderByBoostFirst(companyId, status, pageable).map(this::toDomain);
+    }
+
 }

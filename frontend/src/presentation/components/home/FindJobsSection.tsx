@@ -97,7 +97,7 @@ function JobCard({ job, index, inView }: { job: typeof JOBS[0]; index: number; i
           {job.logo}
         </div>
         <div>
-          <p className="font-bold text-gray-900 text-sm">{job.title}</p>
+          <p className="font-bold text-gray-900 text-[16px]">{job.title}</p>
           <p className="text-gray-500 text-xs">{job.company}</p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export function FindJobsSection() {
             <Sparkles className="w-7 h-7 text-gray-900" />
             Việc Làm <span className="text-red-500 mx-1">Nổi Bật</span> Mới Nhất
           </h2>
-          <p className="text-gray-500 text-sm leading-relaxed max-w-lg mx-auto">
+          <p className="text-gray-500 text-[16px] leading-relaxed max-w-lg mx-auto">
             Tìm kiếm công việc mơ ước giờ đây dễ dàng hơn bao giờ hết.<br />
             Chỉ cần lướt xem và ứng tuyển ngay vào vị trí bạn yêu thích
           </p>
@@ -174,7 +174,7 @@ export function FindJobsSection() {
         >
           <Link
             href="/jobs"
-            className="inline-block px-10 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-orange-200"
+            className="inline-block px-10 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-[16px] shadow-lg shadow-orange-200"
           >
             Khám phá thêm
           </Link>

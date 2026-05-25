@@ -25,4 +25,5 @@ public interface OnlineCVRepository {
     boolean existsBySlug(String slug);
 
     long countByCandidateId(UUID candidateId);
+
 }

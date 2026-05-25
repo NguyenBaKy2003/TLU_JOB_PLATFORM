@@ -234,12 +234,12 @@ export function RecruiterBanner() {
               tin tuyển dụng<br />
               ngay hôm nay
             </h2>
-            <p className="text-white/70 text-sm mb-8">
+            <p className="text-white/70 text-[16px] mb-8">
               Đăng tin chỉ với $10.
             </p>
             <Link
               href="/auth/employer/register"
-              className="inline-block px-7 py-3 bg-white text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-50 transition-colors"
+              className="inline-block px-7 py-3 bg-white text-blue-700 font-bold text-[16px] rounded-xl hover:bg-blue-50 transition-colors"
             >
               Đăng ký miễn phí
             </Link>

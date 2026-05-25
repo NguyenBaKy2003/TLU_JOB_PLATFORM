@@ -8,11 +8,13 @@ import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile.JobSearchStat
 import edu.tlu.jobplatform.candidate.domain.model.DesiredJob.ContractType;
 import edu.tlu.jobplatform.candidate.domain.model.DesiredJob.Level;
 import edu.tlu.jobplatform.candidate.domain.model.SocialLink.Platform;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.EducationRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.ExperienceRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.UpdateProfileRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.UpdateProfileUrlRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.CandidateProfileResponse;
+import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +28,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,7 +51,8 @@ public class CandidateProfileController {
         private final UpdateEducationUseCase updateEducationUseCase;
         private final DeleteEducationUseCase deleteEducationUseCase;
         private final UpdateProfileUrlUseCase updateProfileUrlUseCase;
-
+        private final BoostCvUseCase boostCvUseCase;
+        private final CandidateProfileRepository profileRepository;
         // ── GET /me ─
 
         @Operation(summary = "Lấy hồ sơ của tôi")
@@ -93,6 +97,50 @@ public class CandidateProfileController {
                 return ResponseEntity.ok(ApiResponse.success(
                                 CandidateProfileResponse.from(updated),
                                 "Hồ sơ đã được cập nhật."));
+        }
+
+        @Operation(summary = "Boost CV lên top tìm kiếm ⭐ PRO/PREMIUM", description = """
+                        Đẩy hồ sơ của bạn lên ưu tiên trong kết quả tìm kiếm của nhà tuyển dụng.
+                        Hiệu lực trong **7 ngày** kể từ lúc boost.
+                        Boost lại khi đang có hiệu lực sẽ **gia hạn thêm 7 ngày từ thời điểm hiện tại**.
+
+                        **Quota:**
+                        - Gói PRO     : 3 lần/tháng (reset đầu tháng)
+                        - Gói PREMIUM : không giới hạn
+
+                        **Error codes:**
+                        - `NO_ACTIVE_CANDIDATE_SUBSCRIPTION` : chưa mua gói
+                        - `CV_BOOST_QUOTA_EXCEEDED`           : hết lượt boost tháng này
+                        """)
+        @PostMapping("/boost")
+        public ResponseEntity<ApiResponse<BoostCvUseCase.Result>> boostCv(
+                        @CurrentUser UUID candidateId) {
+
+                BoostCvUseCase.Result result = boostCvUseCase.execute(candidateId);
+
+                String message = "CV của bạn đã được boost! Hiệu lực đến "
+                                + result.boostedUntil().toLocalDate()
+                                + (result.boostsRemaining() >= 0
+                                                ? ". Còn " + result.boostsRemaining() + " lượt boost trong tháng."
+                                                : ". (Không giới hạn lượt)");
+
+                return ResponseEntity.ok(ApiResponse.success(result, message));
+        }
+
+        @Operation(summary = "Trạng thái boost CV hiện tại", description = """
+                        Kiểm tra profile của bạn có đang được boost hay không,
+                        và thời điểm boost hết hiệu lực.
+                        """)
+        @GetMapping("/boost/status")
+        public ResponseEntity<ApiResponse<BoostStatusResponse>> getBoostStatus(
+                        @CurrentUser UUID candidateId) {
+
+                CandidateProfile profile = profileRepository.findByUserId(candidateId)
+                                .orElseThrow(() -> ResourceNotFoundException.of("CandidateProfile", candidateId));
+
+                return ResponseEntity.ok(ApiResponse.success(new BoostStatusResponse(
+                                profile.isBoosted(),
+                                profile.getBoostedUntil())));
         }
 
         // ── PATCH /me/avatar
@@ -285,5 +333,10 @@ public class CandidateProfileController {
                                 .endDate(req.getEndDate())
                                 .description(req.getDescription())
                                 .build();
+        }
+
+        public record BoostStatusResponse(
+                        boolean currentlyBoosted,
+                        LocalDateTime boostedUntil) {
         }
 }

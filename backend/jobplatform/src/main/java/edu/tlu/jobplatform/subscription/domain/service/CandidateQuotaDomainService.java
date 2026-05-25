@@ -4,15 +4,6 @@ import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscription;
 import org.springframework.stereotype.Service;
 
-/**
- * Domain Service: Kiểm tra và tiêu thụ quota cho Candidate.
- *
- * Tương tự QuotaDomainService (Company) nhưng dành riêng cho
- * các loại quota của ứng viên.
- *
- * Pattern: check → consume (mutate aggregate) → caller save aggregate.
- * Domain service KHÔNG gọi repository — đó là trách nhiệm của UseCase.
- */
 @Service
 public class CandidateQuotaDomainService {
 
@@ -35,24 +26,6 @@ public class CandidateQuotaDomainService {
                     "CV_BOOST_QUOTA_EXCEEDED");
     }
 
-    public void checkJobAlertQuota(CandidateSubscription sub) {
-        requireActive(sub, "tạo job alert");
-        if (!sub.canAddJobAlert())
-            throw new BusinessRuleException(
-                    "Bạn đã đạt giới hạn " + sub.getJobAlertQuota().getLimit()
-                            + " job alert. Xoá bớt hoặc nâng cấp gói.",
-                    "JOB_ALERT_QUOTA_EXCEEDED");
-    }
-
-    public void checkMockInterviewQuota(CandidateSubscription sub) {
-        requireActive(sub, "luyện phỏng vấn AI");
-        if (!sub.canRunMockInterview())
-            throw new BusinessRuleException(
-                    "Bạn đã sử dụng hết " + sub.getMockInterviewQuota().getLimit()
-                            + " buổi mock interview trong kỳ này.",
-                    "MOCK_INTERVIEW_QUOTA_EXCEEDED");
-    }
-
     public void checkAiCvWriter(CandidateSubscription sub) {
         requireActive(sub, "viết CV bằng AI");
         if (!sub.isAiCvWriter())
@@ -61,12 +34,12 @@ public class CandidateQuotaDomainService {
                     "AI_CV_WRITER_NOT_AVAILABLE");
     }
 
-    public void checkSalaryInsights(CandidateSubscription sub) {
-        requireActive(sub, "tra cứu mức lương");
-        if (!sub.isSalaryInsights())
+    public void checkPremiumTemplate(CandidateSubscription sub) {
+        requireActive(sub, "dùng template premium");
+        if (!sub.isPremiumTemplateAccess())
             throw new BusinessRuleException(
-                    "Tính năng tra cứu mức lương chỉ có trong gói PREMIUM.",
-                    "SALARY_INSIGHTS_NOT_AVAILABLE");
+                    "Template này chỉ dành cho gói PRO trở lên.",
+                    "PREMIUM_TEMPLATE_NOT_AVAILABLE");
     }
 
     // ── Consume (validate + mutate) ───────────────────────────────────
@@ -79,16 +52,6 @@ public class CandidateQuotaDomainService {
     public void consumeCvBoost(CandidateSubscription sub) {
         checkCvBoostQuota(sub);
         sub.consumeCvBoost();
-    }
-
-    public void consumeJobAlert(CandidateSubscription sub) {
-        checkJobAlertQuota(sub);
-        sub.consumeJobAlert();
-    }
-
-    public void consumeMockInterview(CandidateSubscription sub) {
-        checkMockInterviewQuota(sub);
-        sub.consumeMockInterview();
     }
 
     // ── Private ───────────────────────────────────────────────────────

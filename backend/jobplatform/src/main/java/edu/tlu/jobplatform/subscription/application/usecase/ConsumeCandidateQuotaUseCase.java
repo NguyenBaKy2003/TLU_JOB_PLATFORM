@@ -11,15 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-/**
- * UseCase: Trừ quota khi Candidate thực hiện hành động.
- *
- * Được gọi từ các UseCase khác trong hệ thống:
- * - JobApplicationUseCase → consumeApplication()
- * - CvBoostUseCase → consumeCvBoost()
- * - JobAlertUseCase → consumeJobAlert() / releaseJobAlert()
- * - MockInterviewUseCase → consumeMockInterview()
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,33 +29,27 @@ public class ConsumeCandidateQuotaUseCase {
         switch (type) {
             case APPLICATION -> quotaDomainService.consumeApplication(sub);
             case CV_BOOST -> quotaDomainService.consumeCvBoost(sub);
-            case JOB_ALERT -> quotaDomainService.consumeJobAlert(sub);
-            case MOCK_INTERVIEW -> quotaDomainService.consumeMockInterview(sub);
         }
 
         subscriptionRepository.save(sub);
-        log.info("[CandidateQuota] Consumed [candidateId={}, type={}]", candidateId, type);
+        log.info("[CandidateQuota] Consumed: candidateId={} type={}", candidateId, type);
     }
 
-    /** Hoàn lại quota khi candidate xoá job alert hoặc rút đơn ứng tuyển */
     @Transactional
     public void refund(UUID candidateId, QuotaType type) {
         subscriptionRepository.findActiveByCandidate(candidateId).ifPresent(sub -> {
             switch (type) {
                 case APPLICATION -> sub.refundApplication();
-                case JOB_ALERT -> sub.releaseJobAlert();
                 default -> throw new BusinessRuleException(
                         "Không hỗ trợ hoàn quota loại: " + type, "UNSUPPORTED_QUOTA_REFUND");
             }
             subscriptionRepository.save(sub);
-            log.info("[CandidateQuota] Refunded [candidateId={}, type={}]", candidateId, type);
+            log.info("[CandidateQuota] Refunded: candidateId={} type={}", candidateId, type);
         });
     }
 
     public enum QuotaType {
         APPLICATION,
-        CV_BOOST,
-        JOB_ALERT,
-        MOCK_INTERVIEW
+        CV_BOOST
     }
 }

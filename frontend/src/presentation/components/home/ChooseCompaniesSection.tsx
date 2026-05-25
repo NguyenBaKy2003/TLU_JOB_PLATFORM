@@ -160,14 +160,14 @@ export function ChooseCompaniesSection() {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3 leading-tight">
               Chọn <span className="text-red-500">Công Ty</span> Mơ Ước Của Bạn
             </h2>
-            <p className="text-gray-500 text-sm leading-relaxed">
+            <p className="text-gray-500 text-[16px] leading-relaxed">
               Bắt đầu hành trình sự nghiệp thăng hoa bằng cách khám phá những<br className="hidden sm:block" />
               doanh nghiệp hàng đầu đang săn đón những tài năng như bạn
             </p>
           </div>
           <Link
             href="/companies"
-            className="shrink-0 self-start sm:self-center inline-flex items-center gap-2 px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-sm shadow-lg shadow-orange-200 whitespace-nowrap"
+            className="shrink-0 self-start sm:self-center inline-flex items-center gap-2 px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-[16px] shadow-lg shadow-orange-200 whitespace-nowrap"
           >
             Xem tất cả công ty
           </Link>

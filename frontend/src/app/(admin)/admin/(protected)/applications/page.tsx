@@ -285,8 +285,8 @@ export default function AdminApplicationsPage() {
         label: 'Vị trí ứng tuyển',
         value: (
           <div className="space-y-1">
-            <div className="font-medium">{selectedApplication.job.title}</div>
-            {selectedApplication.job.level && (
+            <div className="font-medium">{selectedApplication?.job?.title}</div>
+            {selectedApplication.job?.level && (
               <div className="text-[16px] text-muted-foreground">Cấp bậc: {selectedApplication.job.level}</div>
             )}
           </div>
@@ -298,8 +298,8 @@ export default function AdminApplicationsPage() {
         label: 'Trạng thái',
         value: (
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[selectedApplication.status].color}`}>
-            {statusConfig[selectedApplication.status].icon}
-            {statusConfig[selectedApplication.status].label}
+            {statusConfig[selectedApplication.status]?.icon}
+            {statusConfig[selectedApplication.status]?.label}
           </span>
         ),
         type: 'badge'
@@ -375,7 +375,7 @@ export default function AdminApplicationsPage() {
       width: '200px',
       render: (value: AdminApplication['job']) => (
         <div>
-          <div className="font-medium text-foreground">{value.title}</div>
+          <div className="font-medium text-foreground">{value?.title}</div>
         </div>
       )
     },

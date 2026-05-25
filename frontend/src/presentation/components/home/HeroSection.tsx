@@ -327,7 +327,7 @@ export function HeroSection() {
                   onFocus={() => suggestions.length > 0 && setIsOpen(true)}
                   onKeyDown={handleKeyDown}
                   placeholder="Chức danh, mức lương, hoặc công ty..."
-                  className="flex-1 outline-none bg-transparent text-gray-800 placeholder:text-gray-400 text-sm sm:text-base"
+                  className="flex-1 outline-none bg-transparent text-gray-800 placeholder:text-gray-400 text-[16px] sm:text-base"
                   autoComplete="off"
                 />
               </div>
@@ -338,7 +338,7 @@ export function HeroSection() {
                 className="m-2 px-5 sm:px-7 py-3 bg-orange-500 hover:bg-orange-600
                            active:scale-95 text-white font-semibold rounded-xl
                            transition-all flex items-center justify-center gap-2
-                           text-sm sm:text-[15px]"
+                           text-[16px] sm:text-[15px]"
               >
                 Khám phá ngay
                 <ArrowRight className="w-4 h-4" />
@@ -358,14 +358,14 @@ export function HeroSection() {
                              shadow-xl overflow-hidden"
                 >
                   {isAutocompleteLoading && (
-                    <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 px-4 py-3 text-[16px] text-gray-400">
                       <Loader2 size={14} className="animate-spin" />
                       Đang tìm kiếm...
                     </div>
                   )}
 
                   {!isAutocompleteLoading && suggestions.length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-400">
+                    <div className="px-4 py-3 text-[16px] text-gray-400">
                       Nhấn Enter để tìm "{keyword}"
                     </div>
                   )}
@@ -385,7 +385,7 @@ export function HeroSection() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-800 truncate">{s.query}</span>
+                            <span className="text-[16px] font-medium text-gray-800 truncate">{s.query}</span>
                             <ArrowUpRight size={12} className="text-gray-300 flex-shrink-0" />
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -417,7 +417,7 @@ export function HeroSection() {
                       <button
                         onMouseDown={() => handleSearch(keyword.trim())}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl
-                          text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                          text-[16px] font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                       >
                         <Search size={14} />
                         Tìm kiếm "{keyword.trim()}"

@@ -216,9 +216,9 @@ function JobsPageInner() {
           {/* Active search badge — hiện khi có keyword từ HeroSection */}
           {keyword && (
             <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="text-sm text-gray-500">Kết quả cho:</span>
+              <span className="text-[16px] text-gray-500">Kết quả cho:</span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700
-                text-sm font-medium rounded-full border border-blue-100">
+                text-[16px] font-medium rounded-full border border-blue-100">
                 {keyword}
                 <button
                   onClick={() => {
@@ -235,7 +235,7 @@ function JobsPageInner() {
               </span>
               {city && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-50 text-gray-600
-                  text-sm font-medium rounded-full border border-gray-200">
+                  text-[16px] font-medium rounded-full border border-gray-200">
                   <MapPin size={11} />
                   {city}
                   <button

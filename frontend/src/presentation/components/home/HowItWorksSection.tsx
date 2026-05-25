@@ -42,7 +42,7 @@ export function HowItWorksSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-blue-700 mb-4">
             Các bước chinh phục công việc mơ ước
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base">
+          <p className="text-gray-400 text-[16px] sm:text-base">
             Những cơ hội việc làm mới nhất vừa được cập nhật
           </p>
         </motion.div>
@@ -65,7 +65,7 @@ export function HowItWorksSection() {
               <h3 className="font-extrabold text-gray-900 text-base mb-2">
                 {step.title}
               </h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-gray-500 text-[16px] leading-relaxed">
                 {step.desc}
               </p>
             </motion.div>
