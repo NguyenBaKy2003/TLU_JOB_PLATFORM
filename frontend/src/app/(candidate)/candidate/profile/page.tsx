@@ -25,6 +25,8 @@ import {
   ExperiencePayload,
   EducationPayload,
   UploadCVPayload,
+  BoostResult,
+  BoostStatus,
 } from "@/domain/models/Candidate";
 import { SectionKey }            from "@/presentation/components/profile/types/SectionKey";
 import { extractErrorMessage }   from "@/lib/extractErrorMessage";
@@ -48,6 +50,109 @@ function calcCompletion(p: CandidateProfile) {
   };
 }
 
+/** Format "2026-06-01T10:51:14.296..." → "01/06/2026" */
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("vi-VN", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+  });
+}
+
+// ── Inline BoostCard ─────────────────────────────────────────────────────────
+
+interface BoostCardProps {
+  boosted: boolean;
+  boostedUntil: string | null;
+  boostsRemaining: number | null;
+  boosting: boolean;
+  onBoost: () => void;
+}
+
+function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }: BoostCardProps) {
+  const unlimited  = boostsRemaining === -1;
+  const noQuota    = !unlimited && boostsRemaining !== null && boostsRemaining <= 0;
+  // Chỉ cho boost khi chưa boost hoặc đã hết hạn
+  const isActive   = boosted && boostedUntil && new Date(boostedUntil) > new Date();
+  const canBoost   = !isActive && !noQuota;
+
+  // Countdown đến ngày hết hạn
+  const daysLeft = boostedUntil
+    ? Math.ceil((new Date(boostedUntil).getTime() - Date.now()) / 86_400_000)
+    : 0;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 shadow-sm">
+
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg">⚡</span>
+        <span className="font-semibold text-gray-800 text-[15px]">Boost CV</span>
+        {isActive && (
+          <span className="ml-auto text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+            Đang boost
+          </span>
+        )}
+      </div>
+
+      {/* Status */}
+      <div className="text-[13px] text-gray-500 leading-relaxed">
+        {isActive && boostedUntil ? (
+          <span>
+            Hồ sơ đang được ưu tiên hiển thị đến{" "}
+            <span className="font-medium text-gray-700">{formatDate(boostedUntil)}</span>
+            {daysLeft > 0 && (
+              <span className="text-emerald-600"> ({daysLeft} ngày còn lại)</span>
+            )}
+            . Bạn có thể boost lại sau khi hết hạn.
+          </span>
+        ) : boostedUntil && !isActive ? (
+          // Đã từng boost nhưng hết hạn
+          <span>
+            Boost trước đã hết hạn vào{" "}
+            <span className="font-medium text-gray-700">{formatDate(boostedUntil)}</span>
+            . Boost lại để tiếp tục ưu tiên.
+          </span>
+        ) : (
+          "Đẩy hồ sơ lên đầu kết quả tìm kiếm của nhà tuyển dụng trong 7 ngày."
+        )}
+      </div>
+
+      {/* Quota badge — chỉ hiện khi biết quota */}
+      {boostsRemaining !== null && (
+        <div className="flex items-center gap-1.5 text-[12px]">
+          <span className="text-gray-400">Lượt còn lại tháng này:</span>
+          <span className={`font-semibold ${noQuota ? "text-red-500" : "text-blue-600"}`}>
+            {unlimited ? "∞ Không giới hạn" : boostsRemaining}
+          </span>
+        </div>
+      )}
+
+      {/* CTA */}
+      <button
+        onClick={onBoost}
+        disabled={boosting || !canBoost}
+        className={`
+          w-full py-2 rounded-lg text-[13px] font-semibold transition-all
+          ${!canBoost
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[.98]"
+          }
+          disabled:opacity-60
+        `}
+      >
+        {boosting
+          ? "Đang boost…"
+          : isActive
+            ? `⚡ Đang boost · còn ${daysLeft} ngày`
+            : noQuota
+              ? "Hết lượt boost tháng này"
+              : "⚡ Boost ngay"}
+      </button>
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ProfilePage() {
   const toast = useToast();
 
@@ -58,6 +163,11 @@ export default function ProfilePage() {
   const [error,         setError]         = useState<string | null>(null);
   const [saving,        setSaving]        = useState<Partial<Record<SectionKey, boolean>>>({});
   const [sectionErrors, setSectionErrors] = useState<Partial<Record<SectionKey, string>>>({});
+
+  // ── Boost state ────────────────────────────────────────────────────────────
+  const [boostStatus,      setBoostStatus]      = useState<BoostStatus | null>(null);
+  const [boostsRemaining,  setBoostsRemaining]  = useState<number | null>(null);
+  const [boosting,         setBoosting]         = useState(false);
 
   const hasLoaded = useRef(false);
 
@@ -71,8 +181,14 @@ export default function ProfilePage() {
   const loadProfile = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [profileData, cvData] = await Promise.all([service.getProfile(), service.listCVs()]);
-      setProfile(profileData); setCvList(cvData);
+      const [profileData, cvData, status] = await Promise.all([
+        service.getProfile(),
+        service.listCVs(),
+        service.getBoostStatus(),
+      ]);
+      setProfile(profileData);
+      setCvList(cvData);
+      setBoostStatus(status);
     } catch (e) { setError(extractErrorMessage(e, "Không thể tải hồ sơ")); }
     finally { setLoading(false); }
   }, []);
@@ -82,6 +198,38 @@ export default function ProfilePage() {
     hasLoaded.current = true;
     loadProfile();
   }, [loadProfile]);
+
+  // ── Boost handler ──────────────────────────────────────────────────────────
+
+  const handleBoost = useCallback(async () => {
+    setBoosting(true);
+    try {
+      const result: BoostResult = await service.boostCv();
+      // Sync boost status from result — no extra GET needed
+      setBoostStatus({
+        currentlyBoosted: result.currentlyBoosted,
+        boostedUntil: result.boostedUntil,
+      });
+      setBoostsRemaining(result.boostsRemaining);
+      // Also keep CandidateProfile.boosted in sync
+      setProfile((prev) =>
+        prev ? { ...prev, boosted: true, boostedUntil: result.boostedUntil } : prev
+      );
+      const remaining = result.boostsRemaining === -1
+        ? "Không giới hạn lượt."
+        : `Còn ${result.boostsRemaining} lượt boost trong tháng.`;
+      toast.success(
+        "Boost thành công! ⚡",
+        `Hồ sơ được ưu tiên đến ${formatDate(result.boostedUntil)}. ${remaining}`
+      );
+    } catch (e) {
+      toast.error("Boost thất bại", extractErrorMessage(e));
+    } finally {
+      setBoosting(false);
+    }
+  }, [toast]);
+
+  // ── Profile handlers ───────────────────────────────────────────────────────
 
   const updateProfile = useCallback(async (section: SectionKey, data: UpdateProfilePayload) => {
     startSaving(section); clearSectionError(section);
@@ -191,94 +339,100 @@ export default function ProfilePage() {
     [profile],
   );
 
-  // ── Loading ───────────
+  // Merge boostStatus with profile.boosted/boostedUntil as fallback
+  const isBoosted     = boostStatus?.currentlyBoosted ?? profile?.boosted ?? false;
+  const boostedUntil  = boostStatus?.boostedUntil     ?? profile?.boostedUntil ?? null;
+  const remainingHits = boostsRemaining; // null until first boost action
+
+  // ── Loading ───────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 animate-pulse">
-          <div className="flex-1 flex flex-col gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={`bg-gray-100 rounded-xl ${i === 0 ? "h-24" : "h-32"}`} />
-            ))}
-          </div>
-          <div className="w-full lg:w-72 shrink-0 flex flex-col gap-4">
-            <div className="h-52 bg-gray-100 rounded-xl" />
-            <div className="h-48 bg-gray-100 rounded-xl" />
-            <div className="h-44 bg-gray-100 rounded-xl" />
-          </div>
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 animate-pulse">
+        <div className="flex-1 flex flex-col gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={`bg-gray-100 rounded-xl ${i === 0 ? "h-24" : "h-32"}`} />
+          ))}
         </div>
+        <div className="w-full lg:w-72 shrink-0 flex flex-col gap-4">
+          <div className="h-52 bg-gray-100 rounded-xl" />
+          <div className="h-36 bg-gray-100 rounded-xl" />
+          <div className="h-48 bg-gray-100 rounded-xl" />
+          <div className="h-44 bg-gray-100 rounded-xl" />
+        </div>
+      </div>
     );
   }
 
-  // ── Error ─────────────
+  // ── Error ─────────────────────────────────────────────────────────────────
 
   if (error || !profile) {
     return (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-[16px] text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
-          <button onClick={loadProfile}
-            className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-            Thử lại
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <p className="text-[16px] text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
+        <button onClick={loadProfile}
+          className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+          Thử lại
+        </button>
+      </div>
     );
   }
 
-  // ── Render ────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
- 
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
-      <div className="flex flex-col lg:flex-row gap-4  lg:gap-6 items-start">
-
-        {/* ── Left: profile sections ───── */}
-        <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
-          <ProfileHero
-            firstName={profile.firstName ?? undefined}
-            lastName={profile.lastName   ?? undefined}
-            title={profile.headline      ?? undefined}
-            avatar={profile.avatarUrl    ?? undefined}
-            onAvatarChange={updateAvatar}
-            onViewCV={cvList.length > 0 ? viewCV     : undefined}
-            onDownloadCV={cvList.length > 0 ? downloadCV : undefined}
-          />
-          <PersonalInfoSection  profile={profile} saving={!!saving.personal}       error={sectionErrors.personal}       onSave={updateProfile} />
-          <BioSection           profile={profile} saving={!!saving.bio}             error={sectionErrors.bio}             onSave={updateProfile} />
-          <SkillsSection        profile={profile} saving={!!saving.skills}          error={sectionErrors.skills}          onSave={updateProfile} />
-          <WorkExperienceSection profile={profile} saving={!!saving.experience}     error={sectionErrors.experience}
-            onAdd={addExperience} onUpdate={updateExperience} onDelete={deleteExperience} />
-          <EducationSection     profile={profile} saving={!!saving.education}       error={sectionErrors.education}
-            onAdd={addEducation}  onUpdate={updateEducation}  onDelete={deleteEducation} />
-          <LinksSection         profile={profile} saving={!!saving.links}           error={sectionErrors.links}           onSave={updateProfile} />
-          <LanguagesSection     profile={profile} saving={!!saving.languages}       error={sectionErrors.languages}       onSave={updateProfile} />
-          <JobExpectationSection profile={profile} saving={!!saving.jobExpectation} error={sectionErrors.jobExpectation}  onSave={updateProfile} />
-          <BenefitsSection      profile={profile} saving={!!saving.benefits}        error={sectionErrors.benefits}        onSave={updateProfile} />
-        </div>
-
-        {/* ── Right: sidebar cards ─────── */}
-        {/*
-          Mobile:  full width, below sections (order doesn't matter, natural flow)
-          Desktop: fixed w-72, sticky top-4 so cards stay visible while scrolling
-        */}
-        <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 z-10 flex flex-col gap-4">
-          <ProfileCompletionCard percentage={percentage} steps={steps} />
-          <CVUploadCard
-            primaryCV={primaryCV}
-            cvList={cvList}
-            cvListLoading={cvListLoading}
-            onUpload={uploadCV}
-            onDelete={deleteCV}
-            onView={(cvId) => service.viewCV(cvId)}
-            onDownload={(cvId, title) => service.downloadCV(cvId, title)}
-            onSetPrimary={setPrimaryCV}
-            onRefreshList={refreshCvList}
-          />
-          <ProfileShareCard
-            profileUrl={profile.profileUrl ?? `Joblin.com/u/${profile.id.slice(0, 8)}`}
-          />
-        </div>
-
+      {/* ── Left: profile sections ───── */}
+      <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
+        <ProfileHero
+          firstName={profile.firstName ?? undefined}
+          lastName={profile.lastName   ?? undefined}
+          title={profile.headline      ?? undefined}
+          avatar={profile.avatarUrl    ?? undefined}
+          onAvatarChange={updateAvatar}
+          onViewCV={cvList.length > 0 ? viewCV     : undefined}
+          onDownloadCV={cvList.length > 0 ? downloadCV : undefined}
+        />
+        <PersonalInfoSection   profile={profile} saving={!!saving.personal}       error={sectionErrors.personal}       onSave={updateProfile} />
+        <BioSection            profile={profile} saving={!!saving.bio}             error={sectionErrors.bio}             onSave={updateProfile} />
+        <SkillsSection         profile={profile} saving={!!saving.skills}          error={sectionErrors.skills}          onSave={updateProfile} />
+        <WorkExperienceSection profile={profile} saving={!!saving.experience}      error={sectionErrors.experience}
+          onAdd={addExperience} onUpdate={updateExperience} onDelete={deleteExperience} />
+        <EducationSection      profile={profile} saving={!!saving.education}       error={sectionErrors.education}
+          onAdd={addEducation}  onUpdate={updateEducation}  onDelete={deleteEducation} />
+        <LinksSection          profile={profile} saving={!!saving.links}           error={sectionErrors.links}           onSave={updateProfile} />
+        <LanguagesSection      profile={profile} saving={!!saving.languages}       error={sectionErrors.languages}       onSave={updateProfile} />
+        <JobExpectationSection profile={profile} saving={!!saving.jobExpectation}  error={sectionErrors.jobExpectation}  onSave={updateProfile} />
+        <BenefitsSection       profile={profile} saving={!!saving.benefits}        error={sectionErrors.benefits}        onSave={updateProfile} />
       </div>
+
+      {/* ── Right: sidebar cards ─────── */}
+      <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 z-10 flex flex-col gap-4">
+        <ProfileCompletionCard percentage={percentage} steps={steps} />
+        <BoostCard
+          boosted={isBoosted}
+          boostedUntil={boostedUntil}
+          boostsRemaining={remainingHits}
+          boosting={boosting}
+          onBoost={handleBoost}
+        />
+        <CVUploadCard
+          primaryCV={primaryCV}
+          cvList={cvList}
+          cvListLoading={cvListLoading}
+          onUpload={uploadCV}
+          onDelete={deleteCV}
+          onView={(cvId) => service.viewCV(cvId)}
+          onDownload={(cvId, title) => service.downloadCV(cvId, title)}
+          onSetPrimary={setPrimaryCV}
+          onRefreshList={refreshCvList}
+        />
+        <ProfileShareCard
+          profileUrl={profile.profileUrl ?? `CareerUp.com/u/${profile.id.slice(0, 8)}`}
+        />
+      </div>
+
+    </div>
   );
 }

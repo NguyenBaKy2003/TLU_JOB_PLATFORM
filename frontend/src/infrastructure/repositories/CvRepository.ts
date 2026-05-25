@@ -1,3 +1,4 @@
+import { AiOptimizeResult } from './../../domain/models/Cv';
 // src/infrastructure/repositories/CvRepository.ts
 
 import type { ICvRepository } from "@/domain/repositories/ICvRepository";
@@ -145,6 +146,12 @@ async viewPdf(cvId: string): Promise<Blob> {
     );
     return res.data.data;
   }
-
-
+async aiOptimize(cvId: string, jobPostId: string): Promise<AiOptimizeResult> {
+  const res = await api.post<ApiResponse<AiOptimizeResult>>(
+    `${this.BASE}/${cvId}/ai-optimize`,
+    null,
+    { params: { jobPostId } }
+  );
+  return res.data.data;
+}
 }

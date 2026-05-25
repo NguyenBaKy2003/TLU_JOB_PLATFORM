@@ -1,3 +1,4 @@
+import { AiOptimizeResult } from './../models/Cv';
 // src/domain/repositories/ICvRepository.ts
 
 import type {
@@ -77,4 +78,7 @@ export interface ICvRepository {
   getBySlug(slug: string): Promise<PublicCVDetail>;
 
   getPublicHtml(slug: string): Promise<string>;
+  
+
+  aiOptimize(cvId: string, jobPostId: string): Promise<AiOptimizeResult>;
 }

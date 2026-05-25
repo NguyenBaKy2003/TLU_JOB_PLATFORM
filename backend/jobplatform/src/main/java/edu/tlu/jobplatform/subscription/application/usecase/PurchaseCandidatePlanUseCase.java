@@ -39,85 +39,86 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PurchaseCandidatePlanUseCase {
 
-    private final CandidateSubscriptionPlanRepository planRepository;
-    private final CandidateSubscriptionRepository subscriptionRepository;
-    private final PaymentRepository paymentRepository;
-    private final CandidateSubscriptionDomainService domainService;
-    private final PaymentGatewayPort paymentGateway;
+        private final CandidateSubscriptionPlanRepository planRepository;
+        private final CandidateSubscriptionRepository subscriptionRepository;
+        private final PaymentRepository paymentRepository;
+        private final CandidateSubscriptionDomainService domainService;
+        private final PaymentGatewayPort paymentGateway;
 
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+        @Value("${app.base-url:http://localhost:8080}")
+        private String baseUrl;
 
-    @Transactional
-    public Result execute(Command cmd) {
+        @Transactional
+        public Result execute(Command cmd) {
 
-        // 1. Validate plan
-        CandidateSubscriptionPlan plan = planRepository.findById(cmd.planId())
-                .orElseThrow(() -> ResourceNotFoundException.of("CandidateSubscriptionPlan", cmd.planId()));
+                // 1. Validate plan
+                CandidateSubscriptionPlan plan = planRepository.findById(cmd.planId())
+                                .orElseThrow(() -> ResourceNotFoundException.of("CandidateSubscriptionPlan",
+                                                cmd.planId()));
 
-        if (!plan.isActive())
-            throw new BusinessRuleException(
-                    "Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
+                if (!plan.isActive())
+                        throw new BusinessRuleException(
+                                        "Gói dịch vụ này không còn khả dụng.", "PLAN_INACTIVE");
 
-        if (plan.isFree())
-            throw new BusinessRuleException(
-                    "Gói BASIC miễn phí không cần thanh toán.", "PLAN_IS_FREE");
+                if (plan.isFree())
+                        throw new BusinessRuleException(
+                                        "Gói FREE_CANDIDATE miễn phí không cần thanh toán.", "PLAN_IS_FREE");
 
-        // 2. Xác định giá theo loại (monthly/yearly)
-        BigDecimal amount = cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly();
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
-            throw new BusinessRuleException(
-                    "Gói này không hỗ trợ loại thanh toán đã chọn.", "INVALID_PLAN_PRICE");
+                // 2. Xác định giá theo loại (monthly/yearly)
+                BigDecimal amount = cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly();
+                if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
+                        throw new BusinessRuleException(
+                                        "Gói này không hỗ trợ loại thanh toán đã chọn.", "INVALID_PLAN_PRICE");
 
-        String orderCode = generateOrderCode();
+                String orderCode = generateOrderCode();
 
-        // 3. Tạo và lưu subscription PENDING
-        CandidateSubscription subscription = domainService.createPending(
-                cmd.candidateId(), plan, null, cmd.yearly());
-        CandidateSubscription saved = subscriptionRepository.save(subscription);
+                // 3. Tạo và lưu subscription PENDING
+                CandidateSubscription subscription = domainService.createPending(
+                                cmd.candidateId(), plan, null, cmd.yearly());
+                CandidateSubscription saved = subscriptionRepository.save(subscription);
 
-        // 4. Tạo Payment liên kết subscriptionId đã persist
-        Payment payment = Payment.builder()
-                .id(UUID.randomUUID())
-                .companyId(cmd.candidateId()) // reuse companyId field cho candidateId
-                .subscriptionId(saved.getId())
-                .planCode(plan.getCode())
-                .amount(amount)
-                .currency("VND")
-                .gateway(paymentGateway.getGatewayName())
-                .gatewayOrderCode(orderCode)
-                .status(PaymentStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-        paymentRepository.save(payment);
+                // 4. Tạo Payment liên kết subscriptionId đã persist
+                Payment payment = Payment.builder()
+                                .id(UUID.randomUUID())
+                                .companyId(cmd.candidateId()) // reuse companyId field cho candidateId
+                                .subscriptionId(saved.getId())
+                                .planCode(plan.getCode())
+                                .amount(amount)
+                                .currency("VND")
+                                .gateway(paymentGateway.getGatewayName())
+                                .gatewayOrderCode(orderCode)
+                                .status(PaymentStatus.PENDING)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                paymentRepository.save(payment);
 
-        // 5. Tạo payment URL
-        String returnUrl = baseUrl + "/api/v1/payments/callback/vnpay/return";
-        String description = "Mua " + plan.getName() + " - "
-                + cmd.candidateId().toString().substring(0, 8);
-        String paymentUrl = paymentGateway.createPaymentUrl(
-                orderCode, amount, description, returnUrl);
+                // 5. Tạo payment URL
+                String returnUrl = baseUrl + "/api/v1/payments/callback/vnpay/return";
+                String description = "Mua " + plan.getName() + " - "
+                                + cmd.candidateId().toString().substring(0, 8);
+                String paymentUrl = paymentGateway.createPaymentUrl(
+                                orderCode, amount, description, returnUrl);
 
-        log.info("[CandidatePurchase] Initiated: candidateId={} plan={} order={} subscription={} yearly={}",
-                cmd.candidateId(), plan.getCode(), orderCode, saved.getId(), cmd.yearly());
+                log.info("[CandidatePurchase] Initiated: candidateId={} plan={} order={} subscription={} yearly={}",
+                                cmd.candidateId(), plan.getCode(), orderCode, saved.getId(), cmd.yearly());
 
-        return new Result(payment.getId(), saved.getId(), paymentUrl, orderCode);
-    }
+                return new Result(payment.getId(), saved.getId(), paymentUrl, orderCode);
+        }
 
-    private String generateOrderCode() {
-        return "CP-" + UUID.randomUUID().toString()
-                .replace("-", "").substring(0, 8).toUpperCase();
-    }
+        private String generateOrderCode() {
+                return "CP-" + UUID.randomUUID().toString()
+                                .replace("-", "").substring(0, 8).toUpperCase();
+        }
 
-    /**
-     * @param candidateId userId của Candidate (không phải companyId)
-     * @param planId      id của CandidateSubscriptionPlan
-     * @param yearly      true = gói năm, false = gói tháng
-     */
-    public record Command(UUID candidateId, UUID planId, boolean yearly) {
-    }
+        /**
+         * @param candidateId userId của Candidate (không phải companyId)
+         * @param planId      id của CandidateSubscriptionPlan
+         * @param yearly      true = gói năm, false = gói tháng
+         */
+        public record Command(UUID candidateId, UUID planId, boolean yearly) {
+        }
 
-    public record Result(UUID paymentId, UUID subscriptionId,
-            String paymentUrl, String orderCode) {
-    }
+        public record Result(UUID paymentId, UUID subscriptionId,
+                        String paymentUrl, String orderCode) {
+        }
 }

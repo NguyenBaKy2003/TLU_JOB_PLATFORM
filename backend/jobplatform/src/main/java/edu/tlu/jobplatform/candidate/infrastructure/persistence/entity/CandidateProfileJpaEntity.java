@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -70,6 +71,9 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
 
     @Column(length = 10)
     private String currency;
+
+    @Column(name = "boosted_until")
+    private LocalDateTime boostedUntil;
 
     // ── Relations ──
 

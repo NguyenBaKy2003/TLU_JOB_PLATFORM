@@ -232,7 +232,7 @@ export default function AdminReviewsPage() {
             {(value || 'A').charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="font-medium text-foreground text-sm">{value || 'Ẩn danh'}</div>
+            <div className="font-medium text-foreground text-[16px]">{value || 'Ẩn danh'}</div>
             {record.employed && (
               <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">
                 Nhân viên
@@ -249,7 +249,7 @@ export default function AdminReviewsPage() {
       render: (value, record) => (
         <div className="max-w-[250px]">
           {record.title && (
-            <div className="font-medium text-foreground text-sm truncate">{record.title}</div>
+            <div className="font-medium text-foreground text-[16px] truncate">{record.title}</div>
           )}
           <div className="text-xs text-muted-foreground line-clamp-2">{value}</div>
         </div>
@@ -262,7 +262,7 @@ export default function AdminReviewsPage() {
       align: 'center',
       render: (value) => (
         <div className="flex items-center justify-center gap-1">
-          <span className="text-sm font-semibold">{value}</span>
+          <span className="text-[16px] font-semibold">{value}</span>
           <Star size={12} className="fill-yellow-400 text-yellow-400" />
         </div>
       )
@@ -388,7 +388,7 @@ export default function AdminReviewsPage() {
                 className={star <= selectedReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}
               />
             ))}
-            <span className="ml-1 text-sm font-semibold">{selectedReview.rating}/5</span>
+            <span className="ml-1 text-[16px] font-semibold">{selectedReview.rating}/5</span>
           </div>
         ),
         type: 'badge'

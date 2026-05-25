@@ -105,7 +105,7 @@ export default function CandidateReviewsPage() {
       <div className="mb-8">
         <Link
           href="/candidate/profile"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center gap-1 text-[16px] text-gray-500 hover:text-gray-700 mb-4"
         >
           <ChevronLeft size={16} />
           Quay lại hồ sơ
@@ -118,7 +118,7 @@ export default function CandidateReviewsPage() {
           <Link
             href="/companies"
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl
-              text-sm font-medium hover:bg-blue-700 transition-colors"
+              text-[16px] font-medium hover:bg-blue-700 transition-colors"
           >
             <MessageSquare size={16} />
             Khám phá công ty
@@ -135,7 +135,7 @@ export default function CandidateReviewsPage() {
               setStatusFilter(tab.value);
               setPage(0);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-lg text-[16px] font-medium whitespace-nowrap transition-colors ${
               statusFilter === tab.value
                 ? "bg-blue-600 text-white shadow-sm"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -162,7 +162,7 @@ export default function CandidateReviewsPage() {
           </p>
           <Link
             href="/companies"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-[16px] font-medium hover:bg-blue-700"
           >
             Khám phá công ty
           </Link>
@@ -243,7 +243,7 @@ export default function CandidateReviewsPage() {
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 line-clamp-3">{review.content}</p>
+              <p className="text-[16px] text-gray-600 line-clamp-3">{review.content}</p>
 
               {/* Pros & Cons */}
               {(review.pros || review.cons) && (
@@ -279,7 +279,7 @@ export default function CandidateReviewsPage() {
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg text-[16px] text-gray-600 hover:bg-gray-100 disabled:opacity-50"
               >
                 Trước
               </button>
@@ -287,7 +287,7 @@ export default function CandidateReviewsPage() {
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-8 h-8 rounded-lg text-[16px] font-medium transition-colors ${
                     i === page ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
@@ -297,7 +297,7 @@ export default function CandidateReviewsPage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page === totalPages - 1}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg text-[16px] text-gray-600 hover:bg-gray-100 disabled:opacity-50"
               >
                 Sau
               </button>

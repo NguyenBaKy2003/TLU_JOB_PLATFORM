@@ -22,6 +22,11 @@ const nextConfig = {
         hostname: "jobplatform-storage.s3.ap-southeast-2.amazonaws.com",
         pathname: "/**",
       },
+       {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+        pathname: "/**",
+      },
     ],
   },
 };

@@ -23,34 +23,34 @@ public class OpenAPIConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-            .info(new Info()
-                .title("JobPlatform API — TLU")
-                .description("""
-                    Hệ thống tuyển dụng AI-Powered
-                    
-                    ## Xác thực
-                    1. Gọi `POST /api/auth/login` để lấy access token
-                    2. Click nút **Authorize** (🔒) ở góc phải
-                    3. Nhập: `Bearer {access_token}`
-                    
-                    ## Roles
-                    | Role | Mô tả |
-                    |---|---|
-                    | CANDIDATE | Ứng viên tìm việc |
-                    | EMPLOYER  | Nhà tuyển dụng đăng bài |
-                    | ADMIN     | Quản trị viên |
-                    """)
-                .version("1.0.0")
-                .contact(new Contact()
-                    .name("TLU Dev Team")
-                    .email("dev@tlu.edu.vn")))
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-            .components(new Components()
-                .addSecuritySchemes("bearerAuth",
-                    new SecurityScheme()
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT")
-                        .description("Nhập JWT access token (không cần prefix 'Bearer')")));
+                .info(new Info()
+                        .title("CareerUp API — TLU")
+                        .description("""
+                                Hệ thống tuyển dụng AI-Powered
+
+                                ## Xác thực
+                                1. Gọi `POST /api/auth/login` để lấy access token
+                                2. Click nút **Authorize** (🔒) ở góc phải
+                                3. Nhập: `Bearer {access_token}`
+
+                                ## Roles
+                                | Role | Mô tả |
+                                |---|---|
+                                | CANDIDATE | Ứng viên tìm việc |
+                                | EMPLOYER  | Nhà tuyển dụng đăng bài |
+                                | ADMIN     | Quản trị viên |
+                                """)
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("TLU Dev Team")
+                                .email("dev@tlu.edu.vn")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                                        .description("Nhập JWT access token (không cần prefix 'Bearer')")));
     }
 }

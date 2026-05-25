@@ -4,65 +4,173 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, MapPin, Sparkles, ArrowRight, Star,
+  Search, Sparkles, ArrowRight, Star,
   Loader2, Clock, TrendingUp, ArrowUpRight,
+  Globe, Briefcase, Users, Building2,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { CITIES, POPULAR_SEARCHES } from "./constants";
-import { FloatingElements } from "./FloatingElements";
 import { AISearchService } from "@/application/services/AISearchService";
 import { AISearchRepository } from "@/infrastructure/repositories/AISearchRepository";
 import { useAuth } from "@/application/contexts/AuthContext";
 import type { AutocompleteSuggestion } from "@/domain/models/AISearch";
 
-// ── Singleton service (tương tự AISearchBox) ────────────────────────────────
 const aiSearchService = new AISearchService(new AISearchRepository());
 
-// ── Rotating words ───────────────────────────────────────────────────────────
-const ROTATING_WORDS = [
-  { text: "CHẤT LƯỢNG", gradient: "from-blue-400 to-cyan-400" },
-  { text: "PHÙ HỢP",    gradient: "from-purple-400 to-pink-400" },
-  { text: "UY TÍN",     gradient: "from-emerald-400 to-teal-400" },
-  { text: "NHANH CHÓNG",gradient: "from-orange-400 to-amber-400" },
+// ── Banner Slider ─────────────────────────────────────────────────────────────
+// Replace src values with your actual banner image URLs
+export const BANNERS = [
+  { id: 1, src: "/banners/banner-1.png", alt: "Banner nhà tuyển dụng 1", href: "#" },
+  { id: 2, src: "/banners/banner-2.png", alt: "Banner nhà tuyển dụng 2", href: "#" },
+  { id: 3, src: "/banners/banner-3.png", alt: "Banner nhà tuyển dụng 3", href: "#" },
+  { id: 4, src: "/banners/banner-4.png", alt: "Banner nhà tuyển dụng 4", href: "#" },
 ];
 
-// ── Helpers (giống AISearchBox) ──────────────────────────────────────────────
+function BannerSlider() {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const go = useCallback((next: number, dir: 1 | -1) => {
+    setDirection(dir);
+    setCurrent((next + BANNERS.length) % BANNERS.length);
+  }, []);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setDirection(1);
+      setCurrent((p) => (p + 1) % BANNERS.length);
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [startTimer]);
+
+  const handlePrev = () => { go(current - 1, -1); startTimer(); };
+  const handleNext = () => { go(current + 1,  1); startTimer(); };
+
+  const variants = {
+    enter:  (d: number) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit:   (d: number) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0 }),
+  };
+
+  return (
+    <div className="relative mx-auto max-w-2xl rounded-2xl overflow-hidden shadow-lg group">
+      {/* Slides */}
+      <div className="relative w-full" style={{ aspectRatio: "16/6" }}>
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.a
+            key={BANNERS[current].id}
+            href={BANNERS[current].href}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="absolute inset-0 block"
+            style={{ willChange: "transform" }}
+          >
+            <img
+              src={BANNERS[current].src}
+              alt={BANNERS[current].alt}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </motion.a>
+        </AnimatePresence>
+      </div>
+
+      {/* Prev / Next arrows */}
+      <button
+        onClick={handlePrev}
+        aria-label="Ảnh trước"
+        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
+          bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+          opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      >
+        <ChevronLeft size={18} />
+      </button>
+      <button
+        onClick={handleNext}
+        aria-label="Ảnh tiếp"
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
+          bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+          opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      >
+        <ChevronRight size={18} />
+      </button>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+        {BANNERS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { go(i, i > current ? 1 : -1); startTimer(); }}
+            aria-label={`Slide ${i + 1}`}
+            className={`rounded-full transition-all duration-300 ${
+              i === current
+                ? "w-5 h-2 bg-white"
+                : "w-2 h-2 bg-white/50 hover:bg-white/75"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const ROTATING_WORDS = [
+  { text: "Công Việc", color: "text-red-500" },
+  { text: "Cơ Hội",   color: "text-blue-600" },
+  { text: "Sự Nghiệp", color: "text-emerald-600" },
+  { text: "Tương Lai", color: "text-violet-600" },
+];
+
+const STATS = [
+  { icon: Briefcase,  value: "30,000+", label: "Việc làm đang tuyển" },
+  { icon: Globe,      value: "5,000+",  label: "Tin đăng mỗi ngày"   },
+  { icon: Users,      value: "25,000+", label: "Ứng viên đã có việc" },
+  { icon: Building2,  value: "1,000+",  label: "Công ty đối tác"     },
+];
+
 function getSuggestionIcon(type: AutocompleteSuggestion["type"]) {
   switch (type) {
-    case "RECENT":       return <Clock      size={14} className="text-white/40" />;
-    case "TRENDING":     return <TrendingUp size={14} className="text-orange-400" />;
-    case "AI_SUGGESTED": return <Sparkles   size={14} className="text-purple-400" />;
+    case "RECENT":       return <Clock      size={14} className="text-gray-400" />;
+    case "TRENDING":     return <TrendingUp size={14} className="text-orange-500" />;
+    case "AI_SUGGESTED": return <Sparkles   size={14} className="text-violet-500" />;
   }
 }
 
 function getSuggestionBadge(type: AutocompleteSuggestion["type"]) {
   switch (type) {
-    case "RECENT":       return { label: "Gần đây",  cls: "bg-white/10 text-white/50" };
-    case "TRENDING":     return { label: "Xu hướng", cls: "bg-orange-500/20 text-orange-300" };
-    case "AI_SUGGESTED": return { label: "AI gợi ý", cls: "bg-purple-500/20 text-purple-300" };
+    case "RECENT":       return { label: "Gần đây",  cls: "bg-gray-100 text-gray-500" };
+    case "TRENDING":     return { label: "Xu hướng", cls: "bg-orange-100 text-orange-600" };
+    case "AI_SUGGESTED": return { label: "AI gợi ý", cls: "bg-violet-100 text-violet-600" };
   }
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
 export function HeroSection() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
   const [keyword,       setKeyword]       = useState("");
   const [debouncedKw,   setDebouncedKw]   = useState("");
-  const [location,      setLocation]      = useState("");
   const [wordIndex,     setWordIndex]     = useState(0);
   const [isOpen,        setIsOpen]        = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // ── Debounce keyword (300 ms, giống AISearchBox) ─────────────────────────
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKw(keyword), 300);
     return () => clearTimeout(t);
   }, [keyword]);
 
-  // ── Rotating words ────────────────────────────────────────────────────────
   useEffect(() => {
     const t = setInterval(() => {
       setWordIndex((p) => (p + 1) % ROTATING_WORDS.length);
@@ -70,7 +178,6 @@ export function HeroSection() {
     return () => clearInterval(t);
   }, []);
 
-  // ── Click-outside (giống AISearchBox) ────────────────────────────────────
   useEffect(() => {
     const fn = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node))
@@ -80,7 +187,6 @@ export function HeroSection() {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  // ── useQuery: autocomplete (giống AISearchBox) ────────────────────────────
   const { data: autocompleteData, isLoading: isAutocompleteLoading } = useQuery({
     queryKey: ["ai", "autocomplete", debouncedKw],
     queryFn:  () => aiSearchService.getAutocomplete(debouncedKw),
@@ -88,14 +194,12 @@ export function HeroSection() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // ── useMutation: trackSearch (giống AISearchBox) ──────────────────────────
   const { mutate: trackSearch } = useMutation({
     mutationFn: (kw: string) => aiSearchService.trackSearch(kw, isAuthenticated),
   });
 
   const suggestions: AutocompleteSuggestion[] = autocompleteData?.suggestions ?? [];
 
-  // ── handleSearch ──────────────────────────────────────────────────────────
   const handleSearch = useCallback(
     (searchQuery: string) => {
       if (!searchQuery.trim()) return;
@@ -103,10 +207,9 @@ export function HeroSection() {
       setIsOpen(false);
       const params = new URLSearchParams();
       params.set("keyword", searchQuery.trim());
-      if (location) params.set("location", location);
       router.push(`/jobs?${params.toString()}`);
     },
-    [router, location, trackSearch],
+    [router, trackSearch],
   );
 
   const handleSelectSuggestion = (s: AutocompleteSuggestion) => {
@@ -114,7 +217,6 @@ export function HeroSection() {
     handleSearch(s.query);
   };
 
-  // ── Keyboard nav (giống AISearchBox) ─────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || suggestions.length === 0) {
       if (e.key === "Enter" && keyword.trim()) handleSearch(keyword.trim());
@@ -143,84 +245,77 @@ export function HeroSection() {
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f0f1e] via-[#1a1a2e] to-[#16213e]">
-      <FloatingElements />
+    <section className="relative overflow-hidden bg-[#dce9f5] pt-14 sm:pt-20 pb-0">
+      {/* Decorative blob icons — hidden on mobile to avoid crowding */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="hidden md:flex absolute left-6 lg:left-12 top-1/3 w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-white/60 backdrop-blur-sm items-center justify-center shadow-sm">
+          <Globe className="w-6 h-6 lg:w-9 lg:h-9 text-gray-400" />
+        </div>
+        <div className="hidden md:flex absolute left-10 lg:left-20 top-[52%] w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-white/60 backdrop-blur-sm items-center justify-center shadow-sm">
+          <svg className="w-6 h-6 lg:w-8 lg:h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div className="hidden md:flex absolute right-6 lg:right-12 top-1/3 w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-white/60 backdrop-blur-sm items-center justify-center shadow-sm">
+          <Globe className="w-6 h-6 lg:w-9 lg:h-9 text-gray-400" />
+        </div>
+        <div className="hidden md:flex absolute right-10 lg:right-20 top-[52%] w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-white/60 backdrop-blur-sm items-center justify-center shadow-sm">
+          <svg className="w-6 h-6 lg:w-8 lg:h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div className="hidden sm:flex absolute left-1/2 -translate-x-1/2 top-4 gap-24 opacity-10">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="w-28 h-40 rounded-full bg-gray-400/50" />
+          ))}
+        </div>
+      </div>
 
-      {/* Gradient orbs */}
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-3xl animate-pulse delay-500" />
-      <div
-        className="absolute inset-0 opacity-5"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "50px 50px",
-        }}
-      />
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
-        >
-          <Sparkles className="w-4 h-4 text-yellow-400" />
-          <span className="text-white/80 text-[16px] font-medium">Nền tảng tuyển dụng #1 Việt Nam</span>
-        </motion.div>
-
-        {/* Title */}
+        {/* Headline */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-4 sm:mb-6"
         >
-          Tìm Việc Làm{" "}
+          Tìm{" "}
           <AnimatePresence mode="wait">
             <motion.span
               key={wordIndex}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}
-              className={`bg-gradient-to-r ${ROTATING_WORDS[wordIndex].gradient} bg-clip-text text-transparent inline-block`}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.28 }}
+              className={`inline-block ${ROTATING_WORDS[wordIndex].color}`}
             >
               {ROTATING_WORDS[wordIndex].text}
             </motion.span>
-          </AnimatePresence>
-          <br />
-          <span className="text-white/90">Cùng Joblin</span>
+          </AnimatePresence>{" "}
+          Mơ Ước Với<br />
+          Những Cơ Hội Bứt Phá.
         </motion.h1>
-
-        {/* Description */}
-        <motion.p
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-white/50 text-lg mb-10 max-w-2xl mx-auto leading-relaxed"
-        >
-          Kết nối trực tiếp với nhà tuyển dụng qua livestream,
-          phỏng vấn realtime và tìm kiếm công việc phù hợp nhất với bạn.
-        </motion.p>
 
         {/* Search Box */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.12 }}
+          className="max-w-2xl mx-auto mb-3 sm:mb-4"
         >
-          {/* ── Click-outside wrapper ── */}
-          <div ref={wrapperRef} className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
+          <div ref={wrapperRef} className="relative">
+            {/* Mobile: stacked layout / Desktop: inline row */}
+            <div className="flex flex-col sm:flex-row sm:items-center bg-white rounded-2xl shadow-lg border border-white overflow-visible">
 
-            <div className="relative flex flex-col sm:flex-row bg-white/10 backdrop-blur-md rounded-2xl overflow-visible border border-white/20">
-
-              {/* Keyword input */}
-              <div className="flex-1 flex items-center gap-3 px-5 py-4 border-b sm:border-b-0 sm:border-r border-white/10">
+              {/* Search input */}
+              <div className="flex flex-1 items-center gap-3 px-4 sm:px-5 py-3 sm:py-4
+                              border-b sm:border-b-0 border-gray-100">
                 {isAutocompleteLoading
-                  ? <Loader2 className="w-5 h-5 text-white/60 animate-spin shrink-0" />
-                  : <Search  className="w-5 h-5 text-white/60 shrink-0" />
+                  ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin shrink-0" />
+                  : <Search  className="w-5 h-5 text-gray-400 shrink-0" />
                 }
                 <input
                   value={keyword}
@@ -231,65 +326,50 @@ export function HeroSection() {
                   }}
                   onFocus={() => suggestions.length > 0 && setIsOpen(true)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Tên công việc, kỹ năng..."
-                  className="flex-1 outline-none bg-transparent text-white placeholder:text-white/40"
+                  placeholder="Chức danh, mức lương, hoặc công ty..."
+                  className="flex-1 outline-none bg-transparent text-gray-800 placeholder:text-gray-400 text-[16px] sm:text-base"
                   autoComplete="off"
                 />
               </div>
 
-              {/* Location select */}
-              <div className="flex items-center gap-2 px-5 py-4 border-b sm:border-b-0 sm:border-r border-white/10">
-                <MapPin className="w-5 h-5 text-white/60 shrink-0" />
-                <select
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="flex-1 outline-none bg-transparent text-white cursor-pointer"
-                >
-                  <option value="" className="bg-[#1a1a2e]">Địa điểm</option>
-                  {CITIES.map((city) => (
-                    <option key={city} value={city} className="bg-[#1a1a2e]">{city}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Search button */}
+              {/* CTA button — full width on mobile */}
               <button
                 onClick={() => handleSearch(keyword)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 group rounded-b-2xl sm:rounded-b-none sm:rounded-r-2xl"
+                className="m-2 px-5 sm:px-7 py-3 bg-orange-500 hover:bg-orange-600
+                           active:scale-95 text-white font-semibold rounded-xl
+                           transition-all flex items-center justify-center gap-2
+                           text-[16px] sm:text-[15px]"
               >
-                <span>Tìm kiếm</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Khám phá ngay
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* ── Autocomplete Dropdown (style của AISearchBox, màu dark) ── */}
+            {/* Autocomplete Dropdown */}
             <AnimatePresence>
               {isOpen && keyword.length >= 1 && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                  initial={{ opacity: 0, y: -6, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0,  scale: 1    }}
-                  exit={{    opacity: 0, y: -8,  scale: 0.98 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-[calc(100%+8px)] w-full sm:w-[calc(100%-theme(spacing.32))] z-50
-                             bg-[#1a1a2e]/95 backdrop-blur-md border border-white/15 rounded-xl
-                             shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden"
+                  exit={{    opacity: 0, y: -6,  scale: 0.99 }}
+                  transition={{ duration: 0.14 }}
+                  className="absolute left-0 top-[calc(100%+6px)] w-full z-50
+                             bg-white border border-gray-100 rounded-2xl
+                             shadow-xl overflow-hidden"
                 >
-                  {/* Loading */}
                   {isAutocompleteLoading && (
-                    <div className="flex items-center gap-2 px-4 py-3 text-sm text-white/40">
+                    <div className="flex items-center gap-2 px-4 py-3 text-[16px] text-gray-400">
                       <Loader2 size={14} className="animate-spin" />
                       Đang tìm kiếm...
                     </div>
                   )}
 
-                  {/* Empty */}
                   {!isAutocompleteLoading && suggestions.length === 0 && (
-                    <div className="px-4 py-3 text-sm text-white/40">
+                    <div className="px-4 py-3 text-[16px] text-gray-400">
                       Nhấn Enter để tìm "{keyword}"
                     </div>
                   )}
 
-                  {/* Suggestion items (giống AISearchBox) */}
                   {suggestions.map((s, i) => {
                     const badge = getSuggestionBadge(s.type);
                     return (
@@ -298,36 +378,32 @@ export function HeroSection() {
                         onMouseDown={() => handleSelectSuggestion(s)}
                         onMouseEnter={() => setSelectedIndex(i)}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
-                          ${i === selectedIndex ? "bg-white/10" : "hover:bg-white/5"}`}
+                          ${i === selectedIndex ? "bg-blue-50" : "hover:bg-gray-50"}`}
                       >
-                        {/* Icon */}
-                        <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-white/10">
+                        <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100">
                           {getSuggestionIcon(s.type)}
                         </div>
-
-                        {/* Text */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-white truncate">{s.query}</span>
-                            <ArrowUpRight size={12} className="text-white/30 flex-shrink-0" />
+                            <span className="text-[16px] font-medium text-gray-800 truncate">{s.query}</span>
+                            <ArrowUpRight size={12} className="text-gray-300 flex-shrink-0" />
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {s.reason && (
-                              <span className="text-xs text-white/30 truncate">{s.reason}</span>
+                              <span className="text-xs text-gray-400 truncate">{s.reason}</span>
                             )}
                             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${badge.cls}`}>
                               {badge.label}
                             </span>
                           </div>
                         </div>
-
-                        {/* Relevance bar */}
-                        <div className="flex-shrink-0 w-12 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        {/* Hide relevance bar on very small screens */}
+                        <div className="hidden sm:block flex-shrink-0 w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${
                               s.relevanceScore >= 80 ? "bg-green-500"
-                              : s.relevanceScore >= 50 ? "bg-yellow-500"
-                              : "bg-white/20"
+                              : s.relevanceScore >= 50 ? "bg-yellow-400"
+                              : "bg-gray-300"
                             }`}
                             style={{ width: `${s.relevanceScore}%` }}
                           />
@@ -336,13 +412,12 @@ export function HeroSection() {
                     );
                   })}
 
-                  {/* "Tìm kiếm X" footer (giống AISearchBox) */}
                   {keyword.trim() && suggestions.length > 0 && (
-                    <div className="border-t border-white/10 p-2">
+                    <div className="border-t border-gray-100 p-2">
                       <button
                         onMouseDown={() => handleSearch(keyword.trim())}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg
-                          text-sm font-medium text-blue-400 hover:bg-white/5 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl
+                          text-[16px] font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                       >
                         <Search size={14} />
                         Tìm kiếm "{keyword.trim()}"
@@ -355,63 +430,62 @@ export function HeroSection() {
           </div>
         </motion.div>
 
-        {/* Popular searches */}
+        {/* Popular tags */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-wrap items-center justify-center gap-2 mt-8"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.22 }}
+          className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 mb-7 sm:mb-10 px-2"
         >
-          <span className="text-white/40 text-[16px]">Phổ biến:</span>
+          <span className="text-gray-500 text-xs sm:text-[16px] w-full sm:w-auto">Danh mục phổ biến:</span>
           {POPULAR_SEARCHES.map((tag, i) => (
             <button
               key={i}
               onClick={() => { setKeyword(tag); handleSearch(tag); }}
-              className="px-3 py-1.5 text-[16px] text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all duration-200"
+              className="px-3 py-1 text-xs sm:text-[16px] text-blue-700 underline underline-offset-2 hover:text-blue-900 transition-colors"
             >
               {tag}
             </button>
           ))}
         </motion.div>
 
-        {/* Trust indicators */}
+        {/* Banner slider */}
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="flex flex-wrap items-center justify-center gap-6 mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.32 }}
+          className="px-0 sm:px-0"
         >
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 border-2 border-[#1a1a2e] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">U{i}</span>
-                </div>
-              ))}
-            </div>
-            <span className="text-white/60 text-[16px]">+420,000 người dùng</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            ))}
-            <span className="text-white/60 text-[16px] ml-2">4.9/5 từ 10,000+ đánh giá</span>
-          </div>
+          <BannerSlider />
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-            <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-white/50 rounded-full mt-2"
-            />
+         <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="relative z-10 mt-6 sm:mt-8  border-t border-gray-200"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          {/* 2-col on mobile, 4-col on sm+ */}
+          <div className="grid grid-cols-2 sm:grid-cols-4">
+            {STATS.map(({ icon: Icon, value, label }, i) => (
+              <div
+                key={i}
+                className={`flex flex-col items-center py-5 sm:py-6 px-3 sm:px-4
+                  ${i % 2 !== 0 ? "border-l border-gray-200" : ""}
+                  ${i < 2 ? "border-b sm:border-b-0 border-gray-200" : ""}
+                  sm:border-l sm:first:border-l-0`}
+              >
+                <span className="text-gray-500 text-xs sm:text-[16px] mb-1 text-center leading-tight">{label}</span>
+                <span className="text-gray-900 font-extrabold text-xl sm:text-2xl">{value}</span>
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
       </div>
+
+     
     </section>
   );
 }

@@ -66,4 +66,13 @@ public interface ApplicationRepository {
 
     int countInterviewedByCandidateId(UUID candidateId);
 
+    Page<Application> findByJobPostIdOrderByBoostFirst(UUID jobPostId, Pageable pageable);
+
+    Page<Application> findByJobPostIdAndStatusOrderByBoostFirst(UUID jobPostId, ApplicationStatus status,
+            Pageable pageable);
+
+    Page<Application> findByCompanyIdOrderByBoostFirst(UUID companyId, Pageable pageable);
+
+    Page<Application> findByCompanyIdAndStatusOrderByBoostFirst(UUID companyId, ApplicationStatus status,
+            Pageable pageable);
 }

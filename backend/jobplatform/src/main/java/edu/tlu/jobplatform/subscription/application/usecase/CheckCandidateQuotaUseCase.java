@@ -8,12 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-/**
- * UseCase: Kiểm tra quota còn lại của Candidate.
- * Candidate dùng để biết còn bao nhiêu lượt ứng tuyển, boost CV, v.v.
- * Cũng dùng nội bộ bởi các UseCase khác (JobApplicationUseCase,
- * CvBoostUseCase).
- */
 @Service
 @RequiredArgsConstructor
 public class CheckCandidateQuotaUseCase {
@@ -26,9 +20,7 @@ public class CheckCandidateQuotaUseCase {
                 .findActiveByCandidate(candidateId)
                 .orElse(null);
 
-        boolean hasActive = sub != null && sub.isActive();
-
-        if (!hasActive) {
+        if (sub == null || !sub.isActive()) {
             return Result.noSubscription();
         }
 
@@ -37,16 +29,11 @@ public class CheckCandidateQuotaUseCase {
                 sub.getPlanCode(),
                 sub.canApply(),
                 sub.canBoostCv(),
-                sub.canAddJobAlert(),
-                sub.canRunMockInterview(),
                 sub.isAiCvWriter(),
-                sub.isSalaryInsights(),
-                sub.isProfileAnalytics(),
-                sub.isAdvancedFilters(),
+                sub.isPremiumTemplateAccess(),
                 sub.getApplicationQuota().remaining(),
                 sub.getCvBoostQuota().remaining(),
-                sub.getJobAlertQuota().remaining(),
-                sub.getMockInterviewQuota().remaining(),
+                sub.getCvCreateQuota().getLimit(),
                 sub.daysRemaining());
     }
 
@@ -55,24 +42,18 @@ public class CheckCandidateQuotaUseCase {
             String planCode,
             boolean canApply,
             boolean canBoostCv,
-            boolean canAddJobAlert,
-            boolean canRunMockInterview,
             boolean aiCvWriter,
-            boolean salaryInsights,
-            boolean profileAnalytics,
-            boolean advancedFilters,
+            boolean premiumTemplateAccess,
             int applicationsRemaining,
             int cvBoostsRemaining,
-            int jobAlertsRemaining,
-            int mockInterviewsRemaining,
+            int cvCreateLimit,
             long daysLeft) {
-        /** Factory method cho trường hợp không có subscription */
         static Result noSubscription() {
             return new Result(
                     false, null,
-                    false, false, false, false,
-                    false, false, false, false,
-                    0, 0, 0, 0, 0L);
+                    false, false,
+                    false, false,
+                    0, 0, 1, 0L); // cvCreateLimit=1 cho phép tạo 1 CV miễn phí
         }
     }
 }

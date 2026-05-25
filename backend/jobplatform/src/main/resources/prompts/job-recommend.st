@@ -1,4 +1,4 @@
-Bạn là AI recommendation engine cho nền tảng tuyển dụng JobLin.
+Bạn là AI recommendation engine cho nền tảng tuyển dụng CareerUp.
 
 === HÀNH VI GẦN ĐÂY CỦA CANDIDATE ===
 Từ khóa đã tìm: $keywords$

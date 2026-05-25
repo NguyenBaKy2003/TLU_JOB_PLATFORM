@@ -58,7 +58,7 @@ public class EmployerApplicationController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size) {
 
-                var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
+                var pageable = PageRequest.of(page, size);
                 var appPage = getAppsUseCase.execute(jobPostId, status, pageable);
 
                 Set<UUID> candidateIds = appPage.stream()
@@ -82,8 +82,6 @@ public class EmployerApplicationController {
                 var logs = logRepo.findByApplicationId(id);
                 CandidateInfo candidateInfo = candidateInfoResolver.resolve(app.getCandidateId());
 
-                // Dùng overload (app, logs, candidateInfo) — employer đã biết context
-                // job/company
                 return ResponseEntity.ok(ApiResponse.success(
                                 ApplicationDetailResponse.from(app, logs, candidateInfo)));
         }
@@ -124,13 +122,16 @@ public class EmployerApplicationController {
                         @RequestParam(defaultValue = "20") int size) {
 
                 UUID companyId = resolveCompanyId();
-                var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
-                var appPage = applicationRepo.findByCompanyId(companyId, status, pageable);
+
+                // Sort bị loại bỏ — JPQL tự xử lý boost first, rồi appliedAt DESC
+                var pageable = PageRequest.of(page, size);
+                var appPage = status != null
+                                ? applicationRepo.findByCompanyIdAndStatusOrderByBoostFirst(companyId, status, pageable)
+                                : applicationRepo.findByCompanyIdOrderByBoostFirst(companyId, pageable);
 
                 Set<UUID> candidateIds = appPage.stream()
                                 .map(Application::getCandidateId)
                                 .collect(Collectors.toSet());
-
                 Set<UUID> jobPostIds = appPage.stream()
                                 .map(Application::getJobPostId)
                                 .collect(Collectors.toSet());

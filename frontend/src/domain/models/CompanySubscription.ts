@@ -93,14 +93,14 @@ export interface PurchasePayload {
 // ── UI helpers ────────────
 
 export const PLAN_HIGHLIGHTS: Record<string, string[]> = {
-  FREE:       ["5 tin đăng / tháng", "Tìm kiếm cơ bản", "Hỗ trợ email"],
-  BASIC:      ["20 tin đăng / tháng", "5 tin nổi bật", "100 lượt xem CV", "Hỗ trợ ưu tiên"],
-  PRO:        ["Không giới hạn tin đăng", "20 tin nổi bật", "500 lượt xem CV", "AI gợi ý ứng viên", "Phân tích nâng cao"],
-  ENTERPRISE: ["Không giới hạn tất cả", "Tin nổi bật ưu tiên", "Xem CV không giới hạn", "AI & Analytics đầy đủ", "Hỗ trợ 24/7 riêng"],
+  FREE_COMPANY:       ["5 tin đăng / tháng", "Tìm kiếm cơ bản", "Hỗ trợ email"],
+  STARTER :      ["20 tin đăng / tháng", "5 tin nổi bật", "100 lượt xem CV", "Hỗ trợ ưu tiên"],
+  BUSINESS :        ["Không giới hạn tin đăng", "20 tin nổi bật", "500 lượt xem CV", "AI gợi ý ứng viên", "Phân tích nâng cao"],
+  ENTERPRISE : ["Không giới hạn tất cả", "Tin nổi bật ưu tiên", "Xem CV không giới hạn", "AI & Analytics đầy đủ", "Hỗ trợ 24/7 riêng"],
 };
 
 export const PLAN_BADGE: Record<string, { label: string; cls: string } | undefined> = {
-  PRO:        { label: "Phổ biến", cls: "bg-blue-600 text-white"    },
+  BUSINESS:        { label: "Phổ biến", cls: "bg-blue-600 text-white"    },
   ENTERPRISE: { label: "Cao cấp",  cls: "bg-amber-500 text-white"   },
 };
 

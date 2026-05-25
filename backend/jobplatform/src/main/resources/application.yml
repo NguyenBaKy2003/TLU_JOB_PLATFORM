@@ -140,7 +140,7 @@ app:
       - http://localhost:3000/oauth2/callback
       - http://localhost:3001/oauth2/callback
   mail:
-    from: "JobPlatform <noreply@jobplatform.vn>"
+    from: "CareerUp <noreply@jobplatform.vn>"
 admin:
   setup:
     secret: ${ADMIN_SECRET_KEY:yP9s7F4$8jL2#kD1@mN5^bV3!cX7}

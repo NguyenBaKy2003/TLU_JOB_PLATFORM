@@ -243,10 +243,10 @@ function CompaniesPageInner() {
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center gap-2 mt-4 flex-wrap"
             >
-              <span className="text-blue-100 text-sm">Kết quả cho:</span>
+              <span className="text-blue-100 text-[16px]">Kết quả cho:</span>
               {keyword && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm
-                  text-white text-sm font-medium rounded-full border border-white/30">
+                  text-white text-[16px] font-medium rounded-full border border-white/30">
                   {keyword}
                   <button
                     onClick={() => {
@@ -264,7 +264,7 @@ function CompaniesPageInner() {
               )}
               {location && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm
-                  text-white text-sm font-medium rounded-full border border-white/30">
+                  text-white text-[16px] font-medium rounded-full border border-white/30">
                   <MapPin size={11} />
                   {location}
                   <button

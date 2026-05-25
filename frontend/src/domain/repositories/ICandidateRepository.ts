@@ -1,12 +1,8 @@
 import {
-  CandidateProfile,
-  CandidateCV,
-  JobSearchStatus,
-  UpdateProfilePayload,
-  ExperiencePayload,
-  EducationPayload,
-  UploadCVPayload,
-  CreateOnlineCVPayload,
+  CandidateProfile, CandidateCV, JobSearchStatus,
+  UpdateProfilePayload, ExperiencePayload, EducationPayload,
+  UploadCVPayload, CreateOnlineCVPayload,
+  BoostResult, BoostStatus,
 } from "@/domain/models/Candidate";
 
 export interface ICandidateRepository {
@@ -16,7 +12,11 @@ export interface ICandidateRepository {
   updateAvatar(file: File): Promise<CandidateProfile>;
   updateJobSearchStatus(status: JobSearchStatus): Promise<void>;
 
-  // ── Work experience ─────────────
+  // ── Boost ────────
+  boostCv(): Promise<BoostResult>;
+  getBoostStatus(): Promise<BoostStatus>;
+
+  // ── Work experience ──────────
   addExperience(data: ExperiencePayload): Promise<CandidateProfile>;
   updateExperience(id: string, data: ExperiencePayload): Promise<CandidateProfile>;
   deleteExperience(id: string): Promise<void>;
@@ -28,7 +28,7 @@ export interface ICandidateRepository {
 
   // ── CV ────
   listCVs(): Promise<CandidateCV[]>;
-  uploadCV(data: UploadCVPayload): Promise<CandidateCV>;
+  uploadCV(data: UploadCVPayload & { setAsPrimary?: boolean }): Promise<CandidateCV>;
   createOnlineCV(data: CreateOnlineCVPayload): Promise<CandidateCV>;
   setPrimaryCV(cvId: string): Promise<void>;
   deleteCV(cvId: string): Promise<void>;

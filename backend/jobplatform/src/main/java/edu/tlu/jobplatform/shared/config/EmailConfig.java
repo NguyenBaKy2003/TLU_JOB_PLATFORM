@@ -37,7 +37,7 @@ import java.util.Properties;
  *
  * app:
  *   mail:
- *     from: "JobPlatform <noreply@jobplatform.vn>"
+ *     from: "CareerUp <noreply@jobplatform.vn>"
  * </pre>
  */
 @Configuration

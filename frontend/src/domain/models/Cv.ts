@@ -159,3 +159,15 @@ export interface PublicCVDetail {
   viewCount: number;
   publishedAt: string | null;
 }
+
+// ── AI Optimize 
+
+export interface AiOptimizeResult {
+  overallSummary:        string;
+  suggestedSummary:      string | null;
+  skillsToAdd:           string[];
+  skillsToRemove:        string[];
+  experienceSuggestions: string[];
+  missingKeywords:       string[];
+  matchScore:            number; // 0–100
+}

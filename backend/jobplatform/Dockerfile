@@ -1,5 +1,5 @@
 # 
-#  Dockerfile — JobPlatform Backend
+#  Dockerfile — CareerUp Backend
 #  Spring Boot | Java 21 | Eclipse Temurin
 # 
 
