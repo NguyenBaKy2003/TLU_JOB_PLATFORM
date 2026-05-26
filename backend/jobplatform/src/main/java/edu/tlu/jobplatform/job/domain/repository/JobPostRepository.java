@@ -21,6 +21,9 @@ public interface JobPostRepository {
 
     Page<JobPost> findByCompanyId(UUID companyId, Pageable pageable);
 
+    /** Lọc theo companyId + status — dùng cho GetCompanyJobsUseCase */
+    Page<JobPost> findByCompanyIdAndStatus(UUID companyId, JobStatus status, Pageable pageable);
+
     Page<JobPost> findByPostedBy(UUID postedBy, Pageable pageable);
 
     Page<JobPost> findPublished(Pageable pageable);
@@ -34,5 +37,4 @@ public interface JobPostRepository {
     void deleteById(UUID id);
 
     List<JobPost> findAllById(Collection<UUID> ids);
-
 }

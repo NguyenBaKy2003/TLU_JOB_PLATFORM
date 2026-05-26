@@ -16,6 +16,7 @@ import type {
   CompanyDocument,
   CompanyDocumentType,
 } from "@/domain/models/Company";
+import { JobPost } from "@/domain/models/Job";
 
 export class CompanyService {
 
@@ -36,6 +37,14 @@ export class CompanyService {
   /** Chi tiết công ty theo slug — dùng khi navigate từ URL đẹp */
   getBySlug(slug: string): Promise<CompanyProfile> {
     return this.repo.getBySlug(slug);
+  }
+
+   getJobsByCompany(
+    companyId: string,
+    page = 0,
+    size = 10,
+  ): Promise<PageResponse<JobPost>> {
+    return this.repo.getJobsByCompany(companyId, page, size);
   }
 
   // ── Employer ──────────

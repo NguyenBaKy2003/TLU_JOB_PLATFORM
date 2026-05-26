@@ -1,16 +1,19 @@
 // src/domain/models/Company.ts
 
 export interface Company {
-  id:          string;
-  name:        string;
-  logo:        string;
-  location:    string;
-  rating:      number;
-  tags:        string[];   // ["Toàn cầu", "Đang tuyển dụng"]
-  description: string;
-  jobCount:    number;
-  reviewCount: number;
-  salaryCount: string;     // "103.98K"
+  id:                 string;
+  name:               string;
+  industry:           string | null;
+  location:           string | null;       // city
+  description:        string | null;
+  logoUrl:            string | null;
+  size:               string | null;       // sizeLabel
+  isVerified:         boolean;
+  jobCount:           number;              // activeJobCount
+  rating:             number;              // averageRating
+  reviewCount:        number;
+  foundedYear:        number | null;
+  website:            string | null;
 }
 
 export interface CompanyFilters {

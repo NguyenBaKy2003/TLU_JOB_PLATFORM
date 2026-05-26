@@ -72,6 +72,9 @@ export interface CompanyProfile {
   coverImageUrl: string | null;
   verificationStatus: VerificationStatus;
   rejectionReason: string | null;
+   jobCount:    number  ,
+    rating:      number   ,
+    reviewCount: number,
   canPostJobs: boolean;           
   verifiedAt: string | null;
   createdAt: string;

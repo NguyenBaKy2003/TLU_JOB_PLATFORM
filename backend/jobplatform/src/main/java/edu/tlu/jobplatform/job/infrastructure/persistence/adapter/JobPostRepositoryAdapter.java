@@ -47,6 +47,11 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
     }
 
     @Override
+    public Page<JobPost> findByCompanyIdAndStatus(UUID companyId, JobStatus status, Pageable p) {
+        return jpaRepo.findByCompanyIdAndStatus(companyId, status, p).map(mapper::toDomain);
+    }
+
+    @Override
     public Page<JobPost> findByPostedBy(UUID postedBy, Pageable p) {
         return jpaRepo.findByPostedBy(postedBy, p).map(mapper::toDomain);
     }
@@ -87,16 +92,11 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
                 return mapper.toDomain(jpaRepo.save(entity));
             }
         }
-        // Nhánh tạo mới — id đã được set trong toNewEntity
         JobPostJpaEntity entity = mapper.toNewEntity(job);
         syncSkills(entity, job);
         return mapper.toDomain(jpaRepo.save(entity));
     }
 
-    /**
-     * Đồng bộ danh sách skills giữa domain và JPA entity.
-     * orphanRemoval=true → JPA tự xóa skill cũ khi clear().
-     */
     private void syncSkills(JobPostJpaEntity entity, JobPost job) {
         entity.getSkills().clear();
         if (job.getSkills() != null && !job.getSkills().isEmpty()) {
@@ -122,5 +122,4 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
         return jpaRepo.search(keyword, city, category, jobType, level, companyId, pageable)
                 .map(mapper::toDomain);
     }
-
 }

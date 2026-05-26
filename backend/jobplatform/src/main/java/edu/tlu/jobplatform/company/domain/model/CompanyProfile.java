@@ -58,7 +58,16 @@ public class CompanyProfile {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private Integer activeJobCount; // số job PUBLISHED
+    private Double averageRating; // trung bình điểm review (0.0 – 5.0)
+    private Integer reviewCount; // tổng số review
     // ── Business Rules ─
+
+    public void setStatistics(int activeJobCount, double averageRating, int reviewCount) {
+        this.activeJobCount = activeJobCount;
+        this.averageRating = averageRating;
+        this.reviewCount = reviewCount;
+    }
 
     /** Công ty được phép đăng tin tuyển dụng */
     public boolean canPostJobs() {

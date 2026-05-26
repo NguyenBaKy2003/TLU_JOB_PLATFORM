@@ -137,18 +137,8 @@ function CodeSelector({ value, onChange, disabled, codes }: {
         {codes.map(code => (
           <option key={code} value={code}>{code}</option>
         ))}
-        <option value="__custom__">Khác (tự nhập)...</option>
       </select>
 
-      {showCustom && !disabled && (
-        <input
-          value={value}
-          onChange={e => onChange(e.target.value.toUpperCase())}
-          placeholder="Nhập code tùy chỉnh (vd: CUSTOM_PLAN)..."
-          autoFocus
-          className={inputCls + " mt-1"}
-        />
-      )}
 
       {/* Hint khi đang nhập custom */}
       {showCustom && !disabled && (

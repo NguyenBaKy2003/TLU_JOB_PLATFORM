@@ -9,6 +9,7 @@ import edu.tlu.jobplatform.company.presentation.dto.request.CreateCompanyRequest
 import edu.tlu.jobplatform.company.presentation.dto.request.UpdateCompanyRequest;
 import edu.tlu.jobplatform.company.presentation.dto.request.UpdateTeamMemberRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.CompanyResponse;
+import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -33,41 +35,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Endpoints:
- *
- * ── Public ──
- * GET /api/v1/companies Danh sách công ty đã xác thực
- * GET /api/v1/companies/{id} Chi tiết công ty theo ID
- * GET /api/v1/companies/slug/{slug} Chi tiết công ty theo slug
- *
- * ── Employer
- * GET /api/v1/companies/my Hồ sơ của tôi (có documents)
- * POST /api/v1/companies Tạo hồ sơ công ty
- * PATCH /api/v1/companies/{id} Cập nhật thông tin
- * PATCH /api/v1/companies/logo Upload logo
- * PATCH /api/v1/companies/cover Upload ảnh bìa
- *
- * ── Team members ─
- * POST /api/v1/companies/team Thêm thành viên
- * PATCH /api/v1/companies/team/{memberId} Cập nhật thành viên
- * PATCH /api/v1/companies/team/{memberId}/avatar Upload ảnh thành viên
- * DELETE /api/v1/companies/team/{memberId} Xoá thành viên
- *
- * ── Gallery ─
- * POST /api/v1/companies/gallery Upload ảnh gallery
- * DELETE /api/v1/companies/gallery/{imageId} Xoá ảnh gallery
- *
- * ── Documents ─
- * POST /api/v1/companies/documents Nộp tài liệu xác thực
- * GET /api/v1/companies/documents Danh sách tài liệu của tôi
- */
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Company", description = "Quản lý hồ sơ công ty")
 public class CompanyController {
 
-        // ── Use cases ─
+        // ── Use cases ─────────────────────────────────────────────────────────────
         private final CreateCompanyUseCase createUseCase;
         private final UpdateCompanyUseCase updateUseCase;
         private final UpdateCompanyLogoUseCase updateLogoUseCase;
@@ -78,12 +51,14 @@ public class CompanyController {
         private final UploadDocumentUseCase uploadDocumentUseCase;
         private final UploadGalleryImageUseCase uploadGalleryImageUseCase;
         private final TrackCandidateBehaviorUseCase trackUseCase;
+        private final GetCompanyJobsUseCase getCompanyJobsUseCase; // ← mới
 
-        // ── Repositories
+        // ── Repositories (chỉ dùng trực tiếp khi chưa có use case tương ứng) ────
         private final CompanyRepository companyRepository;
         private final CompanyTeamMemberRepository teamMemberRepository;
         private final CompanyDocumentRepository documentRepository;
         private final CompanyGalleryRepository galleryRepository;
+
         // ════════════════════════════════════════════════════════════
         // Public endpoints
         // ════════════════════════════════════════════════════════════
@@ -95,10 +70,16 @@ public class CompanyController {
                         @RequestParam(defaultValue = "12") int size) {
 
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-                var result = companyRepository.findVerifiedCompanies(pageable)
-                                .map(c -> CompanyResponse.from(c,
-                                                teamMemberRepository.findVisibleByCompanyId(c.getId()),
-                                                galleryRepository.findByCompanyId(c.getId())));
+
+                // Load page domain objects
+                var companyPage = companyRepository.findVerifiedCompanies(pageable);
+
+                // Enrich stats — 1 batch query cho toàn bộ page
+                companyRepository.enrichWithStats(companyPage.getContent());
+
+                var result = companyPage.map(c -> CompanyResponse.from(c,
+                                teamMemberRepository.findVisibleByCompanyId(c.getId()),
+                                galleryRepository.findByCompanyId(c.getId())));
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
@@ -112,13 +93,16 @@ public class CompanyController {
                 CompanyProfile company = companyRepository.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", id));
 
-                SecurityUtils.getCurrentUserId().ifPresent(userId -> trackUseCase.trackCompanyView(userId, id));
+                // Enrich stats
+                companyRepository.enrichWithStats(company);
+
+                SecurityUtils.getCurrentUserId().ifPresent(
+                                userId -> trackUseCase.trackCompanyView(userId, id));
 
                 return ResponseEntity.ok(ApiResponse.success(buildResponse(company, auth)));
         }
 
         @Operation(summary = "Chi tiết công ty theo slug")
-        @GetMapping("/api/v1/companies/slug/{slug}")
         public ResponseEntity<ApiResponse<CompanyResponse>> getBySlug(
                         @PathVariable String slug,
                         Authentication auth) {
@@ -126,7 +110,31 @@ public class CompanyController {
                 CompanyProfile company = companyRepository.findBySlug(slug)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", slug));
 
+                // Enrich stats
+                companyRepository.enrichWithStats(company);
+
                 return ResponseEntity.ok(ApiResponse.success(buildResponse(company, auth)));
+        }
+
+        /**
+         * GET /api/v1/companies/{id}/jobs
+         * Danh sách việc làm PUBLISHED của công ty — public, không cần auth.
+         */
+        @Operation(summary = "Danh sách việc làm đang tuyển của công ty")
+        @GetMapping("/api/v1/companies/{id}/jobs")
+        public ResponseEntity<ApiResponse<PageResponse<JobPost>>> getCompanyJobs(
+                        @PathVariable UUID id,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+
+                // Kiểm tra công ty tồn tại — throw 404 nếu không có
+                companyRepository.findById(id)
+                                .orElseThrow(() -> ResourceNotFoundException.of("Company", id));
+
+                PageResponse<JobPost> result = getCompanyJobsUseCase.execute(
+                                new GetCompanyJobsUseCase.Command(id, page, size));
+
+                return ResponseEntity.ok(ApiResponse.success(result));
         }
 
         // ════════════════════════════════════════════════════════════
@@ -137,11 +145,13 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/companies/my")
         @PreAuthorize("hasRole('EMPLOYER')")
-        public ResponseEntity<ApiResponse<CompanyResponse>> getMyCompany(
-                        @CurrentUser UUID userId) {
+        public ResponseEntity<ApiResponse<CompanyResponse>> getMyCompany(@CurrentUser UUID userId) {
 
                 CompanyProfile company = companyRepository.findByOwnerId(userId)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", userId));
+
+                // Enrich stats
+                companyRepository.enrichWithStats(company);
 
                 UUID companyId = company.getId();
                 CompanyResponse response = CompanyResponse.forOwner(
@@ -276,8 +286,7 @@ public class CompanyController {
                         @RequestPart("file") MultipartFile file) {
 
                 UUID companyId = resolveCompanyId(userId);
-                CompanyTeamMember member = uploadTeamMemberAvatarUseCase.execute(
-                                companyId, memberId, file);
+                CompanyTeamMember member = uploadTeamMemberAvatarUseCase.execute(companyId, memberId, file);
 
                 return ResponseEntity.ok(ApiResponse.success(
                                 CompanyResponse.TeamMemberDto.from(member), "Ảnh thành viên đã được cập nhật."));
@@ -296,8 +305,7 @@ public class CompanyController {
                                 .orElseThrow(() -> ResourceNotFoundException.of("TeamMember", memberId));
 
                 if (!member.getCompanyId().equals(companyId))
-                        throw new BusinessRuleException(
-                                        "Bạn không có quyền xoá thành viên này.", "FORBIDDEN");
+                        throw new BusinessRuleException("Bạn không có quyền xoá thành viên này.", "FORBIDDEN");
 
                 teamMemberRepository.deleteById(memberId);
                 return ResponseEntity.ok(ApiResponse.success(null, "Đã xoá thành viên."));
@@ -317,7 +325,6 @@ public class CompanyController {
                         @RequestPart(value = "file", required = false) MultipartFile singleFile,
                         @RequestParam(required = false) List<String> captions) {
 
-                // Gộp lại — ưu tiên "files", fallback về "file"
                 List<MultipartFile> allFiles;
                 if (files != null && !files.isEmpty()) {
                         allFiles = files;
@@ -329,7 +336,6 @@ public class CompanyController {
 
                 UUID companyId = resolveCompanyId(userId);
                 List<CompanyGalleryImage> images = uploadGalleryImageUseCase.execute(companyId, allFiles, captions);
-
                 List<CompanyResponse.GalleryImageDto> dtos = images.stream()
                                 .map(CompanyResponse.GalleryImageDto::from)
                                 .toList();
@@ -351,8 +357,7 @@ public class CompanyController {
                                 .orElseThrow(() -> ResourceNotFoundException.of("GalleryImage", imageId));
 
                 if (!image.getCompanyId().equals(companyId))
-                        throw new BusinessRuleException(
-                                        "Bạn không có quyền xoá ảnh này.", "FORBIDDEN");
+                        throw new BusinessRuleException("Bạn không có quyền xoá ảnh này.", "FORBIDDEN");
 
                 galleryRepository.deleteById(imageId);
                 return ResponseEntity.ok(ApiResponse.success(null, "Đã xoá ảnh."));
@@ -376,8 +381,7 @@ public class CompanyController {
 
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(ApiResponse.success(
-                                                CompanyResponse.DocumentDto.from(doc),
-                                                "Tài liệu đã được nộp."));
+                                                CompanyResponse.DocumentDto.from(doc), "Tài liệu đã được nộp."));
         }
 
         @Operation(summary = "Danh sách tài liệu của công ty tôi")
@@ -401,11 +405,6 @@ public class CompanyController {
         // Helpers
         // ════════════════════════════════════════════════════════════
 
-        /**
-         * Build CompanyResponse dựa theo role của caller:
-         * - ADMIN / SUPER_ADMIN → forAdmin (có documents)
-         * - Public / Candidate → from (không có documents)
-         */
         private CompanyResponse buildResponse(CompanyProfile company, Authentication auth) {
                 UUID id = company.getId();
                 List<CompanyTeamMember> team = teamMemberRepository.findVisibleByCompanyId(id);
@@ -415,14 +414,12 @@ public class CompanyController {
                                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                                                 || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-                if (isAdmin) {
-                        return CompanyResponse.forAdmin(company, team, gallery,
-                                        documentRepository.findByCompanyId(id));
-                }
-                return CompanyResponse.from(company, team, gallery);
+                return isAdmin
+                                ? CompanyResponse.forAdmin(company, team, gallery,
+                                                documentRepository.findByCompanyId(id))
+                                : CompanyResponse.from(company, team, gallery);
         }
 
-        /** Lấy companyId từ ownerId — throw nếu chưa có hồ sơ */
         private UUID resolveCompanyId(UUID ownerId) {
                 return companyRepository.findByOwnerId(ownerId)
                                 .orElseThrow(() -> new BusinessRuleException(

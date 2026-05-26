@@ -6,11 +6,11 @@ import type { CandidateSubscriptionPlan } from "@/domain/models/CandidateSubscri
 
 export const CANDIDATE_PLAN_BADGE: Record<string, { label: string; cls: string }> = {
   PREMIUM: {
-    label: "Phổ biến nhất",
+    label: "Tốt nhất",
     cls: "bg-violet-600 text-white shadow-sm shadow-violet-200",
   },
   PRO: {
-    label: "Tốt nhất",
+    label: "Phổ biến nhất",
     cls: "bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-sm",
   },
 };

@@ -187,7 +187,6 @@ function CodeSelector({
             {code}
           </option>
         ))}
-        <option value="__custom__">Khác (tự nhập)...</option>
       </select>
 
       {showCustom && !disabled && (
