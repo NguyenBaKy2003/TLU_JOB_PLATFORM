@@ -1,6 +1,6 @@
 // src/presentation/components/subscription/PlanCard.tsx
 "use client";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, Lock } from "lucide-react";
 import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 import { PLAN_HIGHLIGHTS, PLAN_BADGE } from "@/domain/models/CompanySubscription";
 
@@ -17,18 +17,26 @@ interface Props {
 export function PlanCard({
   plan, yearly, selected, current, onSelect, formatPrice, discount,
 }: Props) {
-  const badge     = PLAN_BADGE[plan.code];
-  const price     = yearly ? plan.priceYearly : plan.priceMonthly;
-  const highlights= PLAN_HIGHLIGHTS[plan.code] ?? [];
-  const isFree    = plan.priceMonthly === 0;
+  const badge      = PLAN_BADGE[plan.code];
+  const price      = yearly ? plan.priceYearly : plan.priceMonthly;
+  const highlights = PLAN_HIGHLIGHTS[plan.code] ?? [];
+  const isFree     = plan.free;
+
+  // Gói free không cho phép chọn (gói mặc định, không cần thanh toán)
+  const handleClick = () => {
+    if (isFree) return;
+    onSelect();
+  };
 
   return (
     <div
-      onClick={onSelect}
-      className={`relative flex flex-col rounded-2xl border-2 p-6 cursor-pointer transition-all
-        ${selected
-          ? "border-blue-600 bg-blue-50/30 shadow-md"
-          : "border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm"
+      onClick={handleClick}
+      className={`relative flex flex-col rounded-2xl border-2 p-6 transition-all
+        ${isFree
+          ? "cursor-default border-gray-100 bg-gray-50/60 opacity-80"
+          : selected
+            ? "cursor-pointer border-blue-600 bg-blue-50/30 shadow-md"
+            : "cursor-pointer border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm"
         }`}
     >
       {/* Badge */}
@@ -84,7 +92,7 @@ export function PlanCard({
 
       {/* Features */}
       <div className="flex flex-col gap-2 flex-1 mb-6">
-        {highlights.map(feat => (
+        {highlights.map((feat) => (
           <div key={feat} className="flex items-start gap-2">
             <Check size={14} className="text-green-500 shrink-0 mt-0.5" />
             <span className="text-xs text-gray-700">{feat}</span>
@@ -92,16 +100,31 @@ export function PlanCard({
         ))}
       </div>
 
-      {/* Select indicator */}
-      <div className={`w-full py-2.5 rounded-xl text-[16px] font-semibold text-center
-        transition-colors ${
-          selected
-            ? "bg-blue-600 text-white"
-            : current
-              ? "bg-gray-100 text-gray-500 cursor-default"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-        }`}>
-        {current ? "Gói hiện tại" : selected ? "✓ Đã chọn" : "Chọn gói này"}
+      {/* CTA */}
+      <div
+        className={`w-full py-2.5 rounded-xl text-[16px] font-semibold text-center transition-colors
+          flex items-center justify-center gap-1.5
+          ${isFree
+            ? "bg-gray-100 text-gray-400 cursor-default"
+            : selected
+              ? "bg-blue-600 text-white"
+              : current
+                ? "bg-gray-100 text-gray-500 cursor-default"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+      >
+        {isFree ? (
+          <>
+            <Lock size={13} />
+            Gói mặc định
+          </>
+        ) : current ? (
+          "Gói hiện tại"
+        ) : selected ? (
+          "✓ Đã chọn"
+        ) : (
+          "Chọn gói này"
+        )}
       </div>
     </div>
   );

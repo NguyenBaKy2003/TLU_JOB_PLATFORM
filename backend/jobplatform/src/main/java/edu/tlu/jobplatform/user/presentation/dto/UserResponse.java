@@ -56,7 +56,8 @@ public class UserResponse {
 
     @Schema(description = "Thời điểm tạo tài khoản")
     private final LocalDateTime createdAt;
-
+    @Schema(description = "Gói đăng ký hiện tại (null nếu chưa có)")
+    private final SubscriptionSummary subscription;
     // ── Factory ─
 
     public static UserResponse from(User user) {
@@ -72,9 +73,26 @@ public class UserResponse {
                 .oauth2Only(user.isOAuth2Only())
                 .lastLoginAt(user.getLastLoginAt())
                 .createdAt(user.getCreatedAt())
+                .subscription(null)
                 .build();
     }
 
+    public static UserResponse from(User user, SubscriptionSummary subscription) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .initials(buildInitials(user.getFullName()))
+                .avatarUrl(user.getAvatarUrl())
+                .role(user.getRole().name())
+                .verified(user.isVerified())
+                .active(user.isActive())
+                .oauth2Only(user.isOAuth2Only())
+                .lastLoginAt(user.getLastLoginAt())
+                .createdAt(user.getCreatedAt())
+                .subscription(subscription)
+                .build();
+    }
     // ── Helpers ─
 
     /**

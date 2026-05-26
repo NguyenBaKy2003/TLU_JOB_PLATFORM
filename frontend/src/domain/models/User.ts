@@ -26,6 +26,26 @@ export interface User {
   failedLoginAttempts:  number;
 }
 
+export interface QuotaInfo {
+  limit: number; used: number; exceeded: boolean; unlimited: boolean;
+}
+
+export interface CandidateSubscription {
+  id: string; planCode: string; status: string; yearly: boolean;
+  expiresAt: string | null;
+  aiCvWriter: boolean; premiumTemplateAccess: boolean;
+  applicationQuota: QuotaInfo; cvBoostQuota: QuotaInfo; cvCreateQuota: QuotaInfo;
+  active: boolean; expired: boolean; free: boolean;
+}
+
+export interface CompanySubscription {
+  id: string; planCode: string; status: string; yearly: boolean;
+  expiresAt: string | null;
+  aiFeatures: boolean; analyticsAccess: boolean;
+  jobPostQuota: QuotaInfo; featuredJobQuota: QuotaInfo; cvViewQuota: QuotaInfo;
+  active: boolean; expired: boolean; free: boolean;
+}
+
 // ─── Auth Token ───────────
 
 export interface AuthTokenUser {
