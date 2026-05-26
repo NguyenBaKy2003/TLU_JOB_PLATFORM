@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.admin.presentation;
 
+import edu.tlu.jobplatform.admin.application.usecase.AdminCreateUserUseCase;
 import edu.tlu.jobplatform.admin.application.usecase.AdminUserUseCase;
+import edu.tlu.jobplatform.admin.presentation.dto.request.AdminCreateUserRequest;
 import edu.tlu.jobplatform.admin.presentation.dto.response.AdminUserResponse;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -8,10 +10,12 @@ import edu.tlu.jobplatform.user.domain.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +38,7 @@ import java.util.UUID;
 public class AdminUserController {
 
     private final AdminUserUseCase adminUserUseCase;
+    private final AdminCreateUserUseCase adminCreateUserUseCase;
 
     @Operation(summary = "Danh sách users (có filter)")
     @GetMapping
@@ -47,6 +52,22 @@ public class AdminUserController {
         var result = adminUserUseCase.listUsers(keyword, role, pageable)
                 .map(AdminUserResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+    }
+
+    @Operation(summary = "Tạo tài khoản user mới")
+    @PostMapping
+    public ResponseEntity<ApiResponse<AdminUserResponse>> createUser(
+            @Valid @RequestBody AdminCreateUserRequest req) {
+
+        var cmd = new AdminCreateUserUseCase.Command(
+                req.getEmail(),
+                req.getFullName(),
+                req.getPassword(),
+                req.getRole());
+        var user = adminCreateUserUseCase.execute(cmd);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(AdminUserResponse.from(user), "Tài khoản đã được tạo."));
     }
 
     @Operation(summary = "Chi tiết user")

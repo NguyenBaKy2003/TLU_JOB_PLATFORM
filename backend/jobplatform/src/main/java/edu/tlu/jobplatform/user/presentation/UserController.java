@@ -53,8 +53,8 @@ public class UserController {
         @GetMapping("/me")
         public ResponseEntity<ApiResponse<UserResponse>> getMe() {
                 UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
-                User user = getCurrentUserUseCase.execute(userId);
-                return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
+                UserResponse response = getCurrentUserUseCase.execute(userId); // ← nhận UserResponse
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
 
         // ── PATCH /api/users/me
@@ -107,11 +107,9 @@ public class UserController {
         @PreAuthorize("hasAnyRole('ADMIN')")
         public ResponseEntity<ApiResponse<UserResponse>> getUserById(
                         @Parameter(description = "UUID của user") @PathVariable UUID id) {
-
-                User user = getCurrentUserUseCase.execute(id);
-                return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
+                UserResponse response = getCurrentUserUseCase.execute(id); // ← nhận UserResponse
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
-
         // ── PATCH /api/users/{id} ─
 
         @Operation(summary = "[ADMIN] Cập nhật thông tin user", description = "Admin cập nhật thông tin của bất kỳ user nào.")
