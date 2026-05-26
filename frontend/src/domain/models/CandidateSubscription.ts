@@ -1,6 +1,6 @@
 // D:\TLU_JOB_PLATFORM\frontend\src\domain\models\CandidateSubscription.ts
 
-export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING' |'FAILED';
+export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING' | 'FAILED';
 
 export interface CandidateQuota {
   limit: number;
@@ -16,12 +16,12 @@ export interface CandidateSubscriptionPlan {
   priceYearly: number;
   applicationLimit: number;
   cvBoostLimit: number;
-  jobAlertLimit: number;
-  mockInterviewLimit: number;
+  /** Số CV online có thể tạo đồng thời. -1 = unlimited */
+  cvCreateLimit: number;
+  /** AI viết & tối ưu CV theo JD — chỉ PREMIUM */
   aiCvWriter: boolean;
-  salaryInsights: boolean;
-  profileAnalytics: boolean;
-  advancedFilters: boolean;
+  /** Được dùng template premium khi tạo CV online */
+  premiumTemplateAccess: boolean;
   durationDays: number;
   active: boolean;
   free: boolean;
@@ -38,12 +38,10 @@ export interface CandidateSubscription {
   status: SubscriptionStatus;
   applicationQuota: CandidateQuota;
   cvBoostQuota: CandidateQuota;
-  jobAlertQuota: CandidateQuota;
-  mockInterviewQuota: CandidateQuota;
+  /** Quota tạo CV online */
+  cvCreateQuota: CandidateQuota;
   aiCvWriter: boolean;
-  salaryInsights: boolean;
-  profileAnalytics: boolean;
-  advancedFilters: boolean;
+  premiumTemplateAccess: boolean;
   currentPaymentId?: string;
   lastQuotaResetAt?: string;
   createdAt: string;
@@ -52,8 +50,7 @@ export interface CandidateSubscription {
 export interface CandidateQuotaResult {
   applicationQuota: CandidateQuota;
   cvBoostQuota: CandidateQuota;
-  jobAlertQuota: CandidateQuota;
-  mockInterviewQuota: CandidateQuota;
+  cvCreateQuota: CandidateQuota;
 }
 
 export interface PurchaseRequest {
@@ -66,25 +63,31 @@ export interface PurchaseResult {
   orderId: string;
 }
 
-
+/** Payload cho POST /api/v1/admin/candidate-plans */
 export interface CandidatePlanPayload {
   code: string;
   name: string;
   description?: string;
-  priceMonthly: number;
-  priceYearly: number;
-  applicationLimit: number;    
-  cvBoostLimit: number;       
-  jobAlertLimit: number;      
-  mockInterviewLimit: number;  
+  /** null nếu là gói free */
+  priceMonthly: number | null;
+  priceYearly: number | null;
+  /** Số đơn ứng tuyển / tháng. -1 = unlimited */
+  applicationLimit: number;
+  /** Số lần boost CV lên top / tháng. 0 = không có */
+  cvBoostLimit: number;
+  /** Số CV online có thể tạo đồng thời. -1 = unlimited */
+  cvCreateLimit: number;
+  /** AI viết & tối ưu CV theo JD */
   aiCvWriter: boolean;
-  salaryInsights: boolean;
-  profileAnalytics: boolean;
-  advancedFilters: boolean;
-  durationDays: number;
+  /** Được dùng template premium khi tạo CV online */
+  premiumTemplateAccess: boolean;
+  /** null nếu gói free không có thời hạn */
+  durationDays: number | null;
+  active: boolean;
   free: boolean;
 }
 
+/** Payload cho PATCH /api/v1/admin/candidate-plans/{planId} */
 export interface CandidatePlanUpdatePayload {
   name?: string;
   description?: string;
@@ -92,12 +95,9 @@ export interface CandidatePlanUpdatePayload {
   priceYearly?: number;
   applicationLimit?: number;
   cvBoostLimit?: number;
-  jobAlertLimit?: number;
-  mockInterviewLimit?: number;
+  cvCreateLimit?: number;
   aiCvWriter?: boolean;
-  salaryInsights?: boolean;
-  profileAnalytics?: boolean;
-  advancedFilters?: boolean;
+  premiumTemplateAccess?: boolean;
   durationDays?: number;
   active?: boolean;
 }

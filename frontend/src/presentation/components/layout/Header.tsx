@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Bell, LogOut, Search, X, ChevronDown,
-  User, Bookmark, FileText, Settings,
+  Bookmark, FileText, Settings,
   Building2, LayoutDashboard, Users, PlusCircle, BarChart2,
+  Crown, UserCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -12,25 +13,42 @@ import { useAuth }      from "@/application/contexts/AuthContext";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { NotificationPanel } from "@/presentation/components/shared/NotificationPanel";
 import { AISearchBox } from "@/presentation/components/ai/AISearchBox";
-// ─── Types ───────────────────────────────────────────────────────────────────
+import type {
+  User,
+  CandidateSubscription,
+  CompanySubscription,
+} from "@/domain/models/User";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+type PlanBadgeConfig = {
+  label: string;
+  className: string;
+  icon?: React.ReactNode;
+};
+
+type PlanBanner = {
+  daysLeft: number | null;
+  quotaHint: string | null;
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Trang chủ",  href: "/",        key: "trang-chu" },
-  { label: "Tìm Việc",   href: "/jobs",    key: "tim-viec"  },
-  { label: "Công Ty",    href: "/companies", key: "cong-ty" },
-  { label: "Tạo CV",     href: "/cv",      key: "tao-cv"    },
-  { label: "Live Stream", href: "/streams", key: "streams"  },
-];
+  { label: "Trang chủ",   href: "/",         key: "trang-chu" },
+  { label: "Tìm Việc",    href: "/jobs",      key: "tim-viec"  },
+  { label: "Công Ty",     href: "/companies", key: "cong-ty"   },
+  { label: "Tạo CV",      href: "/cv",        key: "tao-cv"    },
+  { label: "Live Stream", href: "/streams",   key: "streams"   },
+] as const;
 
 const CANDIDATE_DROPDOWN = [
-  { label: "Hồ sơ của tôi",  href: "/candidate/profile",      Icon: User     },
-  { label: "Việc đã lưu",    href: "/candidate/saved-jobs",   Icon: Bookmark },
-  { label: "Đơn ứng tuyển",  href: "/candidate/applications", Icon: FileText },
-  { label: "Cài đặt",        href: "/candidate/settings",     Icon: Settings },
+  { label: "Hồ sơ của tôi",  href: "/candidate/profile",      Icon: UserCircle },
+  { label: "Việc đã lưu",    href: "/candidate/saved-jobs",   Icon: Bookmark   },
+  { label: "Đơn ứng tuyển",  href: "/candidate/applications", Icon: FileText   },
+  { label: "Cài đặt",        href: "/candidate/settings",     Icon: Settings   },
 ];
 
 const EMPLOYER_DROPDOWN = [
@@ -43,25 +61,174 @@ const EMPLOYER_DROPDOWN = [
   { label: "Cài đặt",                href: "/employer/settings",     Icon: Settings        },
 ];
 
-// ─── Helper ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resolveActivePage(pathname: string): ActivePage {
-  if (pathname === "/")                   return "trang-chu";
-  if (pathname.startsWith("/jobs"))       return "tim-viec";
-  if (pathname.startsWith("/companies")) return "cong-ty";
-  if (pathname.startsWith("/cv"))        return "tao-cv";
+  if (pathname === "/")                    return "trang-chu";
+  if (pathname.startsWith("/jobs"))        return "tim-viec";
+  if (pathname.startsWith("/companies"))  return "cong-ty";
+  if (pathname.startsWith("/cv"))         return "tao-cv";
   return "trang-chu";
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+function getPlanBadge(planCode: string | undefined): PlanBadgeConfig | null {
+  if (!planCode) return null;
+  switch (planCode.toUpperCase()) {
+    case "PREMIUM":
+    case "PREMIUM_COMPANY":
+      return {
+        label: "Premium",
+        className: "bg-violet-100 text-violet-800",
+        icon: <Crown size={10} />,
+      };
+    case "PRO":
+      return { label: "Pro", className: "bg-blue-100 text-blue-800" };
+    case "STANDARD":
+      return { label: "Standard", className: "bg-teal-100 text-teal-800" };
+    default:
+      return null; // FREE_CANDIDATE, FREE_COMPANY — không show badge
+  }
+}
+
+function getPlanBanner(user: User): PlanBanner | null {
+  const sub = user.subscription;
+  if (!sub || sub.free) return null;
+
+  const daysLeft = sub.expiresAt
+    ? Math.max(0, Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 86400000))
+    : null;
+
+  if (user.role === "CANDIDATE") {
+    const s = sub as CandidateSubscription;
+    const quotaHint = !s.cvBoostQuota.unlimited
+      ? `CV Boost: ${s.cvBoostQuota.used}/${s.cvBoostQuota.limit} đã dùng`
+      : null;
+    return { daysLeft, quotaHint };
+  }
+
+  if (user.role === "EMPLOYER") {
+    const s = sub as CompanySubscription;
+    const quotaHint = !s.jobPostQuota.unlimited
+      ? `Tin tuyển dụng: ${s.jobPostQuota.used}/${s.jobPostQuota.limit} đã dùng`
+      : null;
+    return { daysLeft, quotaHint };
+  }
+
+  return null;
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function Avatar({
+  user,
+  ringColor,
+  avatarGradient,
+  initials,
+}: {
+  user: User;
+  ringColor: string;
+  avatarGradient: string;
+  initials: string;
+}) {
+  if (user.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.fullName ?? ""}
+        className={`w-8 h-8 rounded-full object-cover ring-2 ${ringColor}`}
+      />
+    );
+  }
+  return (
+    <div
+      className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient}
+        flex items-center justify-center text-white text-[12px] font-bold ring-2 ${ringColor}`}
+    >
+      {initials}
+    </div>
+  );
+}
+
+function DropdownUserInfo({
+  user,
+  badgeClass,
+  roleLabel,
+  isEmployer,
+  onClose,
+}: {
+  user: User;
+  badgeClass: string;
+  roleLabel: string;
+  isEmployer: boolean;
+  onClose: () => void;
+}) {
+  const planBadge  = getPlanBadge(user.subscription?.planCode);
+  const planBanner = getPlanBanner(user);
+  const isFree     = user.subscription?.free ?? true;
+  const pricingHref = isEmployer ? "/employer/pricing" : "/pricing";
+
+  return (
+    <div className="px-4 py-3 border-b border-gray-50">
+      {/* Name + email + badges */}
+      <p className="text-[15px] font-semibold text-gray-900 truncate">
+        {user.fullName}
+      </p>
+      <p className="text-xs text-gray-400 mt-0.5 mb-2 truncate">
+        {user.email}
+      </p>
+
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
+          {roleLabel}
+        </span>
+        {planBadge && (
+          <span
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full
+              flex items-center gap-1 shrink-0 ${planBadge.className}`}
+          >
+            {planBadge.icon}
+            {planBadge.label}
+          </span>
+        )}
+      </div>
+
+      {/* Plan banner — paid plans only */}
+      {planBanner && (
+        <div className="mt-3 px-3 py-2 rounded-xl bg-gray-50 text-xs">
+          <p className="text-gray-500">
+            {user.subscription?.planCode?.replace(/_/g, " ")}
+            {planBanner.daysLeft !== null && ` · còn ${planBanner.daysLeft} ngày`}
+          </p>
+          {planBanner.quotaHint && (
+            <p className="text-gray-400 mt-0.5">{planBanner.quotaHint}</p>
+          )}
+        </div>
+      )}
+
+      {/* Upgrade CTA — free plans only */}
+      {isFree && (
+        <Link
+          href={pricingHref}
+          onClick={onClose}
+          className="mt-3 flex items-center justify-center gap-1.5 w-full py-1.5
+            rounded-xl text-[11px] font-semibold text-blue-700 bg-blue-50
+            hover:bg-blue-100 transition-colors"
+        >
+          <Crown size={10} />
+          Nâng cấp gói
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function Header() {
   const router   = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
-
-  // unreadCount từ context đã là source of truth — dùng thẳng, không cần local mirror
-  const { unreadCount, isConnected } = useWebSocket();
+  const { unreadCount, isConnected }      = useWebSocket();
 
   const activePage = resolveActivePage(pathname);
   const isEmployer = user?.role === "EMPLOYER";
@@ -72,8 +239,8 @@ export function Header() {
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const notifRef    = useRef<HTMLDivElement>(null);
+  const dropdownRef        = useRef<HTMLDivElement>(null);
+  const notifRef           = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Shadow on scroll
@@ -83,7 +250,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  // Close dropdowns on outside click
+  // Close panels on outside click
   useEffect(() => {
     const fn = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
@@ -118,7 +285,6 @@ export function Header() {
 
   return (
     <>
-      {/* Spacer */}
       <div className="h-[80px]" />
 
       <header
@@ -167,8 +333,7 @@ export function Header() {
 
               {searchOpen && (
                 <div className="fixed left-0 right-0 top-[80px] z-40 md:absolute md:left-auto md:right-0 md:top-[calc(100%+8px)] md:w-80">
-                  {/* Backdrop overlay for mobile */}
-                  <div 
+                  <div
                     className="fixed inset-0 bg-black/20 z-[-1] md:hidden"
                     onClick={() => setSearchOpen(false)}
                   />
@@ -182,7 +347,7 @@ export function Header() {
               )}
             </div>
 
-            {/* ── Notification bell (logged-in only) ──────────────────────── */}
+            {/* Notification bell */}
             {isAuthenticated && (
               <div className="relative" ref={notifRef}>
                 <button
@@ -191,8 +356,6 @@ export function Header() {
                     text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                 >
                   <Bell size={18} />
-
-                  {/* Badge — driven directly by context, updates instantly on optimistic write */}
                   {unreadCount > 0 && (
                     <span
                       key={unreadCount}
@@ -203,30 +366,19 @@ export function Header() {
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
-
-                  {/* Connection status dot */}
-                  {isConnected ? (
-                    <span
-                      className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white"
-                      title="Kết nối realtime"
-                    />
-                  ) : (
-                    <span
-                      className="absolute bottom-0 right-0 w-2 h-2 bg-red-400 rounded-full border border-white animate-pulse"
-                      title="Đang kết nối lại..."
-                    />
-                  )}
+                  <span
+                    className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white
+                      ${isConnected ? "bg-green-500" : "bg-red-400 animate-pulse"}`}
+                    title={isConnected ? "Kết nối realtime" : "Đang kết nối lại..."}
+                  />
                 </button>
-
-                {notifOpen && (
-                  <NotificationPanel onClose={() => setNotifOpen(false)} />
-                )}
+                {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
               </div>
             )}
 
             <div className="w-px h-6 bg-gray-200 mx-2" />
 
-            {/* ── Logged in ────────────────────────────────────────────────── */}
+            {/* Logged in */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Switch role link */}
@@ -255,21 +407,12 @@ export function Header() {
                     className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl
                       hover:bg-gray-50 transition-colors"
                   >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName}
-                        className={`w-8 h-8 rounded-full object-cover ring-2 ${ringColor}`}
-                      />
-                    ) : (
-                      <div
-                        className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient}
-                          flex items-center justify-center text-white text-[12px] font-bold
-                          ring-2 ${ringColor}`}
-                      >
-                        {initials}
-                      </div>
-                    )}
+                    <Avatar
+                      user={user}
+                      ringColor={ringColor}
+                      avatarGradient={avatarGradient}
+                      initials={initials}
+                    />
                     <ChevronDown
                       size={14}
                       className={`text-gray-400 transition-transform duration-200
@@ -279,35 +422,25 @@ export function Header() {
 
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 top-[calc(100%+8px)] w-60 bg-white
+                      className="absolute right-0 top-[calc(100%+8px)] w-64 bg-white
                         border border-gray-100 rounded-2xl shadow-xl overflow-hidden
                         animate-in fade-in slide-in-from-top-1 duration-150"
                     >
-                      {/* User info */}
-                      <div className="px-4 py-3 border-b border-gray-50">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[16px] font-semibold text-gray-900 truncate">
-                              {user.fullName}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              {user.email}
-                            </p>
-                          </div>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
-                            {roleLabel}
-                          </span>
-                        </div>
-                      </div>
+                      <DropdownUserInfo
+                        user={user}
+                        badgeClass={badgeClass}
+                        roleLabel={roleLabel}
+                        isEmployer={isEmployer}
+                        onClose={() => setDropdownOpen(false)}
+                      />
 
-                      {/* Menu items */}
                       <div className="p-1.5">
                         {dropdownItems.map(({ label, href, Icon }) => (
                           <Link
                             key={href}
                             href={href}
                             onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px]
                               text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                           >
                             <Icon size={15} className="text-gray-400 shrink-0" />
@@ -320,7 +453,7 @@ export function Header() {
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl
-                            text-[16px] text-red-500 hover:bg-red-50 transition-colors"
+                            text-[14px] text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <LogOut size={15} />
                           Đăng xuất
@@ -331,19 +464,19 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              /* ── Not logged in ────────────────────────────────────────────── */
+              /* Not logged in */
               <div className="flex items-center sm:gap-2 gap-1">
                 <Link
                   href="/auth/login"
-                  className="sm:text-[16px] text-[14px] font-medium text-gray-600 hover:text-blue-600 px-4 py-2
-                    rounded-lg hover:bg-gray-50 transition-colors"
+                  className="sm:text-[16px] text-[14px] font-medium text-gray-600
+                    hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="sm:text-[16px] text-[14px] font-semibold text-white px-4 py-2 rounded-xl
-                    bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
+                  className="sm:text-[16px] text-[14px] font-semibold text-white px-4 py-2
+                    rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
                     shadow-sm shadow-blue-200"
                 >
                   Đăng ký
@@ -387,14 +520,13 @@ export function Header() {
               </Link>
             ))}
 
-            
             {isAuthenticated && user && (
               <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
                 {dropdownItems.map(({ label, href, Icon }) => (
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px]
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px]
                       text-gray-600 hover:bg-gray-50"
                   >
                     <Icon size={15} className="text-gray-400" />
@@ -404,7 +536,7 @@ export function Header() {
                 <div className="h-px bg-gray-100 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 w-full px-3 py-3 rounded-xl text-[16px]
+                  className="flex items-center gap-2 w-full px-3 py-3 rounded-xl text-[15px]
                     text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={15} />
