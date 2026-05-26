@@ -6,6 +6,7 @@ import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaEntity;
 import edu.tlu.jobplatform.company.infrastructure.persistence.mapper.CompanyMapper;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository;
+import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository.CompanyStatsProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -146,4 +147,43 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
         jpaRepo.deleteById(id);
     }
 
+    @Override
+    public void enrichWithStats(CompanyProfile company) {
+        jpaRepo.findStatsByCompanyId(company.getId())
+                .ifPresent(s -> company.setStatistics(
+                        s.getActiveJobCount(),
+                        round(s.getAverageRating()),
+                        s.getReviewCount()));
+    }
+
+    @Override
+    public void enrichWithStats(List<CompanyProfile> companies) {
+        if (companies == null || companies.isEmpty())
+            return;
+
+        Set<UUID> ids = companies.stream()
+                .map(CompanyProfile::getId)
+                .collect(Collectors.toSet());
+
+        Map<UUID, CompanyStatsProjection> statsMap = jpaRepo
+                .findStatsByCompanyIds(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        CompanyStatsProjection::getCompanyId,
+                        s -> s));
+
+        companies.forEach(c -> {
+            CompanyStatsProjection s = statsMap.get(c.getId());
+            if (s != null)
+                c.setStatistics(
+                        s.getActiveJobCount(),
+                        round(s.getAverageRating()),
+                        s.getReviewCount());
+        });
+    }
+
+    /** Làm tròn 1 chữ số thập phân: 4.166 → 4.2 */
+    private static double round(double value) {
+        return Math.round(value * 10.0) / 10.0;
+    }
 }

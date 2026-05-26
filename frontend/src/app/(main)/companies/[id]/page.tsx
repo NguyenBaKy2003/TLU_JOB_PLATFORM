@@ -147,7 +147,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
         <div className="border-t border-gray-100" />
 
         <section ref={setRef("jobs")}>
-          <JobsTab company={company} jobs={[]} />
+          <JobsTab company={company}  />
         </section>
       </div>
     </div>

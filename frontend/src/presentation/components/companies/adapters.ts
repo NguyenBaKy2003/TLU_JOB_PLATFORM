@@ -2,19 +2,20 @@
 import type { CompanyProfile } from "@/domain/models/Company";
 import type { Company }        from "./types";
 
-export function toCompanyCard(p: CompanyProfile): Company {
+export function toCompanyCard(c: CompanyProfile): Company {
   return {
-    id:          p.id,
-    name:        p.name,
-    description: p.description ?? "",
-    location:    p.address ?? "",
-    rating:      p.averageRating ?? 0,
-    jobCount:    p.jobCount     ?? 0,
-    salaryCount: p.reviewCount  ?? 0,
-    logoUrl:     p.logoUrl,
-    tags: [
-      ...(p.isHiring ? ["Đang tuyển dụng"] : []),
-      ...(p.industry ? [p.industry] : []),
-    ],
+    id:          c.id,
+    name:        c.name,
+    industry:    c.industry    ?? null,
+    location:    c.city        ?? null,
+    description: c.description ?? null,
+    logoUrl:     c.logoUrl     ?? null,
+    size:        c.sizeLabel   ?? null,
+    isVerified:  c.verificationStatus === "VERIFIED",
+    jobCount:    c.activeJobCount  ?? 0,
+    rating:      c.averageRating   ?? 0,
+    reviewCount: c.reviewCount     ?? 0,
+    foundedYear: c.foundedYear     ?? null,
+    website:     c.website         ?? null,
   };
 }

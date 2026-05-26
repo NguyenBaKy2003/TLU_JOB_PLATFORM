@@ -121,7 +121,7 @@ export function CandidateCurrentSubscriptionCard({ sub, quota }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Gói đang sử dụng</p>
           <h2 className="text-lg font-bold text-gray-900">{sub.planCode}</h2>

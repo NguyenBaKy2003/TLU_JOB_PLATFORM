@@ -29,19 +29,20 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
 
      Page<JobPostJpaEntity> findByCompanyId(UUID companyId, Pageable pageable);
 
+     /** Lọc jobs PUBLISHED của công ty — dùng cho trang Company Detail */
+     Page<JobPostJpaEntity> findByCompanyIdAndStatus(UUID companyId, JobStatus status, Pageable pageable);
+
      Page<JobPostJpaEntity> findByPostedBy(UUID postedBy, Pageable pageable);
 
      Page<JobPostJpaEntity> findByStatus(JobStatus status, Pageable pageable);
 
      Page<JobPostJpaEntity> findByStatusAndIsActiveTrue(JobStatus status, Pageable pageable);
 
-     /** Tìm bài đăng theo status có deadline trước ngày chỉ định — scheduler dùng */
      @Query("SELECT j FROM JobPostJpaEntity j WHERE j.status = :status AND j.deadline < :date")
      List<JobPostJpaEntity> findByStatusAndDeadlineBefore(
                @Param("status") JobStatus status,
                @Param("date") LocalDate date);
 
-     /** Search cơ bản bằng PostgreSQL LIKE — thay bằng ES ở Sprint 5 */
      @Query("""
                SELECT j FROM JobPostJpaEntity j
                WHERE j.status = 'PUBLISHED' AND j.isActive = true

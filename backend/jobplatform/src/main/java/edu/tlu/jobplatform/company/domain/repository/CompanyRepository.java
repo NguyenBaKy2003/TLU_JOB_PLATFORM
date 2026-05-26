@@ -51,4 +51,10 @@ public interface CompanyRepository {
 
     /** Đếm PUBLISHED jobs theo từng companyId — dùng cho AI enrichment */
     Map<UUID, Long> countOpenJobsByCompanyIds(Set<UUID> companyIds);
+
+    /** Gán stats vào một CompanyProfile */
+    void enrichWithStats(CompanyProfile company);
+
+    /** Gán stats batch vào danh sách — dùng cho list page */
+    void enrichWithStats(List<CompanyProfile> companies);
 }

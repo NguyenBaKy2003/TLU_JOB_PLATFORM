@@ -96,4 +96,5 @@ public class CompanyMapper {
         e.setVerifiedBy(c.getVerifiedBy());
 
     }
+
 }
