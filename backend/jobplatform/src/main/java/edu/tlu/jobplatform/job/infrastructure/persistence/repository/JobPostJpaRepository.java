@@ -67,10 +67,10 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
                Pageable pageable);
 
      // ── Employer: filtered list ───────────────────────────────────────────────
-
      @Query("""
                SELECT j FROM JobPostJpaEntity j
                WHERE j.postedBy = :postedBy
+               AND j.status <> edu.tlu.jobplatform.job.domain.model.vo.JobStatus.DELETED
                AND (:status IS NULL OR j.status = :status)
                AND (:keyword IS NULL
                     OR LOWER(j.title)       LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
@@ -96,6 +96,7 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
                SELECT j.status AS status, COUNT(j) AS count
                FROM JobPostJpaEntity j
                WHERE j.postedBy = :postedBy
+               AND j.status <> edu.tlu.jobplatform.job.domain.model.vo.JobStatus.DELETED
                GROUP BY j.status
                """)
      List<StatusCountProjection> countMyJobsByStatus(@Param("postedBy") UUID postedBy);
