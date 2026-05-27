@@ -15,13 +15,26 @@ public class RefundQuotaUseCase {
 
     private final CompanySubscriptionRepository subscriptionRepo;
 
+    public enum QuotaType {
+        JOB_POST, FEATURED_JOB
+    }
+
     @Transactional
-    public void execute(UUID companyId) {
+    public void execute(UUID companyId, QuotaType type) {
         subscriptionRepo.findActiveByCompanyId(companyId).ifPresent(sub -> {
-            sub.refundJobPost(1);
+            switch (type) {
+                case JOB_POST -> {
+                    sub.refundJobPost(1);
+                    log.info("JobPost quota refunded: companyId={} remaining={}",
+                            companyId, sub.getJobPostQuota().remaining());
+                }
+                case FEATURED_JOB -> {
+                    sub.refundFeaturedJob(1);
+                    log.info("FeaturedJob quota refunded: companyId={} remaining={}",
+                            companyId, sub.getFeaturedJobQuota().remaining());
+                }
+            }
             subscriptionRepo.save(sub);
-            log.info("Quota refunded: companyId={} remaining={}",
-                    companyId, sub.getJobPostQuota().remaining());
         });
     }
 }

@@ -103,6 +103,10 @@ public class CompanySubscription {
         this.featuredJobQuota = featuredJobQuota.consume(n);
     }
 
+    public void refundFeaturedJob(int count) {
+        this.featuredJobQuota = featuredJobQuota.refund(count);
+    }
+
     public void consumeCvView(int count) {
         this.cvViewQuota = cvViewQuota.consume(count);
     }

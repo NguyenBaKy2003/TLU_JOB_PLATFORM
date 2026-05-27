@@ -1,16 +1,25 @@
 // src/application/services/JobService.ts
 
-import type { IJobRepository }   from "@/domain/repositories/IJobRepository";
 import type {
-  JobPost, JobPostDetail, JobPostForm,
-  CreateJobPayload, UpdateJobPayload, JobSearchParams, PageResponse,
+  IJobRepository,
+  MyJobsParams,
+  JobStatusCounts,
+} from "@/domain/repositories/IJobRepository";
+import type {
+  JobPost,
+  JobPostDetail,
+  JobPostForm,
+  CreateJobPayload,
+  UpdateJobPayload,
+  JobSearchParams,
+  PageResponse,
+  SubmitReviewResponse,
 } from "@/domain/models/Job";
 
 export class JobService {
-
   constructor(private readonly repo: IJobRepository) {}
 
-  // ── Public / candidate 
+  // ── Public / candidate ────────────────────────────────────────────────────
 
   listPublished(page = 0, size = 12): Promise<PageResponse<JobPost>> {
     return this.repo.listPublished(page, size);
@@ -28,7 +37,7 @@ export class JobService {
     return this.repo.getBySlug(slug);
   }
 
-  // ── Saved jobs ─────────────────────────────────────────────────────────────
+  // ── Saved jobs ────────────────────────────────────────────────────────────
 
   toggleSave(jobPostId: string): Promise<boolean> {
     return this.repo.toggleSave(jobPostId);
@@ -38,49 +47,80 @@ export class JobService {
     return this.repo.listSaved(page, size);
   }
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  checkSaved(jobPostId: string): Promise<boolean> {
+    return this.repo.checkSaved(jobPostId);
+  }
+
+  // ── Employer — write ──────────────────────────────────────────────────────
 
   /**
    * Tạo bài đăng từ form state.
-   * Chuyển string → number, lọc empty string, build payload đúng kiểu backend.
+   * Nếu publish=true → submit để kiểm duyệt ngay sau khi tạo.
    */
-  createFromForm(form: JobPostForm, publish: boolean, featured = false): Promise<JobPostDetail> {
+  async createFromForm(
+    form: JobPostForm,
+    publish: boolean,
+    featured = false,
+  ): Promise<{ job: JobPostDetail; review?: SubmitReviewResponse["review"] }> {
     const payload = this._buildCreatePayload(form);
+    const job = await this.repo.create(payload);
+
     if (publish) {
-      return this.repo.create(payload).then(job => this.repo.publish(job.id, featured));
+      const result = await this.repo.submit(job.id, featured);
+      return { job: result.job, review: result.review };
     }
-    return this.repo.create(payload);
+    return { job };
   }
 
   /**
    * Cập nhật bài đăng từ form state.
-   * Nếu publish=true và job đang là draft → publish sau khi update.
+   * Nếu publish=true và job đang là draft → submit sau khi update.
    */
-  updateFromForm(id: string, form: JobPostForm, publish: boolean, featured = false): Promise<JobPostDetail> {
+  async updateFromForm(
+    id: string,
+    form: JobPostForm,
+    publish: boolean,
+    featured = false,
+  ): Promise<{ job: JobPostDetail; review?: SubmitReviewResponse["review"] }> {
     const payload = this._buildUpdatePayload(form);
+    const updated = await this.repo.update(id, payload);
+
     if (publish) {
-      return this.repo.update(id, payload).then(job => this.repo.publish(job.id, featured));
+      const result = await this.repo.submit(updated.id, featured);
+      return { job: result.job, review: result.review };
     }
-    return this.repo.update(id, payload);
+    return { job: updated };
   }
 
+  submit(id: string, featured = false): Promise<SubmitReviewResponse> {
+    return this.repo.submit(id, featured);
+  }
 
-  /** Tạo trực tiếp từ payload đã build sẵn */
   create(payload: CreateJobPayload): Promise<JobPostDetail> {
     return this.repo.create(payload);
   }
 
-  /** Cập nhật trực tiếp từ payload đã build sẵn */
   update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail> {
     return this.repo.update(id, payload);
   }
 
-  getMyJobs(page = 0, size = 10): Promise<PageResponse<JobPost>> {
-    return this.repo.getMyJobs(page, size);
+  // ── Employer — read ───────────────────────────────────────────────────────
+
+  /** Danh sách bài đăng của tôi — paginated + filtered */
+  getMyJobs(
+    page = 0,
+    size = 10,
+    params?: MyJobsParams,
+  ): Promise<PageResponse<JobPost>> {
+    return this.repo.getMyJobs(page, size, params);
   }
 
-  publish(id: string, featured = false): Promise<JobPostDetail> {
-    return this.repo.publish(id, featured);
+  /**
+   * Số lượng bài đăng theo từng trạng thái.
+   * Gọi endpoint nhẹ GET /api/v1/jobs/my/counts — không load entity.
+   */
+  getMyJobCounts(): Promise<JobStatusCounts> {
+    return this.repo.getMyJobCounts();
   }
 
   close(id: string): Promise<JobPostDetail> {
@@ -91,57 +131,69 @@ export class JobService {
     return this.repo.delete(id);
   }
 
-  checkSaved(jobPostId: string): Promise<boolean> {
-  return this.repo.checkSaved(jobPostId);
-}
-
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  /** Map JobPostForm → CreateJobPayload */
   private _buildCreatePayload(form: JobPostForm): CreateJobPayload {
     return {
-      title:               form.title.trim(),
-      description:         form.description  || undefined,
-      requirements:        form.requirements || undefined,
-      benefits:            form.benefits     || undefined,
-      jobType:             (form.jobType     || undefined) as CreateJobPayload["jobType"],
-      level:               (form.level       || undefined) as CreateJobPayload["level"],
-      category:            form.category     || undefined,
-      salaryNegotiable:    form.salaryNegotiable,
-      salaryMin:           form.salaryNegotiable || !form.salaryMin   ? undefined : Number(form.salaryMin),
-      salaryMax:           form.salaryNegotiable || !form.salaryMax   ? undefined : Number(form.salaryMax),
-      salaryCurrency:      form.salaryCurrency   || undefined,
-      workLocationType:    (form.workLocationType || undefined) as CreateJobPayload["workLocationType"],
-      workLocationCity:    form.workLocationCity    || undefined,
+      title: form.title.trim(),
+      description: form.description || undefined,
+      requirements: form.requirements || undefined,
+      benefits: form.benefits || undefined,
+      jobType: (form.jobType || undefined) as CreateJobPayload["jobType"],
+      level: (form.level || undefined) as CreateJobPayload["level"],
+      category: form.category || undefined,
+      salaryNegotiable: form.salaryNegotiable,
+      salaryMin:
+        form.salaryNegotiable || !form.salaryMin
+          ? undefined
+          : Number(form.salaryMin),
+      salaryMax:
+        form.salaryNegotiable || !form.salaryMax
+          ? undefined
+          : Number(form.salaryMax),
+      salaryCurrency: form.salaryCurrency || undefined,
+      workLocationType: (form.workLocationType ||
+        undefined) as CreateJobPayload["workLocationType"],
+      workLocationCity: form.workLocationCity || undefined,
       workLocationAddress: form.workLocationAddress || undefined,
-      experienceYears:     form.experienceYears ? Number(form.experienceYears) : undefined,
-      vacancies:           form.vacancies    ? Number(form.vacancies)    : undefined,
-      deadline:            form.deadline,
-      skills:              form.skills.length ? form.skills : undefined,
+      experienceYears: form.experienceYears
+        ? Number(form.experienceYears)
+        : undefined,
+      vacancies: form.vacancies ? Number(form.vacancies) : undefined,
+      deadline: form.deadline,
+      skills: form.skills.length ? form.skills : undefined,
     };
   }
 
-  /** Map JobPostForm → UpdateJobPayload (giống create, dùng riêng để dễ mở rộng) */
   private _buildUpdatePayload(form: JobPostForm): UpdateJobPayload {
     return {
-      title:               form.title.trim(),
-      description:         form.description  || undefined,
-      requirements:        form.requirements || undefined,
-      benefits:            form.benefits     || undefined,
-      jobType:             (form.jobType     || undefined) as UpdateJobPayload["jobType"],
-      level:               (form.level       || undefined) as UpdateJobPayload["level"],
-      category:            form.category     || undefined,
-      salaryNegotiable:    form.salaryNegotiable,
-      salaryMin:           form.salaryNegotiable || !form.salaryMin   ? undefined : Number(form.salaryMin),
-      salaryMax:           form.salaryNegotiable || !form.salaryMax   ? undefined : Number(form.salaryMax),
-      salaryCurrency:      form.salaryCurrency   || undefined,
-      workLocationType:    (form.workLocationType || undefined) as UpdateJobPayload["workLocationType"],
-      workLocationCity:    form.workLocationCity    || undefined,
+      title: form.title.trim(),
+      description: form.description || undefined,
+      requirements: form.requirements || undefined,
+      benefits: form.benefits || undefined,
+      jobType: (form.jobType || undefined) as UpdateJobPayload["jobType"],
+      level: (form.level || undefined) as UpdateJobPayload["level"],
+      category: form.category || undefined,
+      salaryNegotiable: form.salaryNegotiable,
+      salaryMin:
+        form.salaryNegotiable || !form.salaryMin
+          ? undefined
+          : Number(form.salaryMin),
+      salaryMax:
+        form.salaryNegotiable || !form.salaryMax
+          ? undefined
+          : Number(form.salaryMax),
+      salaryCurrency: form.salaryCurrency || undefined,
+      workLocationType: (form.workLocationType ||
+        undefined) as UpdateJobPayload["workLocationType"],
+      workLocationCity: form.workLocationCity || undefined,
       workLocationAddress: form.workLocationAddress || undefined,
-      experienceYears:     form.experienceYears ? Number(form.experienceYears) : undefined,
-      vacancies:           form.vacancies    ? Number(form.vacancies)    : undefined,
-      deadline:            form.deadline,
-      skills:              form.skills.length ? form.skills : undefined,
+      experienceYears: form.experienceYears
+        ? Number(form.experienceYears)
+        : undefined,
+      vacancies: form.vacancies ? Number(form.vacancies) : undefined,
+      deadline: form.deadline,
+      skills: form.skills.length ? form.skills : undefined,
     };
   }
 }

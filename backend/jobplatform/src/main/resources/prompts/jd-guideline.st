@@ -13,30 +13,41 @@ Các loại vi phạm cần kiểm tra:
   ngoại hình ("xinh xắn", "ngoại hình ưa nhìn bắt buộc"), tình trạng hôn nhân
 - MISLEADING_SALARY: "thu nhập không giới hạn", "lương 50-200 triệu" (range quá rộng),
   hứa hẹn không thực tế
-- ILLEGAL_REQUIREMENT: không đề cập hợp đồng, yêu cầu đặt cọc/phí,
-  không có BHXH/BHYT
-- TOXIC_LANGUAGE: ngôn ngữ thiếu tôn trọng, áp lực tiêu cực
+- ILLEGAL_REQUIREMENT: yêu cầu đặt cọc/phí tuyển dụng, không có BHXH/BHYT,
+  yêu cầu phi pháp theo Bộ luật Lao động Việt Nam
+- TOXIC_LANGUAGE: ngôn ngữ thiếu tôn trọng, đe dọa, áp lực tiêu cực
 - UNREALISTIC_DEMAND: intern/fresher yêu cầu 3+ năm kinh nghiệm,
-  1 người làm việc của 5 người
+  1 người kiêm nhiệm công việc của nhiều vị trí chuyên biệt
 
-Trả về JSON theo format sau (KHÔNG thêm text ngoài JSON):
+Trả về JSON theo format sau (KHÔNG thêm bất kỳ text nào ngoài JSON):
 {
   "passed": true/false,
-  "severity": "CLEAN|WARNING|VIOLATION",
+  "severity": "CLEAN|WARNING|VIOLATION|ERROR|CRITICAL",
   "qualityScore": 0-100,
   "violations": [
     {
-      "type": "DISCRIMINATION",
-      "excerpt": "đoạn text vi phạm cụ thể",
-      "explanation": "giải thích ngắn gọn",
-      "suggestion": "gợi ý thay thế"
+      "type": "DISCRIMINATION|MISLEADING_SALARY|ILLEGAL_REQUIREMENT|TOXIC_LANGUAGE|UNREALISTIC_DEMAND",
+      "excerpt": "đoạn text vi phạm cụ thể, trích nguyên văn",
+      "explanation": "giải thích ngắn gọn tại sao vi phạm",
+      "suggestion": "gợi ý câu thay thế cụ thể"
     }
   ],
-  "cleanedVersion": "Bản JD đã được sửa sạch...",
-  "overallFeedback": "Nhận xét tổng thể về chất lượng JD"
+  "cleanedVersion": "Toàn bộ JD sau khi đã sửa sạch các vi phạm",
+  "overallFeedback": "Nhận xét tổng thể về chất lượng và tính chuyên nghiệp của JD"
 }
 
-Quy tắc severity:
-- CLEAN: không có vi phạm, qualityScore >= 80
-- WARNING: có vấn đề nhỏ cần cải thiện, qualityScore 50-79
-- VIOLATION: vi phạm nghiêm trọng cần sửa trước khi đăng, qualityScore < 50
+Quy tắc severity — chọn MỘT mức duy nhất phản ánh vi phạm nghiêm trọng nhất:
+- CLEAN    : không có vi phạm nào, qualityScore 80-100
+- WARNING  : có vấn đề nhỏ nên cải thiện nhưng không bắt buộc, qualityScore 60-79
+- VIOLATION: có vi phạm cần sửa trước khi đăng (VD: phân biệt đối xử nhẹ,
+             lương không rõ ràng), qualityScore 40-59
+- ERROR    : vi phạm nghiêm trọng, bài KHÔNG được đăng cho đến khi sửa
+             (VD: yêu cầu đặt cọc, phân biệt đối xử rõ ràng), qualityScore 20-39
+- CRITICAL : vi phạm pháp luật hoặc gây hại nghiêm trọng, bài bị từ chối ngay
+             (VD: lừa đảo, nội dung phản cảm nặng), qualityScore 0-19
+
+Lưu ý khi phân tích:
+- Chỉ liệt kê violations nếu thực sự có vi phạm, không bịa thêm
+- excerpt phải là text trích nguyên văn từ JD, không paraphrase
+- Nếu severity là CLEAN hoặc WARNING thì passed = true
+- Nếu severity là VIOLATION, ERROR hoặc CRITICAL thì passed = false

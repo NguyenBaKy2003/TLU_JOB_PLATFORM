@@ -6,8 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,10 +23,14 @@ public interface JobPostRepository {
 
     Page<JobPost> findByCompanyId(UUID companyId, Pageable pageable);
 
-    /** Lọc theo companyId + status — dùng cho GetCompanyJobsUseCase */
     Page<JobPost> findByCompanyIdAndStatus(UUID companyId, JobStatus status, Pageable pageable);
 
     Page<JobPost> findByPostedBy(UUID postedBy, Pageable pageable);
+
+    Page<JobPost> searchMyJobs(UUID postedBy, JobStatus status, String keyword,
+            LocalDateTime createdAtFrom, LocalDateTime createdAtTo, Pageable pageable);
+
+    Map<JobStatus, Long> countMyJobsByStatus(UUID postedBy);
 
     Page<JobPost> findPublished(Pageable pageable);
 

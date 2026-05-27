@@ -25,6 +25,21 @@ public class SubscriptionQuotaAdapter implements QuotaServicePort {
     }
 
     @Override
+    public boolean hasFeaturedQuota(UUID companyId) {
+        return checkQuotaUseCase.execute(companyId).canPostFeatured(); // ← sửa từ canPostFeaturedJob()
+    }
+
+    @Override
+    public boolean hasAllQuota(UUID companyId, boolean includeFeatured) {
+        CheckQuotaUseCase.Result result = checkQuotaUseCase.execute(companyId);
+        if (!result.canPostJob())
+            return false;
+        if (includeFeatured && !result.canPostFeatured())
+            return false;
+        return true;
+    }
+
+    @Override
     public void consumeQuota(UUID companyId) {
         consumeQuotaUseCase.execute(companyId, ConsumeQuotaUseCase.QuotaType.JOB_POST);
     }
@@ -36,6 +51,11 @@ public class SubscriptionQuotaAdapter implements QuotaServicePort {
 
     @Override
     public void refundQuota(UUID companyId) {
-        refundQuotaUseCase.execute(companyId);
+        refundQuotaUseCase.execute(companyId, RefundQuotaUseCase.QuotaType.JOB_POST);
+    }
+
+    @Override
+    public void refundFeaturedQuota(UUID companyId) { // ← thêm mới
+        refundQuotaUseCase.execute(companyId, RefundQuotaUseCase.QuotaType.FEATURED_JOB);
     }
 }

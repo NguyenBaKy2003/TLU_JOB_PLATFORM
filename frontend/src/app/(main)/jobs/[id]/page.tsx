@@ -11,7 +11,7 @@ import { ApplicationRepository }       from "@/infrastructure/repositories/Appli
 import { AiService }                   from "@/application/services/AiService";
 import { AiRepository }                from "@/infrastructure/repositories/AiRepository";
 import type { JobPostDetail }          from "@/domain/models/Job";
-import type { CompetitionRateResult }  from "@/domain/models/Ai";
+import type { CompetitionRateResult, PassProbabilityResult } from "@/domain/models/Ai";
 import { extractErrorMessage }         from "@/lib/extractErrorMessage";
 import { useToast }                    from "@/presentation/components/ui/toast";
 
@@ -22,8 +22,10 @@ import {
   CompanyCard,
   JobDetailSkeleton,
 } from "@/presentation/components/job-detail/JobDetailComponents";
-import { CandidateApplyCard } from "@/presentation/components/job-detail/CandidateApplyCard";
-import { ApplyModal }         from "@/presentation/components/job-detail/ApplyModal";
+import { CandidateApplyCard }      from "@/presentation/components/job-detail/CandidateApplyCard";
+import { ApplyModal }              from "@/presentation/components/job-detail/ApplyModal";
+import { PassProbabilityCard, PassProbabilitySkeleton } from "@/presentation/components/job-detail/PassProbabilityCard";
+import { useAuth } from "@/application/contexts/AuthContext";
 
 const jobService = new JobService(new JobRepository());
 const appService = new ApplicationService(new ApplicationRepository());
@@ -54,8 +56,6 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
 
   return (
     <div className={`rounded-2xl border ${cfg.border} ${cfg.bg} p-4 flex flex-col gap-3`}>
-
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
@@ -69,7 +69,6 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
         </div>
       </div>
 
-      {/* Score bar — dùng competitionScore (0–100) */}
       <div className="h-1.5 bg-white/70 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-700 ${cfg.bar}`}
@@ -77,7 +76,6 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
         />
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
           <p className={`text-base font-bold ${cfg.text}`}>{data.totalApplicants}</p>
@@ -85,7 +83,7 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
         </div>
         <div>
           <p className={`text-base font-bold ${cfg.text}`}>
-            {data.averageAIScore > 0 ? data.averageAIScore.toFixed(1) : "—"}
+            {data.competitionScore > 0 ? data.competitionScore.toFixed(1) : "—"}
           </p>
           <p className="text-[10px] text-gray-500 leading-tight">Điểm TB</p>
         </div>
@@ -95,7 +93,6 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
         </div>
       </div>
 
-      {/* Advice */}
       {data.candidateAdvice && (
         <p className={`text-[11px] leading-relaxed ${cfg.text} border-t ${cfg.border} pt-2.5`}>
           {data.candidateAdvice}
@@ -132,6 +129,9 @@ export default function JobDetailPage() {
   const router  = useRouter();
   const toast   = useToast();
 
+  const { user } = useAuth();
+  const isCandidate = user?.role === "CANDIDATE";
+
   const [job,                setJob]                = useState<JobPostDetail | null>(null);
   const [loading,            setLoading]            = useState(true);
   const [error,              setError]              = useState<string | null>(null);
@@ -141,6 +141,8 @@ export default function JobDetailPage() {
   const [showModal,          setShowModal]          = useState(false);
   const [competition,        setCompetition]        = useState<CompetitionRateResult | null>(null);
   const [competitionLoading, setCompetitionLoading] = useState(false);
+  const [passProbability,    setPassProbability]    = useState<PassProbabilityResult | null>(null);
+  const [passLoading,        setPassLoading]        = useState(false);
 
   const hasLoaded = useRef(false);
 
@@ -149,6 +151,7 @@ export default function JobDetailPage() {
     hasLoaded.current = true;
 
     (async () => {
+      // ── Job + application status ──────────────────────────────────────────
       setLoading(true);
       try {
         const [data, alreadyApplied, alreadySaved] = await Promise.all([
@@ -167,6 +170,7 @@ export default function JobDetailPage() {
         setLoading(false);
       }
 
+      // ── Competition rate (tất cả user) ────────────────────────────────────
       setCompetitionLoading(true);
       try {
         const rate = await aiService.getCompetitionRate(id);
@@ -176,8 +180,21 @@ export default function JobDetailPage() {
       } finally {
         setCompetitionLoading(false);
       }
+
+      // ── Pass probability (chỉ CANDIDATE đã đăng nhập) ────────────────────
+      if (isCandidate) {
+        setPassLoading(true);
+        try {
+          const prob = await aiService.getPassProbability(id);
+          setPassProbability(prob);
+        } catch {
+          // silent — thông tin phụ, không block UX
+        } finally {
+          setPassLoading(false);
+        }
+      }
     })();
-  }, [id]);
+  }, [id, isCandidate]);
 
   const handleSave = async () => {
     if (!job) return;
@@ -232,6 +249,15 @@ export default function JobDetailPage() {
     ? <CompetitionRateCard data={competition} />
     : null;
 
+  // Chỉ render pass probability block cho CANDIDATE
+  const passNode = isCandidate
+    ? passLoading
+      ? <PassProbabilitySkeleton />
+      : passProbability
+      ? <PassProbabilityCard data={passProbability} />
+      : null
+    : null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {showModal && (
@@ -253,6 +279,7 @@ export default function JobDetailPage() {
 
         <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
 
+          {/* ── Main column ─────────────────────────────────────────────────── */}
           <div className="w-full flex-1 min-w-0 flex flex-col gap-4 sm:gap-5">
             <JobHeroCard
               job={job}
@@ -261,6 +288,7 @@ export default function JobDetailPage() {
               onShare={() => navigator.share?.({ title: job.title, url: location.href })}
             />
 
+            {/* Mobile sidebar cards */}
             <div className="lg:hidden flex flex-col gap-4">
               <CandidateApplyCard
                 job={job}
@@ -270,12 +298,14 @@ export default function JobDetailPage() {
                 onApply={() => setShowModal(true)}
                 onSave={handleSave}
               />
+              {passNode}
               {competitionNode}
             </div>
 
             <JobDescriptionCards job={job} />
           </div>
 
+          {/* ── Sidebar ──────────────────────────────────────────────────────── */}
           <div className="hidden lg:flex w-72 shrink-0 sticky top-4 flex-col gap-4">
             <CandidateApplyCard
               job={job}
@@ -285,6 +315,7 @@ export default function JobDetailPage() {
               onApply={() => setShowModal(true)}
               onSave={handleSave}
             />
+            {passNode}
             {competitionNode}
             <JobInfoSidebar job={job} />
             <CompanyCard job={job} />

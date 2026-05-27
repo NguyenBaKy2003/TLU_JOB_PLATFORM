@@ -11,23 +11,29 @@ import java.util.Set;
  * DRAFT → PUBLISHED (employer publish)
  * DRAFT → DELETED (employer xóa)
  * PUBLISHED → CLOSED (employer đóng thủ công)
+ * PENDING_REVIEW, // ← MỚI: chờ kiểm duyệt
  * PUBLISHED → EXPIRED (system tự động khi hết hạn)
  * CLOSED → PUBLISHED (employer mở lại — consume quota mới)
  * EXPIRED → PUBLISHED (employer gia hạn)
+ * REJECTED, // ← MỚI: bị từ chối, kèm lý do
  */
 public enum JobStatus {
 
-    DRAFT, // Nháp — chưa hiển thị
-    PUBLISHED, // Đang hiển thị — nhận CV
-    CLOSED, // Đóng thủ công — không nhận CV
-    EXPIRED, // Hết hạn tự động
-    DELETED; // Đã xóa (soft delete)
+    DRAFT,
+    PENDING_REVIEW, // chờ kiểm duyệt
+    PUBLISHED,
+    REJECTED, // bị từ chối, kèm lý do
+    CLOSED,
+    EXPIRED,
+    DELETED;
 
     private static final java.util.Map<JobStatus, Set<JobStatus>> TRANSITIONS = java.util.Map.of(
-            DRAFT, Set.of(PUBLISHED, DELETED),
+            DRAFT, Set.of(PENDING_REVIEW, DELETED),
+            PENDING_REVIEW, Set.of(PUBLISHED, REJECTED),
             PUBLISHED, Set.of(CLOSED, EXPIRED),
-            CLOSED, Set.of(PUBLISHED, DELETED),
-            EXPIRED, Set.of(PUBLISHED, DELETED),
+            REJECTED, Set.of(PENDING_REVIEW, DELETED),
+            CLOSED, Set.of(PENDING_REVIEW, DELETED),
+            EXPIRED, Set.of(PENDING_REVIEW, DELETED),
             DELETED, Set.of());
 
     public boolean canTransitionTo(JobStatus target) {
@@ -46,7 +52,6 @@ public enum JobStatus {
     }
 
     public boolean isEditable() {
-        return this == DRAFT || this == CLOSED || this == EXPIRED;
+        return this == DRAFT || this == REJECTED || this == CLOSED || this == EXPIRED;
     }
-
 }

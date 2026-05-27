@@ -1,21 +1,25 @@
 package edu.tlu.jobplatform.job.presentation;
 
+import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckResult;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.application.usecase.employer.CloseJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.DeleteJobPostUseCase;
-import edu.tlu.jobplatform.job.application.usecase.employer.PublishJobPostUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.GetMyJobCountsUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.GetMyJobPostsUseCase;
+import edu.tlu.jobplatform.job.application.usecase.employer.SubmitForReviewUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.UpdateJobPostUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.model.JobPostSkill;
+import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.domain.model.vo.Salary;
 import edu.tlu.jobplatform.job.domain.model.vo.WorkLocation;
-import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.job.presentation.dto.request.CreateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.request.PublishJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.request.UpdateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
+import edu.tlu.jobplatform.job.presentation.dto.response.SubmitForReviewResponse;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -32,15 +36,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
  * Employer endpoints:
  * POST /api/v1/jobs — Tạo bài đăng (DRAFT)
- * GET /api/v1/jobs/my — Danh sách bài của tôi
- * GET /api/v1/jobs/{id} — Chi tiết bài đăng
- * POST /api/v1/jobs/{id}/publish — Publish bài đăng
+ * GET /api/v1/jobs/my — Danh sách bài của tôi (paginated + filtered)
+ * GET /api/v1/jobs/my/counts — Số lượng bài theo trạng thái (lightweight)
+ * PATCH /api/v1/jobs/{id} — Cập nhật bài đăng
+ * POST /api/v1/jobs/{id}/submit — Nộp kiểm duyệt
  * POST /api/v1/jobs/{id}/close — Đóng bài đăng
  * DELETE /api/v1/jobs/{id} — Xóa bài đăng
  */
@@ -50,12 +57,15 @@ import java.util.UUID;
 public class JobPostController {
 
         private final CreateJobPostUseCase createUseCase;
-        private final PublishJobPostUseCase publishUseCase;
-        private final JobPostRepository jobPostRepository;
         private final CompanyRepository companyRepository;
         private final CloseJobPostUseCase closeUseCase;
         private final DeleteJobPostUseCase deleteUseCase;
         private final UpdateJobPostUseCase updateUseCase;
+        private final SubmitForReviewUseCase submitForReviewUseCase;
+        private final GetMyJobPostsUseCase getMyJobPostsUseCase;
+        private final GetMyJobCountsUseCase getMyJobCountsUseCase; // ← thêm
+
+        // ── Create ────────────────────────────────────────────────────────────────
 
         @Operation(summary = "Tạo bài đăng tuyển dụng (DRAFT)")
         @SecurityRequirement(name = "bearerAuth")
@@ -73,7 +83,6 @@ public class JobPostController {
 
                 WorkLocation location = buildWorkLocation(req);
 
-                // Map skills từ DTO → domain model
                 List<JobPostSkill> skills = req.getSkills() == null ? List.of()
                                 : req.getSkills().stream()
                                                 .map(s -> JobPostSkill.builder()
@@ -95,37 +104,87 @@ public class JobPostController {
                                                 "Bài đăng đã được tạo ở trạng thái Nháp."));
         }
 
+        // ── List my jobs (paginated) ──────────────────────────────────────────────
+
         @Operation(summary = "Danh sách bài đăng của tôi")
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/jobs/my")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> getMyJobs(
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size) {
+                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) JobStatus status,
+                        @RequestParam(required = false) LocalDateTime createdAtFrom,
+                        @RequestParam(required = false) LocalDateTime createdAtTo) {
 
                 UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-                var result = jobPostRepository.findByPostedBy(postedBy, pageable).map(JobPostResponse::from);
+
+                var result = getMyJobPostsUseCase.execute(
+                                new GetMyJobPostsUseCase.Query(postedBy, keyword, status, createdAtFrom, createdAtTo),
+                                pageable).map(JobPostResponse::from);
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
-        @Operation(summary = "Publish bài đăng")
+        // ── Count my jobs by status (lightweight) ─────────────────────────────────
+
+        /**
+         * GET /api/v1/jobs/my/counts
+         *
+         * Trả về số lượng bài đăng theo từng trạng thái — endpoint nhẹ, không phân
+         * trang.
+         * FE dùng để hiển thị badge trên tab và JobStatsRow mà không cần load 200
+         * entity.
+         *
+         * Response example:
+         * {
+         * "total": 42,
+         * "PUBLISHED": 20, "PENDING_REVIEW": 3, "REJECTED": 2,
+         * "DRAFT": 10, "CLOSED": 5, "EXPIRED": 2
+         * }
+         */
+        @Operation(summary = "Số lượng bài đăng theo trạng thái")
         @SecurityRequirement(name = "bearerAuth")
-        @PostMapping("/api/v1/jobs/{id}/publish")
+        @GetMapping("/api/v1/jobs/my/counts")
         @PreAuthorize("hasRole('EMPLOYER')")
-        public ResponseEntity<ApiResponse<JobPostDetailResponse>> publish(
+        public ResponseEntity<ApiResponse<Map<String, Long>>> getMyJobCounts() {
+                UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
+                Map<String, Long> counts = getMyJobCountsUseCase.execute(postedBy);
+                return ResponseEntity.ok(ApiResponse.success(counts));
+        }
+
+        // ── Submit for review ─────────────────────────────────────────────────────
+
+        @Operation(summary = "Nộp bài đăng để kiểm duyệt")
+        @SecurityRequirement(name = "bearerAuth")
+        @PostMapping("/api/v1/jobs/{id}/submit")
+        @PreAuthorize("hasRole('EMPLOYER')")
+        public ResponseEntity<ApiResponse<SubmitForReviewResponse>> submit(
                         @PathVariable UUID id,
                         @RequestBody(required = false) PublishJobPostRequest req) {
 
                 boolean featured = req != null && req.featured();
-                JobPost job = publishUseCase.execute(new PublishJobPostUseCase.Command(id, featured));
+                SubmitForReviewUseCase.Result result = submitForReviewUseCase
+                                .execute(new SubmitForReviewUseCase.Command(id, featured));
+
+                JobPost job = result.jobPost();
+                JdGuidelineCheckResult check = result.checkResult();
+
+                String message = switch (job.getStatus()) {
+                        case PUBLISHED -> featured
+                                        ? "Bài đăng đã được duyệt và publish dưới dạng tin nổi bật."
+                                        : "Bài đăng đã được duyệt và publish thành công.";
+                        case REJECTED -> "Bài đăng bị từ chối. Vui lòng xem lý do và chỉnh sửa lại.";
+                        default -> "Đã nhận yêu cầu kiểm duyệt.";
+                };
 
                 return ResponseEntity.ok(ApiResponse.success(
-                                JobPostDetailResponse.from(job),
-                                featured ? "Bài đăng đã được publish dưới dạng tin nổi bật."
-                                                : "Bài đăng đã được publish thành công."));
+                                SubmitForReviewResponse.from(job, check), message));
         }
+
+        // ── Update ────────────────────────────────────────────────────────────────
 
         @Operation(summary = "Cập nhật bài đăng")
         @SecurityRequirement(name = "bearerAuth")
@@ -135,7 +194,6 @@ public class JobPostController {
                         @PathVariable UUID id,
                         @Valid @RequestBody UpdateJobPostRequest req) {
 
-                // Build Salary
                 Salary salary = null;
                 if (req.getSalaryNegotiable() != null || req.getSalaryMin() != null || req.getSalaryMax() != null) {
                         salary = Boolean.TRUE.equals(req.getSalaryNegotiable())
@@ -143,7 +201,6 @@ public class JobPostController {
                                         : Salary.of(req.getSalaryMin(), req.getSalaryMax(), req.getSalaryCurrency());
                 }
 
-                // Build WorkLocation
                 WorkLocation location = null;
                 if (req.getWorkLocationType() != null) {
                         location = WorkLocation.builder()
@@ -153,7 +210,6 @@ public class JobPostController {
                                         .build();
                 }
 
-                // Build Skills
                 List<JobPostSkill> skills = null;
                 if (req.getSkills() != null) {
                         skills = req.getSkills().stream()
@@ -166,7 +222,7 @@ public class JobPostController {
                 }
 
                 JobPost job = updateUseCase.execute(id, new UpdateJobPostUseCase.Command(
-                                req.getTitle(), null, // slug không cho update trực tiếp
+                                req.getTitle(), null,
                                 req.getDescription(), req.getRequirements(), req.getBenefits(),
                                 req.getJobType(), req.getLevel(), req.getCategory(),
                                 salary, location,
@@ -175,6 +231,8 @@ public class JobPostController {
 
                 return ResponseEntity.ok(ApiResponse.success(JobPostDetailResponse.from(job), "Cập nhật thành công."));
         }
+
+        // ── Close ─────────────────────────────────────────────────────────────────
 
         @Operation(summary = "Đóng bài đăng")
         @SecurityRequirement(name = "bearerAuth")
@@ -186,6 +244,8 @@ public class JobPostController {
                                 ApiResponse.success(JobPostDetailResponse.from(job), "Bài đăng đã được đóng."));
         }
 
+        // ── Delete ────────────────────────────────────────────────────────────────
+
         @Operation(summary = "Xóa bài đăng (soft delete)")
         @SecurityRequirement(name = "bearerAuth")
         @DeleteMapping("/api/v1/jobs/{id}")
@@ -195,7 +255,8 @@ public class JobPostController {
                 return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã được xóa."));
         }
 
-        // ── Helpers
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
         private UUID resolveCompanyId() {
                 UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
                 return companyRepository.findByOwnerId(ownerId)
