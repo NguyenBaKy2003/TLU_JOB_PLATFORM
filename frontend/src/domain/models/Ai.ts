@@ -43,7 +43,7 @@ export interface JdOptimizationResult {
 
 // ─── JD Guideline Check Models ──────
 
-export type Severity = "PASS" | "CLEAN" | "WARNING" | "VIOLATION";
+export type Severity = "PASS" | "CLEAN" | "WARNING" | "VIOLATION"|"CRITICAL" |"ERROR";
 
 export interface GuidelineIssue {
   category: string;

@@ -38,7 +38,7 @@ public class CalculatePassProbabilityUseCase {
         JobPost job = jobPostRepo.findById(cmd.jobPostId())
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", cmd.jobPostId()));
 
-        CandidateProfile candidate = candidateRepo.findById(cmd.candidateId())
+        CandidateProfile candidate = candidateRepo.findByUserId(cmd.candidateId())
                 .orElseThrow(() -> ResourceNotFoundException.of("Candidate", cmd.candidateId()));
 
         // Extract CV text

@@ -1,7 +1,6 @@
 package edu.tlu.jobplatform.ai.domain.model;
 
 import lombok.*;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class JdGuidelineCheckResult {
 
     public enum Severity {
-        CLEAN, WARNING, VIOLATION
+        CLEAN, WARNING, VIOLATION, ERROR, CRITICAL
     }
 
     public enum ViolationType {
@@ -43,4 +42,9 @@ public class JdGuidelineCheckResult {
     private String cleanedVersion; // AI tự sửa lại bản sạch
     private String overallFeedback; // nhận xét tổng thể
     private int qualityScore; // 0-100
+
+    public boolean hasBlockingIssues() {
+        return severity == Severity.ERROR || severity == Severity.CRITICAL;
+
+    }
 }

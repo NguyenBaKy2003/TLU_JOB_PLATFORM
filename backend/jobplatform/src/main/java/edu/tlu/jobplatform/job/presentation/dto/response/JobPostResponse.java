@@ -37,6 +37,7 @@ public class JobPostResponse {
         private final int applicationCount;
         private final LocalDateTime publishedAt;
         private final LocalDateTime createdAt;
+        private final String rejectionReason;
 
         /** Dùng cho search/list có company info */
         public static JobPostResponse from(SearchJobsUseCase.Result result) {
@@ -70,6 +71,7 @@ public class JobPostResponse {
                                 .viewCount(j.getViewCount())
                                 .applicationCount(j.getApplicationCount())
                                 .publishedAt(j.getPublishedAt())
+                                .rejectionReason(j.getRejectionReason())
                                 .createdAt(j.getCreatedAt())
                                 .build();
         }

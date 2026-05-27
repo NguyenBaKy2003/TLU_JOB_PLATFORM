@@ -1,9 +1,10 @@
 // src/infrastructure/repositories/JobRepository.ts
 
-import type { IJobRepository } from "@/domain/repositories/IJobRepository";
+import type { IJobRepository, MyJobsParams, JobStatusCounts } from "@/domain/repositories/IJobRepository";
 import type {
   JobPost, JobPostDetail, CreateJobPayload, UpdateJobPayload,
   JobSearchParams, PageResponse,
+  SubmitReviewResponse,
 } from "@/domain/models/Job";
 import api from "@/lib/axios";
 
@@ -52,18 +53,8 @@ export class JobRepository implements IJobRepository {
     return this.get(`${this.BASE}/slug/${slug}`);
   }
 
-  async checkSaved(jobPostId: string): Promise<boolean> {
-  try {
-    const res = await api.get<ApiResponse<boolean>>(`/jobs/${jobPostId}/saved`);
-    return res.data.data;
-  } catch {
-    return false;
-  }
-}
-
   // ── Saved jobs ─────────────────────────────────────────────────────────────
 
-  /** POST /api/v1/jobs/{id}/save — toggle, backend trả về Boolean */
   async toggleSave(jobPostId: string): Promise<boolean> {
     return this.post(`${this.BASE}/${jobPostId}/save`);
   }
@@ -72,34 +63,57 @@ export class JobRepository implements IJobRepository {
     return this.get(`${this.BASE}/saved`, { page, size });
   }
 
+  async checkSaved(jobPostId: string): Promise<boolean> {
+    try {
+      const res = await api.get<ApiResponse<boolean>>(`${this.BASE}/${jobPostId}/saved`);
+      return res.data.data;
+    } catch {
+      return false;
+    }
+  }
+
   // ── Employer ───────────────────────────────────────────────────────────────
 
-  /** POST /api/v1/jobs — tạo DRAFT */
   async create(payload: CreateJobPayload): Promise<JobPostDetail> {
     return this.post(this.BASE, payload);
   }
 
-  /** PATCH /api/v1/jobs/:id — cập nhật bài đăng */
   async update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail> {
     return this.patch(`${this.BASE}/${id}`, payload);
   }
 
-  /** GET /api/v1/jobs/my */
-  async getMyJobs(page = 0, size = 10): Promise<PageResponse<JobPost>> {
-    return this.get(`${this.BASE}/my`, { page, size });
+  async submit(id: string, featured = false): Promise<SubmitReviewResponse> {
+    const res = await api.post<ApiResponse<SubmitReviewResponse>>(
+      `${this.BASE}/${id}/submit`,
+      { featured },
+    );
+    return res.data.data;
   }
 
-  /** POST /api/v1/jobs/{id}/publish */
-async publish(id: string, featured = false): Promise<JobPostDetail> {
-  return this.post(`${this.BASE}/${id}/publish`, { featured });
-}
+  /** GET /api/v1/jobs/my — paginated, filtered */
+  async getMyJobs(page = 0, size = 10, params?: MyJobsParams): Promise<PageResponse<JobPost>> {
+    return this.get(`${this.BASE}/my`, {
+      page,
+      size,
+      keyword:       params?.keyword,
+      status:        params?.status,
+      createdAtFrom: params?.dateFrom ? `${params.dateFrom}T00:00:00` : undefined,
+      createdAtTo:   params?.dateTo   ? `${params.dateTo}T23:59:59`   : undefined,
+    });
+  }
 
-  /** POST /api/v1/jobs/{id}/close */
+  /**
+   * GET /api/v1/jobs/my/counts
+   * Trả về số lượng bài đăng theo từng trạng thái — không load entity, không phân trang.
+   */
+  async getMyJobCounts(): Promise<JobStatusCounts> {
+    return this.get(`${this.BASE}/my/counts`);
+  }
+
   async close(id: string): Promise<JobPostDetail> {
     return this.post(`${this.BASE}/${id}/close`);
   }
 
-  /** DELETE /api/v1/jobs/{id} */
   async delete(id: string): Promise<void> {
     return this.del(`${this.BASE}/${id}`);
   }

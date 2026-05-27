@@ -381,24 +381,19 @@ export function Header() {
             {/* Logged in */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
-                {/* Switch role link */}
-                {!isEmployer ? (
-                  <Link
-                    href="/employer"
-                    className="hidden lg:block text-[16px] font-medium text-gray-600
-                      hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
-                  >
-                    Nhà tuyển dụng
-                  </Link>
-                ) : (
-                  <Link
-                    href="/jobs"
-                    className="hidden lg:block text-[16px] font-medium text-gray-600
-                      hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
-                  >
-                    Tìm việc làm
-                  </Link>
-                )}
+               {/* Thay đổi duy nhất — switch role link */}
+{user.subscription?.planCode?.toUpperCase() !== "PREMIUM" &&
+ user.subscription?.planCode?.toUpperCase() !== "PREMIUM_COMPANY" && (
+  <Link
+    href={isEmployer ? "/employer/subscription" : "/candidate/subscription"}
+    className="hidden lg:flex items-center gap-1.5 text-[14px] font-medium
+      text-violet-600 hover:text-violet-700 transition-colors px-3 py-1.5
+      rounded-lg hover:bg-violet-50 border border-violet-200 hover:border-violet-300"
+  >
+    <Crown size={13} />
+    Nâng cấp gói
+  </Link>
+)}
 
                 {/* Avatar + dropdown */}
                 <div ref={dropdownRef} className="relative">

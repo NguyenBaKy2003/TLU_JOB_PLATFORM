@@ -1,4 +1,4 @@
-// src/app/(employer)/employer/jobs/create/page.tsx
+// src/app/(employer)/employer/jobs/new/page.tsx
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -79,28 +79,57 @@ export default function CreateJobPage() {
   };
 
   const handleSubmit = useCallback(async (publish: boolean) => {
-    const errs = validate(form);
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      toast.error("Thiếu thông tin", "Vui lòng kiểm tra lại các trường bắt buộc.");
+  const errs = validate(form);
+  if (Object.keys(errs).length > 0) {
+    setErrors(errs);
+    toast.error("Thiếu thông tin", "Vui lòng kiểm tra lại các trường bắt buộc.");
+    return;
+  }
+  setSaving(publish ? "publish" : "draft");
+  try {
+    const { job, review } = await jobService.createFromForm(form, publish, publish ? featured : false);
+
+    if (!publish) {
+      toast.success("Đã lưu nháp", "Bạn có thể đăng tin sau.");
+      router.push("/employer/jobs");
       return;
     }
-    setSaving(publish ? "publish" : "draft");
-    try {
-      await jobService.createFromForm(form, publish, publish ? featured : false);
+
+    // Phân nhánh theo kết quả AI
+    if (review?.decision === "APPROVED") {
       toast.success(
-        publish ? (featured ? "Đã đăng tin nổi bật" : "Đã đăng tin tuyển dụng") : "Đã lưu nháp",
-        publish
-          ? (featured ? "Tin nổi bật đang được ưu tiên hiển thị." : "Tin đang hiển thị với ứng viên.")
-          : "Bạn có thể đăng tin sau.",
+        featured ? "Tin nổi bật đã được duyệt" : "Tin tuyển dụng đã được duyệt",
+        `Điểm chất lượng: ${review.qualityScore}/100. Tin đang hiển thị với ứng viên.`
       );
       router.push("/employer/jobs");
-    } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e, "Vui lòng thử lại."));
-    } finally {
-      setSaving(null);
+    } else if (review?.decision === "REJECTED") {
+  toast.error(
+    "Bài đăng bị từ chối",
+    review.overallFeedback ?? "Vui lòng xem chi tiết và chỉnh sửa lại."
+  );
+  try {
+    sessionStorage.setItem(
+      `job-rejection-${job.id}`,
+      JSON.stringify({
+        rejectionReason: review.rejectionReason ?? null,
+        overallFeedback: review.overallFeedback ?? null,
+        qualityScore: review.qualityScore ?? null,
+        ts: Date.now(),
+      })
+    );
+  } catch {
+    // sessionStorage có thể fail (private mode, quota...) — bỏ qua
+  }
+  router.push(`/employer/jobs/${job.id}/edit?rejected=1`);
+} else {
+      router.push("/employer/jobs");
     }
-  }, [form, featured, router, toast]);
+  } catch (e) {
+    toast.error("Lỗi", extractErrorMessage(e, "Vui lòng thử lại."));
+  } finally {
+    setSaving(null);
+  }
+}, [form, featured, router, toast]);
 
   const jobTypeOpts = Object.entries(JOB_TYPE_LABELS).map(([value, label]) => ({ value: value as JobType, label }));
   const levelOpts = Object.entries(JOB_LEVEL_LABELS).map(([value, label]) => ({ value: value as JobLevel, label }));

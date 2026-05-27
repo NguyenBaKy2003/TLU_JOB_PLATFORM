@@ -62,13 +62,10 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
 
     @Override
     public CompanySubscription save(CompanySubscription sub) {
-        if (sub.getId() != null) {
-            Optional<CompanySubscriptionJpaEntity> existing = jpaRepo.findById(sub.getId());
-            if (existing.isPresent()) {
-                CompanySubscriptionJpaEntity e = existing.get();
-                mapper.updateEntity(e, sub);
-                return mapper.toDomain(jpaRepo.save(e));
-            }
+        if (sub.getId() != null && jpaRepo.existsById(sub.getId())) {
+            CompanySubscriptionJpaEntity e = jpaRepo.getReferenceById(sub.getId());
+            mapper.updateEntity(e, sub);
+            return mapper.toDomain(jpaRepo.save(e));
         }
         return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(sub)));
     }

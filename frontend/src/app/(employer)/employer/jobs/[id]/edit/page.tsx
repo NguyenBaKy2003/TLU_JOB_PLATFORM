@@ -17,7 +17,7 @@ import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import { JobFormFields } from "@/presentation/components/job-post/JobFormFields";
 import { JobFormActions } from "@/presentation/components/job-post/JobFormActions";
 import AiJobAssistant from "@/presentation/components/job-post/AiJobAssistant";
-
+import { useSearchParams } from "next/navigation";
 const jobService = new JobService(new JobRepository());
 
 type Errors = Partial<Record<keyof JobPostForm, string>>;
@@ -72,35 +72,55 @@ export default function EditJobPage() {
   const [saving, setSaving] = useState<"draft" | "publish" | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobStatus, setJobStatus] = useState<string>("");
+  const searchParams = useSearchParams();
 
+  const wasRejected = searchParams.get("rejected") === "1";
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [aiForm, setAiForm] = useState({
     title: "", description: "", requirements: "",
     benefits: "", level: "", category: "",
   });
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    jobService.getById(id)
-      .then(job => {
-        const formData = detailToForm(job);
-        setForm(formData);
-        setJobStatus((job as any).status ?? "");
-        setAiForm({
-          title: formData.title,
-          description: formData.description,
-          requirements: formData.requirements,
-          benefits: formData.benefits,
-          level: formData.level,
-          category: formData.category,
-        });
-      })
-      .catch(e => {
-        toast.error("Không tải được tin", extractErrorMessage(e, "Vui lòng thử lại."));
-        router.push("/employer/jobs");
-      })
-      .finally(() => setLoading(false));
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!id) return;
+  setLoading(true);
+  jobService.getById(id)
+    .then(job => {
+      const formData = detailToForm(job);
+      setForm(formData);
+      setJobStatus((job as any).status ?? "");
+
+      let sessionRejection: string | null = null;
+      try {
+        const raw = sessionStorage.getItem(`job-rejection-${id}`);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data?.ts && Date.now() - data.ts < 5 * 60 * 1000) {
+            sessionRejection = data.rejectionReason ?? data.overallFeedback ?? null;
+          }
+          sessionStorage.removeItem(`job-rejection-${id}`);
+        }
+      } catch {
+        // ignore
+      }
+
+      setRejectionReason(sessionRejection ?? job.rejectionReason ?? null);
+
+      setAiForm({
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.requirements,
+        benefits: formData.benefits,
+        level: formData.level,
+        category: formData.category,
+      });
+    })
+    .catch(e => {
+      toast.error("Không tải được tin", extractErrorMessage(e, "Vui lòng thử lại."));
+      router.push("/employer/jobs");
+    })
+    .finally(() => setLoading(false));
+}, [id]);
 
   useEffect(() => {
     setAiForm({
@@ -137,14 +157,22 @@ export default function EditJobPage() {
     }
     setSaving(publish ? "publish" : "draft");
     try {
-      await jobService.updateFromForm(id, form, publish);
-      toast.success(
-        publish ? "Đã cập nhật & đăng tin" : "Đã lưu thay đổi",
-        publish
-          ? "Tin tuyển dụng đã được cập nhật và đang hiển thị với ứng viên."
-          : "Thay đổi đã được lưu thành công.",
-      );
-      router.push("/employer/jobs");
+      const { job, review } = await jobService.updateFromForm(id, form, publish);
+
+      if (!publish) {
+        toast.success("Đã lưu thay đổi", "Thay đổi đã được lưu thành công.");
+        router.push("/employer/jobs");
+        return;
+      }
+
+      if (review?.decision === "APPROVED") {
+        toast.success("Đã duyệt & đăng tin", `Điểm chất lượng: ${review.qualityScore}/100.`);
+        router.push("/employer/jobs");
+      } else if (review?.decision === "REJECTED") {
+        setRejectionReason(review.rejectionReason ?? "Nội dung không đạt yêu cầu.");
+        toast.error("Bài đăng bị từ chối", review.overallFeedback ?? "Vui lòng chỉnh sửa lại.");
+        setSaving(null); // ở lại trang
+      }
     } catch (e) {
       toast.error("Lỗi", extractErrorMessage(e, "Vui lòng thử lại."));
     } finally {
@@ -195,7 +223,7 @@ export default function EditJobPage() {
           >
             {jobStatus === "PUBLISHED" ? "Đang đăng"
               : jobStatus === "CLOSED" ? "Đã đóng"
-              : "Nháp"}
+                : "Nháp"}
           </span>
         )}
       </div>
@@ -207,6 +235,17 @@ export default function EditJobPage() {
             <div className="mb-4 flex items-start gap-2.5 px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600">
               <AlertCircle size={15} className="shrink-0 mt-0.5" />
               Vui lòng kiểm tra lại thông tin trước khi lưu.
+            </div>
+          )}
+          {(wasRejected || rejectionReason) && rejectionReason && (
+            <div className="mb-4 flex flex-col gap-1.5 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl">
+              <div className="flex items-center gap-2 text-xs font-semibold text-red-600">
+                <AlertCircle size={14} />
+                Bài đăng bị từ chối — vui lòng chỉnh sửa và nộp lại
+              </div>
+              <p className="text-xs text-red-500 whitespace-pre-line leading-relaxed">
+                {rejectionReason}
+              </p>
             </div>
           )}
 

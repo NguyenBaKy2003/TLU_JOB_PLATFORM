@@ -20,17 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-/**
- * Cấu hình Spring Security.
- *
- * Chiến lược:
- * - Stateless — JWT thay thế HttpSession
- * - CSRF disabled — không cần cho REST API stateless
- * - CORS config lấy từ shared/config/SecurityConfig (Bean
- * CorsConfigurationSource)
- * - @PreAuthorize bật để kiểm tra role từng endpoint chi tiết
- * - OAuth2 login tích hợp Google/FaceBook
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -51,65 +40,82 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                                // ── 401 / 403 custom response
+                                // ── 401 / 403 custom response ────────────────────────────────────────
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((req, res, e) -> {
                                                         res.setStatus(401);
                                                         res.setContentType("application/json;charset=UTF-8");
                                                         res.getWriter().write(
                                                                         "{\"success\":false,\"message\":\"Vui lòng đăng nhập để tiếp tục.\","
-                                                                                        +
-                                                                                        "\"errorCode\":\"UNAUTHORIZED\"}");
+                                                                                        + "\"errorCode\":\"UNAUTHORIZED\"}");
                                                 })
                                                 .accessDeniedHandler((req, res, e) -> {
                                                         res.setStatus(403);
                                                         res.setContentType("application/json;charset=UTF-8");
                                                         res.getWriter().write(
                                                                         "{\"success\":false,\"message\":\"Bạn không có quyền thực hiện thao tác này.\","
-                                                                                        +
-                                                                                        "\"errorCode\":\"FORBIDDEN\"}");
+                                                                                        + "\"errorCode\":\"FORBIDDEN\"}");
                                                 }))
 
-                                // ── Authorization rules ─
+                                // ── Authorization rules ──────────────────────────────────────────────
                                 .authorizeHttpRequests(auth -> auth
+
+                                                // Auth
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**",
-                                                                "/api/v1/companies/**",
-                                                                "/api/v1/search/**", "/api/v1/categories/**")
-                                                .permitAll()
+
+                                                // Swagger / Actuator / OAuth2 / WebSocket / Webhook
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
                                                 .requestMatchers("/api/v1/ws/**").permitAll()
                                                 .requestMatchers("/api/webhooks/**").permitAll()
-                                                .requestMatchers("/api/v1/admin/**").permitAll()
 
-                                                .requestMatchers("/api/v1/subscriptions/**").permitAll()
-                                                .requestMatchers("/api/v1/jobs/**").permitAll()
-                                                .requestMatchers("/api/v1/jobs/search/**").permitAll()
+                                                // Payment callback (VNPay, etc.)
                                                 .requestMatchers("/api/v1/payments/callback/**").permitAll()
-                                                .requestMatchers("/api/v1/settings/**").authenticated()
+
+                                                // ── Public GET endpoints ─────────────────────────────────────
+                                                .requestMatchers(HttpMethod.GET,
+                                                                "/api/v1/jobs/**",
+                                                                "/api/v1/companies/**",
+                                                                "/api/v1/search/**",
+                                                                "/api/v1/categories/**")
+                                                .permitAll()
+
+                                                // AI analytics — competition-rate public, pass-probability cần role
+                                                .requestMatchers(HttpMethod.GET,
+                                                                "/api/v1/job-posts/*/competition-rate")
+                                                .permitAll()
+
+                                                // Streams — cần authenticated (POST leave)
+                                                .requestMatchers(HttpMethod.POST,
+                                                                "/api/v1/streams/*/leave")
+                                                .authenticated()
+
+                                                // ── Tạm thời permitAll (dọn dần về authenticated) ────────────
+                                                // TODO: thu hẹp các rule này về đúng role cần thiết
+                                                .requestMatchers("/api/v1/admin/**").permitAll()
+                                                .requestMatchers("/api/v1/subscriptions/**").permitAll()
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
                                                 .requestMatchers("/api/v1/applications/**").permitAll()
                                                 .requestMatchers("/api/v1/ai/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/v1/streams/*/leave")
-                                                .authenticated()
+
+                                                // Settings bắt buộc đăng nhập
+                                                .requestMatchers("/api/v1/settings/**").authenticated()
 
                                                 .anyRequest().authenticated())
 
-                                // ── OAuth2 Login
+                                // ── OAuth2 Login ─────────────────────────────────────────────────────
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(ui -> ui.userService(oauth2UserService))
                                                 .successHandler(oauth2SuccessHandler)
                                                 .failureUrl("/api/auth/oauth2/failure"))
 
-                                // ── JWT Filter ──
+                                // ── Filters: RateLimit → JWT → UsernamePassword ──────────────────────
                                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtAuthFilter, rateLimitFilter.getClass())
                                 .build();
         }
 
-        /** BCrypt strength=12: hash ~250ms — đủ chậm để chống brute force */
         @Bean
         public BCryptPasswordEncoder bCryptPasswordEncoder() {
                 return new BCryptPasswordEncoder(12);

@@ -42,7 +42,9 @@ public class CompanyResponse {
     private final boolean canPostJobs;
     private final LocalDateTime verifiedAt;
     private final LocalDateTime createdAt;
-
+    private final Integer activeJobCount;
+    private final Double averageRating;
+    private final Integer reviewCount;
     // ── Nội dung mở rộng ──
     private final List<TeamMemberDto> teamMembers;
     private final List<GalleryImageDto> gallery;
@@ -131,6 +133,9 @@ public class CompanyResponse {
         return base(c)
                 .teamMembers(toTeamDtos(team))
                 .gallery(toGalleryDtos(gallery))
+                .activeJobCount(c.getActiveJobCount())
+                .averageRating(c.getAverageRating())
+                .reviewCount(c.getReviewCount())
                 .build();
     }
 

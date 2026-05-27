@@ -71,6 +71,9 @@ public class JobPostJpaEntity extends BaseJpaEntity {
     @Column(name = "salary_negotiable")
     private Boolean salaryNegotiable;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     // ── WorkLocation (embedded VO)
     @Column(name = "work_location_type", length = 20)
     private String workLocationType; // ONSITE, REMOTE, HYBRID

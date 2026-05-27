@@ -26,7 +26,6 @@ public class JobPostAnalyticsController {
 
     @Operation(summary = "Tính mức độ cạnh tranh của job")
     @GetMapping("/{id}/competition-rate")
-    @PreAuthorize("hasAnyRole('CANDIDATE','EMPLOYER','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<CompetitionRateResult>> getCompetitionRate(
             @PathVariable UUID id) {
 
