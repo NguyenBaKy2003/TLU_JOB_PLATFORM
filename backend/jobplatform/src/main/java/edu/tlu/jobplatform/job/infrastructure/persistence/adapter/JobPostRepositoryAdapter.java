@@ -14,10 +14,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -54,6 +58,28 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
     @Override
     public Page<JobPost> findByPostedBy(UUID postedBy, Pageable p) {
         return jpaRepo.findByPostedBy(postedBy, p).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<JobPost> searchMyJobs(UUID postedBy, JobStatus status, String keyword,
+            LocalDateTime createdAtFrom, LocalDateTime createdAtTo, Pageable pageable) {
+        return jpaRepo.searchMyJobs(postedBy, status, keyword, createdAtFrom, createdAtTo, pageable)
+                .map(mapper::toDomain);
+    }
+
+    /**
+     * Gọi một query GROUP BY nhẹ — không load entity, không phân trang.
+     * Chỉ trả về Map<status, count> cho các status có ít nhất 1 bài.
+     */
+    @Override
+    public Map<JobStatus, Long> countMyJobsByStatus(UUID postedBy) {
+        return jpaRepo.countMyJobsByStatus(postedBy)
+                .stream()
+                .collect(Collectors.toMap(
+                        p -> p.getStatus(),
+                        p -> p.getCount(),
+                        (a, b) -> a, // merge function (không xảy ra, GROUP BY đảm bảo unique)
+                        () -> new EnumMap<>(JobStatus.class)));
     }
 
     @Override

@@ -2,7 +2,7 @@
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-export type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN";
+export type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN"  ;
 export type JobLevel =
   | "INTERN"
   | "JUNIOR"
@@ -11,7 +11,7 @@ export type JobLevel =
   | "LEAD"
   | "MANAGER";
 export type WorkLocType = "ONSITE" | "REMOTE" | "HYBRID";
-export type JobStatus = "DRAFT" | "PUBLISHED" | "CLOSED" | "EXPIRED";
+export type JobStatus = "DRAFT" | "PUBLISHED" | "CLOSED" | "EXPIRED" | "PENDING_REVIEW" | "REJECTED";
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
   FULL_TIME: "Toàn thời gian",
@@ -40,6 +40,8 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   PUBLISHED: "Đang tuyển",
   CLOSED: "Đã đóng",
   EXPIRED: "Hết hạn",
+  PENDING_REVIEW: "Chờ duyệt",
+  REJECTED: "Bị từ chối"
 };
 
 // ── Value objects ─────────────────────────────────────────────────────────────
@@ -49,6 +51,23 @@ export interface Salary {
   max: number | null;
   currency: string;
   negotiable: boolean;
+}
+
+export interface SubmitReviewResponse {
+  job: JobPostDetail;
+  review: {
+    decision:        "APPROVED" | "REJECTED";
+    severity:        "CLEAN" | "WARNING" | "VIOLATION" | "ERROR" | "CRITICAL";
+    qualityScore:    number;
+    overallFeedback: string | null;
+    rejectionReason: string | null;
+    violations: {
+      type:        string;
+      excerpt:     string | null;
+      explanation: string | null;
+      suggestion:  string | null;
+    }[];
+  };
 }
 
 export interface WorkLocation {
@@ -82,6 +101,7 @@ export interface JobPost {
   workLocationCity: string | null;
   status: JobStatus;
   viewCount: number;
+   rejectionReason?: string | null; 
   deadline: string;
   publishedAt: string | null;
   createdAt: string;
@@ -100,6 +120,7 @@ export interface JobPostDetail extends JobPost {
   workLocationType: WorkLocType | null;
   workLocationAddress: string | null;
   experienceYears: number | null;
+  rejectionReason: string;
   vacancies: number;
   skills: JobSkill[];
 }

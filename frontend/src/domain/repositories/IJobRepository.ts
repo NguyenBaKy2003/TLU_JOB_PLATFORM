@@ -3,51 +3,61 @@
 import type {
   JobPost, JobPostDetail, CreateJobPayload, UpdateJobPayload,
   JobSearchParams, PageResponse,
+  SubmitReviewResponse,
+  JobStatus,
 } from "@/domain/models/Job";
+
+export interface MyJobsParams {
+  keyword?:  string;
+  status?:   JobStatus;
+  dateFrom?: string;
+  dateTo?:   string;
+}
+
+
+export type JobStatusCounts = { total: number } & Partial<Record<JobStatus, number>>;
 
 export interface IJobRepository {
 
-  // ── Public / candidate 
+  // ── Public / candidate ────────────────────────────────────────────────────
 
-  /** Danh sách việc làm đang PUBLISHED */
   listPublished(page?: number, size?: number): Promise<PageResponse<JobPost>>;
 
-  /** Tìm kiếm việc làm với filter */
   search(params: JobSearchParams): Promise<PageResponse<JobPost>>;
 
-  /** Chi tiết theo ID (tăng view) */
   getById(id: string): Promise<JobPostDetail>;
 
-  /** Chi tiết theo slug (tăng view) */
   getBySlug(slug: string): Promise<JobPostDetail>;
 
   // ── Candidate — saved jobs ────────────────────────────────────────────────
 
-  /** Toggle lưu/bỏ lưu — trả về true nếu đã lưu, false nếu bỏ lưu */
   toggleSave(jobPostId: string): Promise<boolean>;
 
-  /** Danh sách bài đã lưu */
   listSaved(page?: number, size?: number): Promise<PageResponse<JobPost>>;
+
+  checkSaved(jobPostId: string): Promise<boolean>;
 
   // ── Employer ──────────────────────────────────────────────────────────────
 
-  /** Tạo bài đăng mới (DRAFT) */
   create(payload: CreateJobPayload): Promise<JobPostDetail>;
 
-  /** Cập nhật bài đăng — PATCH /api/v1/jobs/:id */
   update(id: string, payload: UpdateJobPayload): Promise<JobPostDetail>;
 
-  /** Lấy danh sách bài đăng của tôi (employer) */
-  getMyJobs(page?: number, size?: number): Promise<PageResponse<JobPost>>;
+  submit(id: string, featured?: boolean): Promise<SubmitReviewResponse>;
 
-  /** Publish bài đăng */
-  publish(id: string, featured?: boolean): Promise<JobPostDetail>;
+  /**
+   * Danh sách bài đăng của tôi — paginated + filtered.
+   * Gọi GET /api/v1/jobs/my
+   */
+  getMyJobs(page?: number, size?: number, params?: MyJobsParams): Promise<PageResponse<JobPost>>;
 
-  /** Đóng bài đăng */
+  /**
+   * Số lượng bài đăng theo từng trạng thái — lightweight, không phân trang.
+   * Gọi GET /api/v1/jobs/my/counts
+   */
+  getMyJobCounts(): Promise<JobStatusCounts>;
+
   close(id: string): Promise<JobPostDetail>;
 
-  /** Xóa bài đăng */
   delete(id: string): Promise<void>;
-
-  checkSaved(jobPostId: string): Promise<boolean>;
 }

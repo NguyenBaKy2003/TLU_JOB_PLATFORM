@@ -55,6 +55,7 @@ public class JobMapper {
                 .applicationCount(e.getApplicationCount())
                 .skills(skills)
                 .createdAt(e.getCreatedAt())
+                .rejectionReason(e.getRejectionReason())
                 .updatedAt(e.getUpdatedAt())
                 .build();
     }
@@ -84,6 +85,7 @@ public class JobMapper {
                 .build();
 
         e.setId(d.getId());
+        e.setRejectionReason(d.getRejectionReason());
         applySalary(e, d.getSalary());
         applyWorkLocation(e, d.getWorkLocation());
         return e;
@@ -108,6 +110,8 @@ public class JobMapper {
         e.setStatus(d.getStatus());
         e.setViewCount(d.getViewCount());
         e.setApplicationCount(d.getApplicationCount());
+        e.setRejectionReason(d.getRejectionReason());
+
         applySalary(e, d.getSalary());
         applyWorkLocation(e, d.getWorkLocation());
     }

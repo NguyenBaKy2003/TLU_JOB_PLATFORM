@@ -44,6 +44,7 @@ public class JobPost {
     private boolean featured; // ← MỚI
     private int viewCount;
     private int applicationCount;
+    private String rejectionReason;
 
     @Builder.Default
     private List<JobPostSkill> skills = new ArrayList<>();
@@ -143,5 +144,41 @@ public class JobPost {
     public void transitionTo(JobStatus target) {
         this.status.assertCanTransitionTo(target);
         this.status = target;
+    }
+
+    /**
+     * Employer submit bài để kiểm duyệt.
+     * Gọi từ SubmitForReviewUseCase.
+     */
+    public void submitForReview() {
+        status.assertCanTransitionTo(JobStatus.PENDING_REVIEW);
+        this.status = JobStatus.PENDING_REVIEW;
+        this.rejectionReason = null; // xóa lý do cũ nếu resubmit
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Duyệt bài — chuyển sang PUBLISHED.
+     * Gọi sau khi AI/admin chấp nhận.
+     */
+    public void approve(boolean featured) {
+        status.assertCanTransitionTo(JobStatus.PUBLISHED);
+        this.status = JobStatus.PUBLISHED;
+        this.featured = featured;
+        this.publishedAt = LocalDateTime.now();
+        this.rejectionReason = null;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Từ chối bài — chuyển sang REJECTED.
+     * 
+     * @param reason lý do từ AI hoặc admin
+     */
+    public void reject(String reason) {
+        status.assertCanTransitionTo(JobStatus.REJECTED);
+        this.status = JobStatus.REJECTED;
+        this.rejectionReason = reason;
+        this.updatedAt = LocalDateTime.now();
     }
 }
