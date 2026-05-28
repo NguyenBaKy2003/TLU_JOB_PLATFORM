@@ -77,7 +77,7 @@ export class CompanyReviewRepository implements ICompanyReviewRepository {
     if (status) params.status = status;
 
     const res = await api.get<ApiResponse<PageResponse<CompanyReview>>>(
-      "/company/reviews",       // ← fix: khớp với backend /api/v1/company/reviews
+      "/my-reviews",       // ← fix: khớp với backend /api/v1/company/reviews
       { params }                // ← fix: bọc đúng { params: ... }
     );
     return res.data.data;

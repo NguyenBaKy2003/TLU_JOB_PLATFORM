@@ -37,7 +37,7 @@ public class JobSearchController {
 
         var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
         var result = jobPostRepository.findPublished(pageable)
-                .map(JobPostResponse::from); // from(JobPost) — không có company
+                .map(JobPostResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
@@ -56,7 +56,7 @@ public class JobSearchController {
         var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
         var query = new SearchJobsUseCase.SearchQuery(keyword, city, category, jobType, level, companyId);
         var result = searchJobsUseCase.execute(query, pageable)
-                .map(JobPostResponse::from); // from(Result) — có company
+                .map(JobPostResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 

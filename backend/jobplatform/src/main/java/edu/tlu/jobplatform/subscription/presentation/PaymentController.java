@@ -55,7 +55,7 @@ public class PaymentController {
                 callbackUseCase.execute(params);
             response.sendRedirect(frontendUrl + successPath);
         } catch (Exception e) {
-            log.error("VNPay return error: {}", e.getMessage());
+            log.error("VNPay return error: {}", e.getMessage(), e);
             response.sendRedirect(frontendUrl + failurePath + "?reason=99");
         }
     }
