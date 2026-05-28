@@ -52,7 +52,7 @@ public class CompanySubscription {
         if (!isActive())
             return 0;
         if (expiresAt == null)
-            return Long.MAX_VALUE;
+            return 0;
         return java.time.Duration.between(LocalDateTime.now(), expiresAt).toDays();
     }
 
