@@ -1,3 +1,5 @@
+// D:\TLU_JOB_PLATFORM\frontend\src\infrastructure\repositories\CompanyReviewRepository.ts
+
 import api from "@/lib/axios";
 import type { ICompanyReviewRepository } from "@/domain/repositories/ICompanyReviewRepository";
 import type {
@@ -6,7 +8,8 @@ import type {
   CreateReviewRequest,
   UpdateReviewRequest,
   PageResponse,
-  ReviewStatus,
+  MyReviewsResponse,
+  GetMyReviewsParams,
 } from "@/domain/models/CompanyReview";
 
 interface ApiResponse<T> {
@@ -68,17 +71,18 @@ export class CompanyReviewRepository implements ICompanyReviewRepository {
     await api.delete(`/companies/${companyId}/reviews/${reviewId}`);
   }
 
-  async getMyReviews(
-    page = 0,
-    size = 10,
-    status?: ReviewStatus
-  ): Promise<PageResponse<CompanyReview>> {
-    const params: Record<string, unknown> = { page, size };
-    if (status) params.status = status;
+  async getMyReviews(params: GetMyReviewsParams = {}): Promise<MyReviewsResponse> {
+    const { page = 0, size = 12, status, keyword, createdAtFrom, createdAtTo } = params;
 
-    const res = await api.get<ApiResponse<PageResponse<CompanyReview>>>(
-      "/my-reviews",       // ← fix: khớp với backend /api/v1/company/reviews
-      { params }                // ← fix: bọc đúng { params: ... }
+    const queryParams: Record<string, unknown> = { page, size };
+    if (status)        queryParams.status        = status;
+    if (keyword)       queryParams.keyword       = keyword;
+    if (createdAtFrom) queryParams.createdAtFrom = createdAtFrom;
+    if (createdAtTo)   queryParams.createdAtTo   = createdAtTo;
+
+    const res = await api.get<ApiResponse<MyReviewsResponse>>(
+      "/my-reviews",
+      { params: queryParams }
     );
     return res.data.data;
   }

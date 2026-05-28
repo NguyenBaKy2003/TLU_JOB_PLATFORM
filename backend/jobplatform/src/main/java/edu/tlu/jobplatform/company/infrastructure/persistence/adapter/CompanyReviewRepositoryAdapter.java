@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.company.infrastructure.persistence.adapter;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
@@ -10,10 +11,14 @@ import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyReviewRepository;
 import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyReviewJpaEntity;
 import edu.tlu.jobplatform.company.infrastructure.persistence.mapper.CompanyReviewMapper;
+import edu.tlu.jobplatform.company.infrastructure.persistence.projection.CompanyReviewCountProjection;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyReviewJpaRepository;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -146,4 +151,36 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
     public void deleteById(UUID id) {
         jpaRepo.deleteById(id);
     }
+
+    @Override
+    public Page<CompanyReview> searchByReviewerId(
+            UUID reviewerId, ReviewStatus status, String keyword,
+            LocalDateTime createdAtFrom, LocalDateTime createdAtTo, Pageable pageable) {
+
+        String preparedKeyword = isBlank(keyword) ? null : "%" + keyword.toLowerCase() + "%";
+        String statusStr = (status != null) ? status.name() : null;
+
+        Pageable unsorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+        return jpaRepo.searchByReviewerId(
+                reviewerId,
+                statusStr,
+                preparedKeyword,
+                createdAtFrom,
+                createdAtTo,
+                unsorted).map(mapper::toDomain);
+    }
+
+    @Override
+    public Map<ReviewStatus, Long> countByStatusForReviewer(UUID reviewerId) {
+        return jpaRepo.countByStatusForReviewer(reviewerId).stream()
+                .collect(Collectors.toMap(
+                        CompanyReviewCountProjection::getStatus,
+                        CompanyReviewCountProjection::getCount));
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
+
 }

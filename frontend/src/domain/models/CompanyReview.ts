@@ -5,12 +5,19 @@ export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'HIDDEN';
 export interface CompanyReview {
   id: string;
   companyId: string;
-  reviewerName: string;
+
+  companyName?:     string;
+  companySlug?:     string;
+  companyLogoUrl?:  string;
+  companyIndustry?: string;
+  companyLocation?: string;
+
+  reviewerName?: string;
   rating: number;
-  title: string;
+  title?: string;
   content: string;
-  pros: string;
-  cons: string;
+  pros?: string;
+  cons?: string;
   anonymous: boolean;
   employed: boolean;
   status: ReviewStatus;
@@ -35,6 +42,13 @@ export interface ReviewListResponse {
   reviews: PageResponse<CompanyReview>;
 }
 
+// Khớp với GetMyReviewsUseCase.Result ở backend
+export interface MyReviewsResponse {
+  reviews: PageResponse<CompanyReview>;
+  total: number;
+  statusCounts: Partial<Record<ReviewStatus, number>>;
+}
+
 export interface CreateReviewRequest {
   rating: number;
   title: string;
@@ -51,6 +65,15 @@ export interface UpdateReviewRequest {
   content: string;
   pros?: string;
   cons?: string;
+}
+
+export interface GetMyReviewsParams {
+  page?: number;
+  size?: number;
+  status?: ReviewStatus;
+  keyword?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
 }
 
 export interface PageResponse<T> {

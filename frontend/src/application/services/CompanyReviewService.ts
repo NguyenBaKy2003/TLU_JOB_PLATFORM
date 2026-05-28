@@ -1,3 +1,5 @@
+// D:\TLU_JOB_PLATFORM\frontend\src\application\services\CompanyReviewService.ts
+
 import type { ICompanyReviewRepository } from "@/domain/repositories/ICompanyReviewRepository";
 import type {
   CompanyReview,
@@ -5,7 +7,8 @@ import type {
   CreateReviewRequest,
   UpdateReviewRequest,
   PageResponse,
-  ReviewStatus,
+  MyReviewsResponse,
+  GetMyReviewsParams,
 } from "@/domain/models/CompanyReview";
 
 export class CompanyReviewService {
@@ -28,12 +31,8 @@ export class CompanyReviewService {
 
   // ─── Candidate ───────────────────────────────────────────────────────────
 
-  getMyReviews(
-    page = 0,
-    size = 10,
-    status?: ReviewStatus
-  ): Promise<PageResponse<CompanyReview>> {
-    return this.repo.getMyReviews(page, size, status);
+  getMyReviews(params: GetMyReviewsParams = {}): Promise<MyReviewsResponse> {
+    return this.repo.getMyReviews(params);
   }
 
   createReview(companyId: string, data: CreateReviewRequest): Promise<CompanyReview> {
@@ -57,14 +56,6 @@ export class CompanyReviewService {
   }
 
   // ─── Employer ────────────────────────────────────────────────────────────
-
-  getEmployerReviews(
-    page = 0,
-    size = 10,
-    status?: ReviewStatus
-  ): Promise<PageResponse<CompanyReview>> {
-    return this.repo.getMyReviews(page, size, status);
-  }
 
   approveReview(reviewId: string): Promise<CompanyReview> {
     return this.repo.approveReview(reviewId);
