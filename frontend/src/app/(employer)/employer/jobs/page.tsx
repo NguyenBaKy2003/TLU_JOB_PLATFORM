@@ -11,6 +11,7 @@ import { extractErrorMessage }        from "@/lib/extractErrorMessage";
 import { useToast }                   from "@/presentation/components/ui/toast";
 import { SettingsModal }              from "@/presentation/components/settings/SettingsModal";
 import { Pagination }                 from "@/presentation/components/common/Pagination";
+import { LoadingSpinner }             from "@/presentation/components/common";
 import {
   EmployerFilterBar,
   type FilterSearchParams,
@@ -43,15 +44,10 @@ interface AppliedFilters {
 }
 
 const DEFAULT_FILTERS: AppliedFilters = {
-  status:   "ALL",
-  search:   "",
-  dateFrom: "",
-  dateTo:   "",
-  page:     0,
-  pageSize: DEFAULT_PAGE_SIZE,
+  status: "ALL", search: "", dateFrom: "", dateTo: "", page: 0, pageSize: DEFAULT_PAGE_SIZE,
 };
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton — chỉ dùng lần đầu ──────────────────────────────────────────────
 
 function CardSkeleton({ count }: { count: number }) {
   return (
@@ -108,9 +104,7 @@ function DeleteConfirmModal({
             className="flex-1 py-2.5 text-[16px] font-medium text-white bg-red-500
               rounded-xl hover:bg-red-600 disabled:opacity-50 transition-colors
               flex items-center justify-center gap-2">
-            {loading && (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            )}
+            {loading && <LoadingSpinner size="sm" variant="white" />}
             Xóa bài đăng
           </button>
         </div>
@@ -127,6 +121,9 @@ export default function EmployerJobsPage() {
   const [jobs,          setJobs]          = useState<JobPost[]>([]);
   const [totalPages,    setTotalPages]    = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  // initialLoad: true = chưa có data lần nào → dùng skeleton
+  // loading:     true = đang fetch (kể cả refetch) → dùng overlay mờ
+  const [initialLoad,   setInitialLoad]   = useState(true);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState<string | null>(null);
 
@@ -145,9 +142,7 @@ export default function EmployerJobsPage() {
     try {
       const counts = await service.getMyJobCounts();
       setStatusCounts(counts);
-    } catch {
-      // non-critical
-    }
+    } catch { /* non-critical */ }
   }, []);
 
   useEffect(() => {
@@ -176,6 +171,7 @@ export default function EmployerJobsPage() {
         setError(extractErrorMessage(e, "Không thể tải danh sách tin tuyển dụng"));
       } finally {
         setLoading(false);
+        setInitialLoad(false);
       }
     })();
   }, [filters]);
@@ -198,15 +194,15 @@ export default function EmployerJobsPage() {
 
   // ── Filter handlers ───────────────────────────────────────────────────────
 
-  const handleStatusChange = useCallback((status: string) => {
+  const handleStatusChange   = useCallback((status: string) => {
     setFilters(prev => ({ ...prev, status: status as JobStatus | "ALL", page: 0 }));
   }, []);
 
-  const handleSearch = useCallback((params: FilterSearchParams) => {
-    setFilters(prev => ({ ...prev, search: params.search, dateFrom: params.dateFrom, dateTo: params.dateTo, page: 0 }));
+  const handleSearch         = useCallback((params: FilterSearchParams) => {
+    setFilters(prev => ({ ...prev, ...params, page: 0 }));
   }, []);
 
-  const handlePageChange = useCallback((p: number) => {
+  const handlePageChange     = useCallback((p: number) => {
     setFilters(prev => ({ ...prev, page: p - 1 }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -223,8 +219,7 @@ export default function EmployerJobsPage() {
   const handleSubmit = useCallback(async (id: string) => {
     setActing(id);
     try {
-      const result = await service.submit(id);
-      const { review } = result;
+      const { review } = await service.submit(id);
       if (review.decision === "APPROVED") {
         updateJobStatus(id, "PUBLISHED");
         swapCount("DRAFT", "PUBLISHED");
@@ -295,11 +290,9 @@ export default function EmployerJobsPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div />
-        <Link
-          href="/employer/jobs/new"
+        <Link href="/employer/jobs/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white
-            text-[16px] font-semibold rounded-xl hover:bg-violet-700 transition-colors"
-        >
+            text-[16px] font-semibold rounded-xl hover:bg-violet-700 transition-colors">
           <PlusCircle size={16} /> Đăng tin mới
         </Link>
       </div>
@@ -321,13 +314,17 @@ export default function EmployerJobsPage() {
         loading={loading}
       />
 
-      {!loading && !error && (
-        <p className="text-xs text-gray-500 -mt-1">
-          Hiển thị <strong className="text-gray-700">{jobs.length}</strong> / <strong className="text-gray-700">{totalElements}</strong> tin đăng
-        </p>
-      )}
+      {/* Result count — giữ chỗ bằng min-height để không nhảy */}
+      <div className="min-h-[20px] -mt-1">
+        {!loading && !error && (
+          <p className="text-xs text-gray-500">
+            Hiển thị <strong className="text-gray-700">{jobs.length}</strong> / <strong className="text-gray-700">{totalElements}</strong> tin đăng
+          </p>
+        )}
+      </div>
 
-      {loading ? (
+      {/* Content area — skeleton chỉ lần đầu, sau đó overlay mờ */}
+      {initialLoad ? (
         <CardSkeleton count={filters.pageSize} />
       ) : error ? (
         <div className="py-16 text-center">
@@ -337,43 +334,57 @@ export default function EmployerJobsPage() {
             Thử lại
           </button>
         </div>
-      ) : jobs.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-20 flex flex-col items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-            <Filter size={24} className="text-gray-300" />
-          </div>
-          <div className="text-center">
-            <p className="text-[16px] font-medium text-gray-700 mb-1">
-              {filters.search || filters.dateFrom || filters.dateTo ? "Không tìm thấy kết quả" : "Chưa có tin tuyển dụng"}
-            </p>
-            <p className="text-xs text-gray-400">
-              {filters.search || filters.dateFrom || filters.dateTo
-                ? "Thử tìm với từ khóa hoặc khoảng thời gian khác"
-                : "Bắt đầu bằng cách đăng tin tuyển dụng đầu tiên"}
-            </p>
-          </div>
-          {!filters.search && !filters.dateFrom && (
-            <Link href="/employer/jobs/new"
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-[16px] font-semibold rounded-xl hover:bg-blue-700 transition-colors">
-              <Plus size={16} /> Đăng tin ngay
-            </Link>
+      ) : (
+        /* Wrapper giữ layout ổn định, chỉ mờ khi refetch */
+        <div className={`relative transition-opacity duration-150 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+          {/* Overlay spinner nhỏ góc trên phải khi refetch */}
+          {loading && (
+            <div className="absolute -top-8 right-0 z-10 flex items-center gap-1.5 text-xs text-gray-400">
+              <LoadingSpinner size="sm" variant="secondary" />
+              Đang tải...
+            </div>
+          )}
+
+          {jobs.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-20 flex flex-col items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
+                <Filter size={24} className="text-gray-300" />
+              </div>
+              <div className="text-center">
+                <p className="text-[16px] font-medium text-gray-700 mb-1">
+                  {filters.search || filters.dateFrom || filters.dateTo ? "Không tìm thấy kết quả" : "Chưa có tin tuyển dụng"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {filters.search || filters.dateFrom || filters.dateTo
+                    ? "Thử tìm với từ khóa hoặc khoảng thời gian khác"
+                    : "Bắt đầu bằng cách đăng tin tuyển dụng đầu tiên"}
+                </p>
+              </div>
+              {!filters.search && !filters.dateFrom && (
+                <Link href="/employer/jobs/new"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-[16px] font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+                  <Plus size={16} /> Đăng tin ngay
+                </Link>
+              )}
+            </div>
+          ) : (
+            <EmployerJobsCards
+              jobs={jobs}
+              actingId={acting}
+              onSubmit={handleSubmit}
+              onClose={handleClose}
+              onDelete={id => setDeleteId(id)}
+            />
           )}
         </div>
-      ) : (
-        <EmployerJobsCards
-          jobs={jobs}
-          actingId={acting}
-          onSubmit={handleSubmit}
-          onClose={handleClose}
-          onDelete={id => setDeleteId(id)}
-        />
       )}
 
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center">
+      {/* Pagination — giữ chỗ để không nhảy layout */}
+      <div className="min-h-[40px] flex justify-center">
+        {!initialLoad && totalPages > 1 && (
           <Pagination currentPage={filters.page + 1} totalPages={totalPages} onPageChange={handlePageChange} />
-        </div>
-      )}
+        )}
+      </div>
 
       {deleteId && (
         <DeleteConfirmModal onConfirm={confirmDelete} onCancel={() => setDeleteId(null)} loading={deleting} />

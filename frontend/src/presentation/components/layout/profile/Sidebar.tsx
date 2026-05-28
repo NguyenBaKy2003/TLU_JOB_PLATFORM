@@ -36,8 +36,8 @@ const EMPLOYER_NAV = [
   { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/profile",       badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
   { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },
-  { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
   { label: "Bình luận",          icon: <Activity size={18} />,         href: "/employer/reviews",          badgeKey: null           },
+  { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
 
 ];
 

@@ -4,13 +4,14 @@ import {
   Users, Clock, CheckCircle, Calendar,
   Briefcase, MapPin, Coins,
   Sparkles, Eye, ArrowRight,
-  Bolt, CalendarClock, Loader2, Download,
+  Bolt, CalendarClock, Download,
 } from "lucide-react";
 import { ApplicationStatusBadge }    from "@/presentation/components/applications/ApplicationStatusBadge";
 import { ApplicationDetailDrawer }   from "@/presentation/components/applications/ApplicationDetailDrawer";
 import { ScheduleInterviewModal }    from "@/presentation/components/applications/ScheduleInterviewModal";
 import { StartConversationButton }   from "@/presentation/components/applications/StartConversationButton";
 import { Pagination }                from "@/presentation/components/common/Pagination";
+import { LoadingSpinner }            from "@/presentation/components/common";
 import {
   EmployerFilterBar,
   type FilterSearchParams,
@@ -81,12 +82,12 @@ function StatCard({ icon, label, value, color }: {
   );
 }
 
-// ── Card Skeleton ─────────────────────────────────────────────────────────────
+// ── Card Skeleton — chỉ dùng lần đầu ─────────────────────────────────────────
 
 function CardSkeleton({ count }: { count: number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 animate-pulse">
-      {Array.from({ length: count }).map((_, i) => (
+      {Array.from({ length: Math.min(count, 20) }).map((_, i) => (
         <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-gray-100 rounded-xl flex-shrink-0" />
@@ -158,14 +159,14 @@ function CvActions({ appId, candidateName }: { appId: string; candidateName: str
         className="flex items-center gap-1 px-2.5 h-7 rounded-lg
           bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium
           hover:bg-blue-100 transition-colors disabled:opacity-60">
-        {viewing ? <Loader2 size={11} className="animate-spin" /> : <Eye size={12} />}
+        {viewing ? <LoadingSpinner size="sm" variant="primary" /> : <Eye size={12} />}
         CV
       </button>
       <button onClick={handleDownload} disabled={viewing || downloading} title="Tải CV"
         className="w-7 h-7 rounded-lg flex items-center justify-center border
           border-gray-200 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50
           hover:border-emerald-200 transition-colors disabled:opacity-60">
-        {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={13} />}
+        {downloading ? <LoadingSpinner size="sm" variant="primary" /> : <Download size={13} />}
       </button>
     </>
   );
@@ -176,7 +177,7 @@ function CvActions({ appId, candidateName }: { appId: string; candidateName: str
 interface ApplicationCardProps {
   app: ApplicationWithCandidate;
   onSchedule: (id: string, name: string) => void;
-  onDetail: (id: string) => void;
+  onDetail:   (id: string) => void;
 }
 
 function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
@@ -231,7 +232,6 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
             {app.job.title}
           </p>
         )}
-
         <div className="flex flex-wrap gap-1.5">
           {jType && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
@@ -252,7 +252,6 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
             </span>
           )}
         </div>
-
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {salary && (
             <span className="flex items-center gap-1 text-xs text-gray-500">
@@ -266,7 +265,6 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
             </span>
           )}
         </div>
-
         {app.aiScore != null ? (
           <div className="mt-1.5 pt-3 border-t border-gray-50">
             <div className="flex items-center justify-between mb-1.5">
@@ -306,7 +304,13 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
               <Calendar size={13} />
             </button>
           )}
-          <StartConversationButton candidateId={app.candidateId} jobPostId={app.jobPostId} size="sm" variant="ghost" label="" />
+          <StartConversationButton
+            candidateId={app.candidateId}
+            jobPostId={app.jobPostId}
+            size="sm"
+            variant="ghost"
+            label=""
+          />
           <CvActions appId={app.id} candidateName={fullName} />
           <button onClick={() => onDetail(app.id)} title="Xem chi tiết"
             className="w-7 h-7 rounded-lg flex items-center justify-center border
@@ -346,6 +350,9 @@ export default function EmployerApplicationsPage() {
   const [apps,           setApps]           = useState<ApplicationWithCandidate[]>([]);
   const [totalElements,  setTotalElements]  = useState(0);
   const [totalPages,     setTotalPages]     = useState(1);
+  // initialLoad: true = chưa có data lần nào → dùng skeleton
+  // loading:     true = đang fetch (kể cả refetch) → dùng overlay mờ
+  const [initialLoad,    setInitialLoad]    = useState(true);
   const [loading,        setLoading]        = useState(true);
   const [filters,        setFilters]        = useState<AppliedFilters>(DEFAULT_FILTERS);
   const [selectedId,     setSelectedId]     = useState<string | null>(null);
@@ -366,20 +373,21 @@ export default function EmployerApplicationsPage() {
       toast.error("Lỗi", extractErrorMessage(e));
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   }, [toast]);
 
   useEffect(() => { load(filters); }, [filters, load]);
 
-  const handleStatusChange = useCallback((status: string) => {
+  const handleStatusChange   = useCallback((status: string) => {
     setFilters(prev => ({ ...prev, status: status as ApplicationStatus | "ALL", page: 0 }));
   }, []);
 
-  const handleSearch = useCallback((params: FilterSearchParams) => {
-    setFilters(prev => ({ ...prev, search: params.search, dateFrom: params.dateFrom, dateTo: params.dateTo, page: 0 }));
+  const handleSearch         = useCallback((params: FilterSearchParams) => {
+    setFilters(prev => ({ ...prev, ...params, page: 0 }));
   }, []);
 
-  const handlePageChange = useCallback((p: number) => {
+  const handlePageChange     = useCallback((p: number) => {
     setFilters(prev => ({ ...prev, page: p - 1 }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -426,41 +434,56 @@ export default function EmployerApplicationsPage() {
         loading={loading}
       />
 
-      {/* Result count */}
-      {!loading && (
-        <p className="text-xs text-gray-500 -mt-2">
-          Hiển thị <strong className="text-gray-700">{apps.length}</strong> / <strong className="text-gray-700">{totalElements}</strong> đơn ứng tuyển
-        </p>
-      )}
+      {/* Result count — giữ chỗ bằng min-height */}
+      <div className="min-h-[20px] -mt-2">
+        {!loading && (
+          <p className="text-xs text-gray-500">
+            Hiển thị <strong className="text-gray-700">{apps.length}</strong> / <strong className="text-gray-700">{totalElements}</strong> đơn ứng tuyển
+          </p>
+        )}
+      </div>
 
-      {/* Cards */}
-      {loading ? (
-        <CardSkeleton count={filters.pageSize > 20 ? 20 : filters.pageSize} />
-      ) : apps.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
-          py-20 flex flex-col items-center gap-3 text-gray-400">
-          <Users size={36} strokeWidth={1.2} />
-          <p className="text-[15px]">Không có đơn ứng tuyển nào</p>
-        </div>
+      {/* Content area */}
+      {initialLoad ? (
+        <CardSkeleton count={DEFAULT_PAGE_SIZE} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {apps.map(app => (
-            <ApplicationCard
-              key={app.id}
-              app={app}
-              onSchedule={(id, name) => setScheduleTarget({ id, candidateName: name })}
-              onDetail={id => router.push(`/employer/applications/${id}`)}
-            />
-          ))}
+        /* Wrapper giữ layout ổn định, chỉ mờ khi refetch */
+        <div className={`relative transition-opacity duration-150 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+          {/* Overlay spinner nhỏ góc trên phải khi refetch */}
+          {loading && (
+            <div className="absolute -top-8 right-0 z-10 flex items-center gap-1.5 text-xs text-gray-400">
+              <LoadingSpinner size="sm" variant="secondary" />
+              Đang tải...
+            </div>
+          )}
+
+          {apps.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm
+              py-20 flex flex-col items-center gap-3 text-gray-400">
+              <Users size={36} strokeWidth={1.2} />
+              <p className="text-[15px]">Không có đơn ứng tuyển nào</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {apps.map(app => (
+                <ApplicationCard
+                  key={app.id}
+                  app={app}
+                  onSchedule={(id, name) => setScheduleTarget({ id, candidateName: name })}
+                  onDetail={id => router.push(`/employer/applications/${id}`)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
+      {/* Pagination — giữ chỗ để không nhảy layout */}
+      <div className="min-h-[40px] flex justify-center">
+        {!initialLoad && totalPages > 1 && (
           <Pagination currentPage={filters.page + 1} totalPages={totalPages} onPageChange={handlePageChange} />
-        </div>
-      )}
+        )}
+      </div>
 
       {selectedId && (
         <ApplicationDetailDrawer

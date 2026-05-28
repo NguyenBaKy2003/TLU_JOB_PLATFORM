@@ -49,7 +49,8 @@ public class JobPostResponse {
                 return from(j, null);
         }
 
-        private static JobPostResponse from(JobPost j, CompanySnapshot c) {
+        /** Dùng cho SavedJobs — có company snapshot */
+        public static JobPostResponse from(JobPost j, CompanySnapshot c) {
                 return JobPostResponse.builder()
                                 .id(j.getId())
                                 .companyId(j.getCompanyId())
@@ -61,9 +62,12 @@ public class JobPostResponse {
                                 .level(j.getLevel())
                                 .category(j.getCategory())
                                 .salaryDisplay(j.getSalary() != null ? j.getSalary().display() : null)
-                                .workLocationType(j.getWorkLocation() != null ? j.getWorkLocation().getType().name()
+                                .workLocationType(j.getWorkLocation() != null
+                                                ? j.getWorkLocation().getType().name()
                                                 : null)
-                                .workLocationCity(j.getWorkLocation() != null ? j.getWorkLocation().getCity() : null)
+                                .workLocationCity(j.getWorkLocation() != null
+                                                ? j.getWorkLocation().getCity()
+                                                : null)
                                 .experienceYears(j.getExperienceYears())
                                 .vacancies(j.getVacancies())
                                 .deadline(j.getDeadline())

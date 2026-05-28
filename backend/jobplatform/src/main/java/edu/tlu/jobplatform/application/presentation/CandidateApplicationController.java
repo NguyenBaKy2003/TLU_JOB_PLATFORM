@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.application.presentation;
 
 import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.application.domain.model.Application;
+import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
 import edu.tlu.jobplatform.application.domain.service.CompanyInfoResolver;
@@ -11,6 +12,7 @@ import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDeta
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.CompanyInfo;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
+import edu.tlu.jobplatform.application.presentation.dto.response.MyApplicationsResponse;
 import edu.tlu.jobplatform.application.usecase.candidate.AcceptOfferUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.DeclineOfferUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.GetMyApplicationsUseCase;
@@ -27,11 +29,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -76,33 +82,58 @@ public class CandidateApplicationController {
         @Operation(summary = "Danh sách đơn ứng tuyển của tôi")
         @GetMapping("/api/v1/candidate/applications/my")
         @PreAuthorize("hasRole('CANDIDATE')")
-        public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getMyApplications(
+        public ResponseEntity<ApiResponse<MyApplicationsResponse>> getMyApplications(
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size) {
+                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) ApplicationStatus status,
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appliedAtFrom,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appliedAtTo,
+                        @RequestParam(defaultValue = "appliedAt") String sortBy,
+                        @RequestParam(defaultValue = "desc") String sortDir) {
 
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
-                var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
-                var appPage = getMyAppsUseCase.execute(candidateId, pageable);
 
-                Set<UUID> jobPostIds = appPage.stream()
-                                .map(Application::getJobPostId)
-                                .collect(Collectors.toSet());
+                // Nhận LocalDate từ client, convert sang LocalDateTime để query
+                LocalDateTime fromDt = appliedAtFrom != null ? appliedAtFrom.atStartOfDay() : null;
+                LocalDateTime toDt = appliedAtTo != null ? appliedAtTo.atTime(LocalTime.MAX) : null;
 
-                Set<UUID> companyIds = appPage.stream()
-                                .map(Application::getCompanyId)
-                                .collect(Collectors.toSet());
+                if (!ALLOWED_SORT_FIELDS.contains(sortBy))
+                        sortBy = "appliedAt";
+                Sort sort = sortDir.equalsIgnoreCase("asc")
+                                ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
+
+                var pageable = PageRequest.of(page, size, sort);
+                var result = getMyAppsUseCase.execute(
+                                candidateId, status, keyword, fromDt, toDt, pageable);
+
+                Set<UUID> jobPostIds = result.applications().stream()
+                                .map(Application::getJobPostId).collect(Collectors.toSet());
+                Set<UUID> companyIds = result.applications().stream()
+                                .map(Application::getCompanyId).collect(Collectors.toSet());
 
                 Map<UUID, JobInfo> jobMap = jobPostInfoResolver.resolveAll(jobPostIds);
                 Map<UUID, CompanyInfo> companyMap = companyInfoResolver.resolveAll(companyIds);
 
-                var result = appPage.map(app -> ApplicationResponse.from(
-                                app,
-                                null,
+                var appPage = result.applications().map(app -> ApplicationResponse.from(
+                                app, null,
                                 jobMap.get(app.getJobPostId()),
                                 companyMap.get(app.getCompanyId())));
 
-                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+                long total = result.statusCounts().values().stream()
+                                .mapToLong(Long::longValue).sum();
+
+                var response = MyApplicationsResponse.builder()
+                                .applications(PageResponse.from(appPage))
+                                .statusCounts(result.statusCounts())
+                                .totalApplications(total)
+                                .build();
+
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
+
+        private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("appliedAt", "updatedAt", "status");
 
         @Operation(summary = "Chi tiết đơn ứng tuyển")
         @GetMapping("/api/v1/applications/{id}")

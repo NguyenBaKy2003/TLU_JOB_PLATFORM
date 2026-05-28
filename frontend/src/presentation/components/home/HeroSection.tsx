@@ -246,7 +246,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#dce9f5] pt-14 sm:pt-20 pb-0">
+    <section className="relative overflow-hidden bg-[#DFEAFE] pt-14 sm:pt-20 pb-0">
       {/* Decorative blob icons — hidden on mobile to avoid crowding */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="hidden md:flex absolute left-6 lg:left-12 top-1/3 w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-white/60 backdrop-blur-sm items-center justify-center shadow-sm">

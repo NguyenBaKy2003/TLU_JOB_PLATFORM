@@ -198,3 +198,21 @@ export const WITHDRAWABLE_STATUSES: ApplicationStatus[] = [
   "INTERVIEW_SCHEDULED",
   "INTERVIEWED",
 ];
+
+export interface MyApplicationsParams {
+  page?:          number;
+  size?:          number;
+  status?:        ApplicationStatus;
+  keyword?:       string;
+  appliedAtFrom?: string;   // ISO date: "2025-01-01"
+  appliedAtTo?:   string;   // ISO date: "2025-06-30"
+  sortBy?:        "appliedAt" | "updatedAt" | "status";
+  sortDir?:       "asc" | "desc";
+}
+
+/** Response từ GET /candidate/applications/my */
+export interface MyApplicationsResponse {
+  applications:      PageResponse<ApplicationWithJob>;
+  statusCounts:      Partial<Record<ApplicationStatus, number>>;
+  totalApplications: number;
+}
