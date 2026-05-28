@@ -6,7 +6,8 @@ import type {
   CreateReviewRequest,
   UpdateReviewRequest,
   PageResponse,
-  ReviewStatus,
+  MyReviewsResponse,
+  GetMyReviewsParams,
 } from '../models/CompanyReview';
 
 export interface ICompanyReviewRepository {
@@ -18,7 +19,7 @@ export interface ICompanyReviewRepository {
   createReview(companyId: string, data: CreateReviewRequest): Promise<CompanyReview>;
   updateReview(companyId: string, reviewId: string, data: UpdateReviewRequest): Promise<CompanyReview>;
   deleteReview(companyId: string, reviewId: string): Promise<void>;
-  getMyReviews(page?: number, size?: number, status?: ReviewStatus): Promise<PageResponse<CompanyReview>>;
+  getMyReviews(params?: GetMyReviewsParams): Promise<MyReviewsResponse>;
 
   // Employer endpoints
   approveReview(reviewId: string): Promise<CompanyReview>;

@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +39,17 @@ public interface CompanyReviewRepository {
 
     /** Tìm review theo reviewer (có thể lọc theo status) */
     Page<CompanyReview> findByReviewerId(UUID reviewerId, Pageable pageable);
+
+    Page<CompanyReview> searchByReviewerId(
+            UUID reviewerId,
+            ReviewStatus status,
+            String keyword,
+            LocalDateTime createdAtFrom,
+            LocalDateTime createdAtTo,
+            Pageable pageable);
+
+    /** Đếm theo status — dùng cho tab counter, 1 query */
+    Map<ReviewStatus, Long> countByStatusForReviewer(UUID reviewerId);
 
     Page<CompanyReview> findByReviewerIdAndStatus(UUID reviewerId, ReviewStatus status, Pageable pageable);
 
