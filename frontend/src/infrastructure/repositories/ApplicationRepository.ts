@@ -2,7 +2,6 @@
 import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import type {
   Application,
-  ApplicationWithJob,
   ApplicationWithCandidate,
   ApplicationDetail,
   SubmitApplicationRequest,
@@ -10,6 +9,8 @@ import type {
   UpdateStatusRequest,
   PageResponse,
   ApplicationStatus,
+  MyApplicationsParams,
+  MyApplicationsResponse,
 } from "@/domain/models/Application";
 import api from "@/lib/axios";
 
@@ -56,10 +57,21 @@ async submit(req: SubmitApplicationRequest): Promise<Application> {
     return this.patch(`${this.BASE}/${applicationId}/withdraw`);
   }
 
-  async getMyApplications(page = 0, size = 10): Promise<PageResponse<ApplicationWithJob>> {
-    return this.get(`${this.CANDIDATE}/my`, { page, size });
-  }
+async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
+  const {
+    page = 0, size = 10, status, keyword,
+    appliedAtFrom, appliedAtTo,
+    sortBy = "appliedAt", sortDir = "desc",
+  } = params;
 
+  const query: Record<string, unknown> = { page, size, sortBy, sortDir };
+  if (status)        query.status        = status;
+  if (keyword?.trim()) query.keyword     = keyword.trim();
+  if (appliedAtFrom) query.appliedAtFrom = appliedAtFrom;
+  if (appliedAtTo)   query.appliedAtTo   = appliedAtTo;
+
+  return this.get(`${this.CANDIDATE}/my`, query);
+}
   async getById(applicationId: string): Promise<Application> {
     return this.get(`${this.BASE}/${applicationId}`);
   }

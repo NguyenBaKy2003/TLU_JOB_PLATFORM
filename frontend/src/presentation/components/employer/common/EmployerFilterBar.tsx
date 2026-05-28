@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { Search, FileText, Sheet, CalendarDays, ChevronDown } from "lucide-react";
+import { LoadingSpinner } from "../../common";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,16 +21,12 @@ export interface EmployerFilterBarProps {
   statusTabs?:        StatusOption[];
   activeStatus?:      string;
   onStatusChange?:    (value: string) => void;
-
   searchPlaceholder?: string;
   showDateRange?:     boolean;
   onSearch:           (params: FilterSearchParams) => void;
-
-  /** Page size selector */
-  pageSizeOptions?:   number[];          // default [9, 18, 36] hoặc [20, 50, 100]
+  pageSizeOptions?:   number[];
   pageSize?:          number;
   onPageSizeChange?:  (size: number) => void;
-
   onExportPdf?:       () => void;
   onExportExcel?:     () => void;
   exportLoading?:     boolean;
@@ -39,15 +36,9 @@ export interface EmployerFilterBarProps {
 // ── Page Size Select ──────────────────────────────────────────────────────────
 
 function PageSizeSelect({
-  options,
-  value,
-  onChange,
-  disabled,
+  options, value, onChange, disabled,
 }: {
-  options: number[];
-  value: number;
-  onChange: (v: number) => void;
-  disabled?: boolean;
+  options: number[]; value: number; onChange: (v: number) => void; disabled?: boolean;
 }) {
   return (
     <div className="relative flex items-center">
@@ -64,10 +55,7 @@ function PageSizeSelect({
           <option key={o} value={o}>{o} / trang</option>
         ))}
       </select>
-      <ChevronDown
-        size={12}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-      />
+      <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
     </div>
   );
 }
@@ -111,7 +99,6 @@ export function EmployerFilterBar({
       {/* ── Row 1: Status tabs + Page size + Export ─────────────────────── */}
       {showTopRow && (
         <div className="flex items-center gap-3 flex-wrap">
-
           {statusTabs && (
             <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto shrink-0">
               {statusTabs.map(tab => (
@@ -141,7 +128,6 @@ export function EmployerFilterBar({
           )}
 
           <div className="flex items-center gap-2 ml-auto">
-            {/* Page size selector */}
             {hasPageSizeSelector && (
               <PageSizeSelect
                 options={pageSizeOptions!}
@@ -150,8 +136,6 @@ export function EmployerFilterBar({
                 disabled={loading}
               />
             )}
-
-            {/* Export buttons */}
             {onExportPdf && (
               <button
                 onClick={onExportPdf}
@@ -160,7 +144,10 @@ export function EmployerFilterBar({
                   text-red-600 bg-red-50 border border-red-200 rounded-xl
                   hover:bg-red-100 active:scale-95 disabled:opacity-50 transition-all"
               >
-                <FileText size={13} />
+                {exportLoading
+                  ? <LoadingSpinner size="sm" variant="white" />
+                  : <FileText size={13} />
+                }
                 Xuất PDF
               </button>
             )}
@@ -172,12 +159,14 @@ export function EmployerFilterBar({
                   text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl
                   hover:bg-emerald-100 active:scale-95 disabled:opacity-50 transition-all"
               >
-                <Sheet size={13} />
+                {exportLoading
+                  ? <LoadingSpinner size="sm" variant="white" />
+                  : <Sheet size={13} />
+                }
                 Xuất Excel
               </button>
             )}
           </div>
-
         </div>
       )}
 
@@ -200,9 +189,7 @@ export function EmployerFilterBar({
                   focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all"
               />
             </div>
-
             <span className="hidden sm:block text-gray-300 self-center select-none">—</span>
-
             <label className="sr-only" htmlFor="filter-date-to">Đến ngày</label>
             <div className="relative flex items-center">
               <CalendarDays size={13}
@@ -245,7 +232,7 @@ export function EmployerFilterBar({
             disabled:opacity-50 transition-all shrink-0"
         >
           {loading
-            ? <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ? <LoadingSpinner size="sm" variant="white" />
             : <Search size={13} />
           }
           Tìm kiếm

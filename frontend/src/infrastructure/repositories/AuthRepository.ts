@@ -1,3 +1,4 @@
+import { ApiResponse } from '@/types/auth.types';
 // src/infrastructure/repositories/AuthRepository.ts
 import api from "@/lib/axios";
 import {
@@ -22,7 +23,6 @@ import {
   UserCredentials,
   VerifyEmailRequest,
 } from "@/domain/models/User";
-import { ApiResponse } from "@/types/auth.types";
 
 /**
  * AuthRepository — implement IAuthRepository bằng HTTP (axios).

@@ -247,3 +247,18 @@ export const EMPTY_JOB_FORM: JobPostForm = {
   deadline: "",
   skills: [],
 };
+export interface MySavedJobsResponse {
+  jobs: PageResponse<JobPost>;
+  categoryCounts: Record<string, number>;
+  totalSaved: number;
+}
+
+export interface SavedJobsParams {
+  keyword?:     string;
+  jobType?:     JobType;
+  category?:    string;
+  savedAtFrom?: string; // YYYY-MM-DD
+  savedAtTo?:   string;
+  sortBy?:      string;
+  sortDir?:     "asc" | "desc";
+}

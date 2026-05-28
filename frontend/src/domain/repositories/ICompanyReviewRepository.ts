@@ -19,4 +19,8 @@ export interface ICompanyReviewRepository {
   updateReview(companyId: string, reviewId: string, data: UpdateReviewRequest): Promise<CompanyReview>;
   deleteReview(companyId: string, reviewId: string): Promise<void>;
   getMyReviews(page?: number, size?: number, status?: ReviewStatus): Promise<PageResponse<CompanyReview>>;
+
+  // Employer endpoints
+  approveReview(reviewId: string): Promise<CompanyReview>;
+  rejectReview(reviewId: string, reason: string): Promise<CompanyReview>;
 }

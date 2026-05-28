@@ -143,7 +143,7 @@ export function ChooseCompaniesSection() {
   const { ref, inView } = useInView();
 
   return (
-    <section ref={ref} className="py-16 sm:py-20 bg-[#dce9f5] relative overflow-hidden">
+    <section ref={ref} className="py-16 sm:py-20 bg-[#DFEAFE] relative overflow-hidden">
       {/* Decorative blob */}
       <div className="absolute top-16 right-0 w-72 h-72 rounded-full bg-blue-200/40 translate-x-1/2 pointer-events-none" />
 

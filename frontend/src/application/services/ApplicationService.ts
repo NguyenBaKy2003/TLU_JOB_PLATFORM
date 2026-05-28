@@ -2,13 +2,14 @@
 import type { IApplicationRepository } from "@/domain/repositories/IApplicationRepository";
 import type {
   Application,
-  ApplicationWithJob,
   ApplicationWithCandidate,
   ApplicationDetail,
   SubmitApplicationRequest,
   ScheduleInterviewRequest,
   PageResponse,
   ApplicationStatus,
+  MyApplicationsParams,
+  MyApplicationsResponse,
 } from "@/domain/models/Application";
 
 export class ApplicationService {
@@ -27,9 +28,9 @@ export class ApplicationService {
     return this.repo.withdraw(applicationId);
   }
 
-  async getMyApplications(page = 0, size = 10): Promise<PageResponse<ApplicationWithJob>> {
-    return this.repo.getMyApplications(page, size);
-  }
+async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
+  return this.repo.getMyApplications(params);
+}
 
   async getById(applicationId: string): Promise<Application> {
     return this.repo.getById(applicationId);

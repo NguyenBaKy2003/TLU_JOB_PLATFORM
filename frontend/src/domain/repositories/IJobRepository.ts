@@ -5,6 +5,8 @@ import type {
   JobSearchParams, PageResponse,
   SubmitReviewResponse,
   JobStatus,
+  SavedJobsParams,
+  MySavedJobsResponse,
 } from "@/domain/models/Job";
 
 export interface MyJobsParams {
@@ -33,8 +35,7 @@ export interface IJobRepository {
 
   toggleSave(jobPostId: string): Promise<boolean>;
 
-  listSaved(page?: number, size?: number): Promise<PageResponse<JobPost>>;
-
+listSaved(page?: number, size?: number, params?: SavedJobsParams): Promise<MySavedJobsResponse>;
   checkSaved(jobPostId: string): Promise<boolean>;
 
   // ── Employer ──────────────────────────────────────────────────────────────

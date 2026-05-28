@@ -214,7 +214,7 @@ export function RecruiterBanner() {
   const { ref, inView } = useInView();
 
   return (
-    <section ref={ref} className="py-12 sm:py-16 bg-[#dce9f5]">
+    <section ref={ref} className="py-12 sm:py-16 bg-[#DFEAFE]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

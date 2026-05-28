@@ -12,6 +12,7 @@ import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,16 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * Company Review Management Controller
- * 
- * Xử lý các thao tác quản lý review cho Employer (Company Admin/Manager).
- * 
- * Quy tắc:
- * - Lấy userId từ token (CurrentUser)
- * - Lấy companyId từ userId thông qua CompanyRepository (resolveCompanyId)
- * - Kiểm tra review thuộc về công ty của mình trước khi duyệt/từ chối
- */
 @RestController
 @RequestMapping("/api/v1/company/reviews")
 @RequiredArgsConstructor
@@ -51,15 +42,14 @@ public class CompanyReviewManagementController {
         @Operation(summary = "Xem review chờ duyệt của công ty mình")
         @GetMapping("/pending")
         public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getPendingReviews(
-                        @CurrentUser UUID userId,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size) {
 
-                UUID companyId = resolveCompanyId(userId);
+                UUID companyId = resolveCompanyId();
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-                var result = reviewRepository.findByCompanyIdAndStatus(
-                                companyId, ReviewStatus.PENDING, pageable)
+                var result = reviewRepository
+                                .findByCompanyIdAndStatus(companyId, ReviewStatus.PENDING, pageable)
                                 .map(ReviewResponse::from);
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
@@ -68,12 +58,11 @@ public class CompanyReviewManagementController {
         @Operation(summary = "Xem tất cả review của công ty mình")
         @GetMapping
         public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getAllReviews(
-                        @CurrentUser UUID userId,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
                         @RequestParam(required = false) ReviewStatus status) {
 
-                UUID companyId = resolveCompanyId(userId);
+                UUID companyId = resolveCompanyId();
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
                 var result = status != null
@@ -90,17 +79,8 @@ public class CompanyReviewManagementController {
                         @CurrentUser UUID userId,
                         @PathVariable UUID reviewId) {
 
-                UUID companyId = resolveCompanyId(userId);
-
-                // Kiểm tra review thuộc về công ty của mình
-                CompanyReview review = reviewRepository.findById(reviewId)
-                                .orElseThrow(() -> new BusinessRuleException(
-                                                "Không tìm thấy đánh giá.", "REVIEW_NOT_FOUND"));
-
-                if (!review.getCompanyId().equals(companyId)) {
-                        throw new BusinessRuleException(
-                                        "Bạn không có quyền duyệt đánh giá này.", "FORBIDDEN");
-                }
+                UUID companyId = resolveCompanyId();
+                verifyReviewOwnership(reviewId, companyId, "duyệt");
 
                 var cmd = ApproveReviewUseCase.Command.builder()
                                 .reviewId(reviewId)
@@ -108,9 +88,8 @@ public class CompanyReviewManagementController {
                                 .build();
 
                 CompanyReview approvedReview = approveReviewUseCase.execute(cmd);
-
-                return ResponseEntity.ok(ApiResponse.success(ReviewResponse.from(approvedReview),
-                                "Đã duyệt đánh giá thành công!"));
+                return ResponseEntity.ok(ApiResponse.success(
+                                ReviewResponse.from(approvedReview), "Đã duyệt đánh giá thành công!"));
         }
 
         @Operation(summary = "Từ chối review")
@@ -120,39 +99,46 @@ public class CompanyReviewManagementController {
                         @PathVariable UUID reviewId,
                         @Valid @RequestBody RejectReviewRequest req) {
 
-                UUID companyId = resolveCompanyId(userId);
+                UUID companyId = resolveCompanyId();
+                verifyReviewOwnership(reviewId, companyId, "từ chối");
 
-                // Kiểm tra review thuộc về công ty của mình
+                var cmd = RejectReviewUseCase.Command.builder()
+                                .reviewId(reviewId)
+                                .reviewerId(userId)
+                                .reason(req.getReason())
+                                .build();
+
+                CompanyReview rejectedReview = rejectReviewUseCase.execute(cmd);
+                return ResponseEntity.ok(ApiResponse.success(
+                                ReviewResponse.from(rejectedReview), "Đã từ chối đánh giá!"));
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
+        /**
+         * Lấy companyId từ userId trong Security Context — giống JobPostController.
+         */
+        private UUID resolveCompanyId() {
+                UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
+                return companyRepository.findByOwnerId(ownerId)
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Bạn chưa có hồ sơ công ty. Vui lòng tạo hồ sơ trước.",
+                                                "COMPANY_PROFILE_NOT_FOUND"))
+                                .getId();
+        }
+
+        /**
+         * Kiểm tra review thuộc về công ty của người dùng hiện tại.
+         * Tách ra helper để tránh lặp code giữa approve và reject.
+         */
+        private void verifyReviewOwnership(UUID reviewId, UUID companyId, String action) {
                 CompanyReview review = reviewRepository.findById(reviewId)
                                 .orElseThrow(() -> new BusinessRuleException(
                                                 "Không tìm thấy đánh giá.", "REVIEW_NOT_FOUND"));
 
                 if (!review.getCompanyId().equals(companyId)) {
                         throw new BusinessRuleException(
-                                        "Bạn không có quyền từ chối đánh giá này.", "FORBIDDEN");
+                                        "Bạn không có quyền " + action + " đánh giá này.", "FORBIDDEN");
                 }
-
-                var cmd = RejectReviewUseCase.Command.builder()
-                                .reviewId(reviewId)
-                                .reviewerId(userId) // Sử dụng userId làm reviewerId (người thực hiện reject)
-                                .reason(req.getReason())
-                                .build();
-
-                CompanyReview rejectedReview = rejectReviewUseCase.execute(cmd);
-
-                return ResponseEntity.ok(ApiResponse.success(ReviewResponse.from(rejectedReview),
-                                "Đã từ chối đánh giá!"));
-        }
-
-        /**
-         * Lấy companyId từ ownerId (userId từ token).
-         * Throw BusinessRuleException nếu user chưa có hồ sơ công ty.
-         */
-        private UUID resolveCompanyId(UUID ownerId) {
-                return companyRepository.findByOwnerId(ownerId)
-                                .orElseThrow(() -> new BusinessRuleException(
-                                                "Bạn chưa có hồ sơ công ty. Vui lòng tạo hồ sơ trước.",
-                                                "COMPANY_PROFILE_NOT_FOUND"))
-                                .getId();
         }
 }

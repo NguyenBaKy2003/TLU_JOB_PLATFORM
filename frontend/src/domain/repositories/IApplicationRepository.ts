@@ -1,7 +1,5 @@
-// src/domain/repositories/IApplicationRepository.ts
 import type {
   Application,
-  ApplicationWithJob,
   ApplicationWithCandidate,
   ApplicationDetail,
   SubmitApplicationRequest,
@@ -9,6 +7,8 @@ import type {
   UpdateStatusRequest,
   PageResponse,
   ApplicationStatus,
+  MyApplicationsParams,
+  MyApplicationsResponse,
 } from "@/domain/models/Application";
 
 export interface IApplicationRepository {
@@ -17,7 +17,10 @@ export interface IApplicationRepository {
 
   submit(req: SubmitApplicationRequest): Promise<Application>;
   withdraw(applicationId: string): Promise<Application>;
-  getMyApplications(page?: number, size?: number): Promise<PageResponse<ApplicationWithJob>>;
+
+  /** Tìm kiếm đa điều kiện — thay thế getMyApplications cũ */
+  getMyApplications(params?: MyApplicationsParams): Promise<MyApplicationsResponse>;
+
   getById(applicationId: string): Promise<Application>;
   checkApplied(jobPostId: string): Promise<boolean>;
   acceptOffer(applicationId: string): Promise<Application>;
@@ -43,13 +46,6 @@ export interface IApplicationRepository {
   updateStatus(applicationId: string, req: UpdateStatusRequest): Promise<Application>;
   scheduleInterview(applicationId: string, req: ScheduleInterviewRequest): Promise<Application>;
 
-  /**
-   * Lấy blob URL để xem hoặc tải CV của ứng viên.
-   *
-   * @param applicationId  ID của application
-   * @param mode           "view" (inline) | "download" (attachment)
-   * @param cvId           Nếu có → xem CV cụ thể, nếu null → xem CV từ application (cvUrl)
-   */
   fetchCVBlobUrl(
     applicationId: string,
     mode: "view" | "download",

@@ -129,7 +129,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       <CompanyTabs active={activeTab} onChange={handleTabChange} />
 
       {/* Content Sections */}
-      <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-12">
+      <div className=" mx-auto container px-4 py-8 flex flex-col gap-12">
         <section ref={setRef("intro")}>
           <IntroTab company={company} />
         </section>
