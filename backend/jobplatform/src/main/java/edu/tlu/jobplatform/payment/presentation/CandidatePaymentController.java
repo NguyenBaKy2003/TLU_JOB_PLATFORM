@@ -1,6 +1,6 @@
 package edu.tlu.jobplatform.payment.presentation;
 
-import edu.tlu.jobplatform.payment.application.usecase.employer.GetMyPaymentsUseCase;
+import edu.tlu.jobplatform.payment.application.usecase.candidate.GetMyCandidatePaymentsUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
@@ -22,20 +22,21 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * GET /api/v1/payments/my — Danh sách giao dịch (không kèm plan detail)
- * GET /api/v1/payments/my/{id} — Chi tiết kèm SubscriptionSummary
+ * GET /api/v1/payments/candidate/my — Danh sách giao dịch (không kèm plan
+ * detail)
+ * GET /api/v1/payments/candidate/my/{id} — Chi tiết kèm SubscriptionSummary
  */
 @RestController
-@RequestMapping("/api/v1/payments")
+@RequestMapping("/api/v1/payments/candidate")
 @RequiredArgsConstructor
-@Tag(name = "Payment (Employer)", description = "Lịch sử thanh toán của công ty")
+@Tag(name = "Payment (Candidate)", description = "Lịch sử thanh toán của ứng viên")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
-public class EmployerPaymentController {
+@PreAuthorize("hasRole('CANDIDATE')")
+public class CandidatePaymentController {
 
-    private final GetMyPaymentsUseCase getMyPaymentsUseCase;
+    private final GetMyCandidatePaymentsUseCase getMyPaymentsUseCase;
 
-    @Operation(summary = "Danh sách giao dịch của công ty tôi")
+    @Operation(summary = "Danh sách giao dịch của tôi")
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getMyPayments(
             @RequestParam(required = false) PaymentStatus status,
@@ -55,7 +56,6 @@ public class EmployerPaymentController {
     @Operation(summary = "Chi tiết giao dịch kèm thông tin gói dịch vụ")
     @GetMapping("/my/{id}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getMyPaymentDetail(@PathVariable UUID id) {
-        // getMyPaymentDetail trả thẳng PaymentResponse kèm SubscriptionSummary
         return ResponseEntity.ok(ApiResponse.success(
                 getMyPaymentsUseCase.getMyPaymentDetail(id)));
     }

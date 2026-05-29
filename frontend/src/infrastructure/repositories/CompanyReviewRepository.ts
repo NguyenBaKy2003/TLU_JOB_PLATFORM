@@ -4,6 +4,7 @@ import api from "@/lib/axios";
 import type { ICompanyReviewRepository } from "@/domain/repositories/ICompanyReviewRepository";
 import type {
   CompanyReview,
+  ReviewStatus,
   ReviewStats,
   CreateReviewRequest,
   UpdateReviewRequest,
@@ -88,6 +89,21 @@ export class CompanyReviewRepository implements ICompanyReviewRepository {
   }
 
   // ─── Employer endpoints ──────────────────────────────────────────────────
+
+  async getEmployerReviews(
+    page = 0,
+    size = 10,
+    status?: ReviewStatus
+  ): Promise<PageResponse<CompanyReview>> {
+    const params: Record<string, unknown> = { page, size };
+    if (status) params.status = status;
+
+    const res = await api.get<ApiResponse<PageResponse<CompanyReview>>>(
+      "/company/reviews",
+      { params }
+    );
+    return res.data.data;
+  }
 
   async approveReview(reviewId: string): Promise<CompanyReview> {
     const res = await api.put<ApiResponse<CompanyReview>>(

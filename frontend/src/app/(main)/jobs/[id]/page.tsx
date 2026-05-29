@@ -1,4 +1,3 @@
-// src/app/(main)/jobs/[id]/page.tsx
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter }        from "next/navigation";
@@ -29,6 +28,7 @@ import { useAuth } from "@/application/contexts/AuthContext";
 
 const jobService = new JobService(new JobRepository());
 const appService = new ApplicationService(new ApplicationRepository());
+// ✅ Giữ aiService chỉ cho passProbability — competition không cần nữa
 const aiService  = new AiService(new AiRepository());
 
 // ── Competition Card ──────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ const COMPETITION_CONFIG: Record<CompetitionLevel, {
   LOW:       { label: "Ít cạnh tranh",  bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", bar: "bg-emerald-500", dot: "bg-emerald-500" },
   MEDIUM:    { label: "Trung bình",      bg: "bg-yellow-50",  text: "text-yellow-700",  border: "border-yellow-200",  bar: "bg-yellow-400",  dot: "bg-yellow-400"  },
   HIGH:      { label: "Khá cạnh tranh", bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-200",  bar: "bg-orange-500",  dot: "bg-orange-500"  },
-  VERY_HIGH: { label: "Rất cạnh tranh", bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200",     bar: "bg-red-500",     dot: "bg-red-500"     },
+  EXTREME:   { label: "Rất cạnh tranh", bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200",     bar: "bg-red-500",     dot: "bg-red-500"     },
 };
 
 const TREND_CONFIG: Record<CompetitionRateResult["trend"], { label: string; className: string }> = {
@@ -85,7 +85,7 @@ function CompetitionRateCard({ data }: { data: CompetitionRateResult }) {
           <p className={`text-base font-bold ${cfg.text}`}>
             {data.competitionScore > 0 ? data.competitionScore.toFixed(1) : "—"}
           </p>
-          <p className="text-[10px] text-gray-500 leading-tight">Điểm TB</p>
+          <p className="text-[10px] text-gray-500 leading-tight">Điểm CT</p>
         </div>
         <div>
           <p className={`text-base font-bold ${cfg.text}`}>{data.hiringQuota}</p>
@@ -132,17 +132,16 @@ export default function JobDetailPage() {
   const { user } = useAuth();
   const isCandidate = user?.role === "CANDIDATE";
 
-  const [job,                setJob]                = useState<JobPostDetail | null>(null);
-  const [loading,            setLoading]            = useState(true);
-  const [error,              setError]              = useState<string | null>(null);
-  const [saved,              setSaved]              = useState(false);
-  const [applied,            setApplied]            = useState(false);
-  const [applyDone,          setApplyDone]          = useState(false);
-  const [showModal,          setShowModal]          = useState(false);
-  const [competition,        setCompetition]        = useState<CompetitionRateResult | null>(null);
-  const [competitionLoading, setCompetitionLoading] = useState(false);
-  const [passProbability,    setPassProbability]    = useState<PassProbabilityResult | null>(null);
-  const [passLoading,        setPassLoading]        = useState(false);
+  const [job,             setJob]             = useState<JobPostDetail | null>(null);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState<string | null>(null);
+  const [saved,           setSaved]           = useState(false);
+  const [applied,         setApplied]         = useState(false);
+  const [applyDone,       setApplyDone]       = useState(false);
+  const [showModal,       setShowModal]       = useState(false);
+  // ✅ Xóa: competition state + competitionLoading — dùng job.competition trực tiếp
+  const [passProbability, setPassProbability] = useState<PassProbabilityResult | null>(null);
+  const [passLoading,     setPassLoading]     = useState(false);
 
   const hasLoaded = useRef(false);
 
@@ -162,23 +161,13 @@ export default function JobDetailPage() {
         setJob(data);
         setApplied(!!alreadyApplied);
         setSaved(!!alreadySaved);
+        // ✅ competition đã có trong data.competition — không cần gọi thêm
       } catch (e) {
         const msg = extractErrorMessage(e, "Không tìm thấy tin tuyển dụng");
         setError(msg);
         toast.error("Không thể tải tin tuyển dụng", msg);
       } finally {
         setLoading(false);
-      }
-
-      // ── Competition rate (tất cả user) ────────────────────────────────────
-      setCompetitionLoading(true);
-      try {
-        const rate = await aiService.getCompetitionRate(id);
-        setCompetition(rate);
-      } catch {
-        // silent — thông tin phụ
-      } finally {
-        setCompetitionLoading(false);
       }
 
       // ── Pass probability (chỉ CANDIDATE đã đăng nhập) ────────────────────
@@ -188,7 +177,7 @@ export default function JobDetailPage() {
           const prob = await aiService.getPassProbability(id);
           setPassProbability(prob);
         } catch {
-          // silent — thông tin phụ, không block UX
+          // silent
         } finally {
           setPassLoading(false);
         }
@@ -243,13 +232,13 @@ export default function JobDetailPage() {
     );
   }
 
-  const competitionNode = competitionLoading
+  // ✅ Đọc trực tiếp từ job.competition — không cần state riêng
+  const competitionNode = loading
     ? <CompetitionRateSkeleton />
-    : competition
-    ? <CompetitionRateCard data={competition} />
+    : job.competition
+    ? <CompetitionRateCard data={job.competition} />
     : null;
 
-  // Chỉ render pass probability block cho CANDIDATE
   const passNode = isCandidate
     ? passLoading
       ? <PassProbabilitySkeleton />
@@ -279,7 +268,6 @@ export default function JobDetailPage() {
 
         <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
 
-          {/* ── Main column ─────────────────────────────────────────────────── */}
           <div className="w-full flex-1 min-w-0 flex flex-col gap-4 sm:gap-5">
             <JobHeroCard
               job={job}
@@ -288,7 +276,6 @@ export default function JobDetailPage() {
               onShare={() => navigator.share?.({ title: job.title, url: location.href })}
             />
 
-            {/* Mobile sidebar cards */}
             <div className="lg:hidden flex flex-col gap-4">
               <CandidateApplyCard
                 job={job}
@@ -305,7 +292,6 @@ export default function JobDetailPage() {
             <JobDescriptionCards job={job} />
           </div>
 
-          {/* ── Sidebar ──────────────────────────────────────────────────────── */}
           <div className="hidden lg:flex w-72 shrink-0 sticky top-4 flex-col gap-4">
             <CandidateApplyCard
               job={job}

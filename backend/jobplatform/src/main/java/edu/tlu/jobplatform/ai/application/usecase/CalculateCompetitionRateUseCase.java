@@ -33,10 +33,9 @@ public class CalculateCompetitionRateUseCase {
                 double avgAIScore = applicationRepo.averageAIScoreByJobPostId(jobPostId)
                                 .orElse(0.0);
 
-                // LocalDate.now() để khớp kiểu với job.getDeadline() (LocalDate)
                 long daysLeft = job.getDeadline() != null
                                 ? ChronoUnit.DAYS.between(LocalDate.now(), job.getDeadline())
-                                : 30L; // deadline null → giả định còn 30 ngày
+                                : 30L;
 
                 CompetitionRateRequest request = CompetitionRateRequest.builder()
                                 .jobPostId(jobPostId)

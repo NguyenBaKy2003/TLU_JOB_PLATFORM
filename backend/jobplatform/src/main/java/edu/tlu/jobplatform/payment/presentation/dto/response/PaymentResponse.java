@@ -1,9 +1,10 @@
 package edu.tlu.jobplatform.payment.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import edu.tlu.jobplatform.payment.domain.model.Payment;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
+import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionPlan;
+import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,30 +20,64 @@ import java.util.UUID;
 public class PaymentResponse {
 
     private final UUID id;
+
+    /** Null nếu là giao dịch của Candidate */
     private final UUID companyId;
+
+    /** Null nếu là giao dịch của Company */
+    private final UUID candidateId;
+
     private final UUID subscriptionId;
     private final String planCode;
 
     private final BigDecimal amount;
     private final String currency;
-    private final String amountFormatted; // "5.990.000 VND"
+    private final String amountFormatted;
 
-    private final String gateway; // "VNPAY", "MOMO"
-    private final String gatewayOrderCode; // mã gửi lên cổng
-    private final String gatewayTransactionId;// mã GD từ cổng (sau khi success)
+    private final String gateway;
+    private final String gatewayOrderCode;
+    private final String gatewayTransactionId;
 
     private final PaymentStatus status;
     private final String statusLabel;
-    private final String statusColor; // Tailwind class cho FE
+    private final String statusColor;
     private final String failureReason;
 
-    private final LocalDateTime createdAt; // lúc khởi tạo payment
-    private final LocalDateTime completedAt; // lúc SUCCESS / FAILED
+    private final LocalDateTime createdAt;
+    private final LocalDateTime completedAt;
+
+    /** Thông tin gói dịch vụ — null nếu không truyền plan vào from() */
+    private final SubscriptionSummary subscription;
+
+    // ── Factory: không có plan (danh sách, callback) ──────────────────
 
     public static PaymentResponse from(Payment p) {
+        return toBuilder(p).build();
+    }
+
+    // ── Factory: kèm plan Company ─────────────────────────────────────
+
+    public static PaymentResponse from(Payment p, SubscriptionPlan plan) {
+        return toBuilder(p)
+                .subscription(SubscriptionSummary.fromCompanyPlan(plan))
+                .build();
+    }
+
+    // ── Factory: kèm plan Candidate ───────────────────────────────────
+
+    public static PaymentResponse from(Payment p, CandidateSubscriptionPlan plan) {
+        return toBuilder(p)
+                .subscription(SubscriptionSummary.fromCandidatePlan(plan))
+                .build();
+    }
+
+    // ── Shared builder — đổi tên tránh xung đột với Lombok builder() ──
+
+    private static PaymentResponseBuilder toBuilder(Payment p) {
         return PaymentResponse.builder()
                 .id(p.getId())
                 .companyId(p.getCompanyId())
+                .candidateId(p.getCandidateId())
                 .subscriptionId(p.getSubscriptionId())
                 .planCode(p.getPlanCode())
                 .amount(p.getAmount())
@@ -56,11 +91,10 @@ public class PaymentResponse {
                 .statusColor(toColor(p.getStatus()))
                 .failureReason(p.getFailureReason())
                 .createdAt(p.getCreatedAt())
-                .completedAt(p.getCompletedAt())
-                .build();
+                .completedAt(p.getCompletedAt());
     }
 
-    // ── Helpers
+    // ── Helpers ───────────────────────────────────────────────────────
 
     private static String formatVND(BigDecimal amount) {
         if (amount == null)

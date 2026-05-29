@@ -1,49 +1,50 @@
 package edu.tlu.jobplatform.payment.domain.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import edu.tlu.jobplatform.payment.domain.model.Payment;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Bản THAY THẾ PaymentRepository — giữ methods cũ, thêm mới cho employer/admin.
- *
- * Lưu ý: Payment nằm trong subscription domain,
- * không tách thành domain riêng.
- */
 public interface PaymentRepository {
 
-    // ── Existing methods (giữ nguyên) ─
+    // ── Common ────────────────────────────────────────────────────────
 
     Optional<Payment> findById(UUID id);
 
     Optional<Payment> findByGatewayOrderCode(String orderCode);
 
-    Optional<Payment> findPendingByCompanyId(UUID companyId);
-
     Payment save(Payment payment);
 
-    // ── Employer: lịch sử thanh toán của công ty mình ─
+    // ── Company ───────────────────────────────────────────────────────
 
-    /** Tất cả payments của 1 công ty, mới nhất trước */
+    Optional<Payment> findPendingByCompanyId(UUID companyId);
+
     Page<Payment> findByCompanyId(UUID companyId, Pageable pageable);
 
-    /** Filter thêm theo status */
     Page<Payment> findByCompanyIdAndStatus(UUID companyId, PaymentStatus status, Pageable pageable);
 
-    // ── Admin: xem toàn hệ thống
+    // ── Candidate ─────────────────────────────────────────────────────
+
+    Optional<Payment> findPendingByCandidateId(UUID candidateId);
+
+    Page<Payment> findByCandidateId(UUID candidateId, Pageable pageable);
+
+    Page<Payment> findByCandidateIdAndStatus(UUID candidateId, PaymentStatus status, Pageable pageable);
+
+    // ── Admin ─────────────────────────────────────────────────────────
 
     /**
      * Search đa điều kiện — tham số null = bỏ qua điều kiện đó.
+     * companyId và candidateId loại trừ nhau; truyền cái nào lọc theo cái đó.
      */
     Page<Payment> search(
             UUID companyId,
+            UUID candidateId,
             PaymentStatus status,
             String gateway,
             LocalDateTime fromDate,
@@ -55,4 +56,22 @@ public interface PaymentRepository {
 
     /** Đếm theo status — dùng cho dashboard */
     long countByStatus(PaymentStatus status);
+
+    Page<Payment> searchByCandidateId(
+            UUID candidateId,
+            PaymentStatus status,
+            String gateway,
+            String keyword,
+            LocalDateTime fromDate,
+            LocalDateTime toDate,
+            Pageable pageable);
+
+    Page<Payment> searchByCompanyId(
+            UUID companyId,
+            PaymentStatus status,
+            String gateway,
+            String keyword,
+            LocalDateTime fromDate,
+            LocalDateTime toDate,
+            Pageable pageable);
 }

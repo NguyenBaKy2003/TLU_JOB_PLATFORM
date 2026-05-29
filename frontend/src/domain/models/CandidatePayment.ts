@@ -1,20 +1,20 @@
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 export interface SubscriptionSummary {
-  planCode:         string;
-  planName:         string;
-  planDescription:  string;
-  priceMonthly:     number;
-  priceYearly:      number;
-  durationDays:     number;
-  jobPostLimit:     number;
-  featuredJobLimit: number;
-  cvViewLimit:      number;
-  aiFeatures:       boolean;
-  analyticsAccess:  boolean;
+  planCode:              string;
+  planName:              string;
+  planDescription:       string;
+  priceMonthly:          number;
+  priceYearly:           number;
+  durationDays:          number;
+  applicationLimit:      number;
+  cvBoostLimit:          number;
+  cvCreateLimit:         number;
+  aiCvWriter:            boolean;
+  premiumTemplateAccess: boolean;
 }
 
-export interface EmployerPayment {
+export interface CandidatePayment {
   id:                   string;
   companyId:            string | null;
   candidateId:          string | null;
@@ -36,7 +36,7 @@ export interface EmployerPayment {
 }
 
 export interface PaymentListResponse {
-  content:       EmployerPayment[];
+  content:       CandidatePayment[];
   totalElements: number;
   totalPages:    number;
   number:        number;

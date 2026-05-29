@@ -3,6 +3,7 @@
 import type { ICompanyReviewRepository } from "@/domain/repositories/ICompanyReviewRepository";
 import type {
   CompanyReview,
+  ReviewStatus,
   ReviewStats,
   CreateReviewRequest,
   UpdateReviewRequest,
@@ -56,6 +57,14 @@ export class CompanyReviewService {
   }
 
   // ─── Employer ────────────────────────────────────────────────────────────
+
+  getEmployerReviews(
+    page = 0,
+    size = 10,
+    status?: ReviewStatus
+  ): Promise<PageResponse<CompanyReview>> {
+    return this.repo.getEmployerReviews(page, size, status);
+  }
 
   approveReview(reviewId: string): Promise<CompanyReview> {
     return this.repo.approveReview(reviewId);

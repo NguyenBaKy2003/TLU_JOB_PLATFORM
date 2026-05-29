@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionMapper {
 
-    // ── CompanySubscription
+    // ── CompanySubscription ───────────────────────────────────────────
 
     public CompanySubscription toDomain(CompanySubscriptionJpaEntity e) {
         return CompanySubscription.builder()
@@ -17,7 +17,7 @@ public class SubscriptionMapper {
                 .companyId(e.getCompanyId())
                 .planId(e.getPlanId())
                 .planCode(e.getPlanCode())
-                .yearly(e.isYearly()) // thêm mới
+                .yearly(e.isYearly())
                 .startedAt(e.getStartedAt())
                 .expiresAt(e.getExpiresAt())
                 .status(e.getStatus())
@@ -39,7 +39,7 @@ public class SubscriptionMapper {
                 .companyId(d.getCompanyId())
                 .planId(d.getPlanId())
                 .planCode(d.getPlanCode())
-                .yearly(d.isYearly()) // thêm mới
+                .yearly(d.isYearly())
                 .startedAt(d.getStartedAt())
                 .expiresAt(d.getExpiresAt())
                 .status(d.getStatus())
@@ -58,8 +58,7 @@ public class SubscriptionMapper {
         return entity;
     }
 
-    // updateEntity không cần sửa — yearly là immutable, không thay đổi sau khi tạo
-
+    /** yearly là immutable — không update sau khi tạo */
     public void updateEntity(CompanySubscriptionJpaEntity e, CompanySubscription d) {
         e.setStatus(d.getStatus());
         e.setStartedAt(d.getStartedAt());
@@ -70,7 +69,7 @@ public class SubscriptionMapper {
         e.setCvViewQuotaUsed(d.getCvViewQuota().getUsed());
     }
 
-    // ── SubscriptionPlan ──
+    // ── SubscriptionPlan ──────────────────────────────────────────────
 
     public SubscriptionPlan toPlanDomain(SubscriptionPlanJpaEntity e) {
         return SubscriptionPlan.builder()
@@ -110,12 +109,13 @@ public class SubscriptionMapper {
         return entity;
     }
 
-    // ── Payment
+    // ── Payment ───────────────────────────────────────────────────────
 
     public Payment toPaymentDomain(PaymentJpaEntity e) {
         return Payment.builder()
                 .id(e.getId())
                 .companyId(e.getCompanyId())
+                .candidateId(e.getCandidateId())
                 .subscriptionId(e.getSubscriptionId())
                 .planCode(e.getPlanCode())
                 .amount(e.getAmount())
@@ -133,6 +133,7 @@ public class SubscriptionMapper {
     public PaymentJpaEntity toPaymentNewEntity(Payment d) {
         PaymentJpaEntity entity = PaymentJpaEntity.builder()
                 .companyId(d.getCompanyId())
+                .candidateId(d.getCandidateId())
                 .subscriptionId(d.getSubscriptionId())
                 .planCode(d.getPlanCode())
                 .amount(d.getAmount())
@@ -149,6 +150,7 @@ public class SubscriptionMapper {
         return entity;
     }
 
+    /** companyId / candidateId là immutable — không thay đổi sau khi tạo */
     public void updatePaymentEntity(PaymentJpaEntity e, Payment d) {
         e.setStatus(d.getStatus());
         e.setGatewayTransactionId(d.getGatewayTransactionId());

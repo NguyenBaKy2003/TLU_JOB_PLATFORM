@@ -1,4 +1,4 @@
-import type { EmployerPayment, PaymentListResponse, PaymentStatus } from '../models/EmployerPayment';
+import type { CandidatePayment, PaymentListResponse, PaymentStatus } from '../models/CandidatePayment';
 
 export interface PaymentSearchParams {
   status?: PaymentStatus;
@@ -10,7 +10,7 @@ export interface PaymentSearchParams {
   size?: number;
 }
 
-export interface IEmployerPaymentRepository {
+export interface ICandidatePaymentRepository {
   getMyPayments(params: PaymentSearchParams): Promise<PaymentListResponse>;
-  getMyPaymentDetail(id: string): Promise<EmployerPayment>;
+  getMyPaymentDetail(id: string): Promise<CandidatePayment>;
 }

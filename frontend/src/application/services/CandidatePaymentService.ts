@@ -1,20 +1,20 @@
-import type { IEmployerPaymentRepository, PaymentSearchParams } from "@/domain/repositories/IEmployerPaymentRepository";
-import type { EmployerPayment, PaymentListResponse, PaymentStatus } from "@/domain/models/EmployerPayment";
+import type { ICandidatePaymentRepository, PaymentSearchParams } from "@/domain/repositories/ICandidatePaymentRepository";
+import type { CandidatePayment, PaymentListResponse, PaymentStatus } from "@/domain/models/CandidatePayment";
 
-export class EmployerPaymentService {
+export class CandidatePaymentService {
 
-  constructor(private readonly repo: IEmployerPaymentRepository) {}
+  constructor(private readonly repo: ICandidatePaymentRepository) {}
 
   getMyPayments(params: PaymentSearchParams): Promise<PaymentListResponse> {
     return this.repo.getMyPayments(params);
   }
 
-  getMyPaymentDetail(id: string): Promise<EmployerPayment> {
+  getMyPaymentDetail(id: string): Promise<CandidatePayment> {
     if (!id) throw new Error("ID giao dịch không được để trống");
     return this.repo.getMyPaymentDetail(id);
   }
 
-  // ─── Formatting Helpers ────────────────────────────────────────────
+  // ─── Formatting Helpers (giữ nguyên) ──────────────────────────────
 
   formatDate(dateStr: string | null): string {
     if (!dateStr) return "—";
@@ -34,10 +34,10 @@ export class EmployerPaymentService {
 
   getStatusColor(status: PaymentStatus): string {
     const colors: Record<PaymentStatus, string> = {
-      PENDING:  "bg-amber-50 text-amber-700 border-amber-200",
-      SUCCESS:  "bg-green-50 text-green-700 border-green-200",
-      FAILED:   "bg-red-50 text-red-700 border-red-200",
-      REFUNDED: "bg-blue-50 text-blue-700 border-blue-200",
+      PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+      SUCCESS: "bg-green-50 text-green-700 border-green-200",
+      FAILED:  "bg-red-50 text-red-700 border-red-200",
+      REFUNDED:"bg-blue-50 text-blue-700 border-blue-200",
     };
     return colors[status] || "";
   }
@@ -61,11 +61,11 @@ export class EmployerPaymentService {
     return gateways[gateway] || gateway;
   }
 
-  canRetryPayment(payment: EmployerPayment): boolean {
+  canRetryPayment(payment: CandidatePayment): boolean {
     return payment.status === "PENDING" || payment.status === "FAILED";
   }
 
-  getPaymentUrl(payment: EmployerPayment): string | null {
+  getPaymentUrl(payment: CandidatePayment): string | null {
     if (payment.gateway === "VNPAY" && payment.gatewayOrderCode) {
       return `/api/v1/payment/vnpay/pay?orderCode=${payment.gatewayOrderCode}`;
     }
