@@ -17,19 +17,24 @@ import type { JobFilters }     from "@/presentation/components/jobs/JobFilterSid
 import { Pagination }          from "@/presentation/components/common/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ✅ Xóa: AiService, AiRepository — không cần gọi competition API riêng nữa
 const jobService = new JobService(new JobRepository());
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
-function SkeletonCard() {
+function SkeletonCard({ featured = false }: { featured?: boolean }) {
   return (
-    <div className="animate-pulse flex flex-col gap-3 p-5 bg-white border border-gray-100 rounded-2xl">
+    <div className={`animate-pulse flex flex-col gap-3 p-5 bg-white rounded-2xl
+      ${featured
+        ? "border-[1.5px] border-blue-200"
+        : "border border-gray-100"
+      }`}>
+      {featured && <div className="h-3 w-16 bg-blue-100 rounded-full" />}
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 bg-gray-100 rounded-xl shrink-0" />
+        <div className={`w-12 h-12 rounded-xl shrink-0
+          ${featured ? "bg-blue-100" : "bg-gray-100"}`} />
         <div className="flex-1 flex flex-col gap-2">
           <div className="h-3 bg-gray-100 rounded w-2/5" />
-          <div className="h-5 bg-gray-100 rounded w-3/4" />
+          <div className={`h-5 rounded w-3/4 ${featured ? "bg-blue-100" : "bg-gray-100"}`} />
           <div className="h-3 bg-gray-100 rounded w-1/2" />
         </div>
       </div>
@@ -75,6 +80,37 @@ function QuickChip({
   );
 }
 
+// ── Featured section header ───────────────────────────────────────────────────
+
+function FeaturedSectionHeader({ count }: { count: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full
+        bg-blue-600 text-white text-xs font-semibold shadow-sm">
+        <Sparkles size={11} />
+        Tin nổi bật
+      </div>
+      <span className="text-xs text-gray-400">{count} việc làm</span>
+      <div className="flex-1 h-px bg-blue-100 ml-1" />
+    </div>
+  );
+}
+
+function RegularSectionHeader({ count, total }: { count: number; total: number }) {
+  if (count === 0) return null;
+  return (
+    <div className="flex items-center gap-2 mb-3 mt-6">
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full
+        bg-gray-100 text-gray-600 text-xs font-medium">
+        <Briefcase size={11} />
+        Tất cả việc làm
+      </div>
+      <span className="text-xs text-gray-400">{total.toLocaleString()} việc làm</span>
+      <div className="flex-1 h-px bg-gray-100 ml-1" />
+    </div>
+  );
+}
+
 // ── Inner ─────────────────────────────────────────────────────────────────────
 
 function JobsPageInner() {
@@ -91,20 +127,22 @@ function JobsPageInner() {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 
-  const [keyword,  setKeyword]  = useState(initialKeyword);
-  const [city,     setCity]     = useState(initialLocation);
-  const [filters,  setFilters]  = useState<JobFilters>(EMPTY_FILTERS);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [keyword, setKeyword] = useState(initialKeyword);
+  const [city,    setCity]    = useState(initialLocation);
 
   const [draftKeyword, setDraftKeyword] = useState(initialKeyword);
   const [draftCity,    setDraftCity]    = useState(initialLocation);
 
-  // ✅ Xóa: competitionMap state — competition đã có trong job object
-  const [activeQuick, setActiveQuick] = useState<string | null>(null);
+  const [appliedFilters, setAppliedFilters] = useState<JobFilters>(EMPTY_FILTERS);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [activeQuick,      setActiveQuick]      = useState<string | null>(null);
 
   const isFirst = useRef(true);
 
-  // ✅ Xóa: fetchCompetition callback — không cần nữa
+  // ── Split featured / regular ──────────────────────────────────────────────
+  // Backend đã sort featured DESC — chỉ cần tách để render section riêng.
+  const featuredJobs = jobs.filter(j => j.featured);
+  const regularJobs  = jobs.filter(j => !j.featured);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -114,11 +152,20 @@ function JobsPageInner() {
     setLoading(true);
     setError(null);
     try {
+      const postedWithinDays = f.postedWithin
+        ? parseInt(f.postedWithin.replace("d", ""), 10)
+        : undefined;
+
       const params: JobSearchParams = {
-        keyword: kw || undefined,
-        city:    ct || undefined,
-        jobType: f.jobTypes[0] as JobSearchParams["jobType"] || undefined,
-        level:   f.levels[0]   as JobSearchParams["level"]   || undefined,
+        keyword:         kw || undefined,
+        city:            ct || undefined,
+        workLocType:     f.workLocType || undefined,
+        currency:        f.currency   || undefined,
+        minSalary:       f.minSalary  ? Number(f.minSalary) : undefined,
+        maxSalary:       f.maxSalary  ? Number(f.maxSalary) : undefined,
+        postedWithinDays,
+        jobTypes:        f.jobTypes.length ? f.jobTypes : undefined,
+        levels:          f.levels.length   ? f.levels   : undefined,
         page: pg,
         size: 12,
       };
@@ -126,13 +173,12 @@ function JobsPageInner() {
       setJobs(res.content);
       setTotal(res.totalElements);
       setTotalPages(res.totalPages);
-      // ✅ Xóa: fetchCompetition(res.content) — competition đã nằm trong res.content
     } catch (e) {
       setError(extractErrorMessage(e, "Không thể tải danh sách việc làm"));
     } finally {
       setLoading(false);
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     fetchJobs(initialKeyword, initialLocation, EMPTY_FILTERS, 0);
@@ -140,8 +186,8 @@ function JobsPageInner() {
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return; }
-    fetchJobs(keyword, city, filters, page);
-  }, [filters, page]);
+    fetchJobs(keyword, city, appliedFilters, page);
+  }, [page]);
 
   useEffect(() => {
     const kw  = searchParams.get("keyword")  ?? "";
@@ -151,7 +197,7 @@ function JobsPageInner() {
     setKeyword(kw);
     setCity(loc);
     setPage(0);
-    setFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
     setActiveQuick(null);
     fetchJobs(kw, loc, EMPTY_FILTERS, 0);
   }, [searchParams]);
@@ -166,7 +212,14 @@ function JobsPageInner() {
     if (draftKeyword) p.set("keyword",  draftKeyword);
     if (draftCity)    p.set("location", draftCity);
     router.replace(`/jobs?${p.toString()}`, { scroll: false });
-    fetchJobs(draftKeyword, draftCity, filters, 0);
+    fetchJobs(draftKeyword, draftCity, appliedFilters, 0);
+  };
+
+  const handleApplyFilters = (newFilters: JobFilters) => {
+    setAppliedFilters(newFilters);
+    setPage(0);
+    setMobileFilterOpen(false);
+    fetchJobs(keyword, city, newFilters, 0);
   };
 
   const handleSave = useCallback(async (id: string) => {
@@ -179,7 +232,7 @@ function JobsPageInner() {
   };
 
   const handleClearAll = () => {
-    setFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
     setActiveQuick(null);
     setDraftKeyword("");
     setKeyword("");
@@ -197,39 +250,33 @@ function JobsPageInner() {
     setPage(0);
 
     const locTypes = ["REMOTE", "ONSITE", "HYBRID"];
+    let newFilters: JobFilters;
     if (locTypes.includes(value)) {
-      const newFilters = { ...filters, workLocType: isActive ? "" : value };
-      setFilters(newFilters);
-      fetchJobs(keyword, city, newFilters, 0);
+      newFilters = { ...appliedFilters, workLocType: isActive ? "" : value };
     } else {
-      const newFilters = {
-        ...filters,
-        jobTypes: isActive ? [] : [value as any],
-      };
-      setFilters(newFilters);
-      fetchJobs(keyword, city, newFilters, 0);
+      newFilters = { ...appliedFilters, jobTypes: isActive ? [] : [value as any] };
     }
+    setAppliedFilters(newFilters);
+    fetchJobs(keyword, city, newFilters, 0);
   };
 
   const activeFilterCount =
-    filters.jobTypes.length +
-    filters.levels.length +
-    (filters.workLocType ? 1 : 0) +
-    (filters.postedWithin ? 1 : 0);
+    appliedFilters.jobTypes.length +
+    appliedFilters.levels.length +
+    (appliedFilters.currency ? 1 : 0) +
+    (appliedFilters.workLocType ? 1 : 0) +
+    (appliedFilters.postedWithin ? 1 : 0);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Hero search section ─────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700
-        overflow-hidden">
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full
-            bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full
-            bg-indigo-500/20 blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 pt-12 pb-10">
@@ -241,14 +288,14 @@ function JobsPageInner() {
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-bold text-white text-center mb-2
-            leading-tight tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white text-center mb-2 leading-tight tracking-tight">
             Khám phá cơ hội việc làm
           </h1>
           <p className="text-blue-100 text-sm text-center mb-8">
             Hàng nghìn công việc từ các công ty hàng đầu đang chờ bạn
           </p>
 
+          {/* Search bar */}
           <div className="flex flex-col sm:flex-row rounded-2xl border border-white/20
             bg-white shadow-2xl overflow-hidden max-w-3xl mx-auto">
             <div className="flex items-center gap-2 flex-1 px-4 py-3.5
@@ -276,11 +323,10 @@ function JobsPageInner() {
               <select
                 value={draftCity}
                 onChange={e => setDraftCity(e.target.value)}
-                className="flex-1 text-sm text-gray-800 focus:outline-none
-                  bg-transparent cursor-pointer"
+                className="flex-1 text-sm text-gray-800 focus:outline-none bg-transparent cursor-pointer"
               >
                 <option value="">Tất cả địa điểm</option>
-                {["Hà Nội","TP. Hồ Chí Minh","Đà Nẵng","Bắc Ninh","Hải Phòng","Huế"].map(c => (
+                {["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"].map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -297,6 +343,7 @@ function JobsPageInner() {
             </button>
           </div>
 
+          {/* Quick filters */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             <span className="text-blue-200 text-xs">Phổ biến:</span>
             {QUICK_FILTERS.map(qf => (
@@ -312,7 +359,7 @@ function JobsPageInner() {
         </div>
       </section>
 
-      {/* ── Active search badges ────────────────────────────────────────────── */}
+      {/* ── Active keyword/city badges ──────────────────────────────────────── */}
       <AnimatePresence>
         {(keyword || city) && (
           <motion.div
@@ -331,7 +378,7 @@ function JobsPageInner() {
                   <button onClick={() => {
                     setDraftKeyword(""); setKeyword(""); setPage(0);
                     router.replace("/jobs", { scroll: false });
-                    fetchJobs("", city, filters, 0);
+                    fetchJobs("", city, appliedFilters, 0);
                   }} className="text-blue-400 hover:text-blue-600">
                     <X size={10} />
                   </button>
@@ -343,7 +390,7 @@ function JobsPageInner() {
                   <MapPin size={10} /> {city}
                   <button onClick={() => {
                     setDraftCity(""); setCity(""); setPage(0);
-                    fetchJobs(keyword, "", filters, 0);
+                    fetchJobs(keyword, "", appliedFilters, 0);
                   }} className="text-gray-400 hover:text-gray-600">
                     <X size={10} />
                   </button>
@@ -358,9 +405,10 @@ function JobsPageInner() {
         )}
       </AnimatePresence>
 
-      {/* ── Main content ────────────────────────────────────────────────────── */}
+      {/* ── Main ───────────────────────────────────────────────────────────── */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
+        {/* Mobile filter toggle */}
         <div className="lg:hidden flex items-center justify-between mb-4">
           <p className="text-xs text-gray-500">
             <strong className="text-gray-800">{total.toLocaleString()}</strong> việc làm
@@ -382,6 +430,7 @@ function JobsPageInner() {
           </button>
         </div>
 
+        {/* Mobile filter drawer */}
         <AnimatePresence>
           {mobileFilterOpen && (
             <>
@@ -405,8 +454,8 @@ function JobsPageInner() {
                 </div>
                 <div className="p-4">
                   <JobFilterSidebar
-                    filters={filters}
-                    onChange={f => { setFilters(f); setPage(0); setMobileFilterOpen(false); }}
+                    appliedFilters={appliedFilters}
+                    onApply={handleApplyFilters}
                     onClearAll={handleClearAll}
                   />
                 </div>
@@ -417,17 +466,21 @@ function JobsPageInner() {
 
         <div className="flex gap-6 items-start">
 
+          {/* Desktop sidebar */}
           <aside className="hidden lg:block shrink-0 sticky top-6">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <JobFilterSidebar
-                filters={filters}
-                onChange={f => { setFilters(f); setPage(0); }}
+                appliedFilters={appliedFilters}
+                onApply={handleApplyFilters}
                 onClearAll={handleClearAll}
               />
             </div>
           </aside>
 
+          {/* Job list */}
           <div className="flex-1 min-w-0">
+
+            {/* Header count + clear */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -440,7 +493,6 @@ function JobsPageInner() {
                   )}
                 </p>
               </div>
-
               {activeFilterCount > 0 && (
                 <button onClick={handleClearAll}
                   className="hidden lg:flex items-center gap-1.5 text-xs text-red-500
@@ -450,6 +502,7 @@ function JobsPageInner() {
               )}
             </div>
 
+            {/* Error */}
             {error && (
               <div className="text-center py-12 text-sm text-red-500 bg-red-50
                 rounded-2xl border border-red-100">
@@ -457,39 +510,78 @@ function JobsPageInner() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {loading
-                ? Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
-                : jobs.length === 0
-                  ? (
-                    <div className="col-span-full py-24 flex flex-col items-center gap-4">
-                      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Search size={28} className="text-gray-300" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-600 font-medium">Không tìm thấy việc làm phù hợp</p>
-                        <p className="text-gray-400 text-sm mt-1">Thử thay đổi từ khóa hoặc bộ lọc</p>
-                      </div>
-                      <button
-                        onClick={handleClearAll}
-                        className="px-5 py-2.5 text-sm font-medium text-blue-600
-                          bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
-                      >
-                        Xóa bộ lọc
-                      </button>
-                    </div>
-                  )
-                  : jobs.map(job => (
+            {/* ── Loading skeleton ──────────────────────────────────────────── */}
+            {loading && (
+              <>
+                {/* 2 skeleton featured */}
+                <div className="mb-3 h-5 w-32 bg-blue-100 rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                  <SkeletonCard featured />
+                  <SkeletonCard featured />
+                </div>
+                {/* regular skeletons */}
+                <div className="mb-3 h-5 w-28 bg-gray-100 rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+              </>
+            )}
+
+            {/* ── Empty ────────────────────────────────────────────────────── */}
+            {!loading && jobs.length === 0 && (
+              <div className="col-span-full py-24 flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Search size={28} className="text-gray-300" />
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-600 font-medium">Không tìm thấy việc làm phù hợp</p>
+                  <p className="text-gray-400 text-sm mt-1">Thử thay đổi từ khóa hoặc bộ lọc</p>
+                </div>
+                <button
+                  onClick={handleClearAll}
+                  className="px-5 py-2.5 text-sm font-medium text-blue-600
+                    bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )}
+
+            {/* ── Featured section ──────────────────────────────────────────── */}
+            {!loading && featuredJobs.length > 0 && (
+              <div className="mb-2">
+                <FeaturedSectionHeader count={featuredJobs.length} />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {featuredJobs.map(job => (
                     <JobCard
                       key={job.id}
                       job={job}
                       onSave={handleSave}
                       competitionLevel={job.competition?.level as CompetitionLevel}
                     />
-                  ))
-              }
-            </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
+            {/* ── Regular section ───────────────────────────────────────────── */}
+            {!loading && regularJobs.length > 0 && (
+              <>
+                <RegularSectionHeader count={regularJobs.length} total={total} />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {regularJobs.map(job => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      onSave={handleSave}
+                      competitionLevel={job.competition?.level as CompetitionLevel}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+              
+            {/* ── Pagination ────────────────────────────────────────────────── */}
             {!loading && totalPages > 1 && (
               <Pagination
                 currentPage={page + 1}

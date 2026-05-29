@@ -7,6 +7,7 @@ import edu.tlu.jobplatform.company.infrastructure.persistence.entity.CompanyJpaE
 import edu.tlu.jobplatform.company.infrastructure.persistence.mapper.CompanyMapper;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository;
 import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository.CompanyStatsProjection;
+import edu.tlu.jobplatform.company.infrastructure.persistence.repository.CompanyJpaRepository.CompanyJobCountProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,20 +49,13 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
-    public List<CompanyProfile> findAllById(Collection<UUID> ids) {
-        return jpaRepo.findAllById(ids).stream()
-                .map(mapper::toDomain)
-                .toList();
-    }
-
-    @Override
     public boolean existsBySlug(String slug) {
         return jpaRepo.existsBySlug(slug);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return jpaRepo.existsByName(name);
+        return jpaRepo.existsByNameIgnoreCase(name);
     }
 
     @Override
@@ -72,6 +66,16 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     @Override
     public long countByVerificationStatus(VerificationStatus status) {
         return jpaRepo.countByVerificationStatus(status);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepo.deleteById(id);
+    }
+
+    @Override
+    public List<CompanyProfile> findAllById(Collection<UUID> ids) {
+        return jpaRepo.findAllById(ids).stream().map(mapper::toDomain).toList();
     }
 
     @Override
@@ -105,84 +109,83 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
 
     @Override
     public List<CompanyProfile> findAllByOwnerIdIn(Collection<UUID> ownerIds) {
-        return jpaRepo.findAllByOwnerIdIn(ownerIds)
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
+        return jpaRepo.findAllByOwnerIdIn(ownerIds).stream().map(mapper::toDomain).toList();
     }
-
-    // Thêm vào CompanyRepositoryAdapter — giữ nguyên phần cũ
 
     @Override
     public List<CompanyProfile> findByNamesIgnoreCase(List<String> names) {
         if (names == null || names.isEmpty())
             return List.of();
-        List<String> lowerNames = names.stream()
-                .map(String::toLowerCase)
-                .toList();
-        return jpaRepo.findByNamesIgnoreCase(lowerNames)
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
+        return jpaRepo.findByNamesIgnoreCase(names.stream().map(String::toLowerCase).toList())
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public Page<CompanyProfile> findVerifiedCompaniesWithOpenJobs(Pageable pageable) {
-        return jpaRepo.findVerifiedWithOpenJobs(pageable).map(mapper::toDomain);
+        return jpaRepo.findVerifiedCompaniesWithOpenJobs(pageable).map(mapper::toDomain);
     }
 
     @Override
     public Map<UUID, Long> countOpenJobsByCompanyIds(Set<UUID> companyIds) {
         if (companyIds == null || companyIds.isEmpty())
             return Map.of();
-        return jpaRepo.countOpenJobsByCompanyIds(companyIds)
-                .stream()
+        return jpaRepo.countOpenJobsByCompanyIds(companyIds).stream()
                 .collect(Collectors.toMap(
-                        CompanyJpaRepository.CompanyJobCountProjection::getCompanyId,
-                        CompanyJpaRepository.CompanyJobCountProjection::getCount));
-    }
-
-    @Override
-    public void deleteById(UUID id) {
-        jpaRepo.deleteById(id);
+                        CompanyJobCountProjection::getCompanyId,
+                        CompanyJobCountProjection::getCount));
     }
 
     @Override
     public void enrichWithStats(CompanyProfile company) {
         jpaRepo.findStatsByCompanyId(company.getId())
                 .ifPresent(s -> company.setStatistics(
-                        s.getActiveJobCount(),
-                        round(s.getAverageRating()),
-                        s.getReviewCount()));
+                        s.getActiveJobCount(), round(s.getAverageRating()), s.getReviewCount()));
     }
 
     @Override
     public void enrichWithStats(List<CompanyProfile> companies) {
         if (companies == null || companies.isEmpty())
             return;
-
-        Set<UUID> ids = companies.stream()
-                .map(CompanyProfile::getId)
-                .collect(Collectors.toSet());
-
-        Map<UUID, CompanyStatsProjection> statsMap = jpaRepo
-                .findStatsByCompanyIds(ids)
-                .stream()
-                .collect(Collectors.toMap(
-                        CompanyStatsProjection::getCompanyId,
-                        s -> s));
-
+        Set<UUID> ids = companies.stream().map(CompanyProfile::getId).collect(Collectors.toSet());
+        Map<UUID, CompanyStatsProjection> statsMap = jpaRepo.findStatsByCompanyIds(ids)
+                .stream().collect(Collectors.toMap(CompanyStatsProjection::getCompanyId, s -> s));
         companies.forEach(c -> {
             CompanyStatsProjection s = statsMap.get(c.getId());
             if (s != null)
-                c.setStatistics(
-                        s.getActiveJobCount(),
-                        round(s.getAverageRating()),
-                        s.getReviewCount());
+                c.setStatistics(s.getActiveJobCount(), round(s.getAverageRating()), s.getReviewCount());
         });
     }
 
-    /** Làm tròn 1 chữ số thập phân: 4.166 → 4.2 */
+    // ── Plan-tier sort ────────────────────────────────────────────────────────
+
+    @Override
+    public Page<CompanyProfile> findVerifiedCompaniesSortedByPlan(Pageable pageable) {
+        return jpaRepo.findVerifiedCompaniesSortedByPlan(pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Map<UUID, String> findActivePlanCodesByCompanyIds(Set<UUID> companyIds) {
+        if (companyIds == null || companyIds.isEmpty())
+            return Map.of();
+        return jpaRepo.findActivePlanCodesByCompanyIds(companyIds).stream()
+                .collect(Collectors.toMap(
+                        row -> UUID.fromString(row[0].toString()),
+                        row -> row[1].toString(),
+                        (existing, replacement) -> existing));
+    }
+
+    // ── Multi-criteria search ─────────────────────────────────────────────────
+
+    @Override
+    public Page<CompanyProfile> search(
+            String keyword, String city, String size, String planCode,
+            Double minRating, Pageable pageable) {
+        return jpaRepo.search(keyword, city, size, planCode, minRating, pageable)
+                .map(mapper::toDomain);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private static double round(double value) {
         return Math.round(value * 10.0) / 10.0;
     }

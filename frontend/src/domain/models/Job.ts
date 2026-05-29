@@ -192,14 +192,19 @@ export interface UpdateJobPayload {
 // ── Search params ─────────────────────────────────────────────────────────────
 
 export interface JobSearchParams {
-  keyword?: string;
-  city?: string;
-  category?: string;
-  jobType?: JobType;
-  level?: JobLevel;
-  companyId?: string;
-  page?: number;
-  size?: number;
+  keyword?:        string;
+  city?:           string;
+  category?:       string;
+  companyId?:      string;
+  workLocType?:    string;
+  currency?:       string;
+  minSalary?:      number;
+  maxSalary?:      number;
+  postedWithinDays?: number;  
+  jobTypes?:       string[];
+  levels?:         string[];
+  page?:           number;
+  size?:           number;
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────

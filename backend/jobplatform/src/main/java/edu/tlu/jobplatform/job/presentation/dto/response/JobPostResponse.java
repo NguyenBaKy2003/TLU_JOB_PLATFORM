@@ -36,6 +36,7 @@ public class JobPostResponse {
         private final JobStatus status;
         private final int viewCount;
         private final int applicationCount;
+        private final boolean featured;
         private final LocalDateTime publishedAt;
         private final LocalDateTime createdAt;
         private final String rejectionReason;
@@ -82,6 +83,7 @@ public class JobPostResponse {
                                 .experienceYears(j.getExperienceYears())
                                 .vacancies(j.getVacancies())
                                 .deadline(j.getDeadline())
+                                .featured(j.isFeatured())
                                 .status(j.getStatus())
                                 .viewCount(j.getViewCount())
                                 .applicationCount(j.getApplicationCount())

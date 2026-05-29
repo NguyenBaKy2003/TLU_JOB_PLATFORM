@@ -22,8 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -51,9 +51,10 @@ public class CompanyController {
         private final UploadDocumentUseCase uploadDocumentUseCase;
         private final UploadGalleryImageUseCase uploadGalleryImageUseCase;
         private final TrackCandidateBehaviorUseCase trackUseCase;
-        private final GetCompanyJobsUseCase getCompanyJobsUseCase; // ← mới
+        private final GetCompanyJobsUseCase getCompanyJobsUseCase;
+        private final SearchCompaniesUseCase searchCompaniesUseCase;
 
-        // ── Repositories (chỉ dùng trực tiếp khi chưa có use case tương ứng) ────
+        // ── Repositories ──────────────────────────────────────────────────────────
         private final CompanyRepository companyRepository;
         private final CompanyTeamMemberRepository teamMemberRepository;
         private final CompanyDocumentRepository documentRepository;
@@ -63,25 +64,29 @@ public class CompanyController {
         // Public endpoints
         // ════════════════════════════════════════════════════════════
 
-        @Operation(summary = "Danh sách công ty đã xác thực")
+        /**
+         * GET /api/v1/companies
+         *
+         * Không truyền param → trả toàn bộ công ty VERIFIED, sort plan tier.
+         * Truyền param → tìm kiếm đa điều kiện, giữ nguyên sort plan tier → rating
+         * DESC.
+         */
+        @Operation(summary = "Danh sách / tìm kiếm công ty (sort: gói cao nhất lên đầu)")
         @GetMapping("/api/v1/companies")
         public ResponseEntity<ApiResponse<PageResponse<CompanyResponse>>> listVerified(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) String city,
+                        @RequestParam(required = false) String size,
+                        @RequestParam(required = false) String planCode,
+                        @RequestParam(required = false) Double minRating,
                         @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "12") int size) {
+                        @RequestParam(defaultValue = "12") int pageSize) {
 
-                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-                // Load page domain objects
-                var companyPage = companyRepository.findVerifiedCompanies(pageable);
-
-                // Enrich stats — 1 batch query cho toàn bộ page
-                companyRepository.enrichWithStats(companyPage.getContent());
-
-                var result = companyPage.map(c -> CompanyResponse.from(c,
-                                teamMemberRepository.findVisibleByCompanyId(c.getId()),
-                                galleryRepository.findByCompanyId(c.getId())));
-
-                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+                return ResponseEntity.ok(ApiResponse.success(
+                                searchCompaniesUseCase.execute(
+                                                new SearchCompaniesUseCase.Command(
+                                                                keyword, city, size, planCode,
+                                                                minRating, page, pageSize))));
         }
 
         @Operation(summary = "Chi tiết công ty theo ID")
@@ -93,7 +98,6 @@ public class CompanyController {
                 CompanyProfile company = companyRepository.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", id));
 
-                // Enrich stats
                 companyRepository.enrichWithStats(company);
 
                 SecurityUtils.getCurrentUserId().ifPresent(
@@ -103,6 +107,7 @@ public class CompanyController {
         }
 
         @Operation(summary = "Chi tiết công ty theo slug")
+        @GetMapping("/api/v1/companies/slug/{slug}")
         public ResponseEntity<ApiResponse<CompanyResponse>> getBySlug(
                         @PathVariable String slug,
                         Authentication auth) {
@@ -110,16 +115,11 @@ public class CompanyController {
                 CompanyProfile company = companyRepository.findBySlug(slug)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", slug));
 
-                // Enrich stats
                 companyRepository.enrichWithStats(company);
 
                 return ResponseEntity.ok(ApiResponse.success(buildResponse(company, auth)));
         }
 
-        /**
-         * GET /api/v1/companies/{id}/jobs
-         * Danh sách việc làm PUBLISHED của công ty — public, không cần auth.
-         */
         @Operation(summary = "Danh sách việc làm đang tuyển của công ty")
         @GetMapping("/api/v1/companies/{id}/jobs")
         public ResponseEntity<ApiResponse<PageResponse<JobPost>>> getCompanyJobs(
@@ -127,14 +127,12 @@ public class CompanyController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size) {
 
-                // Kiểm tra công ty tồn tại — throw 404 nếu không có
                 companyRepository.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", id));
 
-                PageResponse<JobPost> result = getCompanyJobsUseCase.execute(
-                                new GetCompanyJobsUseCase.Command(id, page, size));
-
-                return ResponseEntity.ok(ApiResponse.success(result));
+                return ResponseEntity.ok(ApiResponse.success(
+                                getCompanyJobsUseCase.execute(
+                                                new GetCompanyJobsUseCase.Command(id, page, size))));
         }
 
         // ════════════════════════════════════════════════════════════
@@ -150,17 +148,20 @@ public class CompanyController {
                 CompanyProfile company = companyRepository.findByOwnerId(userId)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Company", userId));
 
-                // Enrich stats
                 companyRepository.enrichWithStats(company);
 
-                UUID companyId = company.getId();
-                CompanyResponse response = CompanyResponse.forOwner(
-                                company,
-                                teamMemberRepository.findByCompanyId(companyId),
-                                galleryRepository.findByCompanyId(companyId),
-                                documentRepository.findByCompanyId(companyId));
+                Map<UUID, String> planMap = companyRepository
+                                .findActivePlanCodesByCompanyIds(Set.of(company.getId()));
+                String planCode = planMap.get(company.getId());
 
-                return ResponseEntity.ok(ApiResponse.success(response));
+                UUID companyId = company.getId();
+                return ResponseEntity.ok(ApiResponse.success(
+                                CompanyResponse.forOwner(
+                                                company,
+                                                teamMemberRepository.findByCompanyId(companyId),
+                                                galleryRepository.findByCompanyId(companyId),
+                                                documentRepository.findByCompanyId(companyId),
+                                                planCode)));
         }
 
         @Operation(summary = "Tạo hồ sơ công ty")
@@ -315,7 +316,7 @@ public class CompanyController {
         // Employer — Gallery
         // ════════════════════════════════════════════════════════════
 
-        @Operation(summary = "Upload ảnh gallery công ty (1 hoặc nhiều ảnh)")
+        @Operation(summary = "Upload ảnh gallery công ty")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping(value = "/api/v1/companies/gallery", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('EMPLOYER')")
@@ -414,10 +415,16 @@ public class CompanyController {
                                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                                                 || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-                return isAdmin
-                                ? CompanyResponse.forAdmin(company, team, gallery,
-                                                documentRepository.findByCompanyId(id))
-                                : CompanyResponse.from(company, team, gallery);
+                if (isAdmin) {
+                        return CompanyResponse.forAdmin(company, team, gallery,
+                                        documentRepository.findByCompanyId(id));
+                }
+
+                String planCode = companyRepository
+                                .findActivePlanCodesByCompanyIds(Set.of(id))
+                                .get(id);
+
+                return CompanyResponse.from(company, team, gallery, planCode);
         }
 
         private UUID resolveCompanyId(UUID ownerId) {

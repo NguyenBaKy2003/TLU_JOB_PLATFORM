@@ -2,19 +2,10 @@
 
 import type { ICompanyRepository } from "@/domain/repositories/ICompanyRepository";
 import type {
-  CompanyProfile,
-  CompanyReview,
-  CreateCompanyPayload,
-  UpdateCompanyPayload,
-  CreateReviewPayload,
-  CompanyListParams,
-  PageResponse,
-  TeamMember,
-  CreateTeamMemberPayload,
-  UpdateTeamMemberPayload,
-  GalleryImage,
-  CompanyDocument,
-  CompanyDocumentType,
+  CompanyProfile, CompanyReview, CompanyListParams, PageResponse,
+  CreateCompanyPayload, UpdateCompanyPayload, CreateReviewPayload,
+  TeamMember, CreateTeamMemberPayload, UpdateTeamMemberPayload,
+  GalleryImage, CompanyDocument, CompanyDocumentType,
 } from "@/domain/models/Company";
 import type { JobPost } from "@/domain/models/Job";
 import api from "@/lib/axios";
@@ -27,7 +18,7 @@ interface ApiResponse<T> {
 
 export class CompanyRepository implements ICompanyRepository {
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -57,10 +48,24 @@ export class CompanyRepository implements ICompanyRepository {
     await api.delete(url);
   }
 
-  // ── Public ─────────────────────────────────────────────────────────────────
+  // ── Public ────────────────────────────────────────────────────────────────
 
+  /**
+   * GET /api/v1/companies
+   * Map CompanyListParams → query params mà backend SearchCompaniesUseCase nhận.
+   * Backend param name: keyword, city, size (quy mô), planCode, minRating, page, pageSize.
+   */
   async listVerified(params?: CompanyListParams): Promise<PageResponse<CompanyProfile>> {
-    return this.get(`/companies`, params as Record<string, unknown>);
+    const query: Record<string, unknown> = {};
+    if (params?.page      != null) query.page      = params.page;
+    if (params?.pageSize  != null) query.pageSize  = params.pageSize;
+    if (params?.size      != null) query.pageSize  = params.size;   // alias
+    if (params?.keyword)           query.keyword   = params.keyword;
+    if (params?.city)              query.city      = params.city;
+    if (params?.size_)             query.size      = params.size_;  // CompanySize enum
+    if (params?.planCode)          query.planCode  = params.planCode;
+    if (params?.minRating != null) query.minRating = params.minRating;
+    return this.get(`/companies`, query);
   }
 
   async getById(id: string): Promise<CompanyProfile> {
@@ -71,20 +76,11 @@ export class CompanyRepository implements ICompanyRepository {
     return this.get(`/companies/slug/${slug}`);
   }
 
-  /**
-   * GET /api/v1/companies/{id}/jobs
-   * Danh sách việc làm PUBLISHED của công ty — public.
-   */
-  async getJobsByCompany(
-    companyId: string,
-    page = 0,
-    size = 10,
-  ): Promise<PageResponse<JobPost>> {
-    // ← fix: `/companies/${companyId}/jobs` (thiếu /companies/ trong code cũ)
+  async getJobsByCompany(companyId: string, page = 0, size = 10): Promise<PageResponse<JobPost>> {
     return this.get(`/companies/${companyId}/jobs`, { page, size });
   }
 
-  // ── Employer ───────────────────────────────────────────────────────────────
+  // ── Employer ──────────────────────────────────────────────────────────────
 
   async getMyCompany(): Promise<CompanyProfile> {
     return this.get(`/companies/my`);
@@ -106,7 +102,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.patchMultipart(`/companies/cover`, file);
   }
 
-  // ── Reviews ────────────────────────────────────────────────────────────────
+  // ── Reviews ───────────────────────────────────────────────────────────────
 
   async listReviews(companyId: string, page = 0, size = 10): Promise<PageResponse<CompanyReview>> {
     return this.get(`/companies/${companyId}/reviews`, { page, size });
@@ -120,7 +116,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/${companyId}/reviews/${reviewId}`);
   }
 
-  // ── Admin ──────────────────────────────────────────────────────────────────
+  // ── Admin ─────────────────────────────────────────────────────────────────
 
   async adminList(status = "UNVERIFIED", page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
     return this.get(`/admin/companies`, { status, page, size });
@@ -142,7 +138,7 @@ export class CompanyRepository implements ICompanyRepository {
     await api.patch(`/admin/reviews/${reviewId}/hide`);
   }
 
-  // ── Team members ───────────────────────────────────────────────────────────
+  // ── Team members ──────────────────────────────────────────────────────────
 
   async listTeamMembers(companyId: string): Promise<TeamMember[]> {
     const company = await this.getById(companyId);
@@ -165,7 +161,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/team/${memberId}`);
   }
 
-  // ── Gallery ────────────────────────────────────────────────────────────────
+  // ── Gallery ───────────────────────────────────────────────────────────────
 
   async listGallery(companyId: string): Promise<GalleryImage[]> {
     return this.get(`/companies/${companyId}/gallery`);
@@ -185,7 +181,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/gallery/${imageId}`);
   }
 
-  // ── Documents ──────────────────────────────────────────────────────────────
+  // ── Documents ─────────────────────────────────────────────────────────────
 
   async listDocuments(): Promise<CompanyDocument[]> {
     return this.get(`/companies/documents`);
