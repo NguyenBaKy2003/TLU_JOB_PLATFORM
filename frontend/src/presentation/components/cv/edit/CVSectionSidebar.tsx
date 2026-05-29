@@ -4,12 +4,12 @@ import { useState, useRef } from "react";
 import {
   User, Briefcase, GraduationCap, Zap, FolderKanban,
   Award, Languages, Trophy, Plus, GripVertical,
-  Eye, EyeOff, Trash2, ChevronDown,
+  Eye, EyeOff, Trash2, X,
 } from "lucide-react";
 import type { CVSection, SectionType } from "@/domain/models/Cv";
 import { SECTION_TYPE_LABELS } from "@/domain/models/Cv";
 
-// ── Section type icon mapping ────
+// ── Icon & color maps ──────────────────────────────────────────────────────
 
 const SECTION_ICONS: Record<SectionType, React.ReactNode> = {
   SUMMARY:     <User className="w-3.5 h-3.5" />,
@@ -32,18 +32,14 @@ const SECTION_COLORS: Record<SectionType, string> = {
   CERTIFICATE: "bg-orange-100 text-orange-600",
   LANGUAGE:    "bg-green-100 text-green-600",
   AWARD:       "bg-pink-100 text-pink-600",
-  CUSTOM:      "bg-gray-100 text-gray-600",
+  CUSTOM:      "bg-slate-100 text-slate-600",
 };
 
-// ── Add Section Picker ────
+// ── Add section picker ─────────────────────────────────────────────────────
 
 const ALL_SECTION_TYPES = Object.keys(SECTION_TYPE_LABELS) as SectionType[];
 
-interface AddSectionPickerProps {
-  onAdd: (type: SectionType, title: string) => void;
-}
-
-function AddSectionPicker({ onAdd }: AddSectionPickerProps) {
+function AddSectionPicker({ onAdd }: { onAdd: (type: SectionType, title: string) => void }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -53,8 +49,8 @@ function AddSectionPicker({ onAdd }: AddSectionPickerProps) {
         className="
           w-full flex items-center justify-center gap-2
           py-2.5 text-xs font-semibold text-[#3D5A80]
-          border-2 border-dashed border-[#3D5A80]/30
-          hover:border-[#3D5A80]/60 hover:bg-[#3D5A80]/5
+          border-2 border-dashed border-[#3D5A80]/25
+          hover:border-[#3D5A80]/50 hover:bg-[#3D5A80]/5
           rounded-xl transition-all
         "
       >
@@ -63,71 +59,76 @@ function AddSectionPicker({ onAdd }: AddSectionPickerProps) {
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-xl z-30 overflow-hidden">
-          <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">
-            Chọn loại mục
-          </p>
-          <div className="py-1 max-h-64 overflow-y-auto">
-            {ALL_SECTION_TYPES.map((type) => (
-              <button
-                key={type}
-                onClick={() => {
-                  onAdd(type, SECTION_TYPE_LABELS[type]);
-                  setOpen(false);
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-[16px] text-gray-700 hover:bg-gray-50 transition-colors text-left"
-              >
-                <span className={`p-1.5 rounded-lg ${SECTION_COLORS[type]}`}>
-                  {SECTION_ICONS[type]}
-                </span>
-                {SECTION_TYPE_LABELS[type]}
+        <>
+          <div
+            className="fixed inset-0 z-20"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-30 overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-100">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Chọn loại mục</p>
+              <button onClick={() => setOpen(false)} className="p-0.5 rounded hover:bg-slate-100 text-slate-400">
+                <X className="w-3.5 h-3.5" />
               </button>
-            ))}
+            </div>
+            <div className="py-1.5 max-h-60 overflow-y-auto">
+              {ALL_SECTION_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => { onAdd(type, SECTION_TYPE_LABELS[type]); setOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                >
+                  <span className={`p-1.5 rounded-lg flex-shrink-0 ${SECTION_COLORS[type]}`}>
+                    {SECTION_ICONS[type]}
+                  </span>
+                  {SECTION_TYPE_LABELS[type]}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-
-      {open && (
-        <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+        </>
       )}
     </div>
   );
 }
 
-// ── Section Row ───────────
+// ── Section row ────────────────────────────────────────────────────────────
 
 interface SectionRowProps {
-  section: CVSection;
-  active: boolean;
-  onSelect: () => void;
-  onDelete: () => void;
+  section:            CVSection;
+  active:             boolean;
+  onSelect:           () => void;
+  onDelete:           () => void;
   onToggleVisibility: (visible: boolean) => void;
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
+  dragHandleProps?:   React.HTMLAttributes<HTMLDivElement>;
 }
 
 function SectionRow({
   section, active, onSelect, onDelete, onToggleVisibility, dragHandleProps,
 }: SectionRowProps) {
-  const [hover, setHover] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   return (
     <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className={`
-        group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all
-        ${active
-          ? "bg-[#3D5A80] text-white shadow-sm"
-          : "hover:bg-gray-100 text-gray-700"
-        }
-        ${!section.visible ? "opacity-50" : ""}
-      `}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
       onClick={onSelect}
+      className={`
+        group flex items-center gap-2 px-2.5 py-2 rounded-xl cursor-pointer
+        transition-all select-none
+        ${active
+          ? "bg-[#3D5A80] text-white shadow-sm shadow-[#3D5A80]/20"
+          : "hover:bg-slate-100 text-slate-700"
+        }
+        ${!section.visible && !active ? "opacity-50" : ""}
+      `}
     >
       {/* Drag handle */}
       <div
         {...dragHandleProps}
-        className={`flex-shrink-0 cursor-grab active:cursor-grabbing ${active ? "text-white/50" : "text-gray-300"}`}
+        className={`flex-shrink-0 cursor-grab active:cursor-grabbing transition-opacity ${
+          showActions || active ? "opacity-100" : "opacity-0"
+        } ${active ? "text-white/40" : "text-slate-300"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="w-3.5 h-3.5" />
@@ -139,48 +140,40 @@ function SectionRow({
       </span>
 
       {/* Title */}
-      <span className={`text-xs font-medium flex-1 truncate ${active ? "text-white" : ""}`}>
+      <span className={`text-xs font-medium flex-1 truncate ${active ? "text-white" : "text-slate-700"}`}>
         {section.title}
       </span>
 
       {/* Actions */}
-      {(hover || active) && (
-        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => onToggleVisibility(!section.visible)}
-            className={`p-1 rounded-lg transition-colors ${active ? "hover:bg-white/20 text-white/70" : "hover:bg-gray-200 text-gray-400"}`}
-            title={section.visible ? "Ẩn mục này" : "Hiện mục này"}
-          >
-            {section.visible
-              ? <Eye className="w-3 h-3" />
-              : <EyeOff className="w-3 h-3" />
-            }
-          </button>
-          <button
-            onClick={onDelete}
-            className={`p-1 rounded-lg transition-colors ${active ? "hover:bg-red-400/30 text-white/70" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}
-            title="Xóa mục"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      )}
+      <div
+        className={`flex items-center gap-0.5 transition-opacity ${showActions || active ? "opacity-100" : "opacity-0"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        
+        <button
+          onClick={onDelete}
+          className={`p-1 rounded-lg transition-colors ${active ? "hover:bg-red-400/30 text-white/60" : "hover:bg-red-50 text-slate-400 hover:text-red-500"}`}
+          title="Xóa"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      </div>
     </div>
   );
 }
 
-// ── Main Sidebar ──────────
+// ── Main sidebar ───────────────────────────────────────────────────────────
 
 interface Props {
-  sections: CVSection[];
-  activeSectionId: string | null;
-  activeTab: "personal" | "section";
-  onSelectPersonal: () => void;
-  onSelectSection: (id: string) => void;
-  onAddSection: (type: SectionType, title: string) => void;
-  onDeleteSection: (id: string) => void;
-  onToggleVisibility: (id: string, visible: boolean) => void;
-  onReorder: (ids: string[]) => void;
+  sections:          CVSection[];
+  activeSectionId:   string | null;
+  activeTab:         "personal" | "section";
+  onSelectPersonal:  () => void;
+  onSelectSection:   (id: string) => void;
+  onAddSection:      (type: SectionType, title: string) => void;
+  onDeleteSection:   (id: string) => void;
+  onToggleVisibility:(id: string, visible: boolean) => void;
+  onReorder:         (ids: string[]) => void;
 }
 
 export function CVSectionSidebar({
@@ -188,21 +181,15 @@ export function CVSectionSidebar({
   onSelectPersonal, onSelectSection,
   onAddSection, onDeleteSection, onToggleVisibility, onReorder,
 }: Props) {
-  const dragItem = useRef<number | null>(null);
+  const dragItem     = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
-  const handleDragStart = (index: number) => {
-    dragItem.current = index;
-  };
-
-  const handleDragEnter = (index: number) => {
-    dragOverItem.current = index;
-  };
-
-  const handleDragEnd = () => {
+  const handleDragStart = (i: number) => { dragItem.current = i; };
+  const handleDragEnter = (i: number) => { dragOverItem.current = i; };
+  const handleDragEnd   = () => {
     if (dragItem.current === null || dragOverItem.current === null) return;
     const reordered = [...sections];
-    const [moved] = reordered.splice(dragItem.current, 1);
+    const [moved]   = reordered.splice(dragItem.current, 1);
     reordered.splice(dragOverItem.current, 0, moved);
     onReorder(reordered.map((s) => s.id));
     dragItem.current = null;
@@ -210,42 +197,43 @@ export function CVSectionSidebar({
   };
 
   return (
-    <aside className="w-56 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col overflow-hidden">
+    <aside className="w-full md:w-56 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden h-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+      <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
           Cấu trúc CV
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {/* Personal info item */}
+      {/* Scrollable list */}
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-0.5">
+        {/* Personal info */}
         <div
           onClick={onSelectPersonal}
           className={`
-            flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all
+            flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer transition-all
             ${activeTab === "personal"
-              ? "bg-[#3D5A80] text-white shadow-sm"
-              : "hover:bg-gray-100 text-gray-700"
+              ? "bg-[#3D5A80] text-white shadow-sm shadow-[#3D5A80]/20"
+              : "hover:bg-slate-100 text-slate-700"
             }
           `}
         >
           <span className={`flex-shrink-0 p-1 rounded-lg ${activeTab === "personal" ? "bg-white/20" : "bg-blue-100 text-blue-600"}`}>
             <User className="w-3.5 h-3.5" />
           </span>
-          <span className={`text-xs font-semibold ${activeTab === "personal" ? "text-white" : ""}`}>
+          <span className={`text-xs font-semibold ${activeTab === "personal" ? "text-white" : "text-slate-700"}`}>
             Thông tin cá nhân
           </span>
         </div>
 
-        {/* Divider */}
+        {/* Sections label */}
         {sections.length > 0 && (
-          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-300 px-3 pt-2 pb-0.5">
-            Các mục nội dung
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300 px-2.5 pt-3 pb-1">
+            Nội dung
           </p>
         )}
 
-        {/* Section list with drag & drop */}
+        {/* Sections */}
         {sections.map((section, index) => (
           <div
             key={section.id}
@@ -268,10 +256,18 @@ export function CVSectionSidebar({
             />
           </div>
         ))}
+
+        {/* Empty state */}
+        {sections.length === 0 && (
+          <div className="text-center py-8 px-3">
+            <p className="text-xs text-slate-400">Chưa có mục nào.</p>
+            <p className="text-[11px] text-slate-300 mt-1">Nhấn "Thêm mục" bên dưới.</p>
+          </div>
+        )}
       </div>
 
       {/* Add section */}
-      <div className="p-3 border-t border-gray-100">
+      <div className="p-2.5 border-t border-slate-100 flex-shrink-0">
         <AddSectionPicker onAdd={onAddSection} />
       </div>
     </aside>

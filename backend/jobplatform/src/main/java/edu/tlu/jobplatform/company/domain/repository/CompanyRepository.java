@@ -46,15 +46,35 @@ public interface CompanyRepository {
 
     Page<CompanyProfile> findVerifiedCompaniesWithOpenJobs(Pageable pageable);
 
-    /** Batch lookup theo tên — dùng cho AI enrichment */
     List<CompanyProfile> findByNamesIgnoreCase(List<String> names);
 
-    /** Đếm PUBLISHED jobs theo từng companyId — dùng cho AI enrichment */
     Map<UUID, Long> countOpenJobsByCompanyIds(Set<UUID> companyIds);
 
-    /** Gán stats vào một CompanyProfile */
     void enrichWithStats(CompanyProfile company);
 
-    /** Gán stats batch vào danh sách — dùng cho list page */
     void enrichWithStats(List<CompanyProfile> companies);
+
+    Page<CompanyProfile> findVerifiedCompaniesSortedByPlan(Pageable pageable);
+
+    Map<UUID, String> findActivePlanCodesByCompanyIds(Set<UUID> companyIds);
+
+    /**
+     * Tìm kiếm đa điều kiện — tất cả filter đều optional (null = bỏ qua).
+     * Sort: plan tier → rating DESC → created_at ASC.
+     *
+     * @param keyword   tìm theo tên / mô tả / ngành
+     * @param city      lọc thành phố
+     * @param size      lọc quy mô
+     *                  (STARTUP/SMALL/MEDIUM/LARGE/ENTERPRISE/CORPORATION)
+     * @param planCode  lọc plan (STARTER/BUSINESS/ENTERPRISE/FREE_COMPANY)
+     * @param minRating điểm đánh giá tối thiểu (1.0 – 5.0)
+     * @param pageable  phân trang
+     */
+    Page<CompanyProfile> search(
+            String keyword,
+            String city,
+            String size,
+            String planCode,
+            Double minRating,
+            Pageable pageable);
 }

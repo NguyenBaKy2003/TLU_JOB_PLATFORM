@@ -12,6 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -28,8 +31,18 @@ public class SearchJobsUseCase {
         @Transactional(readOnly = true)
         public Page<Result> execute(SearchQuery query, Pageable pageable) {
                 Page<JobPost> jobs = jobSearchPort.search(
-                                query.keyword(), query.city(), query.category(),
-                                query.jobType(), query.level(), query.companyId(), pageable);
+                                query.keyword(),
+                                query.city(),
+                                query.category(),
+                                query.companyId(),
+                                query.workLocType(),
+                                query.currency(),
+                                query.minSalary(),
+                                query.maxSalary(),
+                                query.postedAfter(),
+                                query.jobTypes(),
+                                query.levels(),
+                                pageable);
 
                 Set<UUID> companyIds = jobs.stream()
                                 .map(JobPost::getCompanyId)
@@ -48,9 +61,14 @@ public class SearchJobsUseCase {
                         String keyword,
                         String city,
                         String category,
-                        String jobType,
-                        String level,
-                        UUID companyId) {
+                        UUID companyId,
+                        String workLocType,
+                        String currency,
+                        BigDecimal minSalary,
+                        BigDecimal maxSalary,
+                        LocalDateTime postedAfter,
+                        List<String> jobTypes,
+                        List<String> levels) {
         }
 
         public record Result(JobPost job, CompanySnapshot company, CompetitionRateResult competition) {

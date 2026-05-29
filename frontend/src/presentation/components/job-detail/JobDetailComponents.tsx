@@ -2,12 +2,12 @@
 import {
   MapPin, Clock, Users, Briefcase,
   Bookmark, Share2, Building2,
-  CalendarDays, Star, CheckCircle2,
+  CalendarDays, Star, CheckCircle2, Sparkles,
 } from "lucide-react";
 import type { JobPostDetail } from "@/domain/models/Job";
 import { JOB_TYPE_LABELS, JOB_LEVEL_LABELS, WORK_LOC_LABELS } from "@/domain/models/Job";
 
-// ── Helpers 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function formatSalary(job: JobPostDetail): string {
   const { salary } = job;
@@ -28,7 +28,7 @@ export function formatDate(dateStr: string | null | undefined): string {
   });
 }
 
-// ── CompanyLogo ───────────
+// ── CompanyLogo ───────────────────────────────────────────────────────────────
 
 const LOGO_COLORS = [
   "from-blue-500 to-blue-700",
@@ -51,19 +51,25 @@ export function CompanyLogo({
   );
 }
 
-// ── MetaChip ──────────────
+// ── MetaChip ──────────────────────────────────────────────────────────────────
 
-export function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
+export function MetaChip({
+  icon, label, featured = false,
+}: { icon: React.ReactNode; label: string; featured?: boolean }) {
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-xl
-      text-xs text-gray-700 border border-gray-100">
-      <span className="text-gray-400">{icon}</span>
+    <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl
+      text-xs border transition-colors
+      ${featured
+        ? "bg-blue-50 text-blue-700 border-blue-100"
+        : "bg-gray-50 text-gray-700 border-gray-100"
+      }`}>
+      <span className={featured ? "text-blue-400" : "text-gray-400"}>{icon}</span>
       {label}
     </div>
   );
 }
 
-// ── Section 
+// ── Section ───────────────────────────────────────────────────────────────────
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -74,7 +80,7 @@ export function Section({ title, children }: { title: string; children: React.Re
   );
 }
 
-// ── HtmlContent ───────────
+// ── HtmlContent ───────────────────────────────────────────────────────────────
 
 export function HtmlContent({ html }: { html: string }) {
   return (
@@ -85,7 +91,7 @@ export function HtmlContent({ html }: { html: string }) {
   );
 }
 
-// ── SkillLevel colors ─────
+// ── SkillLevel colors ─────────────────────────────────────────────────────────
 
 const LEVEL_COLORS: Record<string, string> = {
   "Cơ bản":    "bg-gray-100 text-gray-600",
@@ -93,95 +99,137 @@ const LEVEL_COLORS: Record<string, string> = {
   "Nâng cao":  "bg-violet-50 text-violet-700",
 };
 
-// ── JobHeroCard ───────────
+// ── JobHeroCard ───────────────────────────────────────────────────────────────
 
 interface JobHeroCardProps {
-  job:        JobPostDetail;
-  saved?:     boolean;
-  onSave?:    () => void;
-  onShare?:   () => void;
-  /** Slot để employer render badge riêng (VD: "14 ứng viên") */
+  job:         JobPostDetail;
+  saved?:      boolean;
+  onSave?:     () => void;
+  onShare?:    () => void;
   actionSlot?: React.ReactNode;
 }
 
 export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHeroCardProps) {
+  const featured = job.featured ?? false;
+
   const tags = [
-    job.jobType           && JOB_TYPE_LABELS[job.jobType],
-    job.level             && JOB_LEVEL_LABELS[job.level],
-    job.workLocationCity && WORK_LOC_LABELS[job.workLocationType],
+    job.jobType          && JOB_TYPE_LABELS[job.jobType],
+    job.level            && JOB_LEVEL_LABELS[job.level],
+    job.workLocationType && WORK_LOC_LABELS[job.workLocationType],
   ].filter(Boolean) as string[];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div className="flex items-start gap-4 mb-5">
-        {/* Logo */}
-        <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 shrink-0">
-          <CompanyLogo name={job.companyName} src={job.companyLogoUrl} />
-        </div>
+    <div className={`relative bg-white rounded-2xl shadow-sm overflow-hidden
+      ${featured
+        ? "border-[1.5px] border-blue-400 shadow-blue-100/50"
+        : "border border-gray-100"
+      }`}>
 
-        {/* Title block */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400 mb-0.5">{job.companyName}</p>
-          <h1 className="text-xl font-bold text-gray-900 leading-snug">{job.title}</h1>
-          {job.category && (
-            <p className="text-[16px] text-gray-500 mt-0.5">{job.category}</p>
-          )}
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {tags.map(t => (
-              <span key={t} className="px-2.5 py-0.5 text-[11px] font-semibold
-                bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
-                {t}
-              </span>
-            ))}
+      {/* featured: subtle tint */}
+      {featured && (
+        <div className="absolute inset-0 bg-blue-50/25 pointer-events-none" />
+      )}
+
+      {/* featured: top accent stripe */}
+      {featured && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-400" />
+      )}
+
+      <div className="relative p-6">
+        {/* Featured badge — trên cùng trước logo */}
+        {featured && (
+          <div className="flex items-center gap-1.5 mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+              bg-blue-600 text-white text-xs font-semibold shadow-sm">
+              <Sparkles size={11} />
+              Tin nổi bật
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-start gap-4 mb-5">
+          {/* Logo */}
+          <div className={`w-16 h-16 rounded-2xl overflow-hidden border shrink-0
+            ${featured
+              ? "border-blue-200 ring-2 ring-blue-100 ring-offset-1"
+              : "border-gray-100"
+            }`}>
+            <CompanyLogo name={job.companyName} src={job.companyLogoUrl} />
+          </div>
+
+          {/* Title block */}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-gray-400 mb-0.5">{job.companyName}</p>
+            <h1 className={`text-xl font-bold leading-snug
+              ${featured ? "text-blue-900" : "text-gray-900"}`}>
+              {job.title}
+            </h1>
+            {job.category && (
+              <p className="text-[16px] text-gray-500 mt-0.5">{job.category}</p>
+            )}
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {tags.map(t => (
+                <span key={t} className={`px-2.5 py-0.5 text-[11px] font-semibold rounded-full border
+                  ${featured
+                    ? "bg-blue-100 text-blue-800 border-blue-200"
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+                  }`}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {actionSlot}
+            {onSave && (
+              <button onClick={onSave}
+                className={`w-9 h-9 flex items-center justify-center rounded-xl border
+                  transition-colors ${saved
+                    ? "border-blue-300 bg-blue-50 text-blue-600"
+                    : featured
+                      ? "border-blue-200 text-blue-400 hover:border-blue-400 hover:text-blue-600"
+                      : "border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-600"
+                  }`}>
+                <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
+              </button>
+            )}
+            {onShare && (
+              <button onClick={onShare}
+                className="w-9 h-9 flex items-center justify-center rounded-xl border
+                  border-gray-200 text-gray-400 hover:border-gray-300 transition-colors">
+                <Share2 size={16} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {actionSlot}
-          {onSave && (
-            <button onClick={onSave}
-              className={`w-9 h-9 flex items-center justify-center rounded-xl border
-                transition-colors ${saved
-                  ? "border-blue-300 bg-blue-50 text-blue-600"
-                  : "border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-600"}`}>
-              <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
-            </button>
+        {/* Meta chips */}
+        <div className="flex flex-wrap gap-2">
+          {job.workLocationCity && (
+            <MetaChip featured={featured} icon={<MapPin size={13} />} label={job.workLocationCity} />
           )}
-          {onShare && (
-            <button onClick={onShare}
-              className="w-9 h-9 flex items-center justify-center rounded-xl border
-                border-gray-200 text-gray-400 hover:border-gray-300 transition-colors">
-              <Share2 size={16} />
-            </button>
+          {job.experienceYears != null && (
+            <MetaChip featured={featured} icon={<Briefcase size={13} />}
+              label={job.experienceYears === 0
+                ? "Chưa có kinh nghiệm"
+                : `${job.experienceYears} năm kinh nghiệm`} />
+          )}
+          {job.vacancies > 0 && (
+            <MetaChip featured={featured} icon={<Users size={13} />} label={`${job.vacancies} vị trí`} />
+          )}
+          {job.deadline && (
+            <MetaChip featured={featured} icon={<CalendarDays size={13} />}
+              label={`Hạn: ${formatDate(job.deadline)}`} />
           )}
         </div>
-      </div>
-
-      {/* Meta chips */}
-      <div className="flex flex-wrap gap-2">
-        {job.workLocationCity && (
-          <MetaChip icon={<MapPin size={13} />} label={job.workLocationCity} />
-        )}
-        {job.experienceYears != null && (
-          <MetaChip icon={<Briefcase size={13} />}
-            label={job.experienceYears === 0
-              ? "Chưa có kinh nghiệm"
-              : `${job.experienceYears} năm kinh nghiệm`} />
-        )}
-        {job.vacancies > 0 && (
-          <MetaChip icon={<Users size={13} />} label={`${job.vacancies} vị trí`} />
-        )}
-        {job.deadline && (
-          <MetaChip icon={<CalendarDays size={13} />}
-            label={`Hạn: ${formatDate(job.deadline)}`} />
-        )}
       </div>
     </div>
   );
 }
 
-// ── JobDescriptionCards ───
+// ── JobDescriptionCards ───────────────────────────────────────────────────────
 
 export function JobDescriptionCards({ job }: { job: JobPostDetail }) {
   return (
@@ -241,16 +289,16 @@ export function JobDescriptionCards({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── JobInfoSidebar ────────
+// ── JobInfoSidebar ────────────────────────────────────────────────────────────
 
 export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
   const rows = [
-    { icon: <Briefcase size={14} />,   label: "Hình thức", value: job.jobType ? JOB_TYPE_LABELS[job.jobType]  : "—" },
-    { icon: <Star size={14} />,         label: "Cấp bậc",  value: job.level   ? JOB_LEVEL_LABELS[job.level]   : "—" },
-    { icon: <MapPin size={14} />,       label: "Địa điểm", value: job.workLocationAddress ?? "—" },
-    { icon: <Users size={14} />,        label: "Số lượng", value: `${job.vacancies} người` },
-    { icon: <CalendarDays size={14} />, label: "Hạn nộp",  value: formatDate(job.deadline) },
-    { icon: <Clock size={14} />,        label: "Đăng ngày",value: formatDate(job.publishedAt) },
+    { icon: <Briefcase size={14} />,    label: "Hình thức", value: job.jobType ? JOB_TYPE_LABELS[job.jobType]  : "—" },
+    { icon: <Star size={14} />,          label: "Cấp bậc",  value: job.level   ? JOB_LEVEL_LABELS[job.level]   : "—" },
+    { icon: <MapPin size={14} />,        label: "Địa điểm", value: job.workLocationAddress ?? "—" },
+    { icon: <Users size={14} />,         label: "Số lượng", value: `${job.vacancies} người` },
+    { icon: <CalendarDays size={14} />,  label: "Hạn nộp",  value: formatDate(job.deadline) },
+    { icon: <Clock size={14} />,         label: "Đăng ngày",value: formatDate(job.publishedAt) },
   ];
 
   return (
@@ -271,7 +319,7 @@ export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── CompanyCard ───────────
+// ── CompanyCard ───────────────────────────────────────────────────────────────
 
 import Link from "next/link";
 
@@ -298,7 +346,7 @@ export function CompanyCard({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── AppliedBadge ──────────
+// ── AppliedBadge ──────────────────────────────────────────────────────────────
 
 export function AppliedBadge() {
   return (
@@ -310,7 +358,7 @@ export function AppliedBadge() {
   );
 }
 
-// ── JobDetailSkeleton ─────
+// ── JobDetailSkeleton ─────────────────────────────────────────────────────────
 
 export function JobDetailSkeleton() {
   return (

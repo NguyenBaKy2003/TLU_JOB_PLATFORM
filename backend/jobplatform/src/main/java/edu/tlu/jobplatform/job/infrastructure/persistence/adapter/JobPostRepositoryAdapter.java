@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -143,9 +144,31 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
     }
 
     @Override
-    public Page<JobPost> search(String keyword, String city, String category,
-            String jobType, String level, UUID companyId, Pageable pageable) {
-        return jpaRepo.search(keyword, city, category, jobType, level, companyId, pageable)
+    public Page<JobPost> search(
+            String keyword, String city, String category, UUID companyId,
+            String workLocType, String currency,
+            BigDecimal minSalary, BigDecimal maxSalary,
+            LocalDateTime postedAfter,
+            List<String> jobTypes, List<String> levels,
+            Pageable pageable) {
+
+        String currencyParam = (currency != null && !currency.isBlank())
+                ? currency.toUpperCase()
+                : null;
+
+        String[] jobTypesArr = (jobTypes == null || jobTypes.isEmpty())
+                ? null
+                : jobTypes.toArray(String[]::new);
+        String[] levelsArr = (levels == null || levels.isEmpty())
+                ? null
+                : levels.toArray(String[]::new);
+
+        return jpaRepo.search(
+                keyword, city, category, companyId,
+                workLocType, currencyParam,
+                minSalary, maxSalary, postedAfter,
+                jobTypesArr, levelsArr,
+                pageable)
                 .map(mapper::toDomain);
     }
 }

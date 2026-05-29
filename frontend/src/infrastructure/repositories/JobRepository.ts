@@ -43,9 +43,14 @@ export class JobRepository implements IJobRepository {
     return this.get(this.BASE, { page, size });
   }
 
-  async search(params: JobSearchParams): Promise<PageResponse<JobPost>> {
-    return this.get(`${this.BASE}/search`, params as Record<string, unknown>);
-  }
+async search(params: JobSearchParams): Promise<PageResponse<JobPost>> {
+  const { jobTypes, levels, ...rest } = params;
+  return this.get(`${this.BASE}/search`, {
+    ...rest,
+    ...(jobTypes?.length ? { jobTypes } : {}),
+    ...(levels?.length   ? { levels }   : {}),
+  } as Record<string, unknown>);
+}
 
   async getById(id: string): Promise<JobPostDetail> {
     return this.get(`${this.BASE}/${id}`);
