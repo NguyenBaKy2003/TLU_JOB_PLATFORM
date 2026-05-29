@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import edu.tlu.jobplatform.ai.domain.model.CompetitionRateResult;
 import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
 import edu.tlu.jobplatform.job.application.usecase.candidate.SearchJobsUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
@@ -39,18 +40,28 @@ public class JobPostResponse {
         private final LocalDateTime createdAt;
         private final String rejectionReason;
 
-        /** Dùng cho search/list có company info */
+        /** Summary cạnh tranh — đủ dùng cho list, không nặng như full breakdown */
+        private final CompetitionSummaryDto competition;
+
+        // ── Factory methods ──────────────────────────────────────────────────────
+
+        /** Dùng cho search/list có company info + competition */
         public static JobPostResponse from(SearchJobsUseCase.Result result) {
-                return from(result.job(), result.company());
+                return from(result.job(), result.company(), result.competition());
         }
 
-        /** Dùng cho findPublished listing (không có company) */
+        /** Dùng cho findPublished listing (không có company, không có competition) */
         public static JobPostResponse from(JobPost j) {
-                return from(j, null);
+                return from(j, null, null);
         }
 
-        /** Dùng cho SavedJobs — có company snapshot */
+        /** Dùng cho SavedJobs — có company snapshot, không có competition */
         public static JobPostResponse from(JobPost j, CompanySnapshot c) {
+                return from(j, c, null);
+        }
+
+        /** Base builder — tất cả overload đổ về đây */
+        public static JobPostResponse from(JobPost j, CompanySnapshot c, CompetitionRateResult comp) {
                 return JobPostResponse.builder()
                                 .id(j.getId())
                                 .companyId(j.getCompanyId())
@@ -75,8 +86,47 @@ public class JobPostResponse {
                                 .viewCount(j.getViewCount())
                                 .applicationCount(j.getApplicationCount())
                                 .publishedAt(j.getPublishedAt())
-                                .rejectionReason(j.getRejectionReason())
                                 .createdAt(j.getCreatedAt())
+                                .rejectionReason(j.getRejectionReason())
+                                .competition(comp != null ? CompetitionSummaryDto.from(comp) : null)
                                 .build();
+        }
+
+        // ── Inner DTOs ────────────────────────────────────────────────────────────
+
+        /**
+         * Chỉ chứa thông tin tóm tắt cạnh tranh dùng cho list view.
+         * Detail view dùng full {@link CompetitionRateResult} trong
+         * JobPostDetailResponse.
+         */
+        @Getter
+        @Builder
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public static class CompetitionSummaryDto {
+
+                /** Điểm cạnh tranh tổng hợp 0–100 */
+                private final int score;
+
+                /** LOW / MEDIUM / HIGH / EXTREME */
+                private final String level;
+
+                /** Tổng số ứng viên đã apply */
+                private final int totalApplicants;
+
+                /** Tỷ lệ ứng viên / số lượng tuyển */
+                private final double applicationToHiringRatio;
+
+                /** Lời khuyên ngắn cho candidate */
+                private final String candidateAdvice;
+
+                public static CompetitionSummaryDto from(CompetitionRateResult r) {
+                        return CompetitionSummaryDto.builder()
+                                        .score(r.getCompetitionScore())
+                                        .level(r.getLevel().name())
+                                        .totalApplicants(r.getTotalApplicants())
+                                        .applicationToHiringRatio(r.getApplicationToHiringRatio())
+                                        .candidateAdvice(r.getCandidateAdvice())
+                                        .build();
+                }
         }
 }

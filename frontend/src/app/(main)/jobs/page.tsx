@@ -1,4 +1,3 @@
-// src/app/(main)/jobs/page.tsx
 "use client";
 
 import { Suspense, useState, useEffect, useCallback, useRef } from "react";
@@ -8,20 +7,18 @@ import {
   Briefcase, Sparkles,
 } from "lucide-react";
 import { JobCard }            from "@/presentation/components/jobs/JobCard";
-import type { CompetitionLevel } from "@/presentation/components/jobs/JobCard";
+import type { CompetitionLevel } from "@/domain/models/Job";
 import { JobFilterSidebar, EMPTY_FILTERS } from "@/presentation/components/jobs/JobFilterSidebar";
 import { JobService }         from "@/application/services/JobService";
 import { JobRepository }      from "@/infrastructure/repositories/JobRepository";
-import { AiService }          from "@/application/services/AiService";
-import { AiRepository }       from "@/infrastructure/repositories/AiRepository";
 import type { JobPost, JobSearchParams } from "@/domain/models/Job";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import type { JobFilters }     from "@/presentation/components/jobs/JobFilterSidebar";
 import { Pagination }          from "@/presentation/components/common/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ✅ Xóa: AiService, AiRepository — không cần gọi competition API riêng nữa
 const jobService = new JobService(new JobRepository());
-const aiService  = new AiService(new AiRepository());
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -102,20 +99,12 @@ function JobsPageInner() {
   const [draftKeyword, setDraftKeyword] = useState(initialKeyword);
   const [draftCity,    setDraftCity]    = useState(initialLocation);
 
-  const [competitionMap, setCompetitionMap] = useState<Record<string, CompetitionLevel>>({});
-  const [activeQuick,    setActiveQuick]    = useState<string | null>(null);
+  // ✅ Xóa: competitionMap state — competition đã có trong job object
+  const [activeQuick, setActiveQuick] = useState<string | null>(null);
 
   const isFirst = useRef(true);
 
-  // ── Competition ────────────────────────────────────────────────────────────
-
-  const fetchCompetition = useCallback((jobList: JobPost[]) => {
-    jobList.forEach(job => {
-      aiService.getCompetitionRate(job.id)
-        .then(res => setCompetitionMap(prev => ({ ...prev, [job.id]: res.level })))
-        .catch(() => {});
-    });
-  }, []);
+  // ✅ Xóa: fetchCompetition callback — không cần nữa
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -137,23 +126,21 @@ function JobsPageInner() {
       setJobs(res.content);
       setTotal(res.totalElements);
       setTotalPages(res.totalPages);
-      fetchCompetition(res.content);
+      // ✅ Xóa: fetchCompetition(res.content) — competition đã nằm trong res.content
     } catch (e) {
       setError(extractErrorMessage(e, "Không thể tải danh sách việc làm"));
     } finally {
       setLoading(false);
     }
-  }, [fetchCompetition]);
+  }, []); 
 
   useEffect(() => {
     fetchJobs(initialKeyword, initialLocation, EMPTY_FILTERS, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return; }
     fetchJobs(keyword, city, filters, page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, page]);
 
   useEffect(() => {
@@ -167,7 +154,6 @@ function JobsPageInner() {
     setFilters(EMPTY_FILTERS);
     setActiveQuick(null);
     fetchJobs(kw, loc, EMPTY_FILTERS, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -210,7 +196,6 @@ function JobsPageInner() {
     setActiveQuick(next);
     setPage(0);
 
-    // Map REMOTE → workLocType, others → jobType
     const locTypes = ["REMOTE", "ONSITE", "HYBRID"];
     if (locTypes.includes(value)) {
       const newFilters = { ...filters, workLocType: isActive ? "" : value };
@@ -240,7 +225,6 @@ function JobsPageInner() {
       {/* ── Hero search section ─────────────────────────────────────────────── */}
       <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700
         overflow-hidden">
-        {/* Decorative blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full
             bg-white/5 blur-3xl" />
@@ -249,7 +233,6 @@ function JobsPageInner() {
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 pt-12 pb-10">
-          {/* Eyebrow */}
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
               bg-white/10 border border-white/20 text-white/90 text-xs font-medium">
@@ -266,10 +249,8 @@ function JobsPageInner() {
             Hàng nghìn công việc từ các công ty hàng đầu đang chờ bạn
           </p>
 
-          {/* Search bar */}
           <div className="flex flex-col sm:flex-row rounded-2xl border border-white/20
             bg-white shadow-2xl overflow-hidden max-w-3xl mx-auto">
-            {/* Keyword */}
             <div className="flex items-center gap-2 flex-1 px-4 py-3.5
               border-b sm:border-b-0 sm:border-r border-gray-100">
               <Search size={16} className="text-gray-400 shrink-0" />
@@ -289,7 +270,6 @@ function JobsPageInner() {
               )}
             </div>
 
-            {/* City */}
             <div className="flex items-center gap-2 px-4 py-3.5
               border-b sm:border-b-0 sm:border-r border-gray-100 sm:w-44">
               <MapPin size={16} className="text-gray-400 shrink-0" />
@@ -307,7 +287,6 @@ function JobsPageInner() {
               <ChevronDown size={13} className="text-gray-400 shrink-0" />
             </div>
 
-            {/* Submit */}
             <button
               onClick={handleSearch}
               className="flex items-center justify-center gap-2 px-7 py-3.5
@@ -318,7 +297,6 @@ function JobsPageInner() {
             </button>
           </div>
 
-          {/* Quick filter chips */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             <span className="text-blue-200 text-xs">Phổ biến:</span>
             {QUICK_FILTERS.map(qf => (
@@ -383,7 +361,6 @@ function JobsPageInner() {
       {/* ── Main content ────────────────────────────────────────────────────── */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
-        {/* Mobile: count + filter toggle */}
         <div className="lg:hidden flex items-center justify-between mb-4">
           <p className="text-xs text-gray-500">
             <strong className="text-gray-800">{total.toLocaleString()}</strong> việc làm
@@ -405,7 +382,6 @@ function JobsPageInner() {
           </button>
         </div>
 
-        {/* Mobile filter drawer */}
         <AnimatePresence>
           {mobileFilterOpen && (
             <>
@@ -441,7 +417,6 @@ function JobsPageInner() {
 
         <div className="flex gap-6 items-start">
 
-          {/* Desktop sidebar */}
           <aside className="hidden lg:block shrink-0 sticky top-6">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <JobFilterSidebar
@@ -452,10 +427,7 @@ function JobsPageInner() {
             </div>
           </aside>
 
-          {/* Job list */}
           <div className="flex-1 min-w-0">
-
-            {/* Toolbar */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -485,24 +457,18 @@ function JobsPageInner() {
               </div>
             )}
 
-            {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {loading
                 ? Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
                 : jobs.length === 0
                   ? (
                     <div className="col-span-full py-24 flex flex-col items-center gap-4">
-                      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center
-                        justify-center">
+                      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
                         <Search size={28} className="text-gray-300" />
                       </div>
                       <div className="text-center">
-                        <p className="text-gray-600 font-medium">
-                          Không tìm thấy việc làm phù hợp
-                        </p>
-                        <p className="text-gray-400 text-sm mt-1">
-                          Thử thay đổi từ khóa hoặc bộ lọc
-                        </p>
+                        <p className="text-gray-600 font-medium">Không tìm thấy việc làm phù hợp</p>
+                        <p className="text-gray-400 text-sm mt-1">Thử thay đổi từ khóa hoặc bộ lọc</p>
                       </div>
                       <button
                         onClick={handleClearAll}
@@ -518,13 +484,12 @@ function JobsPageInner() {
                       key={job.id}
                       job={job}
                       onSave={handleSave}
-                      competitionLevel={competitionMap[job.id]}
+                      competitionLevel={job.competition?.level as CompetitionLevel}
                     />
                   ))
               }
             </div>
 
-            {/* Pagination */}
             {!loading && totalPages > 1 && (
               <Pagination
                 currentPage={page + 1}
@@ -542,14 +507,11 @@ function JobsPageInner() {
   );
 }
 
-// ── Export ────────────────────────────────────────────────────────────────────
-
 export default function JobsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent
-          rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <JobsPageInner />

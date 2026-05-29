@@ -99,7 +99,7 @@ function ReviewCard({ review, onEdit, onDelete, deleting }: {
       <div className="flex items-center gap-3">
         <CompanyLogo name={review.companyName ?? "?"} logoUrl={review.companyLogoUrl} />
         <div className="flex-1 min-w-0">
-          <Link href={`/companies/${review.companySlug ?? review.companyId}`}
+          <Link href={`/companies/${ review.companyId}`}
             className="font-semibold text-sm text-gray-900 hover:text-blue-600
               flex items-center gap-1 w-fit truncate">
             {review.companyName ?? "Công ty"}

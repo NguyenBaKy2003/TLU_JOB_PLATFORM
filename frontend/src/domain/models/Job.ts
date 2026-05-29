@@ -12,7 +12,7 @@ export type JobLevel =
   | "MANAGER";
 export type WorkLocType = "ONSITE" | "REMOTE" | "HYBRID";
 export type JobStatus = "DRAFT" | "PUBLISHED" | "CLOSED" | "EXPIRED" | "PENDING_REVIEW" | "REJECTED";
-
+export type CompetitionLevel = "LOW" | "MEDIUM" | "HIGH" | "EXTREME";
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
   FULL_TIME: "Toàn thời gian",
   PART_TIME: "Bán thời gian",
@@ -20,6 +20,13 @@ export const JOB_TYPE_LABELS: Record<JobType, string> = {
   INTERN: "Thực tập",
 };
 
+export interface CompetitionSummary {
+  score: number;
+  level: CompetitionLevel;
+  totalApplicants: number;
+  applicationToHiringRatio: number;
+  candidateAdvice: string;
+}
 export const JOB_LEVEL_LABELS: Record<JobLevel, string> = {
   INTERN: "Thực tập sinh",
   JUNIOR: "Junior",
@@ -101,6 +108,7 @@ export interface JobPost {
   workLocationCity: string | null;
   status: JobStatus;
   viewCount: number;
+    competition?: CompetitionSummary;
    rejectionReason?: string | null; 
   deadline: string;
   publishedAt: string | null;
@@ -115,6 +123,7 @@ export interface JobPostDetail extends JobPost {
   benefits: string | null;
   salaryNegotiable: boolean;
   salaryMin: number | null;
+  
   salaryMax: number | null;
   salaryCurrency: string | null;
   workLocationType: WorkLocType | null;

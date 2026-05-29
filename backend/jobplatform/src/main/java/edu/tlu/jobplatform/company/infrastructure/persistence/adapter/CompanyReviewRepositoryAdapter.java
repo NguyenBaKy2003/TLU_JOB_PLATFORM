@@ -136,13 +136,13 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
             if (existing.isPresent()) {
                 CompanyReviewJpaEntity entity = existing.get();
                 mapper.updateEntity(entity, review);
-                return mapper.toDomain(jpaRepo.save(entity));
+                return mapper.toDomain(jpaRepo.saveAndFlush(entity));
             }
         }
 
         // Create new
         CompanyReviewJpaEntity newEntity = mapper.toNewEntity(review);
-        return mapper.toDomain(jpaRepo.save(newEntity));
+        return mapper.toDomain(jpaRepo.saveAndFlush(newEntity));
     }
 
     // ── Delete ──
@@ -182,5 +182,4 @@ public class CompanyReviewRepositoryAdapter implements CompanyReviewRepository {
     private static boolean isBlank(String s) {
         return s == null || s.isBlank();
     }
-
 }

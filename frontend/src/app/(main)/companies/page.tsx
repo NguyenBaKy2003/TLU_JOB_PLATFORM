@@ -302,7 +302,6 @@ function CompaniesPageInner() {
           </div>
 
           <div className="flex-1 min-w-0">
-
             {/* Toolbar */}
             <div className="bg-white rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm border border-gray-100">
               <div className="flex flex-wrap items-center justify-between gap-3">

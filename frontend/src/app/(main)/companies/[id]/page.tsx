@@ -99,7 +99,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#DFEAFE]">
       {/* Cover */}
       <div className="relative h-44 sm:h-56 bg-gradient-to-r from-slate-700 via-slate-600 to-blue-700 overflow-hidden">
         {company.coverImageUrl && (
@@ -129,7 +129,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       <CompanyTabs active={activeTab} onChange={handleTabChange} />
 
       {/* Content Sections */}
-      <div className=" mx-auto container px-4 py-8 flex flex-col gap-12">
+      <div className="max-w-5xl mx-auto  px-4 py-8 flex flex-col gap-12">
         <section ref={setRef("intro")}>
           <IntroTab company={company} />
         </section>

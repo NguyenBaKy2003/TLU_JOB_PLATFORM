@@ -12,13 +12,17 @@ import java.util.UUID;
 public class Payment {
 
     private final UUID id;
+
     private final UUID companyId;
+
+    private final UUID candidateId;
+
     private final UUID subscriptionId;
     private final String planCode;
     private final BigDecimal amount;
     private final String currency;
-    private final String gateway; // "VNPAY", "MOMO"
-    private final String gatewayOrderCode; // mã gửi lên gateway
+    private final String gateway;
+    private final String gatewayOrderCode;
 
     private PaymentStatus status;
     private String gatewayTransactionId;
@@ -26,6 +30,8 @@ public class Payment {
     private LocalDateTime completedAt;
 
     private final LocalDateTime createdAt;
+
+    // ── Domain behaviours ──────────────────────────────────────────────
 
     public void markSuccess(String transactionId) {
         this.status = PaymentStatus.SUCCESS;
@@ -41,5 +47,13 @@ public class Payment {
 
     public boolean isSuccess() {
         return status == PaymentStatus.SUCCESS;
+    }
+
+    public boolean isCompanyPayment() {
+        return companyId != null;
+    }
+
+    public boolean isCandidatePayment() {
+        return candidateId != null;
     }
 }

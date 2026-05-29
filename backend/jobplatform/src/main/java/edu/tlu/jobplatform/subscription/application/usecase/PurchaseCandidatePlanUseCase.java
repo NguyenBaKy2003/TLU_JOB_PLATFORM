@@ -26,13 +26,13 @@ import java.util.UUID;
  *
  * Flow:
  * 1. Validate plan tồn tại, đang active, không phải gói free
- * 2. Tạo CandidateSubscription PENDING — snapshot quota từ plan
- * 3. Tạo Payment PENDING liên kết subscriptionId
- * 4. Gọi PaymentGateway tạo URL thanh toán
- * 5. Trả về paymentUrl để frontend redirect
+ * 2. Xác định giá (monthly / yearly)
+ * 3. Tạo CandidateSubscription PENDING
+ * 4. Tạo Payment PENDING — gắn candidateId (KHÔNG dùng companyId)
+ * 5. Gọi PaymentGateway tạo URL
+ * 6. Trả về paymentUrl để frontend redirect
  *
- * Tái sử dụng PaymentGatewayPort và PaymentRepository từ Company module —
- * bảng payments dùng chung, phân biệt bằng planCode prefix.
+ * OrderCode prefix "CP-" để PaymentController phân biệt với Company ("JP-").
  */
 @Slf4j
 @Service
@@ -53,8 +53,8 @@ public class PurchaseCandidatePlanUseCase {
 
                 // 1. Validate plan
                 CandidateSubscriptionPlan plan = planRepository.findById(cmd.planId())
-                                .orElseThrow(() -> ResourceNotFoundException.of("CandidateSubscriptionPlan",
-                                                cmd.planId()));
+                                .orElseThrow(() -> ResourceNotFoundException.of(
+                                                "CandidateSubscriptionPlan", cmd.planId()));
 
                 if (!plan.isActive())
                         throw new BusinessRuleException(
@@ -64,7 +64,7 @@ public class PurchaseCandidatePlanUseCase {
                         throw new BusinessRuleException(
                                         "Gói FREE_CANDIDATE miễn phí không cần thanh toán.", "PLAN_IS_FREE");
 
-                // 2. Xác định giá theo loại (monthly/yearly)
+                // 2. Xác định giá
                 BigDecimal amount = cmd.yearly() ? plan.getPriceYearly() : plan.getPriceMonthly();
                 if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
                         throw new BusinessRuleException(
@@ -72,15 +72,16 @@ public class PurchaseCandidatePlanUseCase {
 
                 String orderCode = generateOrderCode();
 
-                // 3. Tạo và lưu subscription PENDING
+                // 3. Tạo subscription PENDING
                 CandidateSubscription subscription = domainService.createPending(
                                 cmd.candidateId(), plan, null, cmd.yearly());
                 CandidateSubscription saved = subscriptionRepository.save(subscription);
 
-                // 4. Tạo Payment liên kết subscriptionId đã persist
+                // 4. Tạo Payment PENDING — gắn candidateId, KHÔNG set companyId
                 Payment payment = Payment.builder()
                                 .id(UUID.randomUUID())
-                                .companyId(cmd.candidateId()) // reuse companyId field cho candidateId
+                                .candidateId(cmd.candidateId()) // candidate payment
+                                .companyId(null)
                                 .subscriptionId(saved.getId())
                                 .planCode(plan.getCode())
                                 .amount(amount)
@@ -111,7 +112,7 @@ public class PurchaseCandidatePlanUseCase {
         }
 
         /**
-         * @param candidateId userId của Candidate (không phải companyId)
+         * @param candidateId userId của Candidate
          * @param planId      id của CandidateSubscriptionPlan
          * @param yearly      true = gói năm, false = gói tháng
          */

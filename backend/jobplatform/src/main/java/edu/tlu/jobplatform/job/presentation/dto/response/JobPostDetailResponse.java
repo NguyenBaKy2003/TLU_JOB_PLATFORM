@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import edu.tlu.jobplatform.ai.domain.model.CompetitionRateResult;
 import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
 import edu.tlu.jobplatform.job.application.usecase.candidate.GetJobDetailUseCase;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
@@ -62,17 +63,29 @@ public class JobPostDetailResponse {
         private final String companySize;
         private final String companyWebsite;
 
-        /** Dùng cho GetJobDetailUseCase trả Result có company */
+        /**
+         * Full competition data — detail view trả toàn bộ gồm breakdown +
+         * employerInsight.
+         * List view chỉ dùng CompetitionSummaryDto trong JobPostResponse.
+         */
+        private final CompetitionRateResult competition;
+
+        // ── Factory methods ──────────────────────────────────────────────────────
+
+        /** Dùng cho GetJobDetailUseCase trả Result có company + competition */
         public static JobPostDetailResponse from(GetJobDetailUseCase.Result result) {
-                return from(result.job(), result.company());
+                return from(result.job(), result.company(), result.competition());
         }
 
+        /** Fallback không có company, không có competition */
         public static JobPostDetailResponse from(JobPost job) {
-                return from(job, null);
+                return from(job, null, null);
         }
 
-        private static JobPostDetailResponse from(JobPost j, CompanySnapshot c) {
-                List<SkillDto> skills = j.getSkills() == null ? List.of()
+        /** Base builder — tất cả overload đổ về đây */
+        private static JobPostDetailResponse from(JobPost j, CompanySnapshot c, CompetitionRateResult comp) {
+                List<SkillDto> skills = j.getSkills() == null
+                                ? List.of()
                                 : j.getSkills().stream().map(SkillDto::from).toList();
 
                 return JobPostDetailResponse.builder()
@@ -89,11 +102,15 @@ public class JobPostDetailResponse {
                                 .category(j.getCategory())
                                 .salaryDisplay(j.getSalary() != null ? j.getSalary().display() : null)
                                 .salaryNegotiable(j.getSalary() != null ? j.getSalary().isNegotiable() : null)
-                                .workLocationType(j.getWorkLocation() != null ? j.getWorkLocation().getType().name()
+                                .workLocationType(j.getWorkLocation() != null
+                                                ? j.getWorkLocation().getType().name()
                                                 : null)
-                                .workLocationCity(j.getWorkLocation() != null ? j.getWorkLocation().getCity() : null)
-                                .workLocationAddress(
-                                                j.getWorkLocation() != null ? j.getWorkLocation().getAddress() : null)
+                                .workLocationCity(j.getWorkLocation() != null
+                                                ? j.getWorkLocation().getCity()
+                                                : null)
+                                .workLocationAddress(j.getWorkLocation() != null
+                                                ? j.getWorkLocation().getAddress()
+                                                : null)
                                 .experienceYears(j.getExperienceYears())
                                 .vacancies(j.getVacancies())
                                 .deadline(j.getDeadline())
@@ -111,8 +128,12 @@ public class JobPostDetailResponse {
                                 .companyIndustry(c != null ? c.industry() : null)
                                 .companySize(c != null ? c.size() : null)
                                 .companyWebsite(c != null ? c.website() : null)
+                                // Competition — full object, FE tự lấy breakdown / insight cần thiết
+                                .competition(comp)
                                 .build();
         }
+
+        // ── Inner DTOs ────────────────────────────────────────────────────────────
 
         @Getter
         @Builder

@@ -1,9 +1,9 @@
 package edu.tlu.jobplatform.payment.presentation;
 
+import edu.tlu.jobplatform.payment.application.usecase.admin.AdminPaymentUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentStatsResponse;
-import edu.tlu.jobplatform.payment.usecase.admin.AdminPaymentUseCase;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +28,7 @@ import java.util.UUID;
  * GET /api/v1/admin/payments/stats — Thống kê doanh thu
  * GET /api/v1/admin/payments/{id} — Chi tiết
  * GET /api/v1/admin/payments/company/{companyId} — Giao dịch theo công ty
+ * GET /api/v1/admin/payments/candidate/{candidateId} — Giao dịch theo ứng viên
  * POST /api/v1/admin/payments/{id}/refund — Hoàn tiền (SUPER_ADMIN)
  */
 @RestController
@@ -40,10 +41,11 @@ public class AdminPaymentController {
 
         private final AdminPaymentUseCase adminPaymentUseCase;
 
-        @Operation(summary = "Tìm kiếm giao dịch — lọc theo công ty, status, gateway, ngày")
+        @Operation(summary = "Tìm kiếm giao dịch — lọc theo companyId, candidateId, status, gateway, ngày")
         @GetMapping
         public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> search(
                         @RequestParam(required = false) UUID companyId,
+                        @RequestParam(required = false) UUID candidateId,
                         @RequestParam(required = false) PaymentStatus status,
                         @RequestParam(required = false) String gateway,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
@@ -53,7 +55,7 @@ public class AdminPaymentController {
 
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
                 var result = adminPaymentUseCase
-                                .search(companyId, status, gateway, fromDate, toDate, pageable)
+                                .search(companyId, candidateId, status, gateway, fromDate, toDate, pageable)
                                 .map(PaymentResponse::from);
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
@@ -98,9 +100,23 @@ public class AdminPaymentController {
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
-        @Operation(summary = "Hoàn tiền giao dịch — chỉ ADMIN")
+        @Operation(summary = "Tất cả giao dịch của 1 ứng viên")
+        @GetMapping("/candidate/{candidateId}")
+        public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getByCandidate(
+                        @PathVariable UUID candidateId,
+                        @RequestParam(required = false) PaymentStatus status,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
+
+                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+                var result = adminPaymentUseCase.getByCandidate(candidateId, status, pageable)
+                                .map(PaymentResponse::from);
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+        }
+
+        @Operation(summary = "Hoàn tiền giao dịch — chỉ SUPER_ADMIN")
         @PostMapping("/{id}/refund")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole('SUPER_ADMIN')")
         public ResponseEntity<ApiResponse<PaymentResponse>> refund(
                         @PathVariable UUID id,
                         @RequestParam @NotBlank String reason) {
