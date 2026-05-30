@@ -7,6 +7,8 @@ import edu.tlu.jobplatform.chatbot.presentation.dto.SendMessageRequest;
 import edu.tlu.jobplatform.chatbot.usecase.DeleteSessionUseCase;
 import edu.tlu.jobplatform.chatbot.usecase.GetChatHistoryUseCase;
 import edu.tlu.jobplatform.chatbot.usecase.SendMessageAIUseCase;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -44,6 +46,7 @@ public class ChatbotController {
 
     @Operation(summary = "Gửi tin nhắn cho AI Career Advisor")
     @PostMapping("/messages")
+    @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
             @Valid @RequestBody SendMessageRequest req) {
 
@@ -58,6 +61,7 @@ public class ChatbotController {
 
     @Operation(summary = "Danh sách phiên chat")
     @GetMapping("/sessions")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<ChatSessionResponse>>> listSessions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -72,6 +76,7 @@ public class ChatbotController {
 
     @Operation(summary = "Chi tiết phiên chat (kèm messages)")
     @GetMapping("/sessions/{id}")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<ChatSessionResponse>> getSession(@PathVariable UUID id) {
         UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
         ChatSession session = historyUseCase.getSession(id, userId);
@@ -80,6 +85,7 @@ public class ChatbotController {
 
     @Operation(summary = "Xóa phiên chat")
     @DeleteMapping("/sessions/{id}")
+    @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Void>> deleteSession(@PathVariable UUID id) {
         UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
         deleteSessionUseCase.execute(id, userId);

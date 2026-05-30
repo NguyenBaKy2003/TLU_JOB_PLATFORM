@@ -2,6 +2,8 @@ package edu.tlu.jobplatform.analytics.presentation;
 
 import edu.tlu.jobplatform.analytics.application.usecase.admin.*;
 import edu.tlu.jobplatform.analytics.presentation.dto.response.*;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +34,7 @@ public class AdminAnalyticsController {
 
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
+    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
     @Operation(summary = "Lấy tổng quan dashboard Admin", description = "Trả về tất cả số liệu platform-wide: users, jobs, revenue, streams, moderation queue")
     public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
         AdminDashboardResponse data = AdminDashboardResponse.from(getDashboard.execute());
@@ -43,6 +46,7 @@ public class AdminAnalyticsController {
     @GetMapping("/users/growth")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Biểu đồ tăng trưởng người dùng theo tháng")
+    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<TimeSeriesResponse>> getUserGrowth(
             @RequestParam(defaultValue = "12") int months) {
 
@@ -56,6 +60,7 @@ public class AdminAnalyticsController {
     @GetMapping("/revenue")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Báo cáo doanh thu theo tháng")
+    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<TimeSeriesResponse>> getRevenue(
             @RequestParam(defaultValue = "12") int months) {
 
@@ -68,6 +73,7 @@ public class AdminAnalyticsController {
 
     @GetMapping("/companies/top")
     @PreAuthorize("hasRole('ADMIN')")
+    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
     @Operation(summary = "Bảng xếp hạng công ty theo revenue và lượng tuyển dụng")
     public ResponseEntity<ApiResponse<TopCompaniesResponse>> getTopCompanies(
             @RequestParam(defaultValue = "10") int limit) {
@@ -81,6 +87,7 @@ public class AdminAnalyticsController {
 
     @GetMapping("/livestream")
     @PreAuthorize("hasRole('ADMIN')")
+    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
     @Operation(summary = "Thống kê livestream toàn platform theo tháng")
     public ResponseEntity<ApiResponse<TimeSeriesResponse>> getLivestreamStats(
             @RequestParam(defaultValue = "6") int months) {

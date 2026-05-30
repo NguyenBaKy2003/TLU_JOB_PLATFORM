@@ -182,31 +182,202 @@ logging:
     org.hibernate.type.descriptor.sql: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+# application.yml
 rate-limit:
   policies:
-    register-otp:
-      max: 5
-      window: 600
-      scope: IP
-    verify-email:
-      max: 10
-      window: 300
-      scope: IP
+    # ══════════════════════════════════════════
+    # AUTH
+    # ══════════════════════════════════════════
     login:
-      max: 10
-      window: 60
+      max: 5
+      window: 60 # 5 lần/phút/IP — brute-force credentials
       scope: IP
+
+    register-otp:
+      max: 3
+      window: 300 # 3 lần/5 phút/IP — gửi OTP đăng ký
+      scope: IP
+
+    verify-email:
+      max: 5
+      window: 600 # 5 lần/10 phút/IP — brute-force OTP 6 số
+      scope: IP
+
+    forgot-password:
+      max: 3
+      window: 900 # 3 lần/15 phút/IP — tránh spam email
+      scope: IP
+
+    reset-password:
+      max: 5
+      window: 900 # 5 lần/15 phút/IP — brute-force reset token
+      scope: IP
+
+    token-refresh:
+      max: 30
+      window: 60 # 30 lần/phút/IP — routine nhưng cần giới hạn
+      scope: IP
+
+    admin-setup:
+      max: 3
+      window: 3600 # 3 lần/giờ/IP — one-time bootstrap, sai là alert
+      scope: IP
+
+    # ══════════════════════════════════════════
+    # PUBLIC READ
+    # ══════════════════════════════════════════
+    public-read:
+      max: 60
+      window: 60 # 60 lần/phút/IP — chặn crawler/bot
+      scope: IP
+
+    public-analytics:
+      max: 30
+      window: 60 # 30 lần/phút/IP — competition-rate, pass-probability
+      scope: IP
+
+    # ══════════════════════════════════════════
+    # CANDIDATE
+    # ══════════════════════════════════════════
+    candidate-read:
+      max: 60
+      window: 60 # 60 lần/phút/user — list, detail, check endpoints
+      scope: USER
+
+    candidate-write:
+      max: 20
+      window: 60 # 20 lần/phút/user — update profile, withdraw, toggle save
+      scope: USER
+
+    apply-job:
+      max: 10
+      window: 60 # 10 lần/phút/user — chống spam nộp đơn hàng loạt
+      scope: USER
+
+    review-write:
+      max: 5
+      window: 3600 # 5 lần/giờ/user — chống spam review công ty
+      scope: USER
+
+    cv-upload:
+      max: 10
+      window: 3600 # 10 lần/giờ/user — S3 upload (CV, avatar, logo, cover)
+      scope: USER
+
+    cv-stream:
+      max: 20
+      window: 60 # 20 lần/phút/user — file streaming bandwidth
+      scope: USER
+
+    cv-export:
+      max: 10
+      window: 3600 # 10 lần/giờ/user — PDF render + S3 write
+      scope: USER
+
+    cv-boost:
+      max: 5
+      window: 86400 # 5 lần/ngày/user — liên quan quota subscription
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # EMPLOYER
+    # ══════════════════════════════════════════
+    employer-read:
+      max: 60
+      window: 60 # 60 lần/phút/user
+      scope: USER
+
+    employer-write:
+      max: 30
+      window: 60 # 30 lần/phút/user — create/update job, company, application
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # ADMIN
+    # ══════════════════════════════════════════
+    admin-read:
+      max: 200
+      window: 60 # 200 lần/phút/user — admin cần query liên tục
+      scope: USER
+
+    admin-write:
+      max: 60
+      window: 60 # 60 lần/phút/user — approve, reject, update
+      scope: USER
+
+    admin-sensitive:
+      max: 10
+      window: 60 # 10 lần/phút/user — override status, revoke, refund, bulk cancel
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # ANALYTICS
+    # ══════════════════════════════════════════
+    analytics-employer:
+      max: 30
+      window: 60 # 30 lần/phút/user — cache TTL 2 phút, không cần gọi nhiều
+      scope: USER
+
+    analytics-admin:
+      max: 60
+      window: 60 # 60 lần/phút/user — admin monitor thường xuyên, TTL 5 phút
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # AI
+    # ══════════════════════════════════════════
+    ai-heavy:
+      max: 10
+      window: 60 # 10 lần/phút/user — LLM calls (optimize JD, rescore, chatbot, ai-optimize CV)
+      scope: USER
+
+    ai-recommend:
+      max: 30
+      window: 60 # 30 lần/phút/user — recommendations, pass-probability
+      scope: USER
+
+    ai-autocomplete:
+      max: 60
+      window: 60 # 60 lần/phút/IP — public, cần phản hồi nhanh, chặn bot
+      scope: IP
+
+    ai-track:
+      max: 120
+      window: 60 # 120 lần/phút/user — behavioral tracking events
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # MESSAGING
+    # ══════════════════════════════════════════
     send-message:
       max: 30
-      window: 60
+      window: 60 # 30 lần/phút/user — REST + WebSocket chat dùng chung bucket
       scope: USER
-    job-search:
-      max: 100
-      window: 60
-      scope: IP
-    create-job-post:
-      max: 10
-      window: 3600
+
+    # ══════════════════════════════════════════
+    # LIVESTREAM
+    # ══════════════════════════════════════════
+    stream-join:
+      max: 5
+      window: 60 # 5 lần/phút/user — LiveKit token generation, chặn reconnect storm
+      scope: USER
+
+    stream-interact:
+      max: 30
+      window: 60 # 30 lần/phút/user — chat, Q&A, poll, spotlight (WS + REST dùng chung)
+      scope: USER
+
+    stream-lifecycle:
+      max: 5
+      window: 60 # 5 lần/phút/user — start/end stream trigger side effects nặng
+      scope: USER
+
+    # ══════════════════════════════════════════
+    # PAYMENT / SUBSCRIPTION
+    # ══════════════════════════════════════════
+    purchase:
+      max: 3
+      window: 600 # 3 lần/10 phút/user — tạo payment order, tránh order trùng
       scope: USER
 payment:
   vnpay:

@@ -1,10 +1,13 @@
 package edu.tlu.jobplatform.candidate.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.candidate.application.usecase.cv.*;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateCV;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.CVUploadRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.CVResponse;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.UnifiedCVResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
@@ -48,6 +51,7 @@ public class CandidateCVController {
 
         @Operation(summary = "Danh sách tất cả CV (uploaded + online)")
         @GetMapping
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<UnifiedCVResponse>>> listMyCVs(
                         @CurrentUser UUID userId) {
 
@@ -67,6 +71,7 @@ public class CandidateCVController {
         // ── POST /api/v1/candidate/cv/upload ──
         @Operation(summary = "CV có thể dùng để nộp đơn (uploaded + online PUBLISHED)")
         @GetMapping("/applicable")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<ListApplicableCVsUseCase.ApplicableCV>>> listApplicableCVs(
                         @CurrentUser UUID userId) {
 
@@ -84,6 +89,8 @@ public class CandidateCVController {
                         """)
         @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, encoding = @Encoding(name = "data", contentType = "application/json")))
         @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPLOAD_CV", resourceType = "CandidateCV")
         public ResponseEntity<ApiResponse<CVResponse>> uploadCV(
                         @CurrentUser UUID userId,
                         @RequestPart("file") MultipartFile file,
@@ -124,6 +131,7 @@ public class CandidateCVController {
                         Browser sẽ hiển thị PDF trực tiếp trong tab mới thay vì tải xuống.
                         """)
         @GetMapping("/{cvId}/view")
+        @RateLimit(policy = "cv-stream", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<InputStreamResource> viewCV(
                         @CurrentUser UUID userId,
                         @PathVariable UUID cvId) {
@@ -145,6 +153,7 @@ public class CandidateCVController {
                         Browser sẽ tự động tải file xuống máy.
                         """)
         @GetMapping("/{cvId}/download")
+        @RateLimit(policy = "cv-stream", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<InputStreamResource> downloadCV(
                         @CurrentUser UUID userId,
                         @PathVariable UUID cvId) {
@@ -166,6 +175,8 @@ public class CandidateCVController {
                         Chỉ có 1 CV primary tại một thời điểm.
                         """)
         @PatchMapping("/{cvId}/primary")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_SET_PRIMARY_CV", resourceType = "CandidateCV")
         public ResponseEntity<ApiResponse<Void>> setPrimary(
                         @CurrentUser UUID userId,
                         @PathVariable UUID cvId) {
@@ -181,6 +192,8 @@ public class CandidateCVController {
                         Nếu xóa CV primary → CV mới nhất tự động trở thành primary.
                         """)
         @DeleteMapping("/{cvId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DELETE_CV", resourceType = "CandidateCV")
         public ResponseEntity<ApiResponse<Void>> deleteCV(
                         @CurrentUser UUID userId,
                         @PathVariable UUID cvId) {

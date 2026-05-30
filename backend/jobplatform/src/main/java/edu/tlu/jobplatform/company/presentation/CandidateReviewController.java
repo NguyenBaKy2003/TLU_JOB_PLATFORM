@@ -10,7 +10,6 @@ import edu.tlu.jobplatform.company.presentation.dto.request.CreateReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.request.UpdateReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.ReviewResponse;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
-import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

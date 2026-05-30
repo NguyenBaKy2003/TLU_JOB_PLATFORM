@@ -1,11 +1,11 @@
 package edu.tlu.jobplatform.auth.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.auth.application.usecase.*;
 import edu.tlu.jobplatform.auth.domain.model.AuthToken;
 import edu.tlu.jobplatform.auth.presentation.dto.*;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
-import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,6 +86,8 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "OTP sai / hết hạn / email không tồn tại")
         })
         @PostMapping("/verify-email")
+        @RateLimit(policy = "verify-email", scope = RateLimitPolicy.Scope.IP)
+        @Loggable(action = "USER_VERIFY_EMAIL", resourceType = "User")
         public ResponseEntity<ApiResponse<TokenResponse>> verifyEmail(
                         @Valid @RequestBody VerifyEmailRequest req) {
 
@@ -154,6 +156,7 @@ public class AuthController {
 
         @Operation(summary = "Làm mới access token", description = "Dùng refresh token để lấy access token mới. Không cần đăng nhập lại.")
         @PostMapping("/refresh")
+        @RateLimit(policy = "token-refresh", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<TokenResponse>> refresh(
                         @RequestParam String refreshToken) {
 
@@ -176,6 +179,7 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Email sai định dạng")
         })
         @PostMapping("/forgot-password")
+        @RateLimit(policy = "forgot-password", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<Void>> forgotPassword(
                         @Valid @RequestBody ForgotPasswordRequest req) {
 
@@ -206,6 +210,7 @@ public class AuthController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Token hết hạn / không hợp lệ / mật khẩu yếu / trùng mật khẩu cũ")
         })
         @PostMapping("/reset-password")
+        @RateLimit(policy = "reset-password", scope = RateLimitPolicy.Scope.IP)
         @Loggable(action = "PASSWORD_RESET", resourceType = "User")
         public ResponseEntity<ApiResponse<Void>> resetPassword(
                         @Valid @RequestBody ResetPasswordRequest req) {
@@ -225,6 +230,7 @@ public class AuthController {
         @Operation(summary = "Đăng xuất thiết bị hiện tại")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/logout")
+        @Loggable(action = "USER_LOGOUT", resourceType = "User")
         public ResponseEntity<ApiResponse<Void>> logout(
                         @RequestHeader("Authorization") String authHeader) {
 
@@ -237,6 +243,7 @@ public class AuthController {
         @Operation(summary = "Đăng xuất tất cả thiết bị", description = "Revoke toàn bộ refresh token — đăng xuất mọi thiết bị đang đăng nhập.")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/logout-all")
+        @Loggable(action = "USER_LOGOUT_ALL", resourceType = "User")
         public ResponseEntity<ApiResponse<Void>> logoutAll(
                         @RequestHeader("Authorization") String authHeader) {
 

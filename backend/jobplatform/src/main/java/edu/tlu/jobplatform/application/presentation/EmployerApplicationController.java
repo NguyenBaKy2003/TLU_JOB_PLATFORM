@@ -15,7 +15,10 @@ import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResp
 import edu.tlu.jobplatform.application.usecase.employer.GetApplicationsForJobUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.ScheduleInterviewUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.UpdateApplicationStatusUseCase;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -51,6 +54,7 @@ public class EmployerApplicationController {
         @Operation(summary = "Danh sách đơn ứng tuyển của bài đăng")
         @GetMapping("/api/v1/jobs/{jobPostId}/applications")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getApplicationsForJob(
                         @PathVariable UUID jobPostId,
                         @RequestParam(required = false) ApplicationStatus status,
@@ -72,8 +76,10 @@ public class EmployerApplicationController {
         }
 
         @Operation(summary = "Chi tiết đơn ứng tuyển (kèm lịch sử trạng thái)")
+
         @GetMapping("/api/v1/employer/applications/{id}")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getDetail(@PathVariable UUID id) {
                 Application app = applicationRepo.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
@@ -88,6 +94,8 @@ public class EmployerApplicationController {
         @Operation(summary = "Cập nhật trạng thái đơn ứng tuyển")
         @PatchMapping("/api/v1/employer/applications/{id}/status")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_APPLICATION_STATUS", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> updateStatus(
                         @PathVariable UUID id,
                         @Valid @RequestBody UpdateStatusRequest req) {
@@ -100,6 +108,8 @@ public class EmployerApplicationController {
         @Operation(summary = "Lên lịch phỏng vấn")
         @PostMapping("/api/v1/employer/applications/{id}/schedule-interview")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_SCHEDULE_INTERVIEW", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> scheduleInterview(
                         @PathVariable UUID id,
                         @Valid @RequestBody ScheduleInterviewRequest req) {
@@ -115,6 +125,7 @@ public class EmployerApplicationController {
         @Operation(summary = "Lấy ra toàn bộ đơn ứng tuyển của công ty")
         @GetMapping("/api/v1/employer/applications")
         @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> getAllApplicationsForCompany(
                         @RequestParam(required = false) ApplicationStatus status,
                         @RequestParam(defaultValue = "0") int page,

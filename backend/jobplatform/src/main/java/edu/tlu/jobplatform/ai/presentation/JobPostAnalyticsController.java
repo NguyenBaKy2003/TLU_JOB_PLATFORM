@@ -4,6 +4,8 @@ import edu.tlu.jobplatform.ai.application.usecase.CalculateCompetitionRateUseCas
 import edu.tlu.jobplatform.ai.application.usecase.CalculatePassProbabilityUseCase;
 import edu.tlu.jobplatform.ai.domain.model.CompetitionRateResult;
 import edu.tlu.jobplatform.ai.domain.model.PassProbabilityResult;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +28,7 @@ public class JobPostAnalyticsController {
 
     @Operation(summary = "Tính mức độ cạnh tranh của job")
     @GetMapping("/{id}/competition-rate")
+    @RateLimit(policy = "public-analytics", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<CompetitionRateResult>> getCompetitionRate(
             @PathVariable UUID id) {
 
@@ -36,6 +39,7 @@ public class JobPostAnalyticsController {
     @Operation(summary = "Tính xác suất đỗ job cho candidate")
     @GetMapping("/{jobId}/pass-probability")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "ai-recommend", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PassProbabilityResult>> passProbability(
             @PathVariable UUID jobId) {
 

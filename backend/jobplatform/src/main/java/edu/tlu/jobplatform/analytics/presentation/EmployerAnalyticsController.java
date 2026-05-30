@@ -9,6 +9,8 @@ import edu.tlu.jobplatform.analytics.presentation.dto.response.EmployerDashboard
 import edu.tlu.jobplatform.analytics.presentation.dto.response.JobPerformanceResponse;
 import edu.tlu.jobplatform.analytics.infrastructure.query.EmployerAnalyticsQueryService;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -45,6 +47,7 @@ public class EmployerAnalyticsController {
         @GetMapping("/dashboard")
         @PreAuthorize("hasRole('EMPLOYER')")
         @SecurityRequirement(name = "bearerAuth")
+        @RateLimit(policy = "analytics-employer", scope = RateLimitPolicy.Scope.USER)
         @Operation(summary = "Tổng quan dashboard Employer", description = "Trả về số liệu jobs, applications, quota và livestream của công ty")
         public ResponseEntity<ApiResponse<EmployerDashboardResponse>> getDashboard() {
                 UUID companyId = resolveCompanyId();
@@ -66,6 +69,7 @@ public class EmployerAnalyticsController {
         @GetMapping("/trend")
         @PreAuthorize("hasRole('EMPLOYER')")
         @SecurityRequirement(name = "bearerAuth")
+        @RateLimit(policy = "analytics-employer", scope = RateLimitPolicy.Scope.USER)
         @Operation(summary = "Xu hướng ứng tuyển & lượt xem theo tháng", description = "Trả về applications và views theo từng tháng — dùng cho area chart trên Employer Dashboard")
         public ResponseEntity<ApiResponse<ApplicationTrendResponse>> getTrend(
                         @RequestParam(defaultValue = "12") int months) {
@@ -84,6 +88,7 @@ public class EmployerAnalyticsController {
         @GetMapping("/jobs/performance")
         @PreAuthorize("hasRole('EMPLOYER')")
         @SecurityRequirement(name = "bearerAuth")
+        @RateLimit(policy = "analytics-employer", scope = RateLimitPolicy.Scope.USER)
         @Operation(summary = "Hiệu suất từng job post", description = "Gồm: lượt xem, phễu ứng tuyển (submitted → hired), conversion rate và deadline còn lại")
         public ResponseEntity<ApiResponse<JobPerformanceResponse>> getJobPerformance() {
                 UUID companyId = resolveCompanyId();
@@ -99,6 +104,7 @@ public class EmployerAnalyticsController {
         @GetMapping("/applications/funnel")
         @PreAuthorize("hasRole('EMPLOYER')")
         @SecurityRequirement(name = "bearerAuth")
+        @RateLimit(policy = "analytics-employer", scope = RateLimitPolicy.Scope.USER)
         @Operation(summary = "Phễu ứng tuyển toàn công ty", description = "Tổng hợp tất cả job posts: submitted → hired, kèm conversion rate và screening pass rate")
         public ResponseEntity<ApiResponse<ApplicationFunnelResponse>> getCompanyFunnel() {
                 UUID companyId = resolveCompanyId();
@@ -113,6 +119,7 @@ public class EmployerAnalyticsController {
         @GetMapping("/applications/funnel/{jobPostId}")
         @PreAuthorize("hasRole('EMPLOYER')")
         @SecurityRequirement(name = "bearerAuth")
+        @RateLimit(policy = "analytics-employer", scope = RateLimitPolicy.Scope.USER)
         @Operation(summary = "Phễu ứng tuyển theo job post", description = "Phễu chi tiết của một job post: submitted → hired, kèm conversion rate")
         public ResponseEntity<ApiResponse<ApplicationFunnelResponse>> getJobFunnel(
                         @PathVariable UUID jobPostId) {

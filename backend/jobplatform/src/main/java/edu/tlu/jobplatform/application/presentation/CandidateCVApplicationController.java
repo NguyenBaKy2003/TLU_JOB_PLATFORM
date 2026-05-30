@@ -12,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import edu.tlu.jobplatform.application.usecase.candidate.ViewOwnApplicationCVUseCase;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ public class CandidateCVApplicationController {
 
     @Operation(summary = "Candidate xem CV đã nộp (inline)")
     @GetMapping("/{applicationId}/cv/view")
+    @RateLimit(policy = "cv-stream", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<InputStreamResource> viewApplicationCV(
             @PathVariable UUID applicationId) {
 
@@ -50,6 +53,7 @@ public class CandidateCVApplicationController {
 
     @Operation(summary = "Candidate tải CV đã nộp về máy (attachment)")
     @GetMapping("/{applicationId}/cv/download")
+    @RateLimit(policy = "cv-stream", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<InputStreamResource> downloadApplicationCV(
             @PathVariable UUID applicationId) {
 

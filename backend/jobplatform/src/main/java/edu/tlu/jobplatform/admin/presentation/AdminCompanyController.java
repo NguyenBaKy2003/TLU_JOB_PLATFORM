@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminCompanyUseCase;
 import edu.tlu.jobplatform.admin.presentation.dto.request.ReasonRequest;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyDocumentRepository;
@@ -10,7 +11,6 @@ import edu.tlu.jobplatform.company.domain.repository.CompanyTeamMemberRepository
 import edu.tlu.jobplatform.company.presentation.dto.response.CompanyResponse;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
-import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;

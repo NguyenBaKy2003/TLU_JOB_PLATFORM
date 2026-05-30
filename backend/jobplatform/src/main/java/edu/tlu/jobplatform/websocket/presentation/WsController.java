@@ -33,7 +33,6 @@ public class WsController {
                 request.conversationId(),
                 request.content(),
                 request.type()));
-        // Kết quả được push lại qua MessageSentEventHandler — không trả trực tiếp
     }
 
     /**
@@ -43,6 +42,5 @@ public class WsController {
     @MessageMapping("/chat.read")
     public void handleMarkRead(@Payload UUID conversationId, Principal principal) {
         log.debug("WS mark read: userId={} conversation={}", principal.getName(), conversationId);
-        // gọi MarkReadUseCase nếu cần
     }
 }
