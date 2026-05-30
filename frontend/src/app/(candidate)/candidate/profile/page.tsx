@@ -31,8 +31,12 @@ import {
 import { SectionKey }            from "@/presentation/components/profile/types/SectionKey";
 import { extractErrorMessage }   from "@/lib/extractErrorMessage";
 import { useToast }              from "@/presentation/components/ui/toast";
+import { CvService }           from "@/application/services/CvService";
+import { CvRepository }        from "@/infrastructure/repositories/CvRepository";
+import { useRouter }           from "next/navigation";
 
 const service = new CandidateService(new CandidateRepository());
+const cvService = new CvService(new CvRepository());
 
 function calcCompletion(p: CandidateProfile) {
   const checks = [
@@ -177,7 +181,7 @@ export default function ProfilePage() {
     setSectionErrors((p) => ({ ...p, [s]: extractErrorMessage(e) }));
   const clearSectionError = (s: SectionKey) =>
     setSectionErrors((p) => ({ ...p, [s]: undefined }));
-
+const router = useRouter();
   const loadProfile = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -198,6 +202,28 @@ export default function ProfilePage() {
     hasLoaded.current = true;
     loadProfile();
   }, [loadProfile]);
+
+  const handleEditOnlineCV = useCallback((cvId: string) => {
+  router.push(`/cv/${cvId}/edit`);
+}, [router]);
+
+const handleViewOnlineCV = useCallback(async (cv: CandidateCV) => {
+  if ((cv as any).id && (cv as any).status === "PUBLISHED") {
+    window.open(`/cv/${(cv as any).id}/edit`, "_blank");
+    return;
+  }
+  // Fallback: gọi previewHtml rồi mở blob
+  try {
+    const html = await cvService.previewHtml(cv.id);
+    const blob = new Blob([html], { type: "text/html" });
+    const url  = URL.createObjectURL(blob);
+    const tab  = window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    if (!tab) toast.error("Bị chặn popup", "Vui lòng cho phép popup cho trang này.");
+  } catch (e) {
+    toast.error("Không thể xem trước", extractErrorMessage(e));
+  }
+}, [toast]);
 
   // ── Boost handler ──────────────────────────────────────────────────────────
 
@@ -418,16 +444,18 @@ export default function ProfilePage() {
           onBoost={handleBoost}
         />
         <CVUploadCard
-          primaryCV={primaryCV}
-          cvList={cvList}
-          cvListLoading={cvListLoading}
-          onUpload={uploadCV}
-          onDelete={deleteCV}
-          onView={(cvId) => service.viewCV(cvId)}
-          onDownload={(cvId, title) => service.downloadCV(cvId, title)}
-          onSetPrimary={setPrimaryCV}
-          onRefreshList={refreshCvList}
-        />
+  primaryCV={primaryCV}
+  cvList={cvList}
+  cvListLoading={cvListLoading}
+  onUpload={uploadCV}
+  onDelete={deleteCV}
+  onView={(cvId) => service.viewCV(cvId)}
+  onDownload={(cvId, title) => service.downloadCV(cvId, title)}
+  onSetPrimary={setPrimaryCV}
+  onRefreshList={refreshCvList}
+  onEdit={handleEditOnlineCV}         
+  onViewOnline={handleViewOnlineCV}   
+/>
         <ProfileShareCard
           profileUrl={profile.profileUrl ?? `CareerUp.com/u/${profile.id.slice(0, 8)}`}
         />

@@ -44,7 +44,8 @@ public class UnifiedCVResponse {
                 .id(cv.getId())
                 .title(cv.getTitle())
                 .source(Source.ONLINE)
-                .primary(false) // Online CV không có khái niệm primary
+                .primary(false)
+                .fileUrl(cv.getExportedPdfUrl())
                 .slug(cv.getSlug())
                 .status(cv.getStatus().name())
                 .viewCount(cv.getViewCount())

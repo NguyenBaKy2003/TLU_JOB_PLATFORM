@@ -3,7 +3,8 @@ package edu.tlu.jobplatform.cv.infrastructure.render;
 import com.lowagie.text.DocumentException;
 
 import edu.tlu.jobplatform.cv.application.port.out.CVRenderPort;
-import edu.tlu.jobplatform.cv.domain.model.CVSection;
+import edu.tlu.jobplatform.cv.application.service.ParsedSection;
+import edu.tlu.jobplatform.cv.application.service.SectionContentParser;
 import edu.tlu.jobplatform.cv.domain.model.CVTemplate;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
@@ -26,26 +27,27 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-/**
- * Implements CVRenderPort.
- *
- * Fix tieng Viet:
- * Flying Saucer can font TTF duoc nhung (embedded) vao ITextFontResolver.
- * Su dung Roboto tu classpath: src/main/resources/fonts/Roboto-*.ttf
- * Trong CSS template phai khai bao: font-family: "Roboto", sans-serif;
- * 
- * Giai phap: Copy font tu classpath ra temp file de Flying Saucer co the doc
- */
 @Slf4j
 @Component
 public class ThymeleafCVRenderAdapter implements CVRenderPort {
 
     private final TemplateEngine cvTemplateEngine;
+    private final SectionContentParser contentParser;
+
+    /**
+     * Pattern để tìm ký tự & không hợp lệ trong XML/XHTML.
+     * Giữ nguyên các entity hợp lệ: &amp; &lt; &gt; &quot; &apos; &#123; &#x1A;
+     */
+    private static final Pattern UNESCAPED_AMPERSAND = Pattern.compile(
+            "&(?!(?:amp|lt|gt|quot|apos|#\\d+|#x[0-9a-fA-F]+);)");
 
     public ThymeleafCVRenderAdapter(
-            @Qualifier("cvTemplateEngine") TemplateEngine cvTemplateEngine) {
+            @Qualifier("cvTemplateEngine") TemplateEngine cvTemplateEngine,
+            SectionContentParser contentParser) {
         this.cvTemplateEngine = cvTemplateEngine;
+        this.contentParser = contentParser;
     }
 
     @Override
@@ -70,7 +72,12 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
             throw new BusinessRuleException(
                     "Template chua co noi dung HTML.", "TEMPLATE_CONTENT_EMPTY");
         }
-        return cvTemplateEngine.process(template.getHtmlContent(), buildContext(cv));
+
+        // Render template với dữ liệu đã được escape
+        String html = cvTemplateEngine.process(template.getHtmlContent(), buildContext(cv));
+
+        // Escape các ký tự & còn sót lại trước khi parse XHTML
+        return escapeXmlEntities(html);
     }
 
     private Context buildContext(OnlineCV cv) {
@@ -78,15 +85,82 @@ public class ThymeleafCVRenderAdapter implements CVRenderPort {
         ctx.setVariable("cv", cv);
         ctx.setVariable("personalInfo", cv.getPersonalInfo());
 
-        Map<String, List<CVSection>> sectionsByType = new LinkedHashMap<>();
-        for (CVSection s : cv.getVisibleSections()) {
-            sectionsByType
-                    .computeIfAbsent(s.getType().name(), k -> new ArrayList<>())
-                    .add(s);
+        List<ParsedSection> parsedSections = cv.getVisibleSections().stream()
+                .map(s -> new ParsedSection(
+                        s.getId().toString(),
+                        s.getType().name(),
+                        escapeXmlText(s.getTitle()), // Escape title
+                        s.isVisible(),
+                        s.getDisplayOrder(),
+                        escapeParsedContent(contentParser.parse(s.getType(), s.getContent())))) // Escape content
+                .toList();
+
+        Map<String, List<ParsedSection>> sectionsByType = new LinkedHashMap<>();
+        for (ParsedSection s : parsedSections) {
+            sectionsByType.computeIfAbsent(s.type(), k -> new ArrayList<>()).add(s);
         }
+
+        ctx.setVariable("sections", parsedSections);
         ctx.setVariable("sectionsByType", sectionsByType);
-        ctx.setVariable("sections", cv.getVisibleSections());
         return ctx;
+    }
+
+    /**
+     * Escape tất cả text trong parsed content để đảm bảo an toàn XML.
+     * Hỗ trợ cả String, List, Map lồng nhau.
+     */
+    @SuppressWarnings("unchecked")
+    private Object escapeParsedContent(Object content) {
+        if (content == null) {
+            return null;
+        }
+        if (content instanceof String str) {
+            return escapeXmlText(str);
+        }
+        if (content instanceof List<?> list) {
+            return list.stream()
+                    .map(this::escapeParsedContent)
+                    .toList();
+        }
+        if (content instanceof Map<?, ?> map) {
+            Map<String, Object> escaped = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                String key = entry.getKey() instanceof String
+                        ? escapeXmlText((String) entry.getKey())
+                        : entry.getKey().toString();
+                escaped.put(key, escapeParsedContent(entry.getValue()));
+            }
+            return escaped;
+        }
+        // Các kiểu khác (Number, Boolean, etc.) giữ nguyên
+        return content;
+    }
+
+    /**
+     * Escape các ký tự đặc biệt XML trong text.
+     * Thay thế: & → &amp; < → &lt; > → &gt; " → &quot; ' → &apos;
+     */
+    private String escapeXmlText(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
+    /**
+     * Escape các ký tự & không hợp lệ trong toàn bộ HTML string.
+     * Đây là lớp bảo vệ cuối cùng trước khi parse XHTML.
+     */
+    private String escapeXmlEntities(String html) {
+        if (html == null || html.isEmpty()) {
+            return html;
+        }
+        return UNESCAPED_AMPERSAND.matcher(html).replaceAll("&amp;");
     }
 
     /**

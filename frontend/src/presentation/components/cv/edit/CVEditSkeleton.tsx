@@ -38,7 +38,6 @@ export function CVEditSkeleton() {
         {/* Editor skeleton */}
         <div className="flex-1 p-3 md:p-4">
           <div className="h-full bg-white rounded-2xl border border-slate-200 p-5 flex flex-col gap-4">
-            {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Bone className="w-4 h-4 rounded" />
@@ -46,8 +45,6 @@ export function CVEditSkeleton() {
               </div>
               <Bone className="w-24 h-4 rounded" />
             </div>
-
-            {/* Avatar preview */}
             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
               <Bone className="w-11 h-11 rounded-full" />
               <div className="space-y-2">
@@ -55,8 +52,6 @@ export function CVEditSkeleton() {
                 <Bone className="w-36 h-3 rounded" />
               </div>
             </div>
-
-            {/* Fields grid */}
             <div className="grid grid-cols-2 gap-3.5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className={i < 2 || i === 4 || i === 5 ? "col-span-2" : ""}>

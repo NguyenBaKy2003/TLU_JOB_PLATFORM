@@ -6,7 +6,7 @@ export type CVStatus     = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type CVVisibility = "PUBLIC" | "PRIVATE" | "LINK_ONLY";
 export type SectionType  =
   | "SUMMARY" | "EXPERIENCE" | "EDUCATION" | "SKILL"
-  | "PROJECT" | "CERTIFICATE" | "LANGUAGE" | "AWARD" | "CUSTOM";
+  | "PROJECT" | "CERTIFICATE" | "LANGUAGE" | "AWARD" | "CUSTOM" |'SOCIAL_LINK';
 
 export const CV_STATUS_LABELS: Record<CVStatus, string> = {
   DRAFT:     "Nháp",
@@ -30,6 +30,7 @@ export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
   LANGUAGE:    "Ngoại ngữ",
   AWARD:       "Giải thưởng",
   CUSTOM:      "Khác",
+  SOCIAL_LINK:"Mạng xã hội"
 };
 
 // ── Value objects ─────────

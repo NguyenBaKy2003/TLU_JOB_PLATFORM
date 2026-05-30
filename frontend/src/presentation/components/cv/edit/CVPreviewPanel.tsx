@@ -19,7 +19,6 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
 
-  // Revoke old blob URL to prevent memory leaks
   const revokePdf = useCallback(() => {
     if (pdfUrl) window.URL.revokeObjectURL(pdfUrl);
   }, [pdfUrl]);
@@ -30,8 +29,7 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
     try {
       const blob = await cvService.exportPdf(cv.id);
       revokePdf();
-      const url  = window.URL.createObjectURL(blob);
-      setPdfUrl(url);
+      setPdfUrl(window.URL.createObjectURL(blob));
     } catch {
       setError("Không thể tải preview");
     } finally {
@@ -41,12 +39,10 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
 
   useEffect(() => { loadPreview(); }, [loadPreview, refreshKey]);
 
-  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => { if (pdfUrl) window.URL.revokeObjectURL(pdfUrl); };
   }, [pdfUrl]);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -67,7 +63,6 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
             </span>
           )}
         </div>
-
         <div className="flex items-center gap-1">
           <button
             onClick={loadPreview}
@@ -77,7 +72,6 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
           >
             <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? "animate-spin" : ""}`} />
           </button>
-
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-800"
@@ -107,14 +101,12 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
             </button>
           </div>
         ) : pdfUrl ? (
-          /* Embed PDF — browser renders it identically to the downloaded file */
           <object
             data={pdfUrl}
             type="application/pdf"
             className="w-full h-full"
             aria-label="CV Preview"
           >
-            {/* Fallback for browsers that don't support PDF embed (e.g. iOS Safari) */}
             <div className="flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
               <FileText className="w-10 h-10 text-slate-300" />
               <p className="text-sm text-slate-600 font-medium">
@@ -140,7 +132,8 @@ export function CVPreviewPanel({ cv, refreshKey = 0, onClose }: Props) {
       {/* Bottom hint */}
       <div className="flex-shrink-0 px-4 py-1.5 bg-white/80 border-t border-slate-200 text-center">
         <p className="text-[10px] text-slate-400">
-          Nhấn <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded text-[10px]">Esc</kbd> để đóng · Preview 1:1 với file PDF tải xuống
+          Nhấn <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded text-[10px]">Esc</kbd> để đóng
+          · Preview 1:1 với file PDF tải xuống
         </p>
       </div>
     </div>
