@@ -33,10 +33,6 @@ public class AdminCreateUserUseCase {
 
     @Transactional
     public User execute(Command cmd) {
-        // Guard: SUPER_ADMIN không được tạo qua API
-        if (cmd.role() == UserRole.SUPER_ADMIN)
-            throw new BusinessRuleException(
-                    "Không thể tạo tài khoản SUPER_ADMIN qua API.", "FORBIDDEN");
 
         // Guard: email đã tồn tại
         if (userRepo.existsByEmail(cmd.email()))

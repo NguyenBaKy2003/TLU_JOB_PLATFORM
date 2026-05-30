@@ -3,7 +3,6 @@ package edu.tlu.jobplatform.analytics.infrastructure.query;
 import edu.tlu.jobplatform.analytics.domain.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,24 +16,21 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service đọc dữ liệu analytics bằng native SQL.
+ * Query service dành riêng cho Admin Analytics.
  *
- * Không import entity/repository của domain khác.
- * Chỉ dùng EntityManager để query trực tiếp — đây là điểm duy nhất
- * được phép cross-domain ở tầng infrastructure.
- *
- * Cache Redis TTL: 5 phút cho admin stats, 2 phút cho employer stats.
+ * Chỉ chứa các query platform-wide — không phụ thuộc companyId.
+ * Cache Redis TTL: 5 phút (cấu hình trong AnalyticsCacheConfig).
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AnalyticsQueryService {
+public class AdminAnalyticsQueryService {
 
     @PersistenceContext
     private final EntityManager em;
 
-    // ADMIN DASHBOARD
+    // ── Dashboard ─────────────────────────────────────────────────────────────
 
     @Cacheable(value = "analytics:admin:dashboard", key = "'global'", unless = "#result == null")
     public AdminDashboardStats buildAdminDashboard() {
@@ -44,7 +40,7 @@ public class AnalyticsQueryService {
         LocalDateTime startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime startOfLastMonth = startOfMonth.minusMonths(1);
 
-        // ── Users ─
+        // ── Users ─────────────────────────────────────────────────────────────
         long totalCandidates = countByRole("CANDIDATE");
         long totalEmployers = countByRole("EMPLOYER");
         long totalUsers = totalCandidates + totalEmployers;
@@ -53,10 +49,10 @@ public class AnalyticsQueryService {
         long newUsersLastMonth = countNewUsersBetween(startOfLastMonth, startOfMonth);
         double userGrowthRate = growthRate(newUsersLastMonth, newUsersThisMonth);
 
-        // ── Companies
+        // ── Companies ─────────────────────────────────────────────────────────
         Object[] companyStats = (Object[]) em.createNativeQuery("""
                 SELECT
-                    COUNT(*)                                                 AS total,
+                    COUNT(*)                                                  AS total,
                     COUNT(*) FILTER (WHERE verification_status = 'VERIFIED') AS verified,
                     COUNT(*) FILTER (WHERE verification_status = 'PENDING')  AS pending
                 FROM company_profiles
@@ -67,7 +63,7 @@ public class AnalyticsQueryService {
         long verifiedCompanies = toLong(companyStats[1]);
         long pendingVerification = toLong(companyStats[2]);
 
-        // ── Jobs ──
+        // ── Jobs ──────────────────────────────────────────────────────────────
         Object[] jobStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                              AS total,
@@ -88,7 +84,7 @@ public class AnalyticsQueryService {
         long jobsLastMonth = toLong(jobStats[3]);
         double jobGrowthRate = growthRate(jobsLastMonth, jobsThisMonth);
 
-        // ── Applications ──
+        // ── Applications ──────────────────────────────────────────────────────
         Object[] appStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                              AS total,
@@ -107,7 +103,7 @@ public class AnalyticsQueryService {
         long applicationsLastMonth = toLong(appStats[2]);
         double applicationGrowthRate = growthRate(applicationsLastMonth, applicationsThisMonth);
 
-        // ── Revenue ──
+        // ── Revenue ───────────────────────────────────────────────────────────
         Object[] revenueStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COALESCE(SUM(amount) FILTER (WHERE completed_at >= :startOfMonth), 0)  AS this_month,
@@ -122,18 +118,17 @@ public class AnalyticsQueryService {
 
         BigDecimal revenueThisMonth = toBigDecimal(revenueStats[0]);
         BigDecimal revenueLastMonth = toBigDecimal(revenueStats[1]);
-        double revenueGrowthRate = growthRate(
-                revenueLastMonth.doubleValue(), revenueThisMonth.doubleValue());
+        double revenueGrowthRate = growthRate(revenueLastMonth.doubleValue(), revenueThisMonth.doubleValue());
 
-        // ── Livestream ─
+        // ── Livestream ────────────────────────────────────────────────────────
         Object[] streamStats = (Object[]) em.createNativeQuery("""
                 SELECT
-                    COUNT(*)                                                AS total,
-                    COUNT(*) FILTER (WHERE created_at >= :startOfMonth)    AS this_month,
-                    COALESCE(SUM(viewer_count), 0)                         AS total_viewers,
-                    0                                                       AS applies_from_stream
-                FROM live_stream_sessions lss
-                WHERE lss.is_active = true
+                    COUNT(*)                                              AS total,
+                    COUNT(*) FILTER (WHERE created_at >= :startOfMonth)  AS this_month,
+                    COALESCE(SUM(viewer_count), 0)                       AS total_viewers,
+                    0                                                    AS applies_from_stream
+                FROM live_stream_sessions
+                WHERE is_active = true
                 """)
                 .setParameter("startOfMonth", startOfMonth)
                 .getSingleResult();
@@ -143,15 +138,15 @@ public class AnalyticsQueryService {
         long totalStreamViewers = toLong(streamStats[2]);
         long appliesFromStream = toLong(streamStats[3]);
 
-        // ── Moderation queue ─
+        // ── Moderation queue ──────────────────────────────────────────────────
         Object[] moderationStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     (SELECT COUNT(*) FROM company_profiles
-                     WHERE verification_status = 'PENDING' AND is_active = true)   AS pending_companies,
+                     WHERE verification_status = 'PENDING' AND is_active = true)  AS pending_companies,
                     (SELECT COUNT(*) FROM job_posts
-                     WHERE status = 'PENDING_APPROVAL' AND is_active = true)        AS pending_jobs,
+                     WHERE status = 'PENDING_APPROVAL' AND is_active = true)       AS pending_jobs,
                     (SELECT COUNT(*) FROM job_posts
-                     WHERE status = 'FLAGGED' AND is_active = true)                 AS flagged_jobs
+                     WHERE status = 'FLAGGED' AND is_active = true)                AS flagged_jobs
                 """).getSingleResult();
 
         return AdminDashboardStats.builder()
@@ -183,6 +178,8 @@ public class AnalyticsQueryService {
                 .generatedAt(now)
                 .build();
     }
+
+    // ── Time series ───────────────────────────────────────────────────────────
 
     public List<TimeSeriesData> getUserGrowthTimeSeries(int months) {
         @SuppressWarnings("unchecked")
@@ -223,19 +220,19 @@ public class AnalyticsQueryService {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery("""
                 SELECT
-                    cp.id                                                        AS company_id,
-                    cp.name                                                      AS company_name,
+                    cp.id,
+                    cp.name,
                     cp.logo_url,
-                    COUNT(DISTINCT jp.id)                                        AS total_jobs,
-                    COUNT(DISTINCT a.id)                                         AS total_applications,
-                    COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'HIRED')       AS total_hired,
-                    COALESCE(SUM(p.amount) FILTER (WHERE p.status='SUCCESS'), 0) AS total_revenue,
-                    COUNT(DISTINCT lss.id)                                       AS stream_sessions
+                    COUNT(DISTINCT jp.id)                                         AS total_jobs,
+                    COUNT(DISTINCT a.id)                                          AS total_applications,
+                    COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'HIRED')        AS total_hired,
+                    COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'SUCCESS'), 0) AS total_revenue,
+                    COUNT(DISTINCT lss.id)                                        AS stream_sessions
                 FROM company_profiles cp
-                LEFT JOIN job_posts jp      ON jp.company_id = cp.id AND jp.is_active = true
-                LEFT JOIN applications a    ON a.company_id  = cp.id AND a.is_active  = true
+                LEFT JOIN job_posts jp          ON jp.company_id  = cp.id AND jp.is_active  = true
+                LEFT JOIN applications a         ON a.company_id   = cp.id AND a.is_active   = true
                 LEFT JOIN company_subscriptions cs ON cs.company_id = cp.id
-                LEFT JOIN payments p        ON p.subscription_id = cs.id
+                LEFT JOIN payments p             ON p.subscription_id = cs.id
                 LEFT JOIN live_stream_sessions lss ON lss.company_id = cp.id AND lss.is_active = true
                 WHERE cp.is_active = true AND cp.verification_status = 'VERIFIED'
                 GROUP BY cp.id, cp.name, cp.logo_url
@@ -281,183 +278,7 @@ public class AnalyticsQueryService {
         return TimeSeriesData.ofMonthly(rows);
     }
 
-    // EMPLOYER DASHBOARD
-
-    @Cacheable(value = "analytics:employer:dashboard", key = "#companyId", unless = "#result == null")
-    public EmployerDashboardStats buildEmployerDashboard(UUID companyId) {
-        log.debug("Building employer dashboard for company={} (cache miss)", companyId);
-
-        LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-
-        // ── Job stats
-        Object[] jobStats = (Object[]) em.createNativeQuery("""
-                SELECT
-                    COUNT(*) FILTER (WHERE status = 'PUBLISHED')                      AS active,
-                    COUNT(*) FILTER (WHERE status = 'DRAFT')                          AS draft,
-                    COUNT(*)                                                           AS total,
-                    COUNT(*) FILTER (WHERE status = 'PUBLISHED'
-                                      AND deadline <= CURRENT_DATE + INTERVAL '7 days'
-                                      AND deadline >= CURRENT_DATE)                   AS expiring_soon
-                FROM job_posts
-                WHERE company_id = :companyId AND is_active = true
-                """)
-                .setParameter("companyId", companyId)
-                .getSingleResult();
-
-        // ── Application stats
-        Object[] appStats = (Object[]) em.createNativeQuery("""
-                SELECT
-                    COUNT(*)                                                           AS total,
-                    COUNT(*) FILTER (WHERE a.applied_at >= :startOfToday)             AS new_today,
-                    COUNT(*) FILTER (WHERE a.status = 'SUBMITTED')                    AS pending_review
-                FROM applications a
-                JOIN job_posts jp ON jp.id = a.job_post_id
-                WHERE jp.company_id = :companyId AND a.is_active = true
-                """)
-                .setParameter("companyId", companyId)
-                .setParameter("startOfToday", startOfToday)
-                .getSingleResult();
-
-        // ── Quota ─
-        @SuppressWarnings("unchecked")
-        List<Object[]> quotaRows = em.createNativeQuery("""
-                SELECT
-                    cs.job_post_quota_used,
-                    cs.job_post_quota_limit,
-                    cs.featured_job_quota_used,
-                    cs.featured_job_quota_limit,
-                    cs.cv_view_quota_used,
-                    cs.cv_view_quota_limit
-                FROM company_subscriptions cs
-                WHERE cs.company_id = :companyId
-                  AND cs.status = 'ACTIVE'
-                  AND cs.is_active = true
-                ORDER BY cs.created_at DESC
-                LIMIT 1
-                """)
-                .setParameter("companyId", companyId)
-                .getResultList();
-
-        Object[] quotaStats = quotaRows.isEmpty() ? new Object[] { 0, 0, 0, 0, 0, 0 } : quotaRows.get(0);
-
-        // ── Livestream stats ─
-        Object[] streamStats = (Object[]) em.createNativeQuery("""
-                SELECT
-                    COUNT(DISTINCT lss.id)                        AS total_sessions,
-                    COALESCE(SUM(lss.viewer_count), 0)            AS total_viewers,
-                    0                                             AS applies_from_stream
-                FROM live_stream_sessions lss
-                WHERE lss.company_id = :companyId AND lss.is_active = true
-                """)
-                .setParameter("companyId", companyId)
-                .getSingleResult();
-
-        return EmployerDashboardStats.builder()
-                .companyId(companyId)
-                .activeJobs(toLong(jobStats[0]))
-                .draftJobs(toLong(jobStats[1]))
-                .totalJobsAllTime(toLong(jobStats[2]))
-                .jobsExpiringSoon(toLong(jobStats[3]))
-                .totalApplications(toLong(appStats[0]))
-                .newApplicationsToday(toLong(appStats[1]))
-                .pendingReview(toLong(appStats[2]))
-                .quotaUsed(toInt(quotaStats[0])) // job_post_quota_used
-                .quotaTotal(toInt(quotaStats[1])) // job_post_quota_limit
-                // quotaStats[2..5] = featured/cv quota — wire up if EmployerDashboardStats has
-                // those fields
-                .streamQuotaUsed(0)
-                .streamQuotaTotal(0)
-                .totalStreamSessions(toLong(streamStats[0]))
-                .totalStreamViewers(toLong(streamStats[1]))
-                .appliesFromStream(toLong(streamStats[2]))
-                .build();
-    }
-
-    public List<JobPerformanceStats> getJobPerformance(UUID companyId) {
-        @SuppressWarnings("unchecked")
-        List<Object[]> rows = em.createNativeQuery("""
-                SELECT
-                    jp.id,
-                    jp.title,
-                    jp.status,
-                    jp.view_count,
-                    COUNT(a.id)                                                     AS total,
-                    COUNT(a.id) FILTER (WHERE a.status = 'SCREENING')               AS screening,
-                    COUNT(a.id) FILTER (WHERE a.status IN ('INTERVIEW','OFFERED'))  AS interviewing,
-                    COUNT(a.id) FILTER (WHERE a.status = 'OFFERED')                 AS offered,
-                    COUNT(a.id) FILTER (WHERE a.status = 'HIRED')                   AS hired,
-                    TO_CHAR(jp.deadline, 'YYYY-MM-DD')                             AS deadline
-                FROM job_posts jp
-                LEFT JOIN applications a ON a.job_post_id = jp.id AND a.is_active = true
-                WHERE jp.company_id = :companyId AND jp.is_active = true
-                GROUP BY jp.id, jp.title, jp.status, jp.view_count, jp.deadline
-                ORDER BY jp.created_at DESC
-                """)
-                .setParameter("companyId", companyId)
-                .getResultList();
-
-        return rows.stream().map(r -> {
-            long total = toLong(r[4]);
-            long hired = toLong(r[8]);
-            double rate = total > 0 ? (double) hired / total * 100 : 0.0;
-            return JobPerformanceStats.builder()
-                    .jobPostId(toUUID(r[0]))
-                    .title((String) r[1])
-                    .status((String) r[2])
-                    .viewCount(toInt(r[3]))
-                    .totalApplications(total)
-                    .screening(toLong(r[5]))
-                    .interviewing(toLong(r[6]))
-                    .offered(toLong(r[7]))
-                    .hired(hired)
-                    .conversionRate(rate)
-                    .deadline((String) r[9])
-                    .build();
-        }).toList();
-    }
-
-    public ApplicationFunnelStats getApplicationFunnel(UUID companyId, UUID jobPostId) {
-        String condition = jobPostId != null
-                ? "AND a.job_post_id = :jobPostId"
-                : "";
-
-        Query q = em.createNativeQuery("""
-                SELECT
-                    COUNT(*) FILTER (WHERE a.status = 'SUBMITTED')   AS submitted,
-                    COUNT(*) FILTER (WHERE a.status = 'SCREENING')   AS screening,
-                    COUNT(*) FILTER (WHERE a.status = 'INTERVIEW')   AS interviewing,
-                    COUNT(*) FILTER (WHERE a.status = 'OFFERED')     AS offered,
-                    COUNT(*) FILTER (WHERE a.status = 'HIRED')       AS hired,
-                    COUNT(*) FILTER (WHERE a.status = 'REJECTED')    AS rejected,
-                    COUNT(*) FILTER (WHERE a.status = 'WITHDRAWN')   AS withdrawn
-                FROM applications a
-                JOIN job_posts jp ON jp.id = a.job_post_id
-                WHERE jp.company_id = :companyId AND a.is_active = true
-                """ + condition)
-                .setParameter("companyId", companyId);
-
-        if (jobPostId != null) {
-            q.setParameter("jobPostId", jobPostId);
-        }
-
-        Object[] r = (Object[]) q.getSingleResult();
-
-        return ApplicationFunnelStats.builder()
-                .companyId(companyId)
-                .jobPostId(jobPostId)
-                .submitted(toLong(r[0]))
-                .screening(toLong(r[1]))
-                .interviewing(toLong(r[2]))
-                .offered(toLong(r[3]))
-                .hired(toLong(r[4]))
-                .rejected(toLong(r[5]))
-                .withdrawn(toLong(r[6]))
-                .build();
-    }
-
-    //
-    // PRIVATE HELPERS
-    //
+    // ── Private helpers ───────────────────────────────────────────────────────
 
     private long countByRole(String role) {
         return ((Number) em.createNativeQuery(
@@ -497,12 +318,6 @@ public class AnalyticsQueryService {
         if (o == null)
             return 0L;
         return ((Number) o).longValue();
-    }
-
-    private static int toInt(Object o) {
-        if (o == null)
-            return 0;
-        return ((Number) o).intValue();
     }
 
     private static BigDecimal toBigDecimal(Object o) {

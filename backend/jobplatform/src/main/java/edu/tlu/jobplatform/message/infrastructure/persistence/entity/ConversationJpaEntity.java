@@ -13,7 +13,7 @@ import java.util.UUID;
         @Index(name = "idx_conv_participant_a", columnList = "participant_a"),
         @Index(name = "idx_conv_participant_b", columnList = "participant_b"),
         @Index(name = "idx_conv_last_message", columnList = "last_message_at DESC"),
-        @Index(name = "idx_conv_participants_job", columnList = "participant_a, participant_b, job_post_id", unique = true)
+        @Index(name = "idx_conv_participants_unique", columnList = "participant_a, participant_b", unique = true)
 })
 @Getter
 @Setter

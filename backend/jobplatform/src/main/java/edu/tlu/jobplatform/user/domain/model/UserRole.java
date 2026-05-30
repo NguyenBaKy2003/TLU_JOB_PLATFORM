@@ -9,8 +9,7 @@ package edu.tlu.jobplatform.user.domain.model;
 public enum UserRole {
     CANDIDATE, // Ứng viên tìm việc
     EMPLOYER, // Nhà tuyển dụng đăng bài
-    ADMIN, // Quản trị viên
-    SUPER_ADMIN; // Siêu admin (xem AI cost, xóa plan...)
+    ADMIN; // Quản trị viên
 
     /** Trả về tên đầy đủ cho Spring Security */
     public String toAuthority() {

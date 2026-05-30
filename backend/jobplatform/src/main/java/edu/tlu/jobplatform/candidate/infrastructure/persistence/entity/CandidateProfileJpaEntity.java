@@ -78,7 +78,8 @@ public class CandidateProfileJpaEntity extends BaseJpaEntity {
     // ── Relations ──
 
     @ElementCollection
-    @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "profile_id"))
+    @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "profile_id"), uniqueConstraints = @UniqueConstraint(name = "uq_candidate_skill", columnNames = {
+            "profile_id", "skill_name" }))
     @Builder.Default
     private Set<SkillEmbeddable> skills = new HashSet<>();
 

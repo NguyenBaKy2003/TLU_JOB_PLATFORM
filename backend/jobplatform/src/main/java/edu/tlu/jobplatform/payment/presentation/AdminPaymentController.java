@@ -29,14 +29,14 @@ import java.util.UUID;
  * GET /api/v1/admin/payments/{id} — Chi tiết
  * GET /api/v1/admin/payments/company/{companyId} — Giao dịch theo công ty
  * GET /api/v1/admin/payments/candidate/{candidateId} — Giao dịch theo ứng viên
- * POST /api/v1/admin/payments/{id}/refund — Hoàn tiền (SUPER_ADMIN)
+ * POST /api/v1/admin/payments/{id}/refund — Hoàn tiền (ADMIN)
  */
 @RestController
 @RequestMapping("/api/v1/admin/payments")
 @RequiredArgsConstructor
 @Tag(name = "Admin - Payments", description = "Quản lý giao dịch thanh toán hệ thống")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminPaymentController {
 
         private final AdminPaymentUseCase adminPaymentUseCase;
@@ -114,9 +114,9 @@ public class AdminPaymentController {
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
-        @Operation(summary = "Hoàn tiền giao dịch — chỉ SUPER_ADMIN")
+        @Operation(summary = "Hoàn tiền giao dịch — chỉ ADMIN")
         @PostMapping("/{id}/refund")
-        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<PaymentResponse>> refund(
                         @PathVariable UUID id,
                         @RequestParam @NotBlank String reason) {

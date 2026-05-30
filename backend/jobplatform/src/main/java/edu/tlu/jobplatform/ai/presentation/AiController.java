@@ -36,7 +36,7 @@ public class AiController {
 
         @Operation(summary = "Tối ưu hóa Job Description bằng AI")
         @PostMapping("/optimize-jd")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
         public ResponseEntity<ApiResponse<JdOptimizationResult>> optimizeJd(
                         @Valid @RequestBody OptimizeJdRequest req) {
 
@@ -50,7 +50,7 @@ public class AiController {
 
         @Operation(summary = "Chạy lại AI scoring cho đơn ứng tuyển")
         @PostMapping("/applications/{id}/rescore")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
         public ResponseEntity<ApiResponse<String>> rescore(@PathVariable UUID id) {
                 retriggerUseCase.execute(id);
                 return ResponseEntity.ok(
@@ -59,7 +59,7 @@ public class AiController {
 
         @Operation(summary = "Kiểm tra JD có vi phạm community guidelines không")
         @PostMapping("/check-jd-guidelines")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
         public ResponseEntity<ApiResponse<JdGuidelineCheckResult>> checkGuidelines(
                         @Valid @RequestBody CheckGuidelinesRequest req) {
 
@@ -82,7 +82,7 @@ public class AiController {
 
         @Operation(summary = "So sánh các ứng viên với nhau")
         @PostMapping("/jobs/{jobId}/compare-candidates")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
         public ResponseEntity<ApiResponse<CandidateComparisonResult>> compareCandidates(
                         @PathVariable UUID jobId,
                         @Valid @RequestBody CompareCandidatesRequest req) {

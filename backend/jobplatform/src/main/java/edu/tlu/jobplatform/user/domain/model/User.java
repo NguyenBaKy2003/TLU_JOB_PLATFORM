@@ -149,7 +149,7 @@ public class User {
      * Kiểm tra có phải admin không.
      */
     public boolean isAdmin() {
-        return role == UserRole.ADMIN || role == UserRole.SUPER_ADMIN;
+        return role == UserRole.ADMIN;
     }
 
     /**

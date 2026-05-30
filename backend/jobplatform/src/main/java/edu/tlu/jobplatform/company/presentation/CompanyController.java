@@ -186,7 +186,7 @@ public class CompanyController {
         @Operation(summary = "Cập nhật hồ sơ công ty")
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping("/api/v1/companies/{id}")
-        @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN', 'SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
         public ResponseEntity<ApiResponse<CompanyResponse>> update(
                         @PathVariable UUID id,
                         @Valid @RequestBody UpdateCompanyRequest req,

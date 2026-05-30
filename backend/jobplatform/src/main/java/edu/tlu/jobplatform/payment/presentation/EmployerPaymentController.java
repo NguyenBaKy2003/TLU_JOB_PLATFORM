@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Payment (Employer)", description = "Lịch sử thanh toán của công ty")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
 public class EmployerPaymentController {
 
     private final GetMyPaymentsUseCase getMyPaymentsUseCase;

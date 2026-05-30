@@ -174,14 +174,6 @@ public class CandidateProfile {
         this.jobSearchStatus = status;
         this.updatedAt = LocalDateTime.now();
     }
-
-    // ── Skills ─
-
-    public void replaceSkills(List<Skill> incoming) {
-        this.skills = new ArrayList<>(incoming);
-        this.updatedAt = LocalDateTime.now();
-    }
-
     // ── Languages ─
 
     public void replaceLanguages(List<Language> incoming) {
@@ -273,6 +265,12 @@ public class CandidateProfile {
         return Collections.unmodifiableList(skills);
     }
 
+    public void replaceSkills(List<Skill> incoming) {
+        this.skills.clear(); // ← clear trước, Hibernate sẽ DELETE rồi INSERT
+        this.skills.addAll(incoming); // ← không dùng = new ArrayList() vì mất tracking
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public List<WorkExperience> getExperiences() {
         return Collections.unmodifiableList(experiences);
     }
@@ -296,4 +294,5 @@ public class CandidateProfile {
     public List<Benefit> getBenefits() {
         return Collections.unmodifiableList(benefits);
     }
+
 }

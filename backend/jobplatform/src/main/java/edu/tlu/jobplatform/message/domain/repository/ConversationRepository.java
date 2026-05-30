@@ -12,10 +12,8 @@ public interface ConversationRepository {
 
     Optional<Conversation> findById(UUID id);
 
-    /** Kiểm tra conversation đã tồn tại giữa 2 người về 1 job chưa */
-    Optional<Conversation> findByParticipantsAndJobPost(UUID participantA,
-            UUID participantB,
-            UUID jobPostId);
+    // FIX: bỏ jobPostId — 1 conversation duy nhất / cặp người dùng
+    Optional<Conversation> findByParticipants(UUID participantA, UUID participantB);
 
     /** Inbox — lấy tất cả conversation của user, sort theo lastMessageAt DESC */
     List<Conversation> findByParticipant(UUID userId, int page, int size);
