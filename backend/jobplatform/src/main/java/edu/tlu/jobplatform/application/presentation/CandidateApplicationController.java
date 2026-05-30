@@ -18,6 +18,9 @@ import edu.tlu.jobplatform.application.usecase.candidate.DeclineOfferUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.GetMyApplicationsUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.SubmitApplicationUseCase;
 import edu.tlu.jobplatform.application.usecase.candidate.WithdrawApplicationUseCase;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
@@ -62,6 +65,8 @@ public class CandidateApplicationController {
         @Operation(summary = "Nộp đơn ứng tuyển")
         @PostMapping("/api/v1/jobs/{jobPostId}/apply")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "apply-job", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_SUBMIT_APPLICATION", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> submit(
                         @PathVariable UUID jobPostId,
                         @Valid @RequestBody SubmitApplicationRequest req) {
@@ -82,6 +87,7 @@ public class CandidateApplicationController {
         @Operation(summary = "Danh sách đơn ứng tuyển của tôi")
         @GetMapping("/api/v1/candidate/applications/my")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<MyApplicationsResponse>> getMyApplications(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -138,6 +144,7 @@ public class CandidateApplicationController {
         @Operation(summary = "Chi tiết đơn ứng tuyển")
         @GetMapping("/api/v1/applications/{id}")
         @PreAuthorize("isAuthenticated()")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getDetail(@PathVariable UUID id) {
 
                 Application app = applicationRepo.findById(id)
@@ -177,6 +184,8 @@ public class CandidateApplicationController {
         @Operation(summary = "Rút đơn ứng tuyển")
         @DeleteMapping("/api/v1/applications/{id}/withdraw")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_WITHDRAW_APPLICATION", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> withdraw(@PathVariable UUID id) {
 
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
@@ -195,6 +204,7 @@ public class CandidateApplicationController {
         @Operation(summary = "Kiểm tra đã nộp đơn vào bài đăng này chưa")
         @GetMapping("/api/v1/jobs/{jobPostId}/my-application")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<Boolean>> checkApplied(@PathVariable UUID jobPostId) {
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
                 boolean exists = applicationRepo.existsByJobPostIdAndCandidateId(jobPostId, candidateId);
@@ -202,8 +212,9 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Chấp nhận offer")
-        @PatchMapping("/api/v1/applications/{id}/accept-offer")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_ACCEPT_OFFER", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> acceptOffer(
                         @PathVariable UUID id,
                         @RequestParam(required = false) String note) {
@@ -215,8 +226,9 @@ public class CandidateApplicationController {
         }
 
         @Operation(summary = "Từ chối offer")
-        @PatchMapping("/api/v1/applications/{id}/decline-offer")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DECLINE_OFFER", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> declineOffer(
                         @PathVariable UUID id,
                         @RequestParam(required = false) String reason) {

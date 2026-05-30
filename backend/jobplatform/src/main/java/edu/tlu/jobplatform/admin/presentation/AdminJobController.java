@@ -1,11 +1,11 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminJobUseCase;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
-import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;

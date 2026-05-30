@@ -1,7 +1,10 @@
 package edu.tlu.jobplatform.auth.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.auth.presentation.dto.AdminSetupResponse;
 import edu.tlu.jobplatform.auth.presentation.dto.RegisterRequest;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.user.domain.model.User;
 import edu.tlu.jobplatform.user.domain.model.UserRole;
@@ -28,6 +31,8 @@ public class AdminSetupController {
         private String setupSecret;
 
         @PostMapping("/setup")
+        @RateLimit(policy = "admin-setup", scope = RateLimitPolicy.Scope.IP)
+        @Loggable(action = "ADMIN_ACCOUNT_CREATED", resourceType = "User")
         public ResponseEntity<ApiResponse<AdminSetupResponse>> setupAdminAccount(
                         @RequestHeader("Setup-Secret") String requestSecret,
                         @Valid @RequestBody RegisterRequest request) {
@@ -68,6 +73,7 @@ public class AdminSetupController {
         }
 
         @GetMapping("/test-s3")
+        @RateLimit(policy = "admin-setup", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<String> testS3(
                         @RequestHeader("Setup-Secret") String secret) {
 
