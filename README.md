@@ -1,5 +1,3 @@
-I'll fetch the repository information to create a comprehensive Vietnamese markdown documentation for the TLU_JOB_PLATFORM repository.# 🎓 TLU_JOB_PLATFORM
-
 ## 📋 Giới thiệu
 
 **TLU_JOB_PLATFORM** là nền tảng công việc được phát triển bởi **NguyenBaKy DEV** - sinh viên chuyên ngành Khoa học Máy tính tại **Đại học Thăng Long (TLU)**.
