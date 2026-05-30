@@ -3,6 +3,9 @@ package edu.tlu.jobplatform.admin.presentation;
 import edu.tlu.jobplatform.admin.application.usecase.AdminJobUseCase;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
+import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,13 +31,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Admin - Jobs", description = "Quản lý bài đăng")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminJobController {
 
     private final AdminJobUseCase adminJobUseCase;
 
     @Operation(summary = "Danh sách bài đăng theo status")
     @GetMapping
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> listJobs(
             @RequestParam(required = false) JobStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -48,6 +52,8 @@ public class AdminJobController {
 
     @Operation(summary = "Force-close bài vi phạm")
     @PostMapping("/{id}/close")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_FORCE_CLOSE_JOB", resourceType = "JobPost")
     public ResponseEntity<ApiResponse<JobPostResponse>> forceClose(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {
@@ -59,6 +65,8 @@ public class AdminJobController {
 
     @Operation(summary = "Force-delete bài vi phạm")
     @DeleteMapping("/{id}")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_FORCE_DELETE_JOB", resourceType = "JobPost")
     public ResponseEntity<ApiResponse<Void>> forceDelete(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {

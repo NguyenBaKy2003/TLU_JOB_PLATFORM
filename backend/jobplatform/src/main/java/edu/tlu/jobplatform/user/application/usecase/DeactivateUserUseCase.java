@@ -22,7 +22,6 @@ import java.util.UUID;
  * Business Rules:
  * BR-01: User tự deactivate tài khoản của mình được
  * BR-02: ADMIN có thể deactivate bất kỳ user nào
- * BR-03: SUPER_ADMIN không thể bị deactivate bởi ADMIN thường
  * BR-04: Không thể deactivate tài khoản đã inactive
  * BR-05: Xóa cache và revoke tất cả session sau khi deactivate
  */
@@ -54,24 +53,12 @@ public class DeactivateUserUseCase {
                                         "ALREADY_INACTIVE");
                 }
 
-                // BR-03: ADMIN thường không thể deactivate SUPER_ADMIN
-                boolean actorIsRegularAdmin = SecurityUtils.hasRole("ROLE_ADMIN")
-                                && !SecurityUtils.hasRole("ROLE_SUPER_ADMIN");
-                if (actorIsRegularAdmin && target.getRole().name().equals("SUPER_ADMIN")) {
-                        throw new BusinessRuleException(
-                                        "Bạn không có quyền vô hiệu hoá tài khoản Super Admin.",
-                                        "INSUFFICIENT_PRIVILEGE");
-                }
-
                 // Soft delete
                 target.deactivate();
                 userRepository.save(target);
 
                 // BR-05: Xóa cache
                 userCacheService.evict(targetUserId);
-
-                // TODO Sprint 4: fire UserDeactivatedEvent → revoke tất cả JWT sessions
-                // eventPublisher.publishEvent(new UserDeactivatedEvent(targetUserId, reason));
 
                 UUID actorId = SecurityUtils.getCurrentUserId().orElse(null);
                 log.warn("User deactivated: {} | reason='{}' | by={}",

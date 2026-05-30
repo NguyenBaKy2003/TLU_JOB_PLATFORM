@@ -34,8 +34,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Employer - CV", description = "Employer xem CV ứng viên")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
-public class EmployerCVController {
+@PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+public class EmployerCVApplicaitonController {
 
     private final ViewCandidateCVUseCase viewCVUseCase;
 

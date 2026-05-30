@@ -51,7 +51,7 @@ function PageSizeSelect({
   options: number[]; value: number; onChange: (v: number) => void; disabled?: boolean;
 }) {
   return (
-    <div className="relative flex items-center">
+    <div className="relative flex items-center shrink-0">
       <select
         value={value}
         onChange={e => onChange(Number(e.target.value))}
@@ -92,11 +92,7 @@ export function CandidateFilterBar({
   const [appliedAtTo,   setAppliedAtTo]   = useState("");
 
   const triggerFilter = useCallback(() => {
-    onFilter({
-      keyword:       keyword.trim(),
-      appliedAtFrom,
-      appliedAtTo,
-    });
+    onFilter({ keyword: keyword.trim(), appliedAtFrom, appliedAtTo });
   }, [keyword, appliedAtFrom, appliedAtTo, onFilter]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -108,47 +104,70 @@ export function CandidateFilterBar({
     onFilter({ keyword: "", appliedAtFrom, appliedAtTo });
   };
 
-  const hasPageSize  = !!(pageSizeOptions?.length && onPageSizeChange);
-  const hasExport    = !!(onExportPdf || onExportExcel);
-  const showTopRow   = !!(statusTabs?.length || hasPageSize || hasExport);
+  const hasPageSize = !!(pageSizeOptions?.length && onPageSizeChange);
+  const hasExport   = !!(onExportPdf || onExportExcel);
 
   return (
     <div className="flex flex-col gap-3">
 
-      {/* ── Row 1: Tabs + PageSize + Export ──────────────────────────────── */}
-      {showTopRow && (
-        <div className="flex items-center gap-3 flex-wrap">
+      {/* ── Row 1: Tabs (scrollable) + PageSize + Export ─────────────────── */}
+      {/* 
+        Layout mobile: tabs scroll ngang độc lập, actions nằm dưới wrap riêng.
+        Layout sm+: tabs + actions cùng hàng, tabs co lại và scroll nội bộ.
+      */}
+      {!!(statusTabs?.length || hasPageSize || hasExport) && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
 
+          {/* Tabs — scroll ngang, không để tràn */}
           {!!statusTabs?.length && (
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto scrollbar-none shrink-0">
-              {statusTabs.map(tab => (
-                <button
-                  key={tab.value}
-                  onClick={() => onStatusChange?.(tab.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                    rounded-lg whitespace-nowrap transition-all ${
-                    activeStatus === tab.value
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {tab.label}
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
-                      activeStatus === tab.value
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-gray-200 text-gray-500"
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
+            <div className="
+              flex-1 min-w-0
+              overflow-x-auto
+              scrollbar-none
+              [-webkit-overflow-scrolling:touch]
+            ">
+              <div className="
+                inline-flex gap-1
+                bg-gray-100 rounded-xl p-1
+                min-w-max
+              ">
+                {statusTabs.map(tab => (
+                  <button
+                    key={tab.value}
+                    onClick={() => onStatusChange?.(tab.value)}
+                    className={`
+                      flex items-center gap-1.5
+                      px-3 py-1.5
+                      text-xs font-medium
+                      rounded-lg whitespace-nowrap
+                      transition-all
+                      ${activeStatus === tab.value
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                      }
+                    `}
+                  >
+                    {tab.label}
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span className={`
+                        px-1.5 py-0.5 text-[10px] font-bold rounded-full
+                        ${activeStatus === tab.value
+                          ? "bg-gray-100 text-gray-600"
+                          : "bg-gray-200 text-gray-500"
+                        }
+                      `}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
+          {/* Actions — không bao giờ bị đẩy xuống bởi tabs */}
           {(hasPageSize || hasExport) && (
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {hasPageSize && (
                 <PageSizeSelect
                   options={pageSizeOptions!}
@@ -163,7 +182,7 @@ export function CandidateFilterBar({
                   disabled={exportLoading || loading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
                     text-red-600 bg-red-50 border border-red-200 rounded-xl
-                    hover:bg-red-100 active:scale-95 disabled:opacity-50 transition-all"
+                    hover:bg-red-100 active:scale-95 disabled:opacity-50 transition-all shrink-0"
                 >
                   {exportLoading
                     ? <LoadingSpinner size="sm" variant="white" />
@@ -178,7 +197,7 @@ export function CandidateFilterBar({
                   disabled={exportLoading || loading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
                     text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl
-                    hover:bg-emerald-100 active:scale-95 disabled:opacity-50 transition-all"
+                    hover:bg-emerald-100 active:scale-95 disabled:opacity-50 transition-all shrink-0"
                 >
                   {exportLoading
                     ? <LoadingSpinner size="sm" variant="white" />
@@ -192,13 +211,13 @@ export function CandidateFilterBar({
         </div>
       )}
 
-      {/* ── Row 2: Date range + Search input + Tìm kiếm button ───────────── */}
+      {/* ── Row 2: Date range + Search + Button ──────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
 
         {showDateRange && (
           <>
             <label className="sr-only" htmlFor="candidate-filter-from">Từ ngày</label>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center shrink-0">
               <CalendarDays size={13}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input
@@ -210,14 +229,14 @@ export function CandidateFilterBar({
                 disabled={loading}
                 className="pl-9 pr-3 py-2 text-sm bg-white border border-gray-200
                   rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                  focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all"
+                  focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all w-full sm:w-auto"
               />
             </div>
 
-            <span className="hidden sm:block text-gray-300 self-center select-none">—</span>
+            <span className="hidden sm:block text-gray-300 self-center select-none shrink-0">—</span>
 
             <label className="sr-only" htmlFor="candidate-filter-to">Đến ngày</label>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center shrink-0">
               <CalendarDays size={13}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input
@@ -229,7 +248,7 @@ export function CandidateFilterBar({
                 disabled={loading}
                 className="pl-9 pr-3 py-2 text-sm bg-white border border-gray-200
                   rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                  focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all"
+                  focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all w-full sm:w-auto"
               />
             </div>
           </>
@@ -246,7 +265,7 @@ export function CandidateFilterBar({
             onKeyDown={handleKeyDown}
             placeholder={searchPlaceholder}
             disabled={loading}
-            className="w-full pl-9 pr-8 py-2 text-[16px] bg-white border border-gray-200
+            className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-gray-200
               rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
               focus:border-blue-400 placeholder:text-gray-300 disabled:opacity-50 transition-all"
           />
@@ -261,7 +280,7 @@ export function CandidateFilterBar({
           )}
         </div>
 
-        {/* Search button — giống Employer */}
+        {/* Search button */}
         <button
           onClick={triggerFilter}
           disabled={loading}

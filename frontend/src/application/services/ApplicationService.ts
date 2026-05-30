@@ -16,7 +16,7 @@ export class ApplicationService {
 
   constructor(private readonly repo: IApplicationRepository) {}
 
-  // ── Candidate ────────
+  // ── Candidate ────────────────────────────────────────────────────────────
 
   async submit(req: SubmitApplicationRequest): Promise<Application> {
     if (!req.jobPostId) throw new Error("Thiếu thông tin bài đăng.");
@@ -28,9 +28,9 @@ export class ApplicationService {
     return this.repo.withdraw(applicationId);
   }
 
-async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
-  return this.repo.getMyApplications(params);
-}
+  async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
+    return this.repo.getMyApplications(params);
+  }
 
   async getById(applicationId: string): Promise<Application> {
     return this.repo.getById(applicationId);
@@ -48,7 +48,33 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
     return this.repo.declineOffer(applicationId, reason);
   }
 
-  // ── Employer ─────────
+  /**
+   * Candidate mở CV đã nộp trong tab mới.
+   */
+  async viewCVAsCandidate(applicationId: string): Promise<void> {
+    const blobUrl = await this.repo.fetchCandidateCVBlobUrl(applicationId, "view");
+    const tab = window.open(blobUrl, "_blank");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    if (!tab) {
+      throw new Error("Trình duyệt chặn popup. Vui lòng cho phép popup cho trang này.");
+    }
+  }
+
+  /**
+   * Candidate tải CV đã nộp về máy.
+   */
+  async downloadCVAsCandidate(applicationId: string, fileName?: string): Promise<void> {
+    const blobUrl = await this.repo.fetchCandidateCVBlobUrl(applicationId, "download");
+    const a = document.createElement("a");
+    a.href     = blobUrl;
+    a.download = fileName ?? "cv-da-nop";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+  }
+
+  // ── Employer ─────────────────────────────────────────────────────────────
 
   async getByJobPost(
     jobPostId: string,
@@ -92,14 +118,10 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
 
   /**
    * Employer mở CV của ứng viên trong tab mới.
-   *
-   * @param applicationId  ID của application
-   * @param cvId           Nếu có → mở CV cụ thể, nếu bỏ qua → mở CV từ cvUrl của application
    */
   async viewCVAsEmployer(applicationId: string, cvId?: string | null): Promise<void> {
     const blobUrl = await this.repo.fetchCVBlobUrl(applicationId, "view", cvId);
     const tab = window.open(blobUrl, "_blank");
-    // Revoke sau 60s để giải phóng bộ nhớ
     setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     if (!tab) {
       throw new Error("Trình duyệt chặn popup. Vui lòng cho phép popup cho trang này.");
@@ -108,10 +130,6 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
 
   /**
    * Employer tải CV của ứng viên về máy.
-   *
-   * @param applicationId  ID của application
-   * @param fileName       Tên file khi tải xuống (không cần extension)
-   * @param cvId           Nếu có → tải CV cụ thể, nếu bỏ qua → tải CV từ cvUrl của application
    */
   async downloadCVAsEmployer(
     applicationId: string,
@@ -128,7 +146,7 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
   }
 
-  // ── Helpers ───────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   canWithdraw(app: Application): boolean {
     const terminal: ApplicationStatus[] = [

@@ -25,8 +25,9 @@ export class ApplicationRepository implements IApplicationRepository {
   private readonly BASE      = "/applications";
   private readonly EMPLOYER  = "/employer/applications";
   private readonly CANDIDATE = "/candidate/applications";
-  private readonly JOBS     = "/jobs";
-  // ─── Helpers ──────────
+  private readonly JOBS      = "/jobs";
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -43,9 +44,9 @@ export class ApplicationRepository implements IApplicationRepository {
     return res.data.data;
   }
 
-  // ─── Candidate ────────
+  // ─── Candidate ────────────────────────────────────────────────────────────
 
-async submit(req: SubmitApplicationRequest): Promise<Application> {
+  async submit(req: SubmitApplicationRequest): Promise<Application> {
     const res = await api.post<{ data: Application }>(
       `${this.JOBS}/${req.jobPostId}/apply`,
       { cvUrl: req.cvUrl, coverLetter: req.coverLetter, expectedSalary: req.expectedSalary },
@@ -54,27 +55,29 @@ async submit(req: SubmitApplicationRequest): Promise<Application> {
   }
 
   async withdraw(applicationId: string): Promise<Application> {
-    return this.patch(`${this.BASE}/${applicationId}/withdraw`);
+    return api.delete(`${this.BASE}/${applicationId}/withdraw`);
   }
 
-async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
-  const {
-    page = 0, size = 10, status, keyword,
-    appliedAtFrom, appliedAtTo,
-    sortBy = "appliedAt", sortDir = "desc",
-  } = params;
+  async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicationsResponse> {
+    const {
+      page = 0, size = 10, status, keyword,
+      appliedAtFrom, appliedAtTo,
+      sortBy = "appliedAt", sortDir = "desc",
+    } = params;
 
-  const query: Record<string, unknown> = { page, size, sortBy, sortDir };
-  if (status)        query.status        = status;
-  if (keyword?.trim()) query.keyword     = keyword.trim();
-  if (appliedAtFrom) query.appliedAtFrom = appliedAtFrom;
-  if (appliedAtTo)   query.appliedAtTo   = appliedAtTo;
+    const query: Record<string, unknown> = { page, size, sortBy, sortDir };
+    if (status)          query.status        = status;
+    if (keyword?.trim()) query.keyword       = keyword.trim();
+    if (appliedAtFrom)   query.appliedAtFrom = appliedAtFrom;
+    if (appliedAtTo)     query.appliedAtTo   = appliedAtTo;
 
-  return this.get(`${this.CANDIDATE}/my`, query);
-}
+    return this.get(`${this.CANDIDATE}/my`, query);
+  }
+
   async getById(applicationId: string): Promise<Application> {
     return this.get(`${this.BASE}/${applicationId}`);
   }
+
   async checkApplied(jobPostId: string): Promise<boolean> {
     try {
       const res = await api.get<{ data: boolean }>(`${this.JOBS}/${jobPostId}/my-application`);
@@ -89,10 +92,29 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
   }
 
   async declineOffer(applicationId: string, reason?: string): Promise<Application> {
-    return this.patch(`${this.BASE}/${applicationId}/decline-offer`, reason ? { reason } : undefined);
+    return this.patch(
+      `${this.BASE}/${applicationId}/decline-offer`,
+      reason ? { reason } : undefined,
+    );
   }
 
-  // ─── Employer ─────────
+  /**
+   * Candidate xem / tải CV mà mình đã nộp.
+   *
+   * Endpoint:
+   *   GET /candidate/applications/{applicationId}/cv/view
+   *   GET /candidate/applications/{applicationId}/cv/download
+   */
+  async fetchCandidateCVBlobUrl(
+    applicationId: string,
+    mode: "view" | "download",
+  ): Promise<string> {
+    const url = `${this.CANDIDATE}/${applicationId}/cv/${mode}`;
+    const res = await api.get(url, { responseType: "blob" });
+    return URL.createObjectURL(res.data as Blob);
+  }
+
+  // ─── Employer ─────────────────────────────────────────────────────────────
 
   async getByJobPost(
     jobPostId: string,
@@ -100,7 +122,7 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
     size = 20,
     status?: ApplicationStatus,
   ): Promise<PageResponse<ApplicationWithCandidate>> {
-    return this.get(`/jobs/${jobPostId}/applications`, {
+    return this.get(`${this.JOBS}/${jobPostId}/applications`, {
       page,
       size,
       ...(status ? { status } : {}),
@@ -138,15 +160,10 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
    * Employer xem / tải CV của ứng viên.
    *
    * Endpoint:
-   *   - CV từ application (không có cvId):
-   *       GET /employer/applications/{applicationId}/cv/view
-   *       GET /employer/applications/{applicationId}/cv/download
-   *   - CV cụ thể (có cvId):
-   *       GET /employer/applications/{applicationId}/cv/{cvId}/view
-   *       GET /employer/applications/{applicationId}/cv/{cvId}/download
-   *
-   * Backend trả về stream (InputStreamResource) — không phải JSON,
-   * nên phải dùng responseType: "blob".
+   *   GET /employer/applications/{applicationId}/cv/view
+   *   GET /employer/applications/{applicationId}/cv/download
+   *   GET /employer/applications/{applicationId}/cv/{cvId}/view
+   *   GET /employer/applications/{applicationId}/cv/{cvId}/download
    */
   async fetchCVBlobUrl(
     applicationId: string,
@@ -157,10 +174,7 @@ async getMyApplications(params: MyApplicationsParams = {}): Promise<MyApplicatio
       ? `${this.EMPLOYER}/${applicationId}/cv/${cvId}/${mode}`
       : `${this.EMPLOYER}/${applicationId}/cv/${mode}`;
 
-    const res = await api.get(url, {
-      responseType: "blob",
-    });
-
+    const res = await api.get(url, { responseType: "blob" });
     return URL.createObjectURL(res.data as Blob);
   }
 }

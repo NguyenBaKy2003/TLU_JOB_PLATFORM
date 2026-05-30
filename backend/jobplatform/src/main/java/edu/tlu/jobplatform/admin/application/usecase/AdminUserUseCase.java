@@ -19,7 +19,6 @@ import java.util.UUID;
  * Admin quản lý users:
  * - Xem danh sách / tìm kiếm
  * - Khoá / mở khoá tài khoản
- * - Đổi role (không được hạ cấp SUPER_ADMIN)
  */
 @Slf4j
 @Service
@@ -51,9 +50,9 @@ public class AdminUserUseCase {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> ResourceNotFoundException.of("User", userId));
 
-        if (user.getRole() == UserRole.SUPER_ADMIN)
+        if (user.getRole() == UserRole.ADMIN)
             throw new BusinessRuleException(
-                    "Không thể khoá tài khoản SUPER_ADMIN.", "FORBIDDEN");
+                    "Không thể khoá tài khoản ADMIN.", "FORBIDDEN");
 
         if (user.isActive())
             user.deactivate();
@@ -72,13 +71,13 @@ public class AdminUserUseCase {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> ResourceNotFoundException.of("User", userId));
 
-        if (user.getRole() == UserRole.SUPER_ADMIN)
+        if (user.getRole() == UserRole.ADMIN)
             throw new BusinessRuleException(
-                    "Không thể thay đổi role của SUPER_ADMIN.", "FORBIDDEN");
+                    "Không thể thay đổi role của ADMIN.", "FORBIDDEN");
 
-        if (newRole == UserRole.SUPER_ADMIN)
+        if (newRole == UserRole.ADMIN)
             throw new BusinessRuleException(
-                    "Không thể gán role SUPER_ADMIN qua API.", "FORBIDDEN");
+                    "Không thể gán role ADMIN qua API.", "FORBIDDEN");
 
         UserRole oldRole = user.getRole();
 

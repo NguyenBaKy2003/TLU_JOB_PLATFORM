@@ -1,20 +1,20 @@
-// src/app/(candidate)/candidate/applications/[id]/page.tsx
 "use client";
-import { useState, useEffect }       from "react";
-import { useParams, useRouter }      from "next/navigation";
-import Link                          from "next/link";
+import { useState, useEffect }    from "react";
+import { useParams, useRouter }   from "next/navigation";
+import Link                       from "next/link";
 import {
-  Briefcase, FileText, MapPin, Clock, ArrowLeft,
+  Briefcase, MapPin, Clock, ArrowLeft,
   ChevronRight, BadgeCheck, X, Eye, Sparkles,
   Building2, Calendar, TrendingUp, GraduationCap, Wrench,
+  Loader2, Download,
 } from "lucide-react";
-import { ApplicationStatusBadge }    from "@/presentation/components/applications/ApplicationStatusBadge";
-import { StatusTimeline }            from "@/presentation/components/applications/StatusTimeline";
-import { ApplicationService }        from "@/application/services/ApplicationService";
-import { ApplicationRepository }     from "@/infrastructure/repositories/ApplicationRepository";
-import type { ApplicationDetail }    from "@/domain/models/Application";
-import { extractErrorMessage }       from "@/lib/extractErrorMessage";
-import { useToast }                  from "@/presentation/components/ui/toast";
+import { ApplicationStatusBadge } from "@/presentation/components/applications/ApplicationStatusBadge";
+import { StatusTimeline }         from "@/presentation/components/applications/StatusTimeline";
+import { ApplicationService }     from "@/application/services/ApplicationService";
+import { ApplicationRepository }  from "@/infrastructure/repositories/ApplicationRepository";
+import type { ApplicationDetail } from "@/domain/models/Application";
+import { extractErrorMessage }    from "@/lib/extractErrorMessage";
+import { useToast }               from "@/presentation/components/ui/toast";
 
 const service = new ApplicationService(new ApplicationRepository());
 
@@ -38,7 +38,7 @@ const LEVEL_LABELS: Record<string, string> = {
   DIRECTOR:  "Director",
 };
 
-// ── Skeleton ────────────────────────────────────────────────────────────────
+// ── Skeleton ─────────────────────────────────────────────────────────────────
 function PageSkeleton() {
   return (
     <div className="animate-pulse flex flex-col gap-5 max-w-2xl mx-auto px-4 py-6">
@@ -53,12 +53,12 @@ function PageSkeleton() {
   );
 }
 
-// ── AI Score ring ────────────────────────────────────────────────────────────
+// ── AI Score ring ─────────────────────────────────────────────────────────────
 function ScoreRing({ score }: { score: number }) {
-  const r = 28;
-  const circ = 2 * Math.PI * r;
+  const r      = 28;
+  const circ   = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
-  const color = score >= 80 ? "#10b981" : score >= 60 ? "#3b82f6" : "#f59e0b";
+  const color  = score >= 80 ? "#10b981" : score >= 60 ? "#3b82f6" : "#f59e0b";
   return (
     <svg width="72" height="72" className="shrink-0 -rotate-90">
       <circle cx="36" cy="36" r={r} fill="none" stroke="#f3f4f6" strokeWidth="6" />
@@ -74,8 +74,10 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ── Score bar ────────────────────────────────────────────────────────────────
-function ScoreBar({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+// ── Score bar ─────────────────────────────────────────────────────────────────
+function ScoreBar({ label, value, icon }: {
+  label: string; value: number; icon: React.ReactNode;
+}) {
   const color = value >= 80 ? "bg-emerald-500" : value >= 60 ? "bg-blue-500" : "bg-amber-400";
   return (
     <div className="flex items-center gap-3">
@@ -90,17 +92,19 @@ function ScoreBar({ label, value, icon }: { label: string; value: number; icon: 
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function ApplicationDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const toast  = useToast();
 
-  const [app,         setApp]         = useState<ApplicationDetail | null>(null);
-  const [loading,     setLoading]     = useState(true);
-  const [withdrawing, setWithdrawing] = useState(false);
-  const [accepting,   setAccepting]   = useState(false);
-  const [declining,   setDeclining]   = useState(false);
+  const [app,           setApp]           = useState<ApplicationDetail | null>(null);
+  const [loading,       setLoading]       = useState(true);
+  const [withdrawing,   setWithdrawing]   = useState(false);
+  const [accepting,     setAccepting]     = useState(false);
+  const [declining,     setDeclining]     = useState(false);
+  const [cvViewing,     setCvViewing]     = useState(false);
+  const [cvDownloading, setCvDownloading] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -115,6 +119,8 @@ export default function ApplicationDetailPage() {
       }
     })();
   }, [params.id, toast]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleWithdraw = async () => {
     if (!app) return;
@@ -152,6 +158,28 @@ export default function ApplicationDetailPage() {
     } finally { setDeclining(false); }
   };
 
+  const handleViewCV = async () => {
+    if (!app) return;
+    setCvViewing(true);
+    try {
+      await service.viewCVAsCandidate(app.id);
+    } catch (e) {
+      toast.error("Không thể mở CV", extractErrorMessage(e));
+    } finally { setCvViewing(false); }
+  };
+
+  const handleDownloadCV = async () => {
+    if (!app) return;
+    setCvDownloading(true);
+    try {
+      await service.downloadCVAsCandidate(app.id, "cv-da-nop");
+    } catch (e) {
+      toast.error("Không thể tải CV", extractErrorMessage(e));
+    } finally { setCvDownloading(false); }
+  };
+
+  // ── Render ───────────────────────────────────────────────────────────────
+
   if (loading) return <PageSkeleton />;
 
   if (!app) {
@@ -174,8 +202,8 @@ export default function ApplicationDetailPage() {
   const companyName = app.company?.name    ?? "—";
   const companyLogo = app.company?.logoUrl ?? null;
   const city        = app.company?.city    ?? null;
-  const jobType     = app.job?.jobType     ? JOB_TYPE_LABELS[app.job.jobType]   ?? app.job.jobType   : null;
-  const level       = app.job?.level       ? LEVEL_LABELS[app.job.level]        ?? app.job.level     : null;
+  const jobType     = app.job?.jobType ? JOB_TYPE_LABELS[app.job.jobType] ?? app.job.jobType : null;
+  const level       = app.job?.level   ? LEVEL_LABELS[app.job.level]     ?? app.job.level   : null;
   const salary      = (app.job as any)?.salary ?? null;
   const scheduledAt = app.interviewScheduledAt ?? app.scheduledAt ?? null;
   const aiScore     = app.aiScore as any;
@@ -202,13 +230,11 @@ export default function ApplicationDetailPage() {
             : <Building2 size={22} className="text-gray-300" />
           }
         </div>
-
         <div className="flex-1 min-w-0">
           <p className="text-xs text-gray-400 truncate">{companyName}</p>
           <p className="text-base font-semibold text-gray-900 leading-snug mt-0.5 line-clamp-2">
             {jobTitle}
           </p>
-
           <div className="flex flex-wrap gap-1.5 mt-2">
             {jobType && (
               <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full">
@@ -281,8 +307,6 @@ export default function ApplicationDetailPage() {
           <p className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 uppercase tracking-wide">
             <Sparkles size={12} className="text-amber-500" /> Đánh giá AI
           </p>
-
-          {/* Score ring + label + summary */}
           <div className="flex items-start gap-4">
             <div className="flex flex-col items-center gap-1">
               <ScoreRing score={aiScore.score} />
@@ -302,12 +326,10 @@ export default function ApplicationDetailPage() {
               </p>
             )}
           </div>
-
-          {/* Score bars */}
           <div className="flex flex-col gap-3 pt-1">
-            <ScoreBar label="Kỹ năng"       value={aiScore.skillMatchScore} icon={<Wrench size={13} />} />
-            <ScoreBar label="Kinh nghiệm"   value={aiScore.experienceScore} icon={<TrendingUp size={13} />} />
-            <ScoreBar label="Học vấn"       value={aiScore.educationScore}  icon={<GraduationCap size={13} />} />
+            <ScoreBar label="Kỹ năng"     value={aiScore.skillMatchScore} icon={<Wrench size={13} />} />
+            <ScoreBar label="Kinh nghiệm" value={aiScore.experienceScore} icon={<TrendingUp size={13} />} />
+            <ScoreBar label="Học vấn"     value={aiScore.educationScore}  icon={<GraduationCap size={13} />} />
           </div>
         </div>
       )}
@@ -320,7 +342,6 @@ export default function ApplicationDetailPage() {
             {new Date(app.appliedAt).toLocaleDateString("vi-VN")}
           </span>
         </div>
-
         {app.updatedAt && app.updatedAt !== app.appliedAt && (
           <div className="flex items-center justify-between px-5 py-3.5 text-sm">
             <span className="text-gray-500">Cập nhật lần cuối</span>
@@ -329,23 +350,19 @@ export default function ApplicationDetailPage() {
             </span>
           </div>
         )}
-
         {app.expectedSalary && (
           <div className="flex items-center justify-between px-5 py-3.5 text-sm">
             <span className="text-gray-500">Mức lương mong muốn</span>
             <span className="font-medium text-gray-800">{app.expectedSalary}</span>
           </div>
         )}
-
         {app.job?.deadline && (
           <div className="flex items-center justify-between px-5 py-3.5 text-sm">
             <span className="text-gray-500 flex items-center gap-1.5">
               <Clock size={12} /> Hạn nộp hồ sơ
             </span>
             <span className={`font-medium ${
-              new Date(app.job.deadline) < new Date()
-                ? "text-red-500"
-                : "text-gray-800"
+              new Date(app.job.deadline) < new Date() ? "text-red-500" : "text-gray-800"
             }`}>
               {new Date(app.job.deadline).toLocaleDateString("vi-VN")}
             </span>
@@ -366,14 +383,41 @@ export default function ApplicationDetailPage() {
         </div>
       )}
 
-      {/* ── CV ── */}
-      <a href={app.cvUrl} target="_blank" rel="noopener noreferrer"
-        className="flex items-center gap-2.5 px-4 py-3 bg-white border border-gray-200
-          rounded-xl text-sm font-medium text-gray-700 hover:border-blue-300 hover:text-blue-600
-          transition-colors w-fit shadow-sm">
-        <FileText size={15} className="text-blue-500" />
-        Xem CV đã nộp
-      </a>
+      {/* ── CV đã nộp ── */}
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          CV đã nộp
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleViewCV}
+            disabled={cvViewing || cvDownloading}
+            className="flex items-center gap-2.5 px-4 py-3 bg-white border border-gray-200
+              rounded-xl text-sm font-medium text-gray-700 hover:border-blue-300 hover:text-blue-600
+              transition-colors shadow-sm disabled:opacity-60"
+          >
+            {cvViewing
+              ? <Loader2 size={15} className="animate-spin text-blue-500" />
+              : <Eye size={15} className="text-blue-500" />
+            }
+            {cvViewing ? "Đang mở..." : "Xem CV"}
+          </button>
+
+          <button
+            onClick={handleDownloadCV}
+            disabled={cvViewing || cvDownloading}
+            className="flex items-center gap-2.5 px-4 py-3 bg-white border border-gray-200
+              rounded-xl text-sm font-medium text-gray-700 hover:border-green-300 hover:text-green-600
+              transition-colors shadow-sm disabled:opacity-60"
+          >
+            {cvDownloading
+              ? <Loader2 size={15} className="animate-spin text-green-500" />
+              : <Download size={15} className="text-green-500" />
+            }
+            {cvDownloading ? "Đang tải..." : "Tải CV"}
+          </button>
+        </div>
+      </div>
 
       {/* ── Status timeline ── */}
       {(app.statusHistory?.length ?? 0) > 0 && (
@@ -387,9 +431,8 @@ export default function ApplicationDetailPage() {
 
       {/* ── Actions ── */}
       <div className="flex flex-col gap-2 pt-2 pb-8">
-
-        <Link href={`/jobs/${ app.jobPostId}`}
-          className="flex items-center justify-center  gap-2 py-3 text-sm font-medium
+        <Link href={`/jobs/${app.jobPostId}`}
+          className="flex items-center justify-center gap-2 py-3 text-sm font-medium
             text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
           <Eye size={15} /> Xem tin tuyển dụng
         </Link>

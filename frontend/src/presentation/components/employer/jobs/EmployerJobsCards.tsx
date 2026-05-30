@@ -204,7 +204,7 @@ function JobCard({
                 onClose={() => onClose(job.id)}
                 onDelete={() => onDelete(job.id)}
                 onEdit={() => router.push(`/employer/jobs/${job.id}/edit`)}
-                onView={() => router.push(`/jobs/${job.slug}`)}
+                onView={() => router.push(`/jobs/${job.id}`)}
               />
           }
         </div>

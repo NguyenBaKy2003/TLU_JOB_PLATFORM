@@ -4,6 +4,7 @@ import {
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
   BoostResult, BoostStatus,
+  ApplicableCV,
 } from "@/domain/models/Candidate";
 
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];

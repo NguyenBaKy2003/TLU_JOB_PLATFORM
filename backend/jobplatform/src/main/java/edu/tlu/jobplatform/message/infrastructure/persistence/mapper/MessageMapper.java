@@ -26,7 +26,7 @@ public class MessageMapper {
     }
 
     public ConversationJpaEntity toEntity(Conversation d) {
-        return ConversationJpaEntity.builder()
+        ConversationJpaEntity entity = ConversationJpaEntity.builder()
                 .participantA(d.getParticipantA())
                 .participantB(d.getParticipantB())
                 .jobPostId(d.getJobPostId())
@@ -36,6 +36,10 @@ public class MessageMapper {
                 .unreadCountA(d.getUnreadCountA())
                 .unreadCountB(d.getUnreadCountB())
                 .build();
+        entity.setId(d.getId());
+        entity.setCreatedAt(d.getCreatedAt());
+        entity.setUpdatedAt(d.getUpdatedAt());
+        return entity;
     }
 
     public Message toDomain(MessageJpaEntity e) {
@@ -52,7 +56,7 @@ public class MessageMapper {
     }
 
     public MessageJpaEntity toEntity(Message d) {
-        return MessageJpaEntity.builder()
+        MessageJpaEntity entity = MessageJpaEntity.builder()
                 .conversationId(d.getConversationId())
                 .senderId(d.getSenderId())
                 .content(d.getContent())
@@ -60,5 +64,7 @@ public class MessageMapper {
                 .read(d.isRead())
                 .readAt(d.getReadAt())
                 .build();
+        entity.setId(d.getId());
+        return entity;
     }
 }

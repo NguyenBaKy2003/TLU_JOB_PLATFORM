@@ -452,7 +452,6 @@ export default function ProfilePage() {
           profileUrl={profile.profileUrl ?? `CareerUp.com/u/${profile.id.slice(0, 8)}`}
         />
       </div>
-
     </div>
   );
 }

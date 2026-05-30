@@ -67,7 +67,7 @@ public class AdminPaymentUseCase {
                                 from, to);
         }
 
-        // ── Refund (SUPER_ADMIN only) ──────────────────────────────────────
+        // ── Refund (ADMIN only) ──────────────────────────────────────
 
         @Transactional
         public Payment refund(UUID paymentId, String reason) {

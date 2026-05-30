@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminDashboardUseCase;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -20,12 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(name = "Admin", description = "Quản trị hệ thống")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminDashboardController {
 
     private final AdminDashboardUseCase dashboardUseCase;
 
     @Operation(summary = "Dashboard — số liệu tổng quan")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardUseCase.DashboardStats>> getDashboard() {
         return ResponseEntity.ok(ApiResponse.success(dashboardUseCase.execute()));

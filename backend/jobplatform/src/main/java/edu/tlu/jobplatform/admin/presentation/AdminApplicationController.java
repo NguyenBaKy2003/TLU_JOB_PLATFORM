@@ -6,6 +6,9 @@ import edu.tlu.jobplatform.application.domain.model.ApplicationStatusLog;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
+import edu.tlu.jobplatform.shared.audit.Loggable;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,22 +33,23 @@ import java.util.UUID;
  * GET /api/v1/admin/applications/{id} — Chi tiết
  * GET /api/v1/admin/applications/{id}/status-logs — Lịch sử status
  * PATCH /api/v1/admin/applications/{id}/override-status — Override
- * (SUPER_ADMIN)
+ * (ADMIN)
  * POST /api/v1/admin/applications/cancel-by-job/{jobPostId} — Cancel tất cả
- * (SUPER_ADMIN)
+ * (ADMIN)
  */
 @RestController
 @RequestMapping("/api/v1/admin/applications")
 @RequiredArgsConstructor
 @Tag(name = "Admin - Applications")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminApplicationController {
 
         private final AdminApplicationUseCase adminApplicationUseCase;
 
         @Operation(summary = "Tất cả đơn ứng tuyển trong hệ thống", description = "Lọc theo status và tìm kiếm theo tên/email ứng viên, tên bài đăng.")
         @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> listAll(
                         @Parameter(description = "Lọc trạng thái") @RequestParam(required = false) ApplicationStatus status,
                         @Parameter(description = "Tìm theo tên/email ứng viên hoặc tiêu đề bài đăng") @RequestParam(required = false) String keyword,
@@ -60,6 +64,7 @@ public class AdminApplicationController {
 
         @Operation(summary = "Đơn ứng tuyển theo công ty")
         @GetMapping("/company/{companyId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> listByCompany(
                         @PathVariable UUID companyId,
                         @RequestParam(required = false) ApplicationStatus status,
@@ -75,6 +80,7 @@ public class AdminApplicationController {
 
         @Operation(summary = "Đơn ứng tuyển theo bài đăng")
         @GetMapping("/job/{jobPostId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> listByJob(
                         @PathVariable UUID jobPostId,
                         @RequestParam(required = false) ApplicationStatus status,
@@ -90,6 +96,7 @@ public class AdminApplicationController {
 
         @Operation(summary = "Chi tiết đơn ứng tuyển")
         @GetMapping("/{id}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getById(@PathVariable UUID id) {
                 var app = adminApplicationUseCase.getById(id);
                 var logs = adminApplicationUseCase.getStatusLogs(id);
@@ -98,15 +105,18 @@ public class AdminApplicationController {
 
         @Operation(summary = "Lịch sử thay đổi trạng thái")
         @GetMapping("/{id}/status-logs")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<ApplicationStatusLog>>> getStatusLogs(
                         @PathVariable UUID id) {
                 return ResponseEntity.ok(
                                 ApiResponse.success(adminApplicationUseCase.getStatusLogs(id)));
         }
 
-        @Operation(summary = "Override trạng thái đơn — SUPER_ADMIN, dùng khi có tranh chấp")
+        @Operation(summary = "Override trạng thái đơn — ADMIN, dùng khi có tranh chấp")
         @PatchMapping("/{id}/override-status")
-        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        @PreAuthorize("hasRole('ADMIN')")
+        @RateLimit(policy = "admin-sensitive", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_OVERRIDE_APPLICATION_STATUS", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> overrideStatus(
                         @PathVariable UUID id,
                         @Valid @RequestBody OverrideStatusRequest req) {
@@ -116,9 +126,9 @@ public class AdminApplicationController {
                                 ApiResponse.success(ApplicationResponse.from(app), "Trạng thái đã được cập nhật."));
         }
 
-        @Operation(summary = "Cancel toàn bộ đơn của 1 bài đăng — SUPER_ADMIN")
+        @Operation(summary = "Cancel toàn bộ đơn của 1 bài đăng — ADMIN")
         @PostMapping("/cancel-by-job/{jobPostId}")
-        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<String>> cancelByJob(
                         @PathVariable UUID jobPostId,
                         @RequestParam String reason) {

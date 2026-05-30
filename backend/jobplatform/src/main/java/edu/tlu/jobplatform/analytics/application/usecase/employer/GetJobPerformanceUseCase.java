@@ -1,7 +1,7 @@
 package edu.tlu.jobplatform.analytics.application.usecase.employer;
 
 import edu.tlu.jobplatform.analytics.domain.model.JobPerformanceStats;
-import edu.tlu.jobplatform.analytics.infrastructure.query.AnalyticsQueryService;
+import edu.tlu.jobplatform.analytics.infrastructure.query.EmployerAnalyticsQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GetJobPerformanceUseCase {
 
-    private final AnalyticsQueryService queryService;
+    private final EmployerAnalyticsQueryService queryService;
 
     public List<JobPerformanceStats> execute(Command cmd) {
         return queryService.getJobPerformance(cmd.companyId());
