@@ -281,8 +281,8 @@ public class CandidateMapper {
                                 .industry(j.getIndustry())
                                 .minSalary(j.getMinSalary())
                                 .currency(j.getCurrency())
-                                .contractTypes(new ArrayList<>(j.getContractTypes()))
-                                .levels(new ArrayList<>(j.getLevels()))
+                                .contractTypes(new HashSet<>(j.getContractTypes()))
+                                .levels(new HashSet<>(j.getLevels()))
                                 .build();
         }
 

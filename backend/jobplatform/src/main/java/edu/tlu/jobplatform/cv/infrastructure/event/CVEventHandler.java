@@ -27,8 +27,6 @@ public class CVEventHandler {
     public void onCVPublished(CVPublishedEvent event) {
         log.info("[CVEvent] CV published: cvId={} candidateId={} slug={}",
                 event.getCvId(), event.getCandidateId(), event.getSlug());
-        // TODO: gửi notification cho candidate nếu cần
-        // TODO: index CV vào search nếu có tính năng tìm CV theo slug
     }
 
     /**
@@ -41,7 +39,5 @@ public class CVEventHandler {
     public void onCVExported(CVExportedEvent event) {
         log.info("[CVEvent] CV exported: cvId={} candidateId={} pdfUrl={}",
                 event.getCvId(), event.getCandidateId(), event.getPdfUrl());
-        // TODO: audit log
-        // TODO: notification "PDF của bạn đã sẵn sàng" nếu export chạy async
     }
 }

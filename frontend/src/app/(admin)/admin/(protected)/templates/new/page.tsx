@@ -103,7 +103,7 @@ export default function NewTemplatePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <TemplateFormBreadcrumb isEdit={false} />
 
         <TemplateFormCard>

@@ -1,4 +1,3 @@
-// src/app/(cv)/cv/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,23 +12,25 @@ import { CVGrid } from "@/presentation/components/cv/CVGrid";
 import { CreateCVModal } from "@/presentation/components/cv/CreateCVModal";
 import { useAuth } from "@/application/contexts/AuthContext";
 import { CVAuthRequired } from "@/presentation/components/cv/CVAuthRequired";
+import { useToast } from "@/presentation/components/ui/toast";
+import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
 const cvService = new CvService(new CvRepository());
 
 export default function CVPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth(); // Hook auth của bạn
-  
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { success, error: toastError } = useToast();
+
   const [cvs, setCvs] = useState<OnlineCV[]>([]);
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Load data chỉ khi có quyền
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (!isAuthenticated || user?.role !== "CANDIDATE") {
       setLoading(false);
       return;
@@ -44,24 +45,26 @@ export default function CVPage() {
         setCvs(cvList);
         setTemplates(tplList);
       } catch (err) {
-        console.error("Failed to load CVs", err);
+        toastError("Tải dữ liệu thất bại", extractErrorMessage(err));
       } finally {
         setLoading(false);
       }
     };
+
     load();
   }, [authLoading, isAuthenticated, user?.role]);
 
-  // Nếu đang check auth
   if (authLoading) return <CVPageSkeleton />;
 
-  // Nếu chưa đăng nhập hoặc không phải CANDIDATE
   if (!isAuthenticated || user?.role !== "CANDIDATE") {
-    return <CVAuthRequired isAuthenticated={isAuthenticated} 
-      userRole={user?.role}  />;
+    return (
+      <CVAuthRequired
+        isAuthenticated={isAuthenticated}
+        userRole={user?.role}
+      />
+    );
   }
 
-  // Nếu đang load data
   if (loading) return <CVPageSkeleton />;
 
   const handleCreate = async (title: string, templateId: string) => {
@@ -70,8 +73,9 @@ export default function CVPage() {
       const newCv = await cvService.createFromForm({ title, templateId });
       setCvs((prev) => [newCv, ...prev]);
       setShowCreateModal(false);
+      success("Tạo CV thành công", `CV "${title}" đã được tạo.`);
     } catch (err) {
-      console.error("Failed to create CV", err);
+      toastError("Tạo CV thất bại", extractErrorMessage(err));
     } finally {
       setCreating(false);
     }
@@ -81,8 +85,9 @@ export default function CVPage() {
     try {
       const duplicated = await cvService.duplicate(cvId);
       setCvs((prev) => [duplicated, ...prev]);
+      success("Sao chép thành công", "CV đã được nhân bản.");
     } catch (err) {
-      console.error("Failed to duplicate CV", err);
+      toastError("Sao chép thất bại", extractErrorMessage(err));
     }
   };
 
@@ -90,8 +95,9 @@ export default function CVPage() {
     try {
       await cvService.delete(cvId);
       setCvs((prev) => prev.filter((cv) => cv.id !== cvId));
+      success("Đã xóa CV", "CV đã được xóa khỏi danh sách.");
     } catch (err) {
-      console.error("Failed to delete CV", err);
+      toastError("Xóa thất bại", extractErrorMessage(err));
     }
   };
 
@@ -99,8 +105,9 @@ export default function CVPage() {
     try {
       const updated = await cvService.publish(cvId);
       setCvs((prev) => prev.map((cv) => (cv.id === cvId ? updated : cv)));
+      success("Đã công khai CV", "CV của bạn hiện đã được công khai.");
     } catch (err) {
-      console.error("Failed to publish CV", err);
+      toastError("Công khai thất bại", extractErrorMessage(err));
     }
   };
 
@@ -108,8 +115,9 @@ export default function CVPage() {
     try {
       const updated = await cvService.archive(cvId);
       setCvs((prev) => prev.map((cv) => (cv.id === cvId ? updated : cv)));
+      success("Đã lưu trữ CV", "CV đã được chuyển vào lưu trữ.");
     } catch (err) {
-      console.error("Failed to archive CV", err);
+      toastError("Lưu trữ thất bại", extractErrorMessage(err));
     }
   };
 
@@ -117,8 +125,9 @@ export default function CVPage() {
     try {
       const updated = await cvService.restore(cvId);
       setCvs((prev) => prev.map((cv) => (cv.id === cvId ? updated : cv)));
+      success("Đã khôi phục CV", "CV đã được khôi phục thành công.");
     } catch (err) {
-      console.error("Failed to restore CV", err);
+      toastError("Khôi phục thất bại", extractErrorMessage(err));
     }
   };
 

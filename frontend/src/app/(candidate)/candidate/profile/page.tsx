@@ -31,8 +31,12 @@ import {
 import { SectionKey }            from "@/presentation/components/profile/types/SectionKey";
 import { extractErrorMessage }   from "@/lib/extractErrorMessage";
 import { useToast }              from "@/presentation/components/ui/toast";
+import { CvService }             from "@/application/services/CvService";
+import { CvRepository }          from "@/infrastructure/repositories/CvRepository";
+import { useRouter }             from "next/navigation";
 
-const service = new CandidateService(new CandidateRepository());
+const service   = new CandidateService(new CandidateRepository());
+const cvService = new CvService(new CvRepository());
 
 function calcCompletion(p: CandidateProfile) {
   const checks = [
@@ -50,7 +54,6 @@ function calcCompletion(p: CandidateProfile) {
   };
 }
 
-/** Format "2026-06-01T10:51:14.296..." → "01/06/2026" */
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("vi-VN", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -60,21 +63,19 @@ function formatDate(iso: string) {
 // ── Inline BoostCard ─────────────────────────────────────────────────────────
 
 interface BoostCardProps {
-  boosted: boolean;
-  boostedUntil: string | null;
+  boosted:         boolean;
+  boostedUntil:    string | null;
   boostsRemaining: number | null;
-  boosting: boolean;
-  onBoost: () => void;
+  boosting:        boolean;
+  onBoost:         () => void;
 }
 
 function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }: BoostCardProps) {
-  const unlimited  = boostsRemaining === -1;
-  const noQuota    = !unlimited && boostsRemaining !== null && boostsRemaining <= 0;
-  // Chỉ cho boost khi chưa boost hoặc đã hết hạn
-  const isActive   = boosted && boostedUntil && new Date(boostedUntil) > new Date();
-  const canBoost   = !isActive && !noQuota;
+  const unlimited = boostsRemaining === -1;
+  const noQuota   = !unlimited && boostsRemaining !== null && boostsRemaining <= 0;
+  const isActive  = boosted && boostedUntil && new Date(boostedUntil) > new Date();
+  const canBoost  = !isActive && !noQuota;
 
-  // Countdown đến ngày hết hạn
   const daysLeft = boostedUntil
     ? Math.ceil((new Date(boostedUntil).getTime() - Date.now()) / 86_400_000)
     : 0;
@@ -82,18 +83,17 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 shadow-sm">
 
-      {/* Header */}
       <div className="flex items-center gap-2">
         <span className="text-lg">⚡</span>
         <span className="font-semibold text-gray-800 text-[15px]">Boost CV</span>
         {isActive && (
-          <span className="ml-auto text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+          <span className="ml-auto text-[11px] font-medium text-emerald-700 bg-emerald-50
+            border border-emerald-200 rounded-full px-2 py-0.5">
             Đang boost
           </span>
         )}
       </div>
 
-      {/* Status */}
       <div className="text-[13px] text-gray-500 leading-relaxed">
         {isActive && boostedUntil ? (
           <span>
@@ -105,7 +105,6 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
             . Bạn có thể boost lại sau khi hết hạn.
           </span>
         ) : boostedUntil && !isActive ? (
-          // Đã từng boost nhưng hết hạn
           <span>
             Boost trước đã hết hạn vào{" "}
             <span className="font-medium text-gray-700">{formatDate(boostedUntil)}</span>
@@ -116,7 +115,6 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
         )}
       </div>
 
-      {/* Quota badge — chỉ hiện khi biết quota */}
       {boostsRemaining !== null && (
         <div className="flex items-center gap-1.5 text-[12px]">
           <span className="text-gray-400">Lượt còn lại tháng này:</span>
@@ -126,7 +124,6 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
         </div>
       )}
 
-      {/* CTA */}
       <button
         onClick={onBoost}
         disabled={boosting || !canBoost}
@@ -154,7 +151,8 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const toast = useToast();
+  const toast  = useToast();
+  const router = useRouter();
 
   const [profile,       setProfile]       = useState<CandidateProfile | null>(null);
   const [cvList,        setCvList]        = useState<CandidateCV[]>([]);
@@ -164,10 +162,9 @@ export default function ProfilePage() {
   const [saving,        setSaving]        = useState<Partial<Record<SectionKey, boolean>>>({});
   const [sectionErrors, setSectionErrors] = useState<Partial<Record<SectionKey, string>>>({});
 
-  // ── Boost state ────────────────────────────────────────────────────────────
-  const [boostStatus,      setBoostStatus]      = useState<BoostStatus | null>(null);
-  const [boostsRemaining,  setBoostsRemaining]  = useState<number | null>(null);
-  const [boosting,         setBoosting]         = useState(false);
+  const [boostStatus,     setBoostStatus]     = useState<BoostStatus | null>(null);
+  const [boostsRemaining, setBoostsRemaining] = useState<number | null>(null);
+  const [boosting,        setBoosting]        = useState(false);
 
   const hasLoaded = useRef(false);
 
@@ -199,19 +196,38 @@ export default function ProfilePage() {
     loadProfile();
   }, [loadProfile]);
 
-  // ── Boost handler ──────────────────────────────────────────────────────────
+  const handleEditOnlineCV = useCallback((cvId: string) => {
+    router.push(`/cv/${cvId}/edit`);
+  }, [router]);
+
+  const handleViewOnlineCV = useCallback(async (cv: CandidateCV) => {
+    if ((cv as any).id && (cv as any).status === "PUBLISHED") {
+      window.open(`/cv/${(cv as any).id}/edit`, "_blank");
+      return;
+    }
+    try {
+      const html = await cvService.previewHtml(cv.id);
+      const blob = new Blob([html], { type: "text/html" });
+      const url  = URL.createObjectURL(blob);
+      const tab  = window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (!tab) toast.error("Bị chặn popup", "Vui lòng cho phép popup cho trang này.");
+    } catch (e) {
+      toast.error("Không thể xem trước", extractErrorMessage(e));
+    }
+  }, [toast]);
+
+  // ── Boost ──────────────────────────────────────────────────────────────────
 
   const handleBoost = useCallback(async () => {
     setBoosting(true);
     try {
       const result: BoostResult = await service.boostCv();
-      // Sync boost status from result — no extra GET needed
       setBoostStatus({
         currentlyBoosted: result.currentlyBoosted,
-        boostedUntil: result.boostedUntil,
+        boostedUntil:     result.boostedUntil,
       });
       setBoostsRemaining(result.boostsRemaining);
-      // Also keep CandidateProfile.boosted in sync
       setProfile((prev) =>
         prev ? { ...prev, boosted: true, boostedUntil: result.boostedUntil } : prev
       );
@@ -339,10 +355,8 @@ export default function ProfilePage() {
     [profile],
   );
 
-  // Merge boostStatus with profile.boosted/boostedUntil as fallback
-  const isBoosted     = boostStatus?.currentlyBoosted ?? profile?.boosted ?? false;
-  const boostedUntil  = boostStatus?.boostedUntil     ?? profile?.boostedUntil ?? null;
-  const remainingHits = boostsRemaining; // null until first boost action
+  const isBoosted    = boostStatus?.currentlyBoosted ?? profile?.boosted ?? false;
+  const boostedUntil = boostStatus?.boostedUntil     ?? profile?.boostedUntil ?? null;
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
@@ -370,8 +384,10 @@ export default function ProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <p className="text-[16px] text-red-500">{error ?? "Không thể tải hồ sơ"}</p>
-        <button onClick={loadProfile}
-          className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+        <button
+          onClick={loadProfile}
+          className="px-4 py-2 text-[16px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        >
           Thử lại
         </button>
       </div>
@@ -394,26 +410,28 @@ export default function ProfilePage() {
           onViewCV={cvList.length > 0 ? viewCV     : undefined}
           onDownloadCV={cvList.length > 0 ? downloadCV : undefined}
         />
-        <PersonalInfoSection   profile={profile} saving={!!saving.personal}       error={sectionErrors.personal}       onSave={updateProfile} />
-        <BioSection            profile={profile} saving={!!saving.bio}             error={sectionErrors.bio}             onSave={updateProfile} />
-        <SkillsSection         profile={profile} saving={!!saving.skills}          error={sectionErrors.skills}          onSave={updateProfile} />
-        <WorkExperienceSection profile={profile} saving={!!saving.experience}      error={sectionErrors.experience}
+        <PersonalInfoSection   profile={profile} saving={!!saving.personal}      error={sectionErrors.personal}      onSave={updateProfile} />
+        <BioSection            profile={profile} saving={!!saving.bio}            error={sectionErrors.bio}            onSave={updateProfile} />
+        <SkillsSection         profile={profile} saving={!!saving.skills}         error={sectionErrors.skills}         onSave={updateProfile} />
+        <WorkExperienceSection profile={profile} saving={!!saving.experience}     error={sectionErrors.experience}
           onAdd={addExperience} onUpdate={updateExperience} onDelete={deleteExperience} />
-        <EducationSection      profile={profile} saving={!!saving.education}       error={sectionErrors.education}
+        <EducationSection      profile={profile} saving={!!saving.education}      error={sectionErrors.education}
           onAdd={addEducation}  onUpdate={updateEducation}  onDelete={deleteEducation} />
-        <LinksSection          profile={profile} saving={!!saving.links}           error={sectionErrors.links}           onSave={updateProfile} />
-        <LanguagesSection      profile={profile} saving={!!saving.languages}       error={sectionErrors.languages}       onSave={updateProfile} />
-        <JobExpectationSection profile={profile} saving={!!saving.jobExpectation}  error={sectionErrors.jobExpectation}  onSave={updateProfile} />
-        <BenefitsSection       profile={profile} saving={!!saving.benefits}        error={sectionErrors.benefits}        onSave={updateProfile} />
+        <LinksSection          profile={profile} saving={!!saving.links}          error={sectionErrors.links}          onSave={updateProfile} />
+        <LanguagesSection      profile={profile} saving={!!saving.languages}      error={sectionErrors.languages}      onSave={updateProfile} />
+        <JobExpectationSection profile={profile} saving={!!saving.jobExpectation} error={sectionErrors.jobExpectation} onSave={updateProfile} />
+        <BenefitsSection       profile={profile} saving={!!saving.benefits}       error={sectionErrors.benefits}       onSave={updateProfile} />
       </div>
 
-      {/* ── Right: sidebar cards ─────── */}
-      <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 z-10 flex flex-col gap-4">
+      {/* ── Right: sidebar cards ─────────────────────────────────────────────
+
+      ──────────────────────────────────────────────────────────────────────── */}
+      <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 flex flex-col gap-4">
         <ProfileCompletionCard percentage={percentage} steps={steps} />
         <BoostCard
           boosted={isBoosted}
           boostedUntil={boostedUntil}
-          boostsRemaining={remainingHits}
+          boostsRemaining={boostsRemaining}
           boosting={boosting}
           onBoost={handleBoost}
         />
@@ -427,6 +445,8 @@ export default function ProfilePage() {
           onDownload={(cvId, title) => service.downloadCV(cvId, title)}
           onSetPrimary={setPrimaryCV}
           onRefreshList={refreshCvList}
+          onEdit={handleEditOnlineCV}
+          onViewOnline={handleViewOnlineCV}
         />
         <ProfileShareCard
           profileUrl={profile.profileUrl ?? `CareerUp.com/u/${profile.id.slice(0, 8)}`}

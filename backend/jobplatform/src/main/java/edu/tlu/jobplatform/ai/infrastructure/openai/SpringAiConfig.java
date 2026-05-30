@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class SpringAiConfig {
 
-        // Đọc từ application.yml → spring.ai.openai.chat.options.model
         @Value("${spring.ai.openai.chat.options.model:llama-3.3-70b-versatile}")
         private String defaultModel;
 
@@ -39,7 +38,7 @@ public class SpringAiConfig {
         public ChatClient chatClient(OpenAiChatModel chatModel) {
                 return ChatClient.builder(chatModel)
                                 .defaultOptions(OpenAiChatOptions.builder()
-                                                .model(defaultModel) // Dùng model từ config
+                                                .model(defaultModel)
                                                 .temperature(0.7)
                                                 .maxTokens(1000)
                                                 .build())

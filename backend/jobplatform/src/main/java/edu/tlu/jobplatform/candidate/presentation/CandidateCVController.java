@@ -43,6 +43,7 @@ public class CandidateCVController {
         private final DeleteCVUseCase deleteCVUseCase;
         private final DownloadCVUseCase downloadCVUseCase;
         private final ListAllCVsUseCase listAllCVsUseCase;
+        private final ListApplicableCVsUseCase listApplicableCVsUseCase;
         // ── GET /api/v1/candidate/cv ──
 
         @Operation(summary = "Danh sách tất cả CV (uploaded + online)")
@@ -62,7 +63,16 @@ public class CandidateCVController {
 
                 return ResponseEntity.ok(ApiResponse.success(response));
         }
+
         // ── POST /api/v1/candidate/cv/upload ──
+        @Operation(summary = "CV có thể dùng để nộp đơn (uploaded + online PUBLISHED)")
+        @GetMapping("/applicable")
+        public ResponseEntity<ApiResponse<List<ListApplicableCVsUseCase.ApplicableCV>>> listApplicableCVs(
+                        @CurrentUser UUID userId) {
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                listApplicableCVsUseCase.execute(userId)));
+        }
 
         @Operation(summary = "Upload CV (PDF / DOC / DOCX)", description = """
                         Upload file CV lên S3.

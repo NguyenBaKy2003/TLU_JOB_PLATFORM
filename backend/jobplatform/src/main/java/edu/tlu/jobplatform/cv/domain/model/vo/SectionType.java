@@ -12,6 +12,7 @@ public enum SectionType {
     PROJECT, // Dự án
     CERTIFICATE, // Chứng chỉ
     LANGUAGE, // Ngoại ngữ
+    SOCIAL_LINK, // link mang xa hoi
     AWARD, // Giải thưởng
     CUSTOM // Section tự do
 }

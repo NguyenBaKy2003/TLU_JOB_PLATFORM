@@ -1,26 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2, Download, UserCircle2, Type } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Loader2, Download, UserCircle2, Type,
+  Bold, Italic, List, Link2,
+} from "lucide-react";
 import type {
-  OnlineCVDetail, CVSection,
+  OnlineCVDetail, CVSection, SectionType,
   PersonalInfoForm, UpdateCVSectionPayload,
 } from "@/domain/models/Cv";
 import { SECTION_TYPE_LABELS } from "@/domain/models/Cv";
-import { EditorTab } from "@/app/(cv)/cv/[id]/edit/page";
+import {
+  deserializeContent,
+  serializeContent,
+  SECTION_PLACEHOLDERS,
+} from "./sectionContentHelper";
+import {
+  StructuredSectionEditor,
+  isStructuredType,
+} from "./StructuredSectionEditor";
+import type { EditorTab } from "@/app/(cv)/cv/[id]/edit/page";
 
-// ── Shared field component ─────────────────────────────────────────────────
+// ── Shared field ───────────────────────────────────────────────────────────
 
 function FormField({
   label, value, onChange, type = "text", placeholder, hint, span2 = false,
 }: {
-  label:       string;
-  value:       string;
-  onChange:    (v: string) => void;
-  type?:       string;
+  label:        string;
+  value:        string;
+  onChange:     (v: string) => void;
+  type?:        string;
   placeholder?: string;
-  hint?:       string;
-  span2?:      boolean;
+  hint?:        string;
+  span2?:       boolean;
 }) {
   return (
     <div className={span2 ? "col-span-2" : ""}>
@@ -80,8 +92,8 @@ function PersonalInfoEditor({
 
   const handleImport = async () => {
     setImporting(true);
-    await onImportFromProfile();
-    setImporting(false);
+    try { await onImportFromProfile(); }
+    finally { setImporting(false); }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -103,7 +115,10 @@ function PersonalInfoEditor({
           disabled={importing}
           className="flex items-center gap-1.5 text-[11px] font-semibold text-[#3D5A80] hover:underline disabled:opacity-50 transition-opacity"
         >
-          {importing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+          {importing
+            ? <Loader2 className="w-3 h-3 animate-spin" />
+            : <Download className="w-3 h-3" />
+          }
           Nhập từ profile
         </button>
       </div>
@@ -120,31 +135,27 @@ function PersonalInfoEditor({
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-800 truncate">{form.fullName || "Chưa có tên"}</p>
-              <p className="text-[11px] text-slate-400 truncate">{form.headline || "Chưa có headline"}</p>
+              <p className="text-xs font-bold text-slate-800 truncate">
+                {form.fullName || "Chưa có tên"}
+              </p>
+              <p className="text-[11px] text-slate-400 truncate">
+                {form.headline || "Chưa có headline"}
+              </p>
             </div>
           </div>
         )}
 
-        {/* Basic */}
+        {/* Basic fields */}
         <div className="grid grid-cols-2 gap-3.5">
-          <FormField span2 label="Họ và tên"   value={form.fullName}  onChange={set("fullName")}  placeholder="Nguyễn Văn A" />
-          <FormField span2 label="Headline"    value={form.headline}  onChange={set("headline")}  placeholder="Frontend Developer · 3 năm kinh nghiệm" />
-          <FormField       label="Email"       value={form.email}     onChange={set("email")}     type="email" placeholder="email@example.com" />
-          <FormField       label="Điện thoại"  value={form.phone}     onChange={set("phone")}     type="tel"   placeholder="0912 345 678" />
-          <FormField span2 label="Địa chỉ"    value={form.address}   onChange={set("address")}   placeholder="Hà Nội, Việt Nam" />
-          <FormField span2 label="URL ảnh đại diện" value={form.avatarUrl} onChange={set("avatarUrl")} placeholder="https://..." hint="Dán link ảnh từ Internet" />
+          <FormField span2 label="Họ và tên"       value={form.fullName}  onChange={set("fullName")}  placeholder="Nguyễn Văn A" />
+          <FormField span2 label="Headline"         value={form.headline}  onChange={set("headline")}  placeholder="Frontend Developer · 3 năm kinh nghiệm" />
+          <FormField       label="Email"            value={form.email}     onChange={set("email")}     type="email" placeholder="email@example.com" />
+          <FormField       label="Điện thoại"       value={form.phone}     onChange={set("phone")}     type="tel"   placeholder="0912 345 678" />
+          <FormField span2 label="Địa chỉ"          value={form.address}   onChange={set("address")}   placeholder="Hà Nội, Việt Nam" />
+          <FormField span2 label="URL ảnh đại diện" value={form.avatarUrl} onChange={set("avatarUrl")} placeholder="https://…" hint="Dán link ảnh từ Internet" />
         </div>
 
-        {/* Social */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Mạng xã hội</p>
-          <div className="space-y-3">
-            <FormField label="LinkedIn" value={form.linkedIn} onChange={set("linkedIn")} placeholder="https://linkedin.com/in/username" />
-            <FormField label="GitHub"   value={form.github}   onChange={set("github")}   placeholder="https://github.com/username" />
-            <FormField label="Website / Portfolio" value={form.website} onChange={set("website")} placeholder="https://mysite.com" />
-          </div>
-        </div>
+       
       </div>
 
       {/* Footer */}
@@ -172,39 +183,67 @@ function PersonalInfoEditor({
 function SectionEditor({
   section, saving, onUpdate, onRealtimeUpdate,
 }: {
-  section:           CVSection;
-  saving:            boolean;
-  onUpdate:          (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
-  onRealtimeUpdate:  (sectionId: string, payload: UpdateCVSectionPayload) => void;
+  section:          CVSection;
+  saving:           boolean;
+  onUpdate:         (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
+  onRealtimeUpdate: (sectionId: string, payload: UpdateCVSectionPayload) => void;
 }) {
-  const [title,   setTitle]   = useState(section.title);
-  const [content, setContent] = useState(section.content);
+  const [title, setTitle] = useState(section.title);
+
+  // rawContent = JSON string — source of truth gửi backend
+  const [rawContent, setRawContent] = useState(section.content ?? "");
+
+  // textContent chỉ dùng cho textarea (SUMMARY, SKILL, PROJECT, v.v.)
+  const [textContent, setTextContent] = useState(() =>
+    deserializeContent(section.type, section.content)
+  );
+
   const [isDirty, setIsDirty] = useState(false);
 
-  // Sync when switching sections
+  // Sync khi chuyển section
   useEffect(() => {
     setTitle(section.title);
-    setContent(section.content);
+    setRawContent(section.content ?? "");
+    setTextContent(deserializeContent(section.type, section.content));
     setIsDirty(false);
-  }, [section.id]);
+  }, [section.id, section.type, section.content]);
 
   const handleTitle = (v: string) => {
-    setTitle(v); setIsDirty(true);
-    onRealtimeUpdate(section.id, { title: v, content, visible: section.visible });
-  };
-  const handleContent = (v: string) => {
-    setContent(v); setIsDirty(true);
-    onRealtimeUpdate(section.id, { title, content: v, visible: section.visible });
+    setTitle(v);
+    setIsDirty(true);
+    onRealtimeUpdate(section.id, { title: v, content: rawContent, visible: section.visible });
   };
 
-  const insertMarkdown = (tag: string) => {
-    handleContent(content + `${tag}text${tag}`);
+  // Dùng cho textarea — serialize text → JSON rồi lưu vào rawContent
+  const handleTextContent = (v: string) => {
+    setTextContent(v);
+    const json = serializeContent(section.type, v);
+    setRawContent(json);
+    setIsDirty(true);
+    onRealtimeUpdate(section.id, { title, content: json, visible: section.visible });
+  };
+
+  // Dùng cho structured editor — nhận thẳng JSON string, không cần parse lại
+  const handleStructuredContent = (json: string) => {
+    setRawContent(json);
+    setIsDirty(true);
+    onRealtimeUpdate(section.id, { title, content: json, visible: section.visible });
   };
 
   const handleSave = async () => {
-    await onUpdate(section.id, { title, content, visible: section.visible });
+    await onUpdate(section.id, {
+      title,
+      content: rawContent,
+      visible: section.visible,
+    });
     setIsDirty(false);
   };
+
+  const structured = isStructuredType(section.type);
+
+  const placeholder =
+    SECTION_PLACEHOLDERS[section.type] ??
+    `Nội dung cho "${section.title}"…\n\nHỗ trợ Markdown: **đậm**, _nghiêng_`;
 
   return (
     <div className="flex flex-col h-full">
@@ -219,7 +258,7 @@ function SectionEditor({
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
-        {/* Title field */}
+        {/* Title */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
             Tiêu đề mục
@@ -237,59 +276,75 @@ function SectionEditor({
           />
         </div>
 
-        {/* Content editor */}
-        <div className="flex flex-col flex-1 min-h-0">
-          <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
-            Nội dung
-          </label>
-          <div className="flex flex-col rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-[#3D5A80]/20 focus-within:border-[#3D5A80] transition-all flex-1 min-h-0">
-            {/* Mini toolbar */}
-            <div className="flex items-center gap-1 px-3 py-2 border-b border-slate-100 bg-slate-50 flex-shrink-0">
-              {[
-                { label: "B", style: { fontWeight: 700 },         tag: "**" },
-                { label: "I", style: { fontStyle: "italic" },     tag: "_" },
-                { label: "U", style: { textDecoration: "underline" }, tag: "__" },
-              ].map(({ label, style, tag }) => (
+        {/* Content: structured form hoặc textarea tùy type */}
+        {structured ? (
+          // EXPERIENCE, EDUCATION, LANGUAGE, SOCIAL_LINK → form có input riêng từng field
+          <StructuredSectionEditor
+            type={section.type}
+            rawContent={rawContent}
+            onChange={handleStructuredContent}
+          />
+        ) : (
+          // SUMMARY, SKILL, PROJECT, CERTIFICATE, AWARD, CUSTOM → textarea
+          <div className="flex flex-col flex-1 min-h-0">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+              Nội dung
+            </label>
+            <div className="flex flex-col rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-[#3D5A80]/20 focus-within:border-[#3D5A80] transition-all flex-1 min-h-0">
+              {/* Mini toolbar */}
+              <div className="flex items-center gap-1 px-3 py-2 border-b border-slate-100 bg-slate-50 flex-shrink-0">
                 <button
-                  key={label}
                   type="button"
-                  style={style as React.CSSProperties}
-                  className="w-7 h-7 text-xs text-slate-500 hover:bg-slate-200 rounded-lg transition-colors flex items-center justify-center"
-                  onClick={() => insertMarkdown(tag)}
+                  onClick={() => handleTextContent(textContent + "**text**")}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200 transition-colors"
+                  title="In đậm"
                 >
-                  {label}
+                  <Bold className="w-3.5 h-3.5" />
                 </button>
-              ))}
-              <div className="w-px h-4 bg-slate-200 mx-1" />
-              <button
-                type="button"
-                className="text-[10px] font-mono text-slate-400 hover:bg-slate-200 px-2 py-1 rounded-lg transition-colors"
-                onClick={() => handleContent(content + "\n- ")}
-              >
-                — list
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleTextContent(textContent + "_text_")}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200 transition-colors"
+                  title="In nghiêng"
+                >
+                  <Italic className="w-3.5 h-3.5" />
+                </button>
+                <div className="w-px h-4 bg-slate-200 mx-1" />
+                <button
+                  type="button"
+                  onClick={() => handleTextContent(textContent + "\n- ")}
+                  className="flex items-center gap-1 h-7 px-2 text-[10px] text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+                  title="Thêm dòng danh sách"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  list
+                </button>
+              </div>
+              <textarea
+                value={textContent}
+                onChange={(e) => handleTextContent(e.target.value)}
+                rows={14}
+                placeholder={placeholder}
+                className="
+                  flex-1 px-4 py-3 text-sm text-slate-800 font-mono
+                  bg-white resize-none outline-none
+                  placeholder:text-slate-300 placeholder:font-sans
+                  leading-relaxed
+                "
+              />
             </div>
-
-            <textarea
-              value={content}
-              onChange={(e) => handleContent(e.target.value)}
-              rows={14}
-              placeholder={`Nội dung cho "${title}"…\n\nMarkdown:\n- **in đậm**, _in nghiêng_\n- Danh sách: bắt đầu "- "\n- Tách đoạn bằng dòng trống`}
-              className="
-                flex-1 px-4 py-3 text-sm text-slate-800 font-mono
-                bg-white resize-none outline-none
-                placeholder:text-slate-300 placeholder:font-sans
-                leading-relaxed
-              "
-            />
+            <p className="text-[10px] text-slate-400 mt-1.5">
+              {textContent.length} ký tự · Hỗ trợ Markdown
+            </p>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1.5">{content.length} ký tự · Hỗ trợ Markdown</p>
-        </div>
+        )}
       </div>
 
       {/* Footer */}
       <div className="flex-shrink-0 px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-        <span className={`text-[11px] font-medium transition-colors ${isDirty ? "text-amber-500" : "text-slate-400"}`}>
+        <span className={`text-[11px] font-medium transition-colors ${
+          isDirty ? "text-amber-500" : "text-slate-400"
+        }`}>
           {isDirty ? "Có thay đổi chưa lưu" : "Đã lưu"}
         </span>
         <button
@@ -314,13 +369,13 @@ function SectionEditor({
 // ── Main panel ─────────────────────────────────────────────────────────────
 
 interface Props {
-  cv:                         OnlineCVDetail;
-  activeTab:                  EditorTab;
-  activeSection:              CVSection | null;
-  saving:                     boolean;
-  onSavePersonalInfo:         (form: PersonalInfoForm) => Promise<void>;
-  onUpdateSection:            (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
-  onImportFromProfile:        () => Promise<void>;
+  cv:                            OnlineCVDetail;
+  activeTab:                     EditorTab;
+  activeSection:                 CVSection | null;
+  saving:                        boolean;
+  onSavePersonalInfo:            (form: PersonalInfoForm) => Promise<void>;
+  onUpdateSection:               (sectionId: string, payload: UpdateCVSectionPayload) => Promise<void>;
+  onImportFromProfile:           () => Promise<void>;
   onRealtimePersonalInfoUpdate?: (form: PersonalInfoForm) => void;
   onRealtimeSectionUpdate?:      (sectionId: string, payload: UpdateCVSectionPayload) => void;
 }
@@ -357,7 +412,9 @@ export function CVEditorPanel({
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-slate-500">Chưa chọn mục</p>
-              <p className="text-xs text-slate-400 mt-1">Chọn một mục ở sidebar để bắt đầu chỉnh sửa</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Chọn một mục ở sidebar để bắt đầu chỉnh sửa
+              </p>
             </div>
           </div>
         )}

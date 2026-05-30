@@ -1,4 +1,3 @@
-// ── DesiredJobJpaEntity.java ──
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.entity;
 
 import edu.tlu.jobplatform.candidate.domain.model.DesiredJob.ContractType;
@@ -7,8 +6,8 @@ import edu.tlu.jobplatform.shared.base.BaseJpaEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "desired_jobs", indexes = {
@@ -39,12 +38,12 @@ public class DesiredJobJpaEntity extends BaseJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "contract_type", length = 20)
     @Builder.Default
-    private List<ContractType> contractTypes = new ArrayList<>();
+    private Set<ContractType> contractTypes = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "desired_job_levels", joinColumns = @JoinColumn(name = "desired_job_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "level", length = 20)
     @Builder.Default
-    private List<Level> levels = new ArrayList<>();
+    private Set<Level> levels = new HashSet<>();
 }
