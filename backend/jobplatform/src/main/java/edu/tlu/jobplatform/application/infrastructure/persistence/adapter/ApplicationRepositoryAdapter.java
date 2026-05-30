@@ -5,6 +5,7 @@ import edu.tlu.jobplatform.application.domain.model.vo.AIScore;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.infrastructure.persistence.entity.ApplicationJpaEntity;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatusCountProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.repository.ApplicationJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,8 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -215,4 +219,22 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
         return jpaRepo.findByCompanyIdAndStatusOrderByBoostFirst(companyId, status, pageable).map(this::toDomain);
     }
 
+    @Override
+    public Page<Application> searchByCandidateId(
+            UUID candidateId, ApplicationStatus status, String keyword,
+            LocalDateTime appliedAtFrom, LocalDateTime appliedAtTo, Pageable pageable) {
+        return jpaRepo.searchByCandidateId(
+                candidateId, status, normalizeKeyword(keyword),
+                appliedAtFrom, appliedAtTo, pageable)
+                .map(this::toDomain);
+    }
+
+    @Override
+    public Map<ApplicationStatus, Long> countByStatusForCandidate(UUID candidateId) {
+        return jpaRepo.countGroupByStatusForCandidate(candidateId)
+                .stream()
+                .collect(Collectors.toMap(
+                        ApplicationStatusCountProjection::getStatus,
+                        ApplicationStatusCountProjection::getCount));
+    }
 }

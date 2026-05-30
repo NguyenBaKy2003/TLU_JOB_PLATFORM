@@ -14,6 +14,8 @@ import type {
   JobSearchParams,
   PageResponse,
   SubmitReviewResponse,
+  SavedJobsParams,
+  MySavedJobsResponse,
 } from "@/domain/models/Job";
 
 export class JobService {
@@ -43,9 +45,9 @@ export class JobService {
     return this.repo.toggleSave(jobPostId);
   }
 
-  listSaved(page = 0, size = 10): Promise<PageResponse<JobPost>> {
-    return this.repo.listSaved(page, size);
-  }
+listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJobsResponse> {
+  return this.repo.listSaved(page, size, params);
+}
 
   checkSaved(jobPostId: string): Promise<boolean> {
     return this.repo.checkSaved(jobPostId);

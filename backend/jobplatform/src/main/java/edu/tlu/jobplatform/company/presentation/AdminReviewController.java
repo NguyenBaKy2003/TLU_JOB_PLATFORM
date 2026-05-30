@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Company Review - Admin", description = "API quản trị đánh giá cho Admin/Super Admin")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminReviewController {
 
     private final ApproveReviewUseCase approveReviewUseCase;

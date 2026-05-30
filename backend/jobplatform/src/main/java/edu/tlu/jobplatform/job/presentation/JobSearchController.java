@@ -17,6 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,9 +38,10 @@ public class JobSearchController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 
+        // JPQL — Sort camelCase hoạt động bình thường
         var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
         var result = jobPostRepository.findPublished(pageable)
-                .map(JobPostResponse::from); // from(JobPost) — không có company
+                .map(JobPostResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
@@ -47,16 +51,31 @@ public class JobSearchController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String jobType,
-            @RequestParam(required = false) String level,
             @RequestParam(required = false) UUID companyId,
+            @RequestParam(required = false) String workLocType,
+            @RequestParam(required = false) String currency,
+            @RequestParam(required = false) BigDecimal minSalary,
+            @RequestParam(required = false) BigDecimal maxSalary,
+            @RequestParam(required = false) Integer postedWithinDays,
+            @RequestParam(required = false) List<String> jobTypes,
+            @RequestParam(required = false) List<String> levels,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 
-        var pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-        var query = new SearchJobsUseCase.SearchQuery(keyword, city, category, jobType, level, companyId);
-        var result = searchJobsUseCase.execute(query, pageable)
-                .map(JobPostResponse::from); // from(Result) — có company
+        LocalDateTime postedAfter = (postedWithinDays != null)
+                ? LocalDateTime.now().minusDays(postedWithinDays)
+                : null;
+
+        // Native query — ORDER BY đã hardcode trong SQL, không truyền Sort
+        var pageable = PageRequest.of(page, size);
+        var query = new SearchJobsUseCase.SearchQuery(
+                keyword, city, category, companyId,
+                workLocType, currency,
+                minSalary, maxSalary,
+                postedAfter,
+                jobTypes, levels);
+
+        var result = searchJobsUseCase.execute(query, pageable).map(JobPostResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
@@ -64,8 +83,8 @@ public class JobSearchController {
     @GetMapping("/api/v1/jobs/{id}")
     public ResponseEntity<ApiResponse<JobPostDetailResponse>> getById(@PathVariable UUID id) {
 
-        SecurityUtils.getCurrentUserId().ifPresent(userId -> trackUseCase.trackJobView(userId, id, 10)); // dwell mặc
-                                                                                                         // định 10s
+        SecurityUtils.getCurrentUserId()
+                .ifPresent(userId -> trackUseCase.trackJobView(userId, id, 10));
 
         return ResponseEntity.ok(ApiResponse.success(
                 JobPostDetailResponse.from(getJobDetailUseCase.executeById(id))));

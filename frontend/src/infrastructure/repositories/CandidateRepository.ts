@@ -122,6 +122,11 @@ export class CandidateRepository implements ICandidateRepository {
     await api.delete(`/candidate/cv/${cvId}`);
   }
 
+  async listApplicableCVs(): Promise<ApplicableCV[]> {
+  const res = await api.get<ApiResponse<ApplicableCV[]>>("/candidate/cv/applicable");
+  return res.data.data;
+}
+
   async fetchBlobUrl(cvId: string, mode: "view" | "download"): Promise<string> {
     const res = await api.get(`/candidate/cv/${cvId}/${mode}`, {
       responseType: "blob",

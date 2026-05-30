@@ -1,8 +1,6 @@
-// D:\TLU_JOB_PLATFORM\frontend\src\app\(admin)\admin\(protected)\analytics\page.tsx
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminAnalyticsService } from "@/application/services/AdminAnalytics";
 import { AdminAnalyticsRepository } from "@/infrastructure/repositories/AdminAnalyticsRepository";
 import type {
@@ -22,9 +20,52 @@ import {
   TrendingDown,
   Loader2,
 } from "lucide-react";
+import {
+  Chart,
+  LineController,
+  BarController,
+  DoughnutController,
+  LineElement,
+  BarElement,
+  ArcElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  Filler,
+  type ChartData,
+  type ChartOptions,
+} from "chart.js";
 
-// Khởi tạo service
+Chart.register(
+  LineController,
+  BarController,
+  DoughnutController,
+  LineElement,
+  BarElement,
+  ArcElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  Filler
+);
+
 const analyticsService = new AdminAnalyticsService(new AdminAnalyticsRepository());
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function formatMonthLabel(label: string): string {
+  if (label.match(/^\d{4}-\d{2}$/)) {
+    const [year, month] = label.split("-");
+    return `T${parseInt(month)}/${year.slice(2)}`;
+  }
+  return label;
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────
 
 export default function AdminAnalyticsPage() {
   const [dashboard, setDashboard] = useState<AdminDashboardStats | null>(null);
@@ -81,168 +122,78 @@ export default function AdminAnalyticsPage() {
         </p>
       </div>
 
-      {/* Stats Cards Grid */}
+      {/* Row 1 — KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Users Card */}
-        <StatCard
-          title="Người dùng"
-          value={dashboard.totalUsers.toLocaleString()}
-          icon={<Users className="h-6 w-6" />}
-          color="blue"
-        >
-          <StatDetail
-            label="Ứng viên"
-            value={dashboard.totalCandidates.toLocaleString()}
-          />
-          <StatDetail
-            label="Nhà tuyển dụng"
-            value={dashboard.totalEmployers.toLocaleString()}
-          />
-          <StatDetail
-            label="Mới tháng này"
-            value={dashboard.newUsersThisMonth.toLocaleString()}
-          />
+        <StatCard title="Người dùng" value={dashboard.totalUsers.toLocaleString()} icon={<Users className="h-6 w-6" />} color="blue">
+          <StatDetail label="Ứng viên" value={dashboard.totalCandidates.toLocaleString()} />
+          <StatDetail label="Nhà tuyển dụng" value={dashboard.totalEmployers.toLocaleString()} />
+          <StatDetail label="Mới tháng này" value={dashboard.newUsersThisMonth.toLocaleString()} />
           <GrowthRate rate={dashboard.userGrowthRate} />
         </StatCard>
 
-        {/* Companies Card */}
-        <StatCard
-          title="Công ty"
-          value={dashboard.totalCompanies.toLocaleString()}
-          icon={<Building2 className="h-6 w-6" />}
-          color="green"
-        >
-          <StatDetail
-            label="Đã xác thực"
-            value={dashboard.verifiedCompanies.toLocaleString()}
-          />
-          <StatDetail
-            label="Chờ xác thực"
-            value={dashboard.pendingVerification.toLocaleString()}
-          />
+        <StatCard title="Công ty" value={dashboard.totalCompanies.toLocaleString()} icon={<Building2 className="h-6 w-6" />} color="green">
+          <StatDetail label="Đã xác thực" value={dashboard.verifiedCompanies.toLocaleString()} />
+          <StatDetail label="Chờ xác thực" value={dashboard.pendingVerification.toLocaleString()} />
         </StatCard>
 
-        {/* Jobs Card */}
-        <StatCard
-          title="Công việc"
-          value={dashboard.totalJobs.toLocaleString()}
-          icon={<Briefcase className="h-6 w-6" />}
-          color="purple"
-        >
-          <StatDetail
-            label="Đang tuyển"
-            value={dashboard.activeJobs.toLocaleString()}
-          />
-          <StatDetail
-            label="Mới tháng này"
-            value={dashboard.jobsThisMonth.toLocaleString()}
-          />
+        <StatCard title="Công việc" value={dashboard.totalJobs.toLocaleString()} icon={<Briefcase className="h-6 w-6" />} color="purple">
+          <StatDetail label="Đang tuyển" value={dashboard.activeJobs.toLocaleString()} />
+          <StatDetail label="Mới tháng này" value={dashboard.jobsThisMonth.toLocaleString()} />
           <GrowthRate rate={dashboard.jobGrowthRate} />
         </StatCard>
 
-        {/* Applications Card */}
-        <StatCard
-          title="Đơn ứng tuyển"
-          value={dashboard.totalApplications.toLocaleString()}
-          icon={<FileText className="h-6 w-6" />}
-          color="orange"
-        >
-          <StatDetail
-            label="Tháng này"
-            value={dashboard.applicationsThisMonth.toLocaleString()}
-          />
+        <StatCard title="Đơn ứng tuyển" value={dashboard.totalApplications.toLocaleString()} icon={<FileText className="h-6 w-6" />} color="orange">
+          <StatDetail label="Tháng này" value={dashboard.applicationsThisMonth.toLocaleString()} />
           <GrowthRate rate={dashboard.applicationGrowthRate} />
         </StatCard>
       </div>
 
-      {/* Second Row */}
+      {/* Row 2 — secondary KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Revenue Card */}
-        <StatCard
-          title="Doanh thu tháng này"
-          value={`$${dashboard.revenueThisMonth?.toLocaleString() || "0"}`}
-          icon={<DollarSign className="h-6 w-6" />}
-          color="yellow"
-        >
-          <StatDetail
-            label="Tháng trước"
-            value={`$${dashboard.revenueLastMonth?.toLocaleString() || "0"}`}
-          />
+        <StatCard title="Doanh thu tháng này" value={`$${dashboard.revenueThisMonth?.toLocaleString() || "0"}`} icon={<DollarSign className="h-6 w-6" />} color="yellow">
+          <StatDetail label="Tháng trước" value={`$${dashboard.revenueLastMonth?.toLocaleString() || "0"}`} />
           <GrowthRate rate={dashboard.revenueGrowthRate} />
         </StatCard>
 
-        {/* Livestream Card */}
-        <StatCard
-          title="Livestream"
-          value={dashboard.totalStreamSessions.toLocaleString()}
-          icon={<Radio className="h-6 w-6" />}
-          color="red"
-        >
-          <StatDetail
-            label="Sessions tháng này"
-            value={dashboard.streamSessionsThisMonth.toLocaleString()}
-          />
-          <StatDetail
-            label="Tổng viewers"
-            value={dashboard.totalStreamViewers.toLocaleString()}
-          />
-          <StatDetail
-            label="Ứng tuyển từ stream"
-            value={dashboard.appliesFromStream.toLocaleString()}
-          />
+        <StatCard title="Livestream" value={dashboard.totalStreamSessions.toLocaleString()} icon={<Radio className="h-6 w-6" />} color="red">
+          <StatDetail label="Sessions tháng này" value={dashboard.streamSessionsThisMonth.toLocaleString()} />
+          <StatDetail label="Tổng viewers" value={dashboard.totalStreamViewers.toLocaleString()} />
+          <StatDetail label="Ứng tuyển từ stream" value={dashboard.appliesFromStream.toLocaleString()} />
         </StatCard>
 
-        {/* Moderation Card */}
         <StatCard
           title="Kiểm duyệt"
-          value={(
-            dashboard.pendingCompanyVerifications +
-            dashboard.pendingJobApprovals +
-            dashboard.flaggedJobs
-          ).toLocaleString()}
+          value={(dashboard.pendingCompanyVerifications + dashboard.pendingJobApprovals + dashboard.flaggedJobs).toLocaleString()}
           icon={<ShieldAlert className="h-6 w-6" />}
           color="red"
         >
-          <StatDetail
-            label="Công ty chờ duyệt"
-            value={dashboard.pendingCompanyVerifications.toLocaleString()}
-            highlight={dashboard.pendingCompanyVerifications > 0}
-          />
-          <StatDetail
-            label="Jobs chờ duyệt"
-            value={dashboard.pendingJobApprovals.toLocaleString()}
-            highlight={dashboard.pendingJobApprovals > 0}
-          />
-          <StatDetail
-            label="Jobs bị flag"
-            value={dashboard.flaggedJobs.toLocaleString()}
-            highlight={dashboard.flaggedJobs > 0}
-          />
+          <StatDetail label="Công ty chờ duyệt" value={dashboard.pendingCompanyVerifications.toLocaleString()} highlight={dashboard.pendingCompanyVerifications > 0} />
+          <StatDetail label="Jobs chờ duyệt" value={dashboard.pendingJobApprovals.toLocaleString()} highlight={dashboard.pendingJobApprovals > 0} />
+          <StatDetail label="Jobs bị flag" value={dashboard.flaggedJobs.toLocaleString()} highlight={dashboard.flaggedJobs > 0} />
         </StatCard>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Growth Chart */}
+      {/* Row 3 — charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ChartCard title="Tăng trưởng người dùng">
           <UserGrowthChart />
         </ChartCard>
-
-        {/* Revenue Chart */}
         <ChartCard title="Doanh thu">
           <RevenueChart />
         </ChartCard>
+      </div>
 
-        {/* Top Companies */}
-        <ChartCard title="Top công ty" className="lg:col-span-2">
-          <TopCompaniesTable />
+      {/* Row 4 — top companies */}
+      <div className="grid grid-cols-1 gap-6">
+        <ChartCard title="Top công ty">
+          <TopCompaniesChart />
         </ChartCard>
       </div>
     </div>
   );
 }
 
-// ─── Sub-components ───
+// ─── Stat sub-components ───────────────────────────────────────────────────
 
 interface StatCardProps {
   title: string;
@@ -265,7 +216,7 @@ function StatCard({ title, value, icon, color, children }: StatCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[16px] font-medium text-gray-500">{title}</h3>
+        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>{icon}</div>
       </div>
       <div className="text-2xl font-bold text-gray-900 mb-4">{value}</div>
@@ -283,14 +234,8 @@ interface StatDetailProps {
 function StatDetail({ label, value, highlight }: StatDetailProps) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-[16px] text-gray-500">{label}</span>
-      <span
-        className={`text-[16px] font-medium ${
-          highlight
-            ? "text-red-600 bg-red-50 px-2 py-0.5 rounded"
-            : "text-gray-900"
-        }`}
-      >
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className={`text-sm font-medium ${highlight ? "text-red-600 bg-red-50 px-2 py-0.5 rounded" : "text-gray-900"}`}>
         {value}
       </span>
     </div>
@@ -300,16 +245,8 @@ function StatDetail({ label, value, highlight }: StatDetailProps) {
 function GrowthRate({ rate }: { rate: number }) {
   const isPositive = rate >= 0;
   return (
-    <div
-      className={`flex items-center gap-1 text-xs font-medium ${
-        isPositive ? "text-green-600" : "text-red-600"
-      }`}
-    >
-      {isPositive ? (
-        <TrendingUp className="h-3 w-3" />
-      ) : (
-        <TrendingDown className="h-3 w-3" />
-      )}
+    <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}>
+      {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       <span>{Math.abs(rate).toFixed(1)}%</span>
       <span className="text-gray-400">so với tháng trước</span>
     </div>
@@ -324,193 +261,262 @@ interface ChartCardProps {
 
 function ChartCard({ title, children, className }: ChartCardProps) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className ?? ""}`}>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       {children}
     </div>
   );
 }
 
-// ─── Chart Components ───
-
-function UserGrowthChart() {
-  const [data, setData] = useState<TimeSeriesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    analyticsService
-      .getUserGrowth(12)
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <ChartLoader />;
-  }
-
-  // Kiểm tra data.data thay vì data.dataPoints
-  if (!data || !data.data?.length) {
-    return <div className="text-gray-400 text-center py-8">Chưa có dữ liệu</div>;
-  }
-
-  const maxValue = Math.max(...data.data.map((d) => d.value));
-
-  return (
-    <div className="space-y-2">
-      {data.data.map((point, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <span className="text-[16px] text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
-          <div className="flex-1 bg-gray-100 rounded-full h-6">
-            <div
-              className="bg-blue-500 h-6 rounded-full flex items-center justify-end px-2 transition-all"
-              style={{
-                width: `${maxValue > 0 ? (point.value / maxValue) * 100 : 0}%`,
-              }}
-            >
-              <span className="text-xs text-white font-medium">
-                {point.value.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function RevenueChart() {
-  const [data, setData] = useState<TimeSeriesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    analyticsService
-      .getRevenueReport(12)
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <ChartLoader />;
-  }
-
-  if (!data || !data.data?.length) {
-    return <div className="text-gray-400 text-center py-8">Chưa có dữ liệu</div>;
-  }
-
-  const maxValue = Math.max(...data.data.map((d) => d.value));
-
-  return (
-    <div className="space-y-2">
-      {data.data.map((point, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <span className="text-[16px] text-gray-500 w-24">{formatMonthLabel(point.label)}</span>
-          <div className="flex-1 bg-gray-100 rounded-full h-6">
-            <div
-              className="bg-green-500 h-6 rounded-full flex items-center justify-end px-2 transition-all"
-              style={{
-                width: `${maxValue > 0 ? (point.value / maxValue) * 100 : 0}%`,
-              }}
-            >
-              <span className="text-xs text-white font-medium">
-                ${point.value.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function formatMonthLabel(label: string): string {
-  if (label.match(/^\d{4}-\d{2}$/)) {
-    const [year, month] = label.split("-");
-    return `T${parseInt(month)}/${year}`;
-  }
-  return label;
-}
-
-function TopCompaniesTable() {
-  const [data, setData] = useState<TopCompaniesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    analyticsService
-      .getTopCompanies(10)
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <ChartLoader />;
-  }
-
-  if (!data || !data.companies?.length) {
-    return <div className="text-gray-400 text-center py-8">Chưa có dữ liệu</div>;
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 text-[16px] font-medium text-gray-500">#</th>
-            <th className="text-left py-3 px-4 text-[16px] font-medium text-gray-500">Công ty</th>
-            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Jobs</th>
-            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Đơn ứng tuyển</th>
-            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Đã tuyển</th>
-            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Doanh thu</th>
-            <th className="text-right py-3 px-4 text-[16px] font-medium text-gray-500">Streams</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.companies.map((company) => (
-            <tr key={company.companyId} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-3 px-4">
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-[16px] font-bold
-                  ${company.rank <= 3 ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"}`}
-                >
-                  {company.rank}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  {company.logoUrl && (
-                    <img
-                      src={company.logoUrl}
-                      alt={company.companyName}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  )}
-                  <span className="font-medium text-gray-900">{company.companyName}</span>
-                </div>
-              </td>
-              <td className="text-right py-3 px-4 text-[16px]">{company.totalJobs.toLocaleString()}</td>
-              <td className="text-right py-3 px-4 text-[16px]">
-                {company.totalApplications.toLocaleString()}
-              </td>
-              <td className="text-right py-3 px-4 text-[16px]">{company.totalHired.toLocaleString()}</td>
-              <td className="text-right py-3 px-4 text-[16px] font-medium">
-                ${company.totalRevenue?.toLocaleString() || "0"}
-              </td>
-              <td className="text-right py-3 px-4 text-[16px]">
-                {company.streamSessions.toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+// ─── Chart Components ──────────────────────────────────────────────────────
 
 function ChartLoader() {
   return (
     <div className="flex items-center justify-center py-8">
       <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+    </div>
+  );
+}
+
+function UserGrowthChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    analyticsService
+      .getUserGrowth(12)
+      .then((data: TimeSeriesResponse) => {
+        if (!canvasRef.current || !data?.data?.length) return;
+
+        chartRef.current?.destroy();
+
+        const labels = data.data.map((d) => formatMonthLabel(d.label));
+        const values = data.data.map((d) => d.value);
+
+        const chartData: ChartData<"line"> = {
+          labels,
+          datasets: [
+            {
+              label: "Người dùng mới",
+              data: values,
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59,130,246,0.12)",
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+            },
+          ],
+        };
+
+        const options: ChartOptions<"line"> = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: "index", intersect: false },
+          },
+          scales: {
+            x: {
+              ticks: { font: { size: 11 }, color: "#9ca3af", maxRotation: 45 },
+              grid: { color: "rgba(0,0,0,0.05)" },
+            },
+            y: {
+              ticks: {
+                font: { size: 11 },
+                color: "#9ca3af",
+                callback: (v) => Number(v).toLocaleString(),
+              },
+              grid: { color: "rgba(0,0,0,0.05)" },
+            },
+          },
+        };
+
+        chartRef.current = new Chart(canvasRef.current, { type: "line", data: chartData, options });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+
+    return () => {
+      chartRef.current?.destroy();
+    };
+  }, []);
+
+  if (loading) return <ChartLoader />;
+
+  return (
+    <div className="relative w-full h-64">
+      <canvas ref={canvasRef} />
+    </div>
+  );
+}
+
+function RevenueChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    analyticsService
+      .getRevenueReport(12)
+      .then((data: TimeSeriesResponse) => {
+        if (!canvasRef.current || !data?.data?.length) return;
+
+        chartRef.current?.destroy();
+
+        const labels = data.data.map((d) => formatMonthLabel(d.label));
+        const values = data.data.map((d) => d.value);
+
+        const chartData: ChartData<"bar"> = {
+          labels,
+          datasets: [
+            {
+              label: "Doanh thu ($)",
+              data: values,
+              backgroundColor: "rgba(34,197,94,0.75)",
+              borderColor: "#16a34a",
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+          ],
+        };
+
+        const options: ChartOptions<"bar"> = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `$${Number(ctx.parsed.y).toLocaleString()}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { font: { size: 11 }, color: "#9ca3af", maxRotation: 45 },
+              grid: { display: false },
+            },
+            y: {
+              ticks: {
+                font: { size: 11 },
+                color: "#9ca3af",
+                callback: (v) => `$${Number(v).toLocaleString()}`,
+              },
+              grid: { color: "rgba(0,0,0,0.05)" },
+            },
+          },
+        };
+
+        chartRef.current = new Chart(canvasRef.current, { type: "bar", data: chartData, options });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+
+    return () => {
+      chartRef.current?.destroy();
+    };
+  }, []);
+
+  if (loading) return <ChartLoader />;
+
+  return (
+    <div className="relative w-full h-64">
+      <canvas ref={canvasRef} />
+    </div>
+  );
+}
+
+function TopCompaniesChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    analyticsService
+      .getTopCompanies(10)
+      .then((data: TopCompaniesResponse) => {
+        if (!canvasRef.current || !data?.companies?.length) return;
+
+        chartRef.current?.destroy();
+
+        const companies = data.companies.slice(0, 10);
+        const labels = companies.map((c) => c.companyName);
+
+        const COLORS = [
+          "rgba(59,130,246,0.8)",
+          "rgba(34,197,94,0.8)",
+          "rgba(168,85,247,0.8)",
+          "rgba(249,115,22,0.8)",
+          "rgba(20,184,166,0.8)",
+          "rgba(236,72,153,0.8)",
+          "rgba(234,179,8,0.8)",
+          "rgba(239,68,68,0.8)",
+          "rgba(99,102,241,0.8)",
+          "rgba(14,165,233,0.8)",
+        ];
+
+        const chartData: ChartData<"bar"> = {
+          labels,
+          datasets: [
+            {
+              label: "Đơn ứng tuyển",
+              data: companies.map((c) => c.totalApplications),
+              backgroundColor: companies.map((_, i) => COLORS[i % COLORS.length]),
+              borderRadius: 4,
+              borderSkipped: false,
+            },
+            {
+              label: "Đã tuyển",
+              data: companies.map((c) => c.totalHired),
+              backgroundColor: companies.map((_, i) => COLORS[i % COLORS.length].replace("0.8", "0.35")),
+              borderRadius: 4,
+              borderSkipped: false,
+            },
+          ],
+        };
+
+        const options: ChartOptions<"bar"> = {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              labels: { font: { size: 11 }, color: "#6b7280", boxWidth: 12, padding: 16 },
+            },
+            tooltip: { mode: "index", intersect: false },
+          },
+          scales: {
+            x: {
+              ticks: { font: { size: 11 }, color: "#9ca3af", callback: (v) => Number(v).toLocaleString() },
+              grid: { color: "rgba(0,0,0,0.05)" },
+            },
+            y: {
+              ticks: { font: { size: 12 }, color: "#374151" },
+              grid: { display: false },
+            },
+          },
+        };
+
+        chartRef.current = new Chart(canvasRef.current, { type: "bar", data: chartData, options });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+
+    return () => {
+      chartRef.current?.destroy();
+    };
+  }, []);
+
+  if (loading) return <ChartLoader />;
+
+  return (
+    <div className="relative w-full" style={{ height: "420px" }}>
+      <canvas ref={canvasRef} />
     </div>
   );
 }

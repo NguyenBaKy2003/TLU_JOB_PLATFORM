@@ -4,6 +4,7 @@ import {
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
   BoostResult, BoostStatus,
+  ApplicableCV,
 } from "@/domain/models/Candidate";
 
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -148,4 +149,8 @@ export class CandidateService {
     if (!data.current && !data.endDate)
       throw new Error("Ngày kết thúc không được để trống khi không phải việc hiện tại");
   }
+
+  async listApplicableCVs(): Promise<ApplicableCV[]> {
+  return this.repo.listApplicableCVs();
+}
 }

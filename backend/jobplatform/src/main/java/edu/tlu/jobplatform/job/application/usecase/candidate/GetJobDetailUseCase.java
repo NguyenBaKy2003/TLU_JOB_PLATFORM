@@ -1,5 +1,7 @@
 package edu.tlu.jobplatform.job.application.usecase.candidate;
 
+import edu.tlu.jobplatform.ai.application.usecase.CalculateCompetitionRateUseCase;
+import edu.tlu.jobplatform.ai.domain.model.CompetitionRateResult;
 import edu.tlu.jobplatform.job.application.dto.CompanySnapshot;
 import edu.tlu.jobplatform.job.application.port.out.CompanyQueryPort;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
@@ -19,6 +21,7 @@ public class GetJobDetailUseCase {
 
     private final JobPostRepository jobPostRepository;
     private final CompanyQueryPort companyQueryPort;
+    private final CalculateCompetitionRateUseCase competitionUseCase;
 
     @Transactional
     public Result executeById(UUID jobPostId) {
@@ -26,7 +29,11 @@ public class GetJobDetailUseCase {
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
         job.incrementView();
         jobPostRepository.save(job);
-        return new Result(job, companyQueryPort.findById(job.getCompanyId()));
+
+        CompanySnapshot company = companyQueryPort.findById(job.getCompanyId());
+        CompetitionRateResult competition = competitionUseCase.execute(jobPostId);
+
+        return new Result(job, company, competition);
     }
 
     @Transactional
@@ -35,9 +42,13 @@ public class GetJobDetailUseCase {
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", slug));
         job.incrementView();
         jobPostRepository.save(job);
-        return new Result(job, companyQueryPort.findById(job.getCompanyId()));
+
+        CompanySnapshot company = companyQueryPort.findById(job.getCompanyId());
+        CompetitionRateResult competition = competitionUseCase.execute(job.getId());
+
+        return new Result(job, company, competition);
     }
 
-    public record Result(JobPost job, CompanySnapshot company) {
+    public record Result(JobPost job, CompanySnapshot company, CompetitionRateResult competition) {
     }
 }

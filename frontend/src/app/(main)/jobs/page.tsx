@@ -1,129 +1,194 @@
-// src/app/(main)/jobs/page.tsx
 "use client";
 
 import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, MapPin, ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import {
+  Search, MapPin, ChevronDown, SlidersHorizontal, X,
+  Briefcase, Sparkles,
+} from "lucide-react";
 import { JobCard }            from "@/presentation/components/jobs/JobCard";
-import type { CompetitionLevel } from "@/presentation/components/jobs/JobCard";
+import type { CompetitionLevel } from "@/domain/models/Job";
 import { JobFilterSidebar, EMPTY_FILTERS } from "@/presentation/components/jobs/JobFilterSidebar";
 import { JobService }         from "@/application/services/JobService";
 import { JobRepository }      from "@/infrastructure/repositories/JobRepository";
-import { AiService }          from "@/application/services/AiService";
-import { AiRepository }       from "@/infrastructure/repositories/AiRepository";
 import type { JobPost, JobSearchParams } from "@/domain/models/Job";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import type { JobFilters }     from "@/presentation/components/jobs/JobFilterSidebar";
 import { Pagination }          from "@/presentation/components/common/Pagination";
+import { motion, AnimatePresence } from "framer-motion";
 
 const jobService = new JobService(new JobRepository());
-const aiService  = new AiService(new AiRepository());
 
-function SkeletonCard() {
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function SkeletonCard({ featured = false }: { featured?: boolean }) {
   return (
-    <div className="animate-pulse flex flex-col gap-3 p-5 bg-white border border-gray-100 rounded-2xl">
+    <div className={`animate-pulse flex flex-col gap-3 p-5 bg-white rounded-2xl
+      ${featured
+        ? "border-[1.5px] border-blue-200"
+        : "border border-gray-100"
+      }`}>
+      {featured && <div className="h-3 w-16 bg-blue-100 rounded-full" />}
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 bg-gray-100 rounded-xl shrink-0" />
+        <div className={`w-12 h-12 rounded-xl shrink-0
+          ${featured ? "bg-blue-100" : "bg-gray-100"}`} />
         <div className="flex-1 flex flex-col gap-2">
           <div className="h-3 bg-gray-100 rounded w-2/5" />
-          <div className="h-4 bg-gray-100 rounded w-3/4" />
+          <div className={`h-5 rounded w-3/4 ${featured ? "bg-blue-100" : "bg-gray-100"}`} />
+          <div className="h-3 bg-gray-100 rounded w-1/2" />
         </div>
       </div>
       <div className="flex gap-1.5">
-        <div className="h-5 w-20 bg-gray-100 rounded-full" />
-        <div className="h-5 w-16 bg-gray-100 rounded-full" />
+        <div className="h-6 w-24 bg-gray-100 rounded-full" />
+        <div className="h-6 w-20 bg-gray-100 rounded-full" />
+        <div className="h-6 w-16 bg-gray-100 rounded-full" />
       </div>
       <div className="flex gap-3">
-        <div className="h-3 w-20 bg-gray-100 rounded" />
         <div className="h-3 w-24 bg-gray-100 rounded" />
+        <div className="h-3 w-28 bg-gray-100 rounded" />
       </div>
     </div>
   );
 }
 
-// ── Inner component (cần searchParams) ──────────────────────────────────────
+// ── Quick filter chip ─────────────────────────────────────────────────────────
+
+const QUICK_FILTERS = [
+  { label: "Toàn thời gian", value: "FULL_TIME", icon: "💼" },
+  { label: "Thực tập",       value: "INTERN",    icon: "🎓" },
+  { label: "Remote",         value: "REMOTE",    icon: "🏠" },
+  { label: "Part-time",      value: "PART_TIME", icon: "⏰" },
+  { label: "Hợp đồng",      value: "CONTRACT",  icon: "📄" },
+];
+
+function QuickChip({
+  label, icon, active, onClick,
+}: { label: string; icon: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium
+        border transition-all duration-200 whitespace-nowrap
+        ${active
+          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+          : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+        }`}
+    >
+      <span>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+// ── Featured section header ───────────────────────────────────────────────────
+
+function FeaturedSectionHeader({ count }: { count: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full
+        bg-blue-600 text-white text-xs font-semibold shadow-sm">
+        <Sparkles size={11} />
+        Tin nổi bật
+      </div>
+      <span className="text-xs text-gray-400">{count} việc làm</span>
+      <div className="flex-1 h-px bg-blue-100 ml-1" />
+    </div>
+  );
+}
+
+function RegularSectionHeader({ count, total }: { count: number; total: number }) {
+  if (count === 0) return null;
+  return (
+    <div className="flex items-center gap-2 mb-3 mt-6">
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full
+        bg-gray-100 text-gray-600 text-xs font-medium">
+        <Briefcase size={11} />
+        Tất cả việc làm
+      </div>
+      <span className="text-xs text-gray-400">{total.toLocaleString()} việc làm</span>
+      <div className="flex-1 h-px bg-gray-100 ml-1" />
+    </div>
+  );
+}
+
+// ── Inner ─────────────────────────────────────────────────────────────────────
+
 function JobsPageInner() {
   const searchParams = useSearchParams();
   const router       = useRouter();
 
-  // Khởi tạo từ URL params (từ HeroSection navigate tới)
   const initialKeyword  = searchParams.get("keyword")  ?? "";
   const initialLocation = searchParams.get("location") ?? "";
 
-  const [jobs,        setJobs]        = useState<JobPost[]>([]);
-  const [total,       setTotal]       = useState(0);
-  const [totalPages,  setTotalPages]  = useState(1);
-  const [page,        setPage]        = useState(0);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState<string | null>(null);
+  const [jobs,       setJobs]       = useState<JobPost[]>([]);
+  const [total,      setTotal]      = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page,       setPage]       = useState(0);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
 
-  // Committed search values (dùng để fetch)
-  const [keyword,  setKeyword]  = useState(initialKeyword);
-  const [city,     setCity]     = useState(initialLocation);
-  const [filters,  setFilters]  = useState<JobFilters>(EMPTY_FILTERS);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [keyword, setKeyword] = useState(initialKeyword);
+  const [city,    setCity]    = useState(initialLocation);
 
-  // Draft values (trong ô input, chưa search)
   const [draftKeyword, setDraftKeyword] = useState(initialKeyword);
   const [draftCity,    setDraftCity]    = useState(initialLocation);
 
-  const [competitionMap, setCompetitionMap] = useState<Record<string, CompetitionLevel>>({});
+  const [appliedFilters, setAppliedFilters] = useState<JobFilters>(EMPTY_FILTERS);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [activeQuick,      setActiveQuick]      = useState<string | null>(null);
 
   const isFirst = useRef(true);
 
-  // ── Competition fetch ────────────────────────────────────────────────────
-  const fetchCompetition = useCallback((jobList: JobPost[]) => {
-    jobList.forEach((job) => {
-      aiService
-        .getCompetitionRate(job.id)
-        .then((res) =>
-          setCompetitionMap((prev) => ({ ...prev, [job.id]: res.level }))
-        )
-        .catch(() => {});
-    });
-  }, []);
+  // ── Split featured / regular ──────────────────────────────────────────────
+  // Backend đã sort featured DESC — chỉ cần tách để render section riêng.
+  const featuredJobs = jobs.filter(j => j.featured);
+  const regularJobs  = jobs.filter(j => !j.featured);
 
-  // ── Jobs fetch ───────────────────────────────────────────────────────────
+  // ── Fetch ──────────────────────────────────────────────────────────────────
+
   const fetchJobs = useCallback(async (
     kw: string, ct: string, f: JobFilters, pg: number,
   ) => {
     setLoading(true);
     setError(null);
     try {
+      const postedWithinDays = f.postedWithin
+        ? parseInt(f.postedWithin.replace("d", ""), 10)
+        : undefined;
+
       const params: JobSearchParams = {
-        keyword: kw  || undefined,
-        city:    ct  || undefined,
-        jobType: f.jobTypes[0] as JobSearchParams["jobType"] || undefined,
-        level:   f.levels[0]   as JobSearchParams["level"]   || undefined,
+        keyword:         kw || undefined,
+        city:            ct || undefined,
+        workLocType:     f.workLocType || undefined,
+        currency:        f.currency   || undefined,
+        minSalary:       f.minSalary  ? Number(f.minSalary) : undefined,
+        maxSalary:       f.maxSalary  ? Number(f.maxSalary) : undefined,
+        postedWithinDays,
+        jobTypes:        f.jobTypes.length ? f.jobTypes : undefined,
+        levels:          f.levels.length   ? f.levels   : undefined,
         page: pg,
-        size: 18,
+        size: 12,
       };
       const res = await jobService.search(params);
       setJobs(res.content);
       setTotal(res.totalElements);
       setTotalPages(res.totalPages);
-      fetchCompetition(res.content);
     } catch (e) {
       setError(extractErrorMessage(e, "Không thể tải danh sách việc làm"));
     } finally {
       setLoading(false);
     }
-  }, [fetchCompetition]);
+  }, []);
 
-  // ── Initial fetch (dùng URL params) ─────────────────────────────────────
   useEffect(() => {
     fetchJobs(initialKeyword, initialLocation, EMPTY_FILTERS, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // chỉ chạy 1 lần khi mount
+  }, []);
 
-  // ── Re-fetch khi filters / page thay đổi (không phải lần đầu) ───────────
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return; }
-    fetchJobs(keyword, city, filters, page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, page]);
+    fetchJobs(keyword, city, appliedFilters, page);
+  }, [page]);
 
-  // ── Khi URL params thay đổi (user navigate từ HeroSection lần nữa) ───────
   useEffect(() => {
     const kw  = searchParams.get("keyword")  ?? "";
     const loc = searchParams.get("location") ?? "";
@@ -132,238 +197,400 @@ function JobsPageInner() {
     setKeyword(kw);
     setCity(loc);
     setPage(0);
-    setFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setActiveQuick(null);
     fetchJobs(kw, loc, EMPTY_FILTERS, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // ── Search button / Enter ────────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   const handleSearch = () => {
     setKeyword(draftKeyword);
     setCity(draftCity);
     setPage(0);
-    // Cập nhật URL để bookmarkable
-    const params = new URLSearchParams();
-    if (draftKeyword) params.set("keyword",  draftKeyword);
-    if (draftCity)    params.set("location", draftCity);
-    router.replace(`/jobs?${params.toString()}`, { scroll: false });
-    fetchJobs(draftKeyword, draftCity, filters, 0);
+    const p = new URLSearchParams();
+    if (draftKeyword) p.set("keyword",  draftKeyword);
+    if (draftCity)    p.set("location", draftCity);
+    router.replace(`/jobs?${p.toString()}`, { scroll: false });
+    fetchJobs(draftKeyword, draftCity, appliedFilters, 0);
+  };
+
+  const handleApplyFilters = (newFilters: JobFilters) => {
+    setAppliedFilters(newFilters);
+    setPage(0);
+    setMobileFilterOpen(false);
+    fetchJobs(keyword, city, newFilters, 0);
   };
 
   const handleSave = useCallback(async (id: string) => {
     try { await jobService.toggleSave(id); } catch {}
   }, []);
 
+  const handlePageChange = (oneBased: number) => {
+    setPage(oneBased - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleClearAll = () => {
+    setAppliedFilters(EMPTY_FILTERS);
+    setActiveQuick(null);
+    setDraftKeyword("");
+    setKeyword("");
+    setDraftCity("");
+    setCity("");
+    setPage(0);
+    router.replace("/jobs", { scroll: false });
+    fetchJobs("", "", EMPTY_FILTERS, 0);
+  };
+
+  const handleQuickFilter = (value: string) => {
+    const isActive = activeQuick === value;
+    const next = isActive ? null : value;
+    setActiveQuick(next);
+    setPage(0);
+
+    const locTypes = ["REMOTE", "ONSITE", "HYBRID"];
+    let newFilters: JobFilters;
+    if (locTypes.includes(value)) {
+      newFilters = { ...appliedFilters, workLocType: isActive ? "" : value };
+    } else {
+      newFilters = { ...appliedFilters, jobTypes: isActive ? [] : [value as any] };
+    }
+    setAppliedFilters(newFilters);
+    fetchJobs(keyword, city, newFilters, 0);
+  };
+
+  const activeFilterCount =
+    appliedFilters.jobTypes.length +
+    appliedFilters.levels.length +
+    (appliedFilters.currency ? 1 : 0) +
+    (appliedFilters.workLocType ? 1 : 0) +
+    (appliedFilters.postedWithin ? 1 : 0);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* Promo banner */}
-      <div className="bg-blue-600 text-white text-center text-xs font-medium py-2.5 px-4">
-        ✦ Tốc độ tăng hơn 20% khi sử dụng gói trả phí của chúng tôi.{" "}
-        <a href="/pricing" className="underline font-semibold hover:text-blue-100">Tìm hiểu thêm</a>
-      </div>
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl" />
+        </div>
 
-      {/* Search section */}
-      <section className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 py-10 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
-            Khám phá công việc phù hợp nhất
+        <div className="relative max-w-4xl mx-auto px-4 pt-12 pb-10">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+              bg-white/10 border border-white/20 text-white/90 text-xs font-medium">
+              <Sparkles size={11} />
+              {total > 0 ? `${total.toLocaleString()} việc làm đang tuyển` : "Tìm việc thông minh"}
+            </span>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-bold text-white text-center mb-2 leading-tight tracking-tight">
+            Khám phá cơ hội việc làm
           </h1>
-          <div className="flex flex-col sm:flex-row max-w-2xl mx-auto rounded-2xl border
-            border-gray-200 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center gap-2 flex-1 px-4 py-3 border-b sm:border-b-0 sm:border-r border-gray-100">
-              <Search size={15} className="text-gray-400 shrink-0" />
+          <p className="text-blue-100 text-sm text-center mb-8">
+            Hàng nghìn công việc từ các công ty hàng đầu đang chờ bạn
+          </p>
+
+          {/* Search bar */}
+          <div className="flex flex-col sm:flex-row rounded-2xl border border-white/20
+            bg-white shadow-2xl overflow-hidden max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 flex-1 px-4 py-3.5
+              border-b sm:border-b-0 sm:border-r border-gray-100">
+              <Search size={16} className="text-gray-400 shrink-0" />
               <input
                 value={draftKeyword}
-                onChange={(e) => setDraftKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="Tên công việc hoặc từ khóa"
-                className="flex-1 text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
+                onChange={e => setDraftKeyword(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSearch()}
+                placeholder="Tên công việc, kỹ năng, công ty..."
+                className="flex-1 text-sm text-gray-800 placeholder:text-gray-400
+                  focus:outline-none bg-transparent"
               />
-              {/* Clear button — hiện khi có text */}
               {draftKeyword && (
-                <button
-                  onClick={() => { setDraftKeyword(""); }}
-                  className="text-gray-300 hover:text-gray-500 transition-colors"
-                >
+                <button onClick={() => setDraftKeyword("")}
+                  className="text-gray-300 hover:text-gray-500 transition-colors">
                   <X size={14} />
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 px-4 py-3 border-b sm:border-b-0 sm:border-r border-gray-100">
-              <MapPin size={15} className="text-gray-400 shrink-0" />
+
+            <div className="flex items-center gap-2 px-4 py-3.5
+              border-b sm:border-b-0 sm:border-r border-gray-100 sm:w-44">
+              <MapPin size={16} className="text-gray-400 shrink-0" />
               <select
                 value={draftCity}
-                onChange={(e) => setDraftCity(e.target.value)}
-                className="text-[16px] text-gray-800 focus:outline-none bg-transparent cursor-pointer w-36"
+                onChange={e => setDraftCity(e.target.value)}
+                className="flex-1 text-sm text-gray-800 focus:outline-none bg-transparent cursor-pointer"
               >
-                <option value="">Địa điểm</option>
-                {["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"].map((c) => (
+                <option value="">Tất cả địa điểm</option>
+                {["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"].map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
               <ChevronDown size={13} className="text-gray-400 shrink-0" />
             </div>
+
             <button
               onClick={handleSearch}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600
-                text-white text-[16px] font-semibold hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-7 py-3.5
+                bg-blue-600 text-white text-sm font-semibold
+                hover:bg-blue-700 active:bg-blue-800 transition-colors"
             >
               <Search size={15} /> Tìm kiếm
             </button>
           </div>
 
-          {/* Active search badge — hiện khi có keyword từ HeroSection */}
-          {keyword && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="text-[16px] text-gray-500">Kết quả cho:</span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700
-                text-[16px] font-medium rounded-full border border-blue-100">
-                {keyword}
-                <button
-                  onClick={() => {
-                    setDraftKeyword("");
-                    setKeyword("");
-                    setPage(0);
-                    router.replace("/jobs", { scroll: false });
-                    fetchJobs("", city, filters, 0);
-                  }}
-                  className="text-blue-400 hover:text-blue-600"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-              {city && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-50 text-gray-600
-                  text-[16px] font-medium rounded-full border border-gray-200">
-                  <MapPin size={11} />
-                  {city}
-                  <button
-                    onClick={() => {
-                      setDraftCity("");
-                      setCity("");
-                      setPage(0);
-                      fetchJobs(keyword, "", filters, 0);
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-            </div>
-          )}
+          {/* Quick filters */}
+          <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
+            <span className="text-blue-200 text-xs">Phổ biến:</span>
+            {QUICK_FILTERS.map(qf => (
+              <QuickChip
+                key={qf.value}
+                label={qf.label}
+                icon={qf.icon}
+                active={activeQuick === qf.value}
+                onClick={() => handleQuickFilter(qf.value)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* ── Active keyword/city badges ──────────────────────────────────────── */}
+      <AnimatePresence>
+        {(keyword || city) && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="bg-white border-b border-gray-100"
+          >
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5
+              flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-500">Kết quả cho:</span>
+              {keyword && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1
+                  bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
+                  {keyword}
+                  <button onClick={() => {
+                    setDraftKeyword(""); setKeyword(""); setPage(0);
+                    router.replace("/jobs", { scroll: false });
+                    fetchJobs("", city, appliedFilters, 0);
+                  }} className="text-blue-400 hover:text-blue-600">
+                    <X size={10} />
+                  </button>
+                </span>
+              )}
+              {city && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1
+                  bg-gray-50 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
+                  <MapPin size={10} /> {city}
+                  <button onClick={() => {
+                    setDraftCity(""); setCity(""); setPage(0);
+                    fetchJobs(keyword, "", appliedFilters, 0);
+                  }} className="text-gray-400 hover:text-gray-600">
+                    <X size={10} />
+                  </button>
+                </span>
+              )}
+              <button onClick={handleClearAll}
+                className="text-xs text-red-500 hover:underline ml-auto">
+                Xóa tất cả
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main ───────────────────────────────────────────────────────────── */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Mobile filter toggle */}
-        <div className="lg:hidden mb-4 flex items-center justify-between">
+        <div className="lg:hidden flex items-center justify-between mb-4">
           <p className="text-xs text-gray-500">
             <strong className="text-gray-800">{total.toLocaleString()}</strong> việc làm
           </p>
           <button
-            onClick={() => setMobileFilterOpen((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200
-              rounded-xl text-[16px] font-medium text-gray-700 hover:border-gray-300 transition-colors"
+            onClick={() => setMobileFilterOpen(v => !v)}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200
+              rounded-xl text-xs font-medium text-gray-700
+              hover:border-gray-300 transition-colors shadow-sm"
           >
-            <SlidersHorizontal size={15} />
+            <SlidersHorizontal size={14} />
             Bộ lọc
-            {(filters.jobTypes.length + filters.levels.length) > 0 && (
+            {activeFilterCount > 0 && (
               <span className="w-4 h-4 bg-blue-600 text-white text-[10px] font-bold
                 rounded-full flex items-center justify-center">
-                {filters.jobTypes.length + filters.levels.length}
+                {activeFilterCount}
               </span>
             )}
           </button>
         </div>
 
         {/* Mobile filter drawer */}
-        {mobileFilterOpen && (
-          <>
-            <div
-              className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-              onClick={() => setMobileFilterOpen(false)}
-            />
-            <div className="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl p-6 overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-800">Bộ lọc</h3>
-                <button onClick={() => setMobileFilterOpen(false)}>
-                  <X size={18} className="text-gray-400" />
-                </button>
-              </div>
-              <JobFilterSidebar
-                filters={filters}
-                onChange={(f) => { setFilters(f); setPage(0); setMobileFilterOpen(false); }}
+        <AnimatePresence>
+          {mobileFilterOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+                onClick={() => setMobileFilterOpen(false)}
               />
-            </div>
-          </>
-        )}
+              <motion.div
+                initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-white
+                  shadow-2xl overflow-y-auto"
+              >
+                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                  <h3 className="font-semibold text-gray-800">Bộ lọc</h3>
+                  <button onClick={() => setMobileFilterOpen(false)}
+                    className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                    <X size={16} className="text-gray-500" />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <JobFilterSidebar
+                    appliedFilters={appliedFilters}
+                    onApply={handleApplyFilters}
+                    onClearAll={handleClearAll}
+                  />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
-        <div className="flex gap-8 items-start">
+        <div className="flex gap-6 items-start">
 
           {/* Desktop sidebar */}
-          <div className="hidden lg:block">
-            <JobFilterSidebar
-              filters={filters}
-              onChange={(f) => { setFilters(f); setPage(0); }}
-            />
-          </div>
+          <aside className="hidden lg:block shrink-0 sticky top-6">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <JobFilterSidebar
+                appliedFilters={appliedFilters}
+                onApply={handleApplyFilters}
+                onClearAll={handleClearAll}
+              />
+            </div>
+          </aside>
 
+          {/* Job list */}
           <div className="flex-1 min-w-0">
-            <p className="hidden lg:block text-xs text-gray-500 mb-4">
-              <strong className="text-gray-800">{total.toLocaleString()}</strong> việc làm được tìm thấy
-            </p>
 
+            {/* Header count + clear */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Briefcase size={14} className="text-blue-600" />
+                </div>
+                <p className="text-sm text-gray-600">
+                  <strong className="text-gray-900">{total.toLocaleString()}</strong> việc làm
+                  {(keyword || city) && (
+                    <span className="text-gray-400"> được tìm thấy</span>
+                  )}
+                </p>
+              </div>
+              {activeFilterCount > 0 && (
+                <button onClick={handleClearAll}
+                  className="hidden lg:flex items-center gap-1.5 text-xs text-red-500
+                    hover:text-red-700 transition-colors">
+                  <X size={12} /> Xóa bộ lọc ({activeFilterCount})
+                </button>
+              )}
+            </div>
+
+            {/* Error */}
             {error && (
-              <div className="text-center py-12 text-[16px] text-red-500">{error}</div>
+              <div className="text-center py-12 text-sm text-red-500 bg-red-50
+                rounded-2xl border border-red-100">
+                {error}
+              </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {loading
-                ? Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
-                : jobs.length === 0
-                  ? (
-                    <div className="col-span-2 py-16 text-center">
-                      <p className="text-gray-400 text-[16px]">Không tìm thấy việc làm phù hợp</p>
-                      <button
-                        onClick={() => {
-                          setFilters(EMPTY_FILTERS);
-                          setDraftKeyword("");
-                          setKeyword("");
-                          setPage(0);
-                          router.replace("/jobs", { scroll: false });
-                          fetchJobs("", "", EMPTY_FILTERS, 0);
-                        }}
-                        className="mt-3 text-blue-600 text-xs hover:underline"
-                      >
-                        Xoá bộ lọc
-                      </button>
-                    </div>
-                  )
-                  : jobs.map((job) => (
+            {/* ── Loading skeleton ──────────────────────────────────────────── */}
+            {loading && (
+              <>
+                {/* 2 skeleton featured */}
+                <div className="mb-3 h-5 w-32 bg-blue-100 rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                  <SkeletonCard featured />
+                  <SkeletonCard featured />
+                </div>
+                {/* regular skeletons */}
+                <div className="mb-3 h-5 w-28 bg-gray-100 rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+              </>
+            )}
+
+            {/* ── Empty ────────────────────────────────────────────────────── */}
+            {!loading && jobs.length === 0 && (
+              <div className="col-span-full py-24 flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Search size={28} className="text-gray-300" />
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-600 font-medium">Không tìm thấy việc làm phù hợp</p>
+                  <p className="text-gray-400 text-sm mt-1">Thử thay đổi từ khóa hoặc bộ lọc</p>
+                </div>
+                <button
+                  onClick={handleClearAll}
+                  className="px-5 py-2.5 text-sm font-medium text-blue-600
+                    bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )}
+
+            {/* ── Featured section ──────────────────────────────────────────── */}
+            {!loading && featuredJobs.length > 0 && (
+              <div className="mb-2">
+                <FeaturedSectionHeader count={featuredJobs.length} />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {featuredJobs.map(job => (
                     <JobCard
                       key={job.id}
                       job={job}
                       onSave={handleSave}
-                      competitionLevel={competitionMap[job.id]}
+                      competitionLevel={job.competition?.level as CompetitionLevel}
                     />
-                  ))
-              }
-            </div>
-
-            {!loading && totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={page + 1}
-                  total={totalPages}
-                  onChange={(p) => {
-                    setPage(p - 1);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                />
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* ── Regular section ───────────────────────────────────────────── */}
+            {!loading && regularJobs.length > 0 && (
+              <>
+                <RegularSectionHeader count={regularJobs.length} total={total} />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {regularJobs.map(job => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      onSave={handleSave}
+                      competitionLevel={job.competition?.level as CompetitionLevel}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+              
+            {/* ── Pagination ────────────────────────────────────────────────── */}
+            {!loading && totalPages > 1 && (
+              <Pagination
+                currentPage={page + 1}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                siblingCount={1}
+                showFirstLast
+                className="mt-10"
+              />
             )}
           </div>
         </div>
@@ -372,7 +599,6 @@ function JobsPageInner() {
   );
 }
 
-// ── Export với Suspense wrapper (bắt buộc cho useSearchParams) ───────────────
 export default function JobsPage() {
   return (
     <Suspense fallback={

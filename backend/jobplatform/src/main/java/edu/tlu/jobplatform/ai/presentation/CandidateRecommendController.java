@@ -5,6 +5,8 @@ import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
 import edu.tlu.jobplatform.ai.domain.model.AutocompleteResult;
 import edu.tlu.jobplatform.ai.infrastructure.persistence.adapter.SmartAutocompleteAdapter;
 import edu.tlu.jobplatform.candidate.application.usecase.profile.ResolveCandidateIdUseCase;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -27,12 +29,12 @@ public class CandidateRecommendController {
     private final GetRecommendationsUseCase recommendUseCase;
     private final SmartAutocompleteAdapter autocompleteAdapter;
     private final TrackCandidateBehaviorUseCase trackUseCase;
-    private final ResolveCandidateIdUseCase resolveCandidateId; // thêm
+    private final ResolveCandidateIdUseCase resolveCandidateId;
 
-    @Operation(summary = "Lấy gợi ý job và công ty — yêu cầu đăng nhập")
-    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Lấy gợi ý job và công ty")
     @GetMapping("/recommendations")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "ai-recommend", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<GetRecommendationsUseCase.RecommendationBundle>> getRecommendations(
             @CurrentUser UUID userId) {
 
@@ -42,8 +44,9 @@ public class CandidateRecommendController {
                 recommendUseCase.execute(candidateId)));
     }
 
-    @Operation(summary = "Gợi ý từ khóa — không cần đăng nhập, cá nhân hóa nếu có token")
+    @Operation(summary = "Gợi ý từ khóa — không cần đăng nhập")
     @GetMapping("/autocomplete")
+    @RateLimit(policy = "ai-autocomplete", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<AutocompleteResult>> autocomplete(
             @RequestParam String q) {
 
@@ -61,10 +64,10 @@ public class CandidateRecommendController {
                 autocompleteAdapter.suggest(candidateId, q)));
     }
 
-    @Operation(summary = "Ghi nhận từ khóa tìm kiếm — chỉ khi đã đăng nhập")
-    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Ghi nhận từ khóa tìm kiếm")
     @PostMapping("/track/search")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "ai-track", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<Void> trackSearch(
             @CurrentUser UUID userId,
             @RequestParam String keyword) {
@@ -74,10 +77,10 @@ public class CandidateRecommendController {
         return ResponseEntity.accepted().build();
     }
 
-    @Operation(summary = "Ghi nhận lượt xem job — chỉ khi đã đăng nhập")
-    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Ghi nhận lượt xem job")
     @PostMapping("/track/job-view")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "ai-track", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<Void> trackJobView(
             @CurrentUser UUID userId,
             @RequestParam UUID jobPostId,

@@ -8,6 +8,7 @@ import edu.tlu.jobplatform.ai.domain.model.CandidateComparisonResult;
 import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckResult;
 import edu.tlu.jobplatform.ai.domain.model.JdOptimizationResult;
 import edu.tlu.jobplatform.ai.presentation.dto.request.CompareCandidatesRequest;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,7 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import java.util.UUID;
 
 @RestController
@@ -36,7 +38,9 @@ public class AiController {
 
         @Operation(summary = "Tối ưu hóa Job Description bằng AI")
         @PostMapping("/optimize-jd")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "AI_OPTIMIZE_JD", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<JdOptimizationResult>> optimizeJd(
                         @Valid @RequestBody OptimizeJdRequest req) {
 
@@ -50,7 +54,9 @@ public class AiController {
 
         @Operation(summary = "Chạy lại AI scoring cho đơn ứng tuyển")
         @PostMapping("/applications/{id}/rescore")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "AI_RESCORE_APPLICATION", resourceType = "Application")
         public ResponseEntity<ApiResponse<String>> rescore(@PathVariable UUID id) {
                 retriggerUseCase.execute(id);
                 return ResponseEntity.ok(
@@ -59,7 +65,10 @@ public class AiController {
 
         @Operation(summary = "Kiểm tra JD có vi phạm community guidelines không")
         @PostMapping("/check-jd-guidelines")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "AI_CHECK_JD_GUIDELINES", resourceType = "JobPost")
+
         public ResponseEntity<ApiResponse<JdGuidelineCheckResult>> checkGuidelines(
                         @Valid @RequestBody CheckGuidelinesRequest req) {
 
@@ -82,7 +91,9 @@ public class AiController {
 
         @Operation(summary = "So sánh các ứng viên với nhau")
         @PostMapping("/jobs/{jobId}/compare-candidates")
-        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN','SUPER_ADMIN')")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "AI_COMPARE_CANDIDATES", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<CandidateComparisonResult>> compareCandidates(
                         @PathVariable UUID jobId,
                         @Valid @RequestBody CompareCandidatesRequest req) {

@@ -20,14 +20,18 @@ interface LocalFile {
 
 interface Props {
   primaryCV?:    CandidateCV | null;
-  cvList:        CandidateCV[];              // ← toàn bộ list
+  cvList:        CandidateCV[];
   cvListLoading: boolean;
   onUpload:      (data: UploadCVPayload & { setAsPrimary?: boolean }) => Promise<void>;
   onDelete:      (cvId: string) => Promise<void>;
   onView:        (cvId: string) => Promise<void>;
   onDownload:    (cvId: string, title: string) => Promise<void>;
   onSetPrimary:  (cvId: string) => Promise<void>;
-  onRefreshList: () => Promise<void>;        // ← gọi lại listCVs
+  onRefreshList: () => Promise<void>;
+  /** ONLINE CV: điều hướng tới CV builder */
+  onEdit:        (cvId: string) => void;
+  /** ONLINE CV: xem trước qua slug hoặc previewHtml */
+  onViewOnline:  (cv: CandidateCV) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -39,6 +43,7 @@ function formatSize(bytes: number): string {
 export default function CVUploadCard({
   primaryCV, cvList, cvListLoading,
   onUpload, onDelete, onView, onDownload, onSetPrimary, onRefreshList,
+  onEdit, onViewOnline,
 }: Props) {
   const fileRef                             = useRef<HTMLInputElement>(null);
   const [dragging,       setDragging]       = useState(false);
@@ -52,7 +57,7 @@ export default function CVUploadCard({
   const displayName      = local?.phase === "success" ? local.name : primaryCV?.title ?? null;
   const showPrimaryBadge = local?.phase === "success" ? local.isPrimary : !!primaryCV?.primary;
 
-  // ── Upload ────────────
+  // ── Upload ────────────────────────────────────────────────────────────────
 
   const doUpload = useCallback(async (file: File, setAsPrimary: boolean) => {
     setShowPrimaryAsk(false);
@@ -89,7 +94,7 @@ export default function CVUploadCard({
     const f = e.dataTransfer.files[0]; if (f) handleFile(f);
   };
 
-  // ── Delete primary CV ─
+  // ── Delete primary CV ─────────────────────────────────────────────────────
 
   const handleDelete = async () => {
     if (local?.phase === "success") { setLocal(null); return; }
@@ -99,14 +104,30 @@ export default function CVUploadCard({
     }
   };
 
-  // ── Open list modal ───
+  // ── Open list modal ───────────────────────────────────────────────────────
 
   const handleOpenList = async () => {
     setShowList(true);
     await onRefreshList();
   };
 
-  // ── Render: hỏi primary ──────
+  // ── Shared modal (dùng ở cả 2 render branch) ─────────────────────────────
+
+  const listModal = showList && (
+    <CVListModal
+      cvList={cvList}
+      loading={cvListLoading}
+      onView={onView}
+      onDownload={onDownload}
+      onDelete={onDelete}
+      onSetPrimary={onSetPrimary}
+      onEdit={onEdit}
+      onViewOnline={onViewOnline}
+      onClose={() => setShowList(false)}
+    />
+  );
+
+  // ── Render: hỏi primary ───────────────────────────────────────────────────
 
   if (showPrimaryAsk && pendingFile) {
     return (
@@ -133,7 +154,7 @@ export default function CVUploadCard({
     );
   }
 
-  // ── Render: Success / Existing ──────────────
+  // ── Render: Success / Existing ────────────────────────────────────────────
 
   if (showSuccess) {
     return (
@@ -141,7 +162,6 @@ export default function CVUploadCard({
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-0.5">
             <h3 className="text-[16px] font-semibold text-blue-600">CV đã tải lên</h3>
-            {/* Nút xem danh sách */}
             <button
               onClick={handleOpenList}
               className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-blue-600
@@ -183,22 +203,12 @@ export default function CVUploadCard({
           <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
         </div>
 
-        {showList && (
-          <CVListModal
-            cvList={cvList}
-            loading={cvListLoading}
-            onView={onView}
-            onDownload={onDownload}
-            onDelete={onDelete}
-            onSetPrimary={onSetPrimary}
-            onClose={() => setShowList(false)}
-          />
-        )}
+        {listModal}
       </>
     );
   }
 
-  // ── Render: Upload / Error / Idle ───────────
+  // ── Render: Upload / Error / Idle ─────────────────────────────────────────
 
   return (
     <>
@@ -286,17 +296,7 @@ export default function CVUploadCard({
         </button>
       </div>
 
-      {showList && (
-        <CVListModal
-          cvList={cvList}
-          loading={cvListLoading}
-          onView={onView}
-          onDownload={onDownload}
-          onDelete={onDelete}
-          onSetPrimary={onSetPrimary}
-          onClose={() => setShowList(false)}
-        />
-      )}
+      {listModal}
     </>
   );
 }

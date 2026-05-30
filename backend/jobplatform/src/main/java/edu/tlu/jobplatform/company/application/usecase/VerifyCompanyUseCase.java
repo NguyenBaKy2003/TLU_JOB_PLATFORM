@@ -17,7 +17,7 @@ import java.util.UUID;
 /**
  * UseCase: Admin duyệt / từ chối xác thực công ty.
  *
- * Chỉ ADMIN hoặc SUPER_ADMIN mới được gọi UseCase này.
+ * Chỉ ADMIN mới được gọi UseCase này.
  * 
  * @PreAuthorize ở Controller đảm bảo điều này.
  *

@@ -53,7 +53,7 @@ public class ProfileCreationService {
                     // → gọi qua helper riêng bên dưới
                     assignFreeCompanyPlan(user); // ✅
                 }
-                case ADMIN, SUPER_ADMIN ->
+                case ADMIN ->
                     log.info("No profile needed for role={}", user.getRole());
                 default ->
                     log.warn("Unknown role={} for user={}", user.getRole(), user.getId());
@@ -220,7 +220,7 @@ public class ProfileCreationService {
         return switch (user.getRole()) {
             case CANDIDATE -> candidateProfileRepository.existsByUserId(user.getId());
             case EMPLOYER -> companyRepository.existsByOwnerId(user.getId());
-            case ADMIN, SUPER_ADMIN -> true;
+            case ADMIN -> true;
             default -> false;
         };
     }
@@ -257,7 +257,7 @@ public class ProfileCreationService {
                                 log.info("Deleted CompanyProfile id={}", p.getId());
                             },
                             () -> log.info("No CompanyProfile found for userId={}", userId));
-            case ADMIN, SUPER_ADMIN -> log.info("No profile to remove for role={}", oldRole);
+            case ADMIN -> log.info("No profile to remove for role={}", oldRole);
             default -> log.warn("Unknown role={} — nothing removed", oldRole);
         }
     }

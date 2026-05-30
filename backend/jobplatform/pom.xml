@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.11</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>edu.tlu</groupId>
 	<artifactId>jobplatform</artifactId>
@@ -80,7 +80,7 @@
             <artifactId>spring-security-oauth2-client</artifactId>
         </dependency>
 
-        <!-- JJWT 0.12.x — phải đủ cả 3 artifact -->
+        <!-- JJWT 0.12.x — -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -106,7 +106,6 @@
             <version>2.25.11</version>
         </dependency>
 
-          <!-- Thêm cái này -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>

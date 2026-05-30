@@ -1,398 +1,246 @@
 // src/presentation/components/companies/FilterSidebar.tsx
 "use client";
+
 import { useState } from "react";
-import { 
-  ChevronUp, ChevronDown, X, 
-  Coffee, Gift, Heart, Car, Home, Plane,
-  Users, Briefcase, TrendingUp, Award, Zap,
-  Filter, SlidersHorizontal, RotateCcw, Trash2
+import {
+  ChevronDown, Award, Briefcase,
+  SlidersHorizontal, Trash2, Star,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { CompanyFilters } from "./types";
+import type { CompanySize, CompanyPlanCode } from "@/domain/models/Company";
+import { COMPANY_SIZE_LABELS, PLAN_BADGE_CONFIG } from "@/domain/models/Company";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface CompanySearchFilters {
+  keyword?:   string;
+  city?:      string;
+  size?:      CompanySize | "";
+  planCode?:  CompanyPlanCode | "";
+  minRating?: number | null;
+}
+
+export const EMPTY_FILTERS: CompanySearchFilters = {
+  keyword:   "",
+  city:      "",
+  size:      "",
+  planCode:  "",
+  minRating: null,
+};
 
 interface Props {
-  filters: CompanyFilters;
-  onChange: (f: CompanyFilters) => void;
-  activeTagsDisplay: { label: string; key: string }[];
-  onRemoveTag: (key: string) => void;
+  filters:     CompanySearchFilters;
+  onChange:    (f: CompanySearchFilters) => void;
   onClearAll?: () => void;
 }
 
-// Icon mapping cho benefits
-const benefitIcons: Record<string, any> = {
-  "Bảo hiểm sức khỏe": Heart,
-  "Du lịch hàng năm": Plane,
-  "Đào tạo chuyên sâu": TrendingUp,
-  "Lương thưởng hấp dẫn": Award,
-  "Cơ hội thăng tiến": Zap,
-  "Làm việc từ xa": Home,
-  "Xe đưa đón": Car,
-  "Ăn trưa miễn phí": Coffee,
-  "Quà tặng dịp lễ": Gift,
-};
+// ── Data ──────────────────────────────────────────────────────────────────────
 
-function FilterSection({ 
-  title, 
-  children, 
-  defaultOpen = true,
-  icon: Icon,
-  count
-}: { 
-  title: string; 
-  children: React.ReactNode; 
+const SIZE_OPTIONS: { label: string; value: CompanySize }[] = [
+  { label: COMPANY_SIZE_LABELS.STARTUP,     value: "STARTUP"     },
+  { label: COMPANY_SIZE_LABELS.SMALL,       value: "SMALL"       },
+  { label: COMPANY_SIZE_LABELS.MEDIUM,      value: "MEDIUM"      },
+  { label: COMPANY_SIZE_LABELS.LARGE,       value: "LARGE"       },
+  { label: COMPANY_SIZE_LABELS.ENTERPRISE,  value: "ENTERPRISE"  },
+  { label: COMPANY_SIZE_LABELS.CORPORATION, value: "CORPORATION" },
+];
+
+const PLAN_OPTIONS: { label: string; value: Exclude<CompanyPlanCode, "FREE_COMPANY"> }[] = [
+  { label: "Enterprise", value: "ENTERPRISE" },
+  { label: "Business",   value: "BUSINESS"   },
+  { label: "Starter",    value: "STARTER"    },
+];
+
+const RATING_OPTIONS = [
+  { label: "4.5 sao trở lên", value: 4.5 },
+  { label: "4.0 sao trở lên", value: 4.0 },
+  { label: "3.5 sao trở lên", value: 3.5 },
+  { label: "3.0 sao trở lên", value: 3.0 },
+];
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function FilterSection({
+  title, icon: Icon, children, defaultOpen = true,
+}: {
+  title: string;
+  icon?: React.ElementType;
+  children: React.ReactNode;
   defaultOpen?: boolean;
-  icon?: any;
-  count?: number;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  
   return (
-    <motion.div 
-      className="border-b border-gray-100 pb-5 mb-5 last:border-0 last:mb-0 last:pb-0"
-      initial={false}
-    >
-      <button 
+    <div className="border-b border-gray-100 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
+      <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center justify-between w-full mb-3 group"
+        className="flex items-center justify-between w-full mb-2 group"
       >
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-          <span className="text-[16px] font-semibold text-gray-800">{title}</span>
-          {count !== undefined && count > 0 && (
-            <motion.span 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-600 rounded-full"
-            >
-              {count}
-            </motion.span>
-          )}
+          {Icon && <Icon className="w-3.5 h-3.5 text-gray-500" />}
+          <span className="text-xs font-semibold text-gray-700">{title}</span>
         </div>
-        <motion.div
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown size={15} className="text-gray-400" />
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }}>
+          <ChevronDown size={13} className="text-gray-400" />
         </motion.div>
       </button>
-      
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
+            key="content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
             {children}
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
-export function FilterSidebar({ 
-  filters, 
-  onChange, 
-  activeTagsDisplay, 
-  onRemoveTag,
-  onClearAll 
-}: Props) {
-  const toggleBenefit = (b: string) => {
-    const next = filters.benefits.includes(b)
-      ? filters.benefits.filter(x => x !== b)
-      : [...filters.benefits, b];
-    onChange({ ...filters, benefits: next });
-  };
+function RadioRow({
+  label, selected, onClick,
+}: {
+  label: string; selected: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg
+        text-left transition-colors duration-150
+        ${selected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+    >
+      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center
+        shrink-0 transition-colors
+        ${selected ? "border-blue-500 bg-blue-500" : "border-gray-300"}`}>
+        {selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+      </div>
+      <span className={`text-xs transition-colors
+        ${selected ? "text-blue-700 font-medium" : "text-gray-600"}`}>
+        {label}
+      </span>
+    </button>
+  );
+}
 
-  const hasActiveFilters = filters.benefits.length > 0 || 
-                           filters.gender !== "" || 
-                           filters.companySize !== "";
+// ── Main ──────────────────────────────────────────────────────────────────────
 
-  const handleClearAll = () => {
-    if (onClearAll) {
-      onClearAll();
-    } else {
-      // Default clear all
-      onChange({
-        benefits: [],
-        gender: "",
-        companySize: "",
-      });
-    }
+export function FilterSidebar({ filters, onChange, onClearAll }: Props) {
+  const hasActive =
+    !!filters.size ||
+    !!filters.planCode ||
+    (filters.minRating != null && filters.minRating > 0);
+
+  const activeCount = [
+    filters.size,
+    filters.planCode,
+    filters.minRating != null && filters.minRating > 0 ? 1 : 0,
+  ].filter(Boolean).length;
+
+  const clear = () => {
+    onChange(EMPTY_FILTERS);
+    onClearAll?.();
   };
 
   return (
-    <aside className="w-64 shrink-0">
-      {/* Header with gradient */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-              <SlidersHorizontal className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="text-base font-bold text-gray-800">Bộ lọc</h3>
+    <div className="w-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-white" />
           </div>
-          
-          {/* Clear All Button in Header */}
-          {hasActiveFilters && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleClearAll}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium
-                text-red-600 bg-red-50 rounded-lg hover:bg-red-100 
-                transition-all duration-200 group"
-            >
-              <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              Xóa tất cả
-            </motion.button>
+          <span className="text-sm font-semibold text-gray-800">Bộ lọc</span>
+          {activeCount > 0 && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold
+              bg-blue-100 text-blue-700 rounded-full leading-none">
+              {activeCount}
+            </span>
           )}
         </div>
-        
-        {/* Active filters */}
-        <AnimatePresence>
-          {activeTagsDisplay.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-4 overflow-hidden"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Đang áp dụng ({activeTagsDisplay.length})
-                </p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={handleClearAll}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Xóa tất cả
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {activeTagsDisplay.map(tag => (
-                  <motion.span
-                    key={tag.key}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    layout
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                      bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full
-                      border border-blue-100 shadow-sm"
-                  >
-                    {tag.label}
-                    <button
-                      onClick={() => onRemoveTag(tag.key)}
-                      className="ml-0.5 text-blue-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={12} />
-                    </button>
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {hasActive && (
+          <button
+            onClick={clear}
+            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium
+              text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+          >
+            <Trash2 className="w-3 h-3" />
+            Xóa
+          </button>
+        )}
       </div>
 
-      {/* Benefits Section */}
-      <FilterSection 
-        title="Phúc lợi" 
-        icon={Gift}
-        count={filters.benefits.length}
-      >
-        <div className="space-y-3">
-          {BENEFIT_OPTIONS.map(b => {
-            const Icon = benefitIcons[b] || Heart;
-            const isSelected = filters.benefits.includes(b);
-            
+      {/* Plan tier */}
+      <FilterSection title="Gói dịch vụ" icon={Award} defaultOpen>
+        <div className="space-y-0.5">
+          {PLAN_OPTIONS.map(p => {
+            const cfg = PLAN_BADGE_CONFIG[p.value];
             return (
-              <motion.label
-                key={b}
-                whileHover={{ x: 4 }}
-                className={`
-                  flex items-center gap-2.5 cursor-pointer group
-                  p-2 rounded-lg transition-all duration-200
-                  ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                `}
-                onClick={() => toggleBenefit(b)}
-              >
-                <div className={`
-                  w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all
-                  ${isSelected 
-                    ? "border-blue-500 bg-blue-500 shadow-sm" 
-                    : "border-gray-300 group-hover:border-blue-400"}
-                `}>
-                  {isSelected && (
-                    <motion.svg 
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      viewBox="0 0 12 12" 
-                      className="w-3 h-3"
-                    >
-                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                    </motion.svg>
-                  )}
-                </div>
-                <Icon className={`w-3.5 h-3.5 transition-colors ${isSelected ? 'text-blue-500' : 'text-gray-400'}`} />
-                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
-                  {b}
-                </span>
-              </motion.label>
-            );
-          })}
-        </div>
-      </FilterSection>
-
-      {/* Gender Section */}
-      <FilterSection title="Giới tính" icon={Users}>
-        <div className="space-y-2.5">
-          {[
-            { value: "Nam", label: "Nam", icon: "👨" },
-            { value: "Nữ", label: "Nữ", icon: "👩" },
-            { value: "Khác", label: "Khác", icon: "👥" }
-          ].map(g => {
-            const isSelected = filters.gender === g.value;
-            
-            return (
-              <motion.label
-                key={g.value}
-                whileHover={{ x: 4 }}
-                className={`
-                  flex items-center gap-3 cursor-pointer group
-                  p-2 rounded-lg transition-all duration-200
-                  ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                `}
-                onClick={() => onChange({ 
-                  ...filters, 
-                  gender: filters.gender === g.value ? "" : g.value 
+              <RadioRow
+                key={p.value}
+                label={p.label}
+                selected={filters.planCode === p.value}
+                onClick={() => onChange({
+                  ...filters,
+                  planCode: filters.planCode === p.value ? "" : p.value,
                 })}
-              >
-                <div className={`
-                  w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
-                  ${isSelected 
-                    ? "border-blue-500 bg-blue-500 shadow-sm" 
-                    : "border-gray-300 group-hover:border-blue-400"}
-                `}>
-                  {isSelected && (
-                    <motion.div 
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-2 h-2 rounded-full bg-white" 
-                    />
-                  )}
-                </div>
-                <span className="text-lg">{g.icon}</span>
-                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
-                  {g.label}
-                </span>
-              </motion.label>
+              />
             );
           })}
         </div>
       </FilterSection>
 
-      {/* Company Size Section */}
-      <FilterSection title="Quy mô công ty" icon={Briefcase}>
-        <div className="space-y-2.5">
-          {SIZE_OPTIONS.map(({ label, value }) => {
-            const isSelected = filters.companySize === value;
-            
-            return (
-              <motion.label
-                key={value}
-                whileHover={{ x: 4 }}
-                className={`
-                  flex items-center gap-3 cursor-pointer group
-                  p-2 rounded-lg transition-all duration-200
-                  ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                `}
-                onClick={() => onChange({ 
-                  ...filters, 
-                  companySize: filters.companySize === value ? "" : value 
-                })}
-              >
-                <div className={`
-                  w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
-                  ${isSelected 
-                    ? "border-blue-500 bg-blue-500 shadow-sm" 
-                    : "border-gray-300 group-hover:border-blue-400"}
-                `}>
-                  {isSelected && (
-                    <motion.div 
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-2 h-2 rounded-full bg-white" 
-                    />
-                  )}
-                </div>
-                <span className={`text-[16px] transition-colors ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-700'}`}>
-                  {label}
-                </span>
-              </motion.label>
-            );
-          })}
+      {/* Rating */}
+      <FilterSection title="Đánh giá tối thiểu" icon={Star} defaultOpen>
+        <div className="space-y-0.5">
+          {RATING_OPTIONS.map(r => (
+            <RadioRow
+              key={r.value}
+              label={r.label}
+              selected={filters.minRating === r.value}
+              onClick={() => onChange({
+                ...filters,
+                minRating: filters.minRating === r.value ? null : r.value,
+              })}
+            />
+          ))}
         </div>
-      </FilterSection>
-
-      {/* Results Count & Stats */}
-      <div className="mt-6 pt-4 border-t border-gray-100">
-        <div className="p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="space-y-2">
-            <p className="text-xs text-center">
-              <span className="font-semibold text-blue-600">
-                {BENEFIT_OPTIONS.length} phúc lợi
-              </span>
-              {" • "}
-              <span className="font-semibold text-blue-600">
-                {SIZE_OPTIONS.length} quy mô
-              </span>
-            </p>
-            
-            {/* Active filters summary */}
-            {hasActiveFilters && (
-              <div className="pt-2 border-t border-blue-100">
-                <p className="text-[10px] text-center text-blue-600">
-                  Đang lọc theo {[
-                    filters.benefits.length > 0 && `${filters.benefits.length} phúc lợi`,
-                    filters.gender && `giới tính ${filters.gender}`,
-                    filters.companySize && `quy mô ${SIZE_OPTIONS.find(s => s.value === filters.companySize)?.label}`
-                  ].filter(Boolean).join(", ")}
-                </p>
-              </div>
-            )}
+        {filters.minRating != null && filters.minRating > 0 && (
+          <div className="mt-2 flex items-center gap-0.5 px-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={12}
+                className={i < Math.floor(filters.minRating!)
+                  ? "text-amber-400 fill-amber-400"
+                  : "text-gray-200 fill-gray-200"
+                }
+              />
+            ))}
+            <span className="text-[10px] text-gray-400 ml-1">trở lên</span>
           </div>
+        )}
+      </FilterSection>
+
+      {/* Company size */}
+      <FilterSection title="Quy mô" icon={Briefcase} defaultOpen={false}>
+        <div className="space-y-0.5">
+          {SIZE_OPTIONS.map(s => (
+            <RadioRow
+              key={s.value}
+              label={s.label}
+              selected={filters.size === s.value}
+              onClick={() => onChange({
+                ...filters,
+                size: filters.size === s.value ? "" : s.value,
+              })}
+            />
+          ))}
         </div>
-      </div>
-    </aside>
+      </FilterSection>
+    </div>
   );
 }
-
-// Mock data
-const BENEFIT_OPTIONS = [
-  "Bảo hiểm sức khỏe",
-  "Du lịch hàng năm",
-  "Đào tạo chuyên sâu",
-  "Lương thưởng hấp dẫn",
-  "Cơ hội thăng tiến",
-  "Làm việc từ xa",
-  "Xe đưa đón",
-  "Ăn trưa miễn phí",
-  "Quà tặng dịp lễ",
-];
-
-const SIZE_OPTIONS = [
-  { label: "Dưới 50 nhân viên", value: "small" },
-  { label: "50 - 200 nhân viên", value: "medium" },
-  { label: "200 - 500 nhân viên", value: "large" },
-  { label: "Trên 500 nhân viên", value: "enterprise" },
-];

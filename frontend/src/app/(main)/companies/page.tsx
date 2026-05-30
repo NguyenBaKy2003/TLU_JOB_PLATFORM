@@ -1,66 +1,74 @@
 // src/app/(main)/companies/page.tsx
 "use client";
 
-import { Suspense, useState, useEffect, useMemo, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, MapPin, ChevronDown, Filter, X,
-  LayoutGrid, List,
+  Search, MapPin, X, LayoutGrid, List, Filter,
 } from "lucide-react";
-import { CompanyCard }      from "@/presentation/components/companies/CompanyCard";
-import { FilterSidebar }    from "@/presentation/components/companies/FilterSidebar";
-import { SORT_TABS }        from "@/presentation/components/companies/mockData";
-import { Pagination }       from "@/presentation/components/common/Pagination";
-import type { CompanyFilters } from "@/presentation/components/companies/types";
-import type { CompanyProfile, PageResponse } from "@/domain/models/Company";
-import { CompanyService }   from "@/application/services/CompanyService";
+import { CompanyCard }    from "@/presentation/components/companies/CompanyCard";
+import { FilterSidebar, EMPTY_FILTERS } from "@/presentation/components/companies/FilterSidebar";
+import type { CompanySearchFilters } from "@/presentation/components/companies/FilterSidebar";
+import { Pagination }     from "@/presentation/components/common/Pagination";
+import type { CompanyProfile, PageResponse, CompanyPlanCode } from "@/domain/models/Company";
+import { COMPANY_SIZE_LABELS } from "@/domain/models/Company";
+import { CompanyService }    from "@/application/services/CompanyService";
 import { CompanyRepository } from "@/infrastructure/repositories/CompanyRepository";
-import { toCompanyCard }    from "@/presentation/components/companies/adapters";
+import { PlanBadge } from "@/presentation/components/companies/PlanBadge";
 
-const PER_PAGE = 10;
+const PER_PAGE = 12;
 const companyService = new CompanyService(new CompanyRepository());
 
-const SIZE_MAP = {
-  small:      "Dưới 50",
-  medium:     "50-200",
-  large:      "200-500",
-  enterprise: "Trên 500",
-} as const;
+// ── Skeleton 
 
-// ── Inner component ──────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse bg-white rounded-2xl border border-gray-100 p-5 space-y-3">
+      <div className="flex gap-3">
+        <div className="w-16 h-16 bg-gray-100 rounded-xl shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 bg-gray-100 rounded w-2/5" />
+          <div className="h-5 bg-gray-100 rounded w-3/4" />
+          <div className="h-3 bg-gray-100 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <div className="h-5 w-20 bg-gray-100 rounded-full" />
+        <div className="h-5 w-24 bg-gray-100 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
+// ── Inner ─────────────────────────────────────────────────────────────────────
+
 function CompaniesPageInner() {
   const searchParams = useSearchParams();
   const router       = useRouter();
 
-  // Khởi tạo từ URL params (từ HeroSection navigate tới)
   const initialKeyword  = searchParams.get("keyword")  ?? "";
   const initialLocation = searchParams.get("location") ?? "";
 
-  // Search & sort
-  const [keyword,  setKeyword]  = useState(initialKeyword);
-  const [location, setLocation] = useState(initialLocation);
-  const [sortTab,  setSortTab]  = useState("popular");
-  const [page,     setPage]     = useState(1);
-  const [filters,  setFilters]  = useState<CompanyFilters>({
-    benefits: [], gender: "", companySize: "",
-  });
-
-  // Draft values (ô input chưa submit)
   const [draftKeyword,  setDraftKeyword]  = useState(initialKeyword);
   const [draftLocation, setDraftLocation] = useState(initialLocation);
 
-  // UI
-  const [showMobileFilter, setShowMobileFilter] = useState(false);
-  const [viewMode,  setViewMode]  = useState<"grid" | "list">("list");
-  const [isMobile,  setIsMobile]  = useState(false);
+  const [appliedKeyword,  setAppliedKeyword]  = useState(initialKeyword);
+  const [appliedLocation, setAppliedLocation] = useState(initialLocation);
+  const [filters, setFilters] = useState<CompanySearchFilters>(EMPTY_FILTERS);
+  const [page,    setPage]    = useState(1);
 
-  // Server state
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+
   const [result,  setResult]  = useState<PageResponse<CompanyProfile> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
-  // Check mobile
+  // Ref để cancel fetch cũ khi params thay đổi
+  const fetchIdRef = useRef(0);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -68,58 +76,55 @@ function CompaniesPageInner() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Debounce keyword
-  const [debouncedKeyword, setDebouncedKeyword] = useState(initialKeyword);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
-
-  useEffect(() => {
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedKeyword(keyword);
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(debounceRef.current);
-  }, [keyword]);
-
-  // ── Khi URL params thay đổi (user navigate từ HeroSection) ───────────────
+  // Sync URL params → chỉ update state, không fetch trực tiếp
   useEffect(() => {
     const kw  = searchParams.get("keyword")  ?? "";
     const loc = searchParams.get("location") ?? "";
     setDraftKeyword(kw);
     setDraftLocation(loc);
-    setKeyword(kw);
-    setLocation(loc);
-    setDebouncedKeyword(kw);
+    setAppliedKeyword(kw);
+    setAppliedLocation(loc);
     setPage(1);
   }, [searchParams]);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // ── Fetch duy nhất — chạy mỗi khi params thay đổi ────────────────────────
   useEffect(() => {
-    let cancelled = false;
+    // Tăng fetchId để cancel response của fetch cũ
+    const currentFetchId = ++fetchIdRef.current;
+
     setLoading(true);
     setError(null);
 
-    companyService
-      .listVerified({
-        page:        page - 1,
-        size:        PER_PAGE,
-        keyword:     debouncedKeyword || undefined,
-        location:    location        || undefined,
-        sort:        sortTab         || undefined,
-        companySize: filters.companySize || undefined,
+    companyService.search({
+      keyword:   appliedKeyword  || undefined,
+      city:      appliedLocation || undefined,
+      size:      (filters.size      || undefined) as any,
+      planCode:  (filters.planCode  || undefined) as any,
+      minRating: filters.minRating  ?? undefined,
+      page:      page - 1,
+      pageSize:  PER_PAGE,
+    })
+      .then(res => {
+        // Bỏ qua nếu đây không phải fetch mới nhất
+        if (currentFetchId !== fetchIdRef.current) return;
+        setResult(res);
+        setError(null);
       })
-      .then((res) => { if (!cancelled) setResult(res); })
-      .catch((e)  => { if (!cancelled) setError(e?.message ?? "Lỗi tải dữ liệu"); })
-      .finally(()  => { if (!cancelled) setLoading(false); });
+      .catch(e => {
+        if (currentFetchId !== fetchIdRef.current) return;
+        setError(e?.message ?? "Lỗi tải dữ liệu");
+      })
+      .finally(() => {
+        if (currentFetchId !== fetchIdRef.current) return;
+        setLoading(false);
+      });
+  }, [appliedKeyword, appliedLocation, filters, page]);
 
-    return () => { cancelled = true; };
-  }, [page, debouncedKeyword, location, sortTab, filters.companySize]);
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
-  // ── Search handler ────────────────────────────────────────────────────────
   const handleSearch = () => {
-    setKeyword(draftKeyword);
-    setLocation(draftLocation);
-    setDebouncedKeyword(draftKeyword);
+    setAppliedKeyword(draftKeyword);
+    setAppliedLocation(draftLocation);
     setPage(1);
     const params = new URLSearchParams();
     if (draftKeyword)  params.set("keyword",  draftKeyword);
@@ -127,392 +132,338 @@ function CompaniesPageInner() {
     router.replace(`/companies?${params.toString()}`, { scroll: false });
   };
 
-  // ── Active filter tags ────────────────────────────────────────────────────
-  const activeTags = useMemo(() => {
-    const tags: { label: string; key: string }[] = [];
-    filters.benefits.forEach((b) => tags.push({ label: b, key: `benefit:${b}` }));
-    if (filters.gender)      tags.push({ label: `Giới tính: ${filters.gender}`, key: "gender" });
-    if (filters.companySize) {
-      const label = SIZE_MAP[filters.companySize as keyof typeof SIZE_MAP] || filters.companySize;
-      tags.push({ label: `Quy mô: ${label}`, key: "size" });
-    }
-    return tags;
-  }, [filters]);
-
-  const removeTag = (key: string) => {
-    if (key.startsWith("benefit:")) {
-      const b = key.replace("benefit:", "");
-      setFilters((f) => ({ ...f, benefits: f.benefits.filter((x) => x !== b) }));
-    } else if (key === "gender") {
-      setFilters((f) => ({ ...f, gender: "" }));
-    } else if (key === "size") {
-      setFilters((f) => ({ ...f, companySize: "" }));
-    }
+  const handleFilterChange = (f: CompanySearchFilters) => {
+    setFilters(f);
     setPage(1);
   };
 
-  const handleClearAllFilters = () => {
-    setFilters({ benefits: [], gender: "", companySize: "" });
+  const handleClearAll = () => {
+    setFilters(EMPTY_FILTERS);
+    setDraftKeyword("");
+    setDraftLocation("");
+    setAppliedKeyword("");
+    setAppliedLocation("");
     setPage(1);
+    router.replace("/companies", { scroll: false });
   };
 
   const companies     = result?.content      ?? [];
   const totalPages    = result?.totalPages   ?? 0;
   const totalElements = result?.totalElements ?? 0;
 
-  const fadeInUp = {
-    hidden:  { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
+  const activeFilterCount = [
+    filters.size,
+    filters.planCode,
+    filters.minRating != null && filters.minRating > 0 ? 1 : 0,
+  ].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
       {/* Hero */}
-      <motion.section
-        initial="hidden" animate="visible" variants={fadeInUp}
-        className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white overflow-hidden"
-      >
-        <div className="absolute inset-0 overflow-hidden">
+      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-16 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4"
-          >
-            Khám phá công ty hàng đầu
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-            className="text-blue-100 text-[16px] sm:text-base mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
-          >
+          <h1 className="text-2xl sm:text-4xl font-bold mb-3">Khám phá công ty hàng đầu</h1>
+          <p className="text-blue-100 text-sm mb-8 max-w-2xl mx-auto">
             Tìm kiếm công ty phù hợp với bạn qua hàng ngàn đánh giá thực tế
-          </motion.p>
+          </p>
 
           {/* Search bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="max-w-3xl mx-auto px-4 sm:px-0"
-          >
-            <div className="flex flex-col sm:flex-row gap-0 rounded-2xl bg-white shadow-2xl overflow-hidden">
-              <div className="flex items-center gap-2 flex-1 px-4 py-3 sm:px-5 sm:py-4 border-b sm:border-b-0 sm:border-r border-gray-100">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex flex-col sm:flex-row rounded-2xl bg-white shadow-2xl overflow-hidden">
+              <div className="flex items-center gap-2 flex-1 px-4 py-3.5
+                border-b sm:border-b-0 sm:border-r border-gray-100">
                 <Search size={16} className="text-gray-400 shrink-0" />
                 <input
                   value={draftKeyword}
-                  onChange={(e) => setDraftKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  onChange={e => setDraftKeyword(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSearch()}
                   placeholder="Tên công ty, ngành nghề..."
-                  className="flex-1 text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent"
+                  className="flex-1 text-sm text-gray-800 placeholder:text-gray-400
+                    focus:outline-none bg-transparent"
                 />
                 {draftKeyword && (
-                  <button
-                    onClick={() => setDraftKeyword("")}
-                    className="text-gray-300 hover:text-gray-500 transition-colors"
-                  >
+                  <button onClick={() => setDraftKeyword("")}
+                    className="text-gray-300 hover:text-gray-500 transition-colors">
                     <X size={14} />
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-4 border-b sm:border-b-0 sm:border-r border-gray-100">
+              <div className="flex items-center gap-2 px-4 py-3.5
+                border-b sm:border-b-0 sm:border-r border-gray-100 sm:w-44">
                 <MapPin size={16} className="text-gray-400 shrink-0" />
                 <input
                   value={draftLocation}
-                  onChange={(e) => setDraftLocation(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  onChange={e => setDraftLocation(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSearch()}
                   placeholder="Địa điểm"
-                  className="text-[16px] text-gray-800 placeholder:text-gray-400 focus:outline-none bg-transparent min-w-[100px] sm:min-w-[120px]"
+                  className="flex-1 text-sm text-gray-800 placeholder:text-gray-400
+                    focus:outline-none bg-transparent"
                 />
-                <ChevronDown size={14} className="text-gray-400 shrink-0 sm:hidden" />
               </div>
               <button
                 onClick={handleSearch}
-                className="flex items-center justify-center gap-2 px-4 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[16px] font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
+                className="flex items-center justify-center gap-2 px-6 py-3.5
+                  bg-blue-600 text-white text-sm font-semibold
+                  hover:bg-blue-700 transition-colors"
               >
-                <Search size={16} />
-                <span className="hidden sm:inline">Tìm kiếm</span>
+                <Search size={15} /> Tìm kiếm
               </button>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Active search badges */}
-          {(keyword || location) && (
+          {/* Active keyword badges */}
+          {(appliedKeyword || appliedLocation) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-center gap-2 mt-4 flex-wrap"
             >
-              <span className="text-blue-100 text-[16px]">Kết quả cho:</span>
-              {keyword && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm
-                  text-white text-[16px] font-medium rounded-full border border-white/30">
-                  {keyword}
-                  <button
-                    onClick={() => {
-                      setDraftKeyword("");
-                      setKeyword("");
-                      setDebouncedKeyword("");
-                      setPage(1);
-                      router.replace("/companies", { scroll: false });
-                    }}
-                    className="text-white/60 hover:text-white"
-                  >
-                    <X size={12} />
-                  </button>
+              <span className="text-blue-100 text-sm">Kết quả cho:</span>
+              {appliedKeyword && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1
+                  bg-white/20 text-white text-sm font-medium rounded-full border border-white/30">
+                  {appliedKeyword}
+                  <button onClick={() => {
+                    setDraftKeyword(""); setAppliedKeyword(""); setPage(1);
+                    router.replace("/companies", { scroll: false });
+                  }} className="text-white/60 hover:text-white"><X size={12} /></button>
                 </span>
               )}
-              {location && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm
-                  text-white text-[16px] font-medium rounded-full border border-white/30">
-                  <MapPin size={11} />
-                  {location}
-                  <button
-                    onClick={() => {
-                      setDraftLocation("");
-                      setLocation("");
-                      setPage(1);
-                    }}
-                    className="text-white/60 hover:text-white"
-                  >
-                    <X size={12} />
-                  </button>
+              {appliedLocation && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1
+                  bg-white/20 text-white text-sm font-medium rounded-full border border-white/30">
+                  <MapPin size={11} /> {appliedLocation}
+                  <button onClick={() => {
+                    setDraftLocation(""); setAppliedLocation(""); setPage(1);
+                  }} className="text-white/60 hover:text-white"><X size={12} /></button>
                 </span>
               )}
             </motion.div>
           )}
         </div>
-      </motion.section>
+      </section>
 
-      {/* Main content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-4 py-6 sm:py-8">
+      {/* Main */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
           {/* Desktop sidebar */}
-          <div className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-24">
+          <div className="hidden lg:flex lg:flex-col w-56 shrink-0 self-start sticky top-6">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
               <FilterSidebar
                 filters={filters}
-                onChange={setFilters}
-                activeTagsDisplay={activeTags}
-                onRemoveTag={removeTag}
-                onClearAll={handleClearAllFilters}
+                onChange={handleFilterChange}
+                onClearAll={handleClearAll}
               />
             </div>
           </div>
 
+          {/* Results */}
           <div className="flex-1 min-w-0">
 
             {/* Toolbar */}
-            <div className="bg-white rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm border border-gray-100">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <p className="text-xs sm:text-[16px] text-gray-600">
-                    <span className="font-semibold text-gray-900">{totalElements.toLocaleString()}</span>{" "}
-                    <span className="hidden sm:inline">công ty</span>
-                    <span className="sm:hidden">cty</span>
-                  </p>
-                  {activeTags.length > 0 && (
-                    <div className="hidden sm:flex items-center gap-2">
-                      <span className="text-gray-300">|</span>
-                      <button
-                        onClick={handleClearAllFilters}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                      >
-                        <X size={12} /> Xóa bộ lọc
-                      </button>
-                    </div>
+            <div className="bg-white rounded-xl p-3 sm:p-4 mb-5 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-gray-600">
+                  {loading
+                    ? <span className="text-gray-400">Đang tải...</span>
+                    : <><strong className="text-gray-900">{totalElements.toLocaleString()}</strong> công ty</>
+                  }
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {filters.planCode && (
+                    <PlanBadge planCode={filters.planCode as CompanyPlanCode} />
                   )}
-                </div>
+                  {filters.minRating != null && filters.minRating > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5
+                      text-[10px] font-semibold rounded-full border
+                      bg-amber-50 text-amber-700 border-amber-200">
+                      ≥ {filters.minRating}★
+                      <button
+                        onClick={() => handleFilterChange({ ...filters, minRating: null })}
+                        className="text-amber-400 hover:text-amber-600 ml-0.5"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  )}
+                  {filters.size && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5
+                      text-[10px] font-semibold rounded-full border
+                      bg-gray-50 text-gray-600 border-gray-200">
+                      {COMPANY_SIZE_LABELS[filters.size as keyof typeof COMPANY_SIZE_LABELS] ?? filters.size}
+                      <button
+                        onClick={() => handleFilterChange({ ...filters, size: "" })}
+                        className="text-gray-400 hover:text-gray-600 ml-0.5"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  )}
 
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {/* Sort — mobile */}
-                  <div className="lg:hidden">
-                    <select
-                      value={sortTab}
-                      onChange={(e) => { setSortTab(e.target.value); setPage(1); }}
-                      className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {SORT_TABS.map((tab) => (
-                        <option key={tab.value} value={tab.value}>{tab.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* View mode */}
                   <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-1.5 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
-                    >
-                      <List size={16} />
+                    <button onClick={() => setViewMode("list")}
+                      className={`p-1.5 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}>
+                      <List size={15} />
                     </button>
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-1.5 rounded-md transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
-                    >
-                      <LayoutGrid size={16} />
+                    <button onClick={() => setViewMode("grid")}
+                      className={`p-1.5 rounded-md transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}>
+                      <LayoutGrid size={15} />
                     </button>
                   </div>
 
-                  {/* Mobile filter */}
                   <button
                     onClick={() => setShowMobileFilter(true)}
-                    className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium"
+                    className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5
+                      bg-blue-50 text-blue-600 rounded-lg text-xs font-medium"
                   >
                     <Filter size={12} /> Lọc
-                    {activeTags.length > 0 && (
-                      <span className="px-1.5 py-0.5 text-xs bg-blue-600 text-white rounded-full">
-                        {activeTags.length}
+                    {activeFilterCount > 0 && (
+                      <span className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded-full">
+                        {activeFilterCount}
                       </span>
                     )}
                   </button>
                 </div>
               </div>
-
-              {/* Active tags — mobile */}
-              {activeTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-100">
-                  {activeTags.slice(0, 3).map((tag) => (
-                    <span key={tag.key}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
-                      <span className="truncate max-w-[100px]">{tag.label}</span>
-                      <button onClick={() => removeTag(tag.key)} className="text-blue-400 hover:text-red-500">
-                        <X size={10} />
-                      </button>
-                    </span>
-                  ))}
-                  {activeTags.length > 3 && (
-                    <button onClick={handleClearAllFilters} className="px-2 py-1 text-xs text-gray-500 hover:text-blue-600">
-                      +{activeTags.length - 3}
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* Sort tabs — desktop */}
-            <div className="hidden lg:block mb-6">
-              <div className="flex items-center gap-2 flex-wrap">
-                {SORT_TABS.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => { setSortTab(tab.value); setPage(1); }}
-                    className={`px-4 py-2 text-[16px] font-medium rounded-lg transition-all
-                      ${sortTab === tab.value
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600"
-                      }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Results */}
+            {/* Results area */}
             <AnimatePresence mode="wait">
+
+              {/* Loading */}
               {loading && (
-                <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="space-y-3">
-                  {Array.from({ length: isMobile ? 3 : 5 }).map((_, i) => (
-                    <div key={i} className="h-28 sm:h-32 rounded-xl bg-white animate-pulse shadow-sm" />
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className={viewMode === "grid" && !isMobile
+                    ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+                    : "space-y-3"}
+                >
+                  {Array.from({ length: isMobile ? 3 : 6 }).map((_, i) => (
+                    <SkeletonCard key={i} />
                   ))}
                 </motion.div>
               )}
 
-              {error && !loading && (
-                <motion.div key="error" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12 sm:py-16">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-100 mb-3 sm:mb-4">
-                    <X className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
-                  </div>
-                  <p className="text-[16px] sm:text-base text-gray-500 px-4">{error}</p>
-                  <button onClick={() => window.location.reload()}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-[16px] hover:bg-blue-700">
+              {/* Error */}
+              {!loading && error && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="text-center py-16 bg-white rounded-2xl border border-gray-100"
+                >
+                  <p className="text-gray-500 text-sm mb-4">{error}</p>
+                  <button
+                    onClick={() => {
+                      // reset fetchId để trigger re-fetch
+                      setFilters(f => ({ ...f }));
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                  >
                     Thử lại
                   </button>
                 </motion.div>
               )}
 
-              {!loading && !error && (
-                <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className={viewMode === "grid" && !isMobile
-                    ? "grid grid-cols-1 md:grid-cols-2 gap-4"
-                    : "space-y-3"
-                  }>
-                  {companies.length === 0 ? (
-                    <div className="text-center py-12 sm:py-16 bg-white rounded-xl">
-                      <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 mb-3 sm:mb-4">
-                        <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                      </div>
-                      <p className="text-[16px] sm:text-base text-gray-500">Không tìm thấy công ty phù hợp</p>
-                      <button onClick={handleClearAllFilters}
-                        className="mt-4 text-blue-600 text-[16px] hover:underline">
-                        Xóa tất cả bộ lọc
-                      </button>
-                    </div>
-                  ) : (
-                    companies.map((company, index) => (
-                      <CompanyCard key={company.id} company={toCompanyCard(company)} index={index} />
-                    ))
-                  )}
+              {/* Empty */}
+              {!loading && !error && companies.length === 0 && (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="text-center py-16 bg-white rounded-2xl border border-gray-100"
+                >
+                  <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium text-sm">Không tìm thấy công ty phù hợp</p>
+                  <p className="text-gray-400 text-xs mt-1">Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
+                  <button
+                    onClick={handleClearAll}
+                    className="mt-4 px-4 py-2 text-sm text-blue-600 bg-blue-50
+                      rounded-xl hover:bg-blue-100 transition-colors"
+                  >
+                    Xóa bộ lọc
+                  </button>
                 </motion.div>
               )}
+
+              {/* Results */}
+              {!loading && !error && companies.length > 0 && (
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className={viewMode === "grid" && !isMobile
+                    ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+                    : "space-y-3"}
+                >
+                  {companies.map((company, index) => (
+                    <CompanyCard key={company.id} company={company} index={index} />
+                  ))}
+                </motion.div>
+              )}
+
             </AnimatePresence>
 
-            {/* Pagination */}
             {totalPages > 1 && !loading && !error && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                className="flex justify-center mt-6 sm:mt-8 px-4 sm:px-0">
+              <div className="flex justify-center mt-8">
                 <Pagination
                   currentPage={page}
                   totalPages={totalPages}
-                  onPageChange={setPage}
+                  onPageChange={p => {
+                    setPage(p);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   siblingCount={isMobile ? 0 : 1}
                   showFirstLast={!isMobile}
                 />
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Mobile filter modal */}
+      {/* Mobile filter drawer */}
       <AnimatePresence>
         {showMobileFilter && (
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black/50 z-50 lg:hidden"
               onClick={() => setShowMobileFilter(false)}
             />
             <motion.div
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-white z-50 lg:hidden shadow-2xl overflow-y-auto"
+              className="fixed right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-white z-50
+                lg:hidden shadow-2xl overflow-y-auto"
             >
-              <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
+              <div className="sticky top-0 bg-white border-b border-gray-100 p-4
+                flex items-center justify-between">
                 <h3 className="font-bold text-lg">Bộ lọc</h3>
                 <button onClick={() => setShowMobileFilter(false)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-4 pb-24">
+              <div className="p-4 pb-28">
                 <FilterSidebar
                   filters={filters}
-                  onChange={(f) => { setFilters(f); setPage(1); }}
-                  activeTagsDisplay={activeTags}
-                  onRemoveTag={(key) => { removeTag(key); setPage(1); }}
-                  onClearAll={() => { handleClearAllFilters(); setShowMobileFilter(false); }}
+                  onChange={handleFilterChange}
+                  onClearAll={() => { handleClearAll(); setShowMobileFilter(false); }}
                 />
               </div>
-              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-lg">
-                <button onClick={() => setShowMobileFilter(false)}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
-                  Xem kết quả ({totalElements})
+              <div className="fixed bottom-0 right-0 w-[85vw] max-w-sm
+                bg-white border-t border-gray-100 p-4 shadow-lg">
+                <button
+                  onClick={() => setShowMobileFilter(false)}
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold
+                    hover:bg-blue-700 transition-colors"
+                >
+                  Xem kết quả {!loading && `(${totalElements})`}
                 </button>
               </div>
             </motion.div>
@@ -523,7 +474,6 @@ function CompaniesPageInner() {
   );
 }
 
-// ── Export với Suspense wrapper ───────────────────────────────────────────────
 export default function CompaniesPage() {
   return (
     <Suspense fallback={

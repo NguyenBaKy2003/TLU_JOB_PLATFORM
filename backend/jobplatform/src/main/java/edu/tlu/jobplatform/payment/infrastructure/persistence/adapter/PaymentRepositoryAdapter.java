@@ -15,10 +15,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Adapter implements PaymentRepository port.
- * Dùng SubscriptionMapper đã có để map entity ↔ domain.
- */
 @Component
 @RequiredArgsConstructor
 public class PaymentRepositoryAdapter implements PaymentRepository {
@@ -26,7 +22,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     private final PaymentJpaRepo jpaRepo;
     private final SubscriptionMapper mapper;
 
-    // ── Existing methods ──
+    // ── Common ────────────────────────────────────────────────────────
 
     @Override
     public Optional<Payment> findById(UUID id) {
@@ -39,21 +35,26 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     }
 
     @Override
+    public Payment save(Payment payment) {
+        UUID id = payment.getId();
+        if (id != null) {
+            return jpaRepo.findById(id)
+                    .map(existing -> {
+                        mapper.updatePaymentEntity(existing, payment);
+                        return mapper.toPaymentDomain(jpaRepo.save(existing));
+                    })
+                    .orElseGet(() -> mapper.toPaymentDomain(
+                            jpaRepo.save(mapper.toPaymentNewEntity(payment))));
+        }
+        return mapper.toPaymentDomain(jpaRepo.save(mapper.toPaymentNewEntity(payment)));
+    }
+
+    // ── Company ───────────────────────────────────────────────────────
+
+    @Override
     public Optional<Payment> findPendingByCompanyId(UUID companyId) {
         return jpaRepo.findPendingByCompanyId(companyId).map(mapper::toPaymentDomain);
     }
-
-    @Override
-    public Payment save(Payment payment) {
-        return jpaRepo.findById(payment.getId() != null ? payment.getId() : UUID.randomUUID())
-                .map(existing -> {
-                    mapper.updatePaymentEntity(existing, payment);
-                    return mapper.toPaymentDomain(jpaRepo.save(existing));
-                })
-                .orElseGet(() -> mapper.toPaymentDomain(jpaRepo.save(mapper.toPaymentNewEntity(payment))));
-    }
-
-    // ── Employer ──
 
     @Override
     public Page<Payment> findByCompanyId(UUID companyId, Pageable pageable) {
@@ -68,13 +69,33 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
-    // ── Admin ──
+    // ── Candidate ─────────────────────────────────────────────────────
 
     @Override
-    public Page<Payment> search(UUID companyId, PaymentStatus status, String gateway,
-            LocalDateTime fromDate, LocalDateTime toDate,
+    public Optional<Payment> findPendingByCandidateId(UUID candidateId) {
+        return jpaRepo.findPendingByCandidateId(candidateId).map(mapper::toPaymentDomain);
+    }
+
+    @Override
+    public Page<Payment> findByCandidateId(UUID candidateId, Pageable pageable) {
+        return jpaRepo.findByCandidateIdOrderByCreatedAtDesc(candidateId, pageable)
+                .map(mapper::toPaymentDomain);
+    }
+
+    @Override
+    public Page<Payment> findByCandidateIdAndStatus(UUID candidateId, PaymentStatus status,
             Pageable pageable) {
-        return jpaRepo.searchPayments(companyId, status, gateway, fromDate, toDate, pageable)
+        return jpaRepo.findByCandidateIdAndStatusOrderByCreatedAtDesc(candidateId, status, pageable)
+                .map(mapper::toPaymentDomain);
+    }
+
+    // ── Admin ─────────────────────────────────────────────────────────
+
+    @Override
+    public Page<Payment> search(UUID companyId, UUID candidateId, PaymentStatus status,
+            String gateway, LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
+        return jpaRepo.searchPayments(companyId, candidateId, status, gateway,
+                fromDate, toDate, pageable)
                 .map(mapper::toPaymentDomain);
     }
 
@@ -87,5 +108,25 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     @Override
     public long countByStatus(PaymentStatus status) {
         return jpaRepo.countByStatus(status);
+    }
+
+    @Override
+    public Page<Payment> searchByCandidateId(
+            UUID candidateId, PaymentStatus status, String gateway,
+            String keyword, LocalDateTime fromDate, LocalDateTime toDate,
+            Pageable pageable) {
+        return jpaRepo.searchByCandidateId(
+                candidateId, status, gateway, keyword, fromDate, toDate, pageable)
+                .map(mapper::toPaymentDomain);
+    }
+
+    @Override
+    public Page<Payment> searchByCompanyId(
+            UUID companyId, PaymentStatus status, String gateway,
+            String keyword, LocalDateTime fromDate, LocalDateTime toDate,
+            Pageable pageable) {
+        return jpaRepo.searchByCompanyId(
+                companyId, status, gateway, keyword, fromDate, toDate, pageable)
+                .map(mapper::toPaymentDomain);
     }
 }

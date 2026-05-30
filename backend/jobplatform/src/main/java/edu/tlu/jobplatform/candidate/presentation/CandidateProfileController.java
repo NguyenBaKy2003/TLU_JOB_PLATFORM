@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.candidate.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.candidate.application.usecase.education.*;
 import edu.tlu.jobplatform.candidate.application.usecase.experience.*;
 import edu.tlu.jobplatform.candidate.application.usecase.profile.*;
@@ -14,6 +15,8 @@ import edu.tlu.jobplatform.candidate.presentation.dto.request.ExperienceRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.UpdateProfileRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.request.UpdateProfileUrlRequest;
 import edu.tlu.jobplatform.candidate.presentation.dto.response.CandidateProfileResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
@@ -57,6 +60,7 @@ public class CandidateProfileController {
 
         @Operation(summary = "Lấy hồ sơ của tôi")
         @GetMapping("/me")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> getMyProfile(
                         @CurrentUser UUID userId) {
 
@@ -69,6 +73,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật hồ sơ (PATCH semantics — chỉ gửi field cần đổi; gửi null để xóa)")
         @PutMapping("/me")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_PROFILE", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateProfile(
                         @CurrentUser UUID userId,
                         @Valid @RequestBody UpdateProfileRequest req) {
@@ -113,6 +119,7 @@ public class CandidateProfileController {
                         - `CV_BOOST_QUOTA_EXCEEDED`           : hết lượt boost tháng này
                         """)
         @PostMapping("/boost")
+        @RateLimit(policy = "cv-boost", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<BoostCvUseCase.Result>> boostCv(
                         @CurrentUser UUID candidateId) {
 
@@ -132,6 +139,7 @@ public class CandidateProfileController {
                         và thời điểm boost hết hiệu lực.
                         """)
         @GetMapping("/boost/status")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<BoostStatusResponse>> getBoostStatus(
                         @CurrentUser UUID candidateId) {
 
@@ -147,6 +155,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật avatar")
         @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_AVATAR", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateAvatar(
                         @CurrentUser UUID userId,
                         @RequestPart("file") MultipartFile file) {
@@ -160,6 +170,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật URL hồ sơ cá nhân")
         @PatchMapping("/me/profile-url")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_PROFILE_URL", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateProfileUrl(
                         @CurrentUser UUID userId,
                         @RequestBody @Valid UpdateProfileUrlRequest req) {
@@ -174,6 +186,7 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật trạng thái tìm việc")
         @PatchMapping("/me/job-search-status")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<Void>> updateJobSearchStatus(
                         @CurrentUser UUID userId,
                         @RequestParam JobSearchStatus status) {
@@ -187,6 +200,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Thêm kinh nghiệm làm việc")
         @PostMapping("/me/experiences")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_ADD_EXPERIENCE", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> addExperience(
                         @CurrentUser UUID userId,
                         @Valid @RequestBody ExperienceRequest req) {
@@ -199,6 +214,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật kinh nghiệm làm việc")
         @PutMapping("/me/experiences/{experienceId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_EXPERIENCE", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateExperience(
                         @CurrentUser UUID userId,
                         @PathVariable UUID experienceId,
@@ -212,6 +229,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Xóa kinh nghiệm làm việc")
         @DeleteMapping("/me/experiences/{experienceId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DELETE_EXPERIENCE", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<Void>> deleteExperience(
                         @CurrentUser UUID userId,
                         @PathVariable UUID experienceId) {
@@ -224,6 +243,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Thêm học vấn")
         @PostMapping("/me/educations")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_ADD_EDUCATION", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> addEducation(
                         @CurrentUser UUID userId,
                         @Valid @RequestBody EducationRequest req) {
@@ -236,6 +257,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Cập nhật học vấn")
         @PutMapping("/me/educations/{educationId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_EDUCATION", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<CandidateProfileResponse>> updateEducation(
                         @CurrentUser UUID userId,
                         @PathVariable UUID educationId,
@@ -249,6 +272,8 @@ public class CandidateProfileController {
 
         @Operation(summary = "Xóa học vấn")
         @DeleteMapping("/me/educations/{educationId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DELETE_EDUCATION", resourceType = "CandidateProfile")
         public ResponseEntity<ApiResponse<Void>> deleteEducation(
                         @CurrentUser UUID userId,
                         @PathVariable UUID educationId) {

@@ -2,10 +2,10 @@ package edu.tlu.jobplatform.message.infrastructure.persistence.adapter;
 
 import edu.tlu.jobplatform.message.domain.model.Conversation;
 import edu.tlu.jobplatform.message.domain.repository.ConversationRepository;
-import edu.tlu.jobplatform.message.infrastructure.persistence.entity.ConversationJpaEntity;
 import edu.tlu.jobplatform.message.infrastructure.persistence.mapper.MessageMapper;
 import edu.tlu.jobplatform.message.infrastructure.persistence.repository.ConversationJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class ConversationRepositoryAdapter implements ConversationRepository {
@@ -22,22 +23,7 @@ public class ConversationRepositoryAdapter implements ConversationRepository {
 
     @Override
     public Conversation save(Conversation conversation) {
-        ConversationJpaEntity entity = mapper.toEntity(conversation);
-        // Preserve id nếu là update
-        if (conversation.getId() != null) {
-            entity = jpa.findById(conversation.getId())
-                    .map(existing -> {
-                        existing.setStatus(conversation.getStatus());
-                        existing.setLastMessagePreview(conversation.getLastMessagePreview());
-                        existing.setLastMessageAt(conversation.getLastMessageAt());
-                        existing.setUnreadCountA(conversation.getUnreadCountA());
-                        existing.setUnreadCountB(conversation.getUnreadCountB());
-                        existing.setUpdatedAt(conversation.getUpdatedAt());
-                        return existing;
-                    })
-                    .orElse(entity);
-        }
-        return mapper.toDomain(jpa.save(entity));
+        return mapper.toDomain(jpa.save(mapper.toEntity(conversation)));
     }
 
     @Override
@@ -46,8 +32,11 @@ public class ConversationRepositoryAdapter implements ConversationRepository {
     }
 
     @Override
-    public Optional<Conversation> findByParticipantsAndJobPost(UUID a, UUID b, UUID jobPostId) {
-        return jpa.findByParticipantsAndJobPost(a, b, jobPostId).map(mapper::toDomain);
+    public Optional<Conversation> findByParticipants(UUID a, UUID b) {
+        log.debug("Finding conversation: participantA={}, participantB={}", a, b);
+        Optional<Conversation> result = jpa.findByParticipants(a, b).map(mapper::toDomain);
+        log.debug("Conversation found: {}", result.isPresent());
+        return result;
     }
 
     @Override

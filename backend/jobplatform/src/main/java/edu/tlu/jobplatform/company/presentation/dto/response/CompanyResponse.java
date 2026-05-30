@@ -17,7 +17,7 @@ import java.util.UUID;
 @Schema(description = "Thông tin hồ sơ công ty")
 public class CompanyResponse {
 
-    // ── Thông tin cơ bản ──
+    // ── Thông tin cơ bản ─────────────────────────────────────────────────────
     private final UUID id;
     private final UUID ownerId;
     private final String name;
@@ -36,7 +36,7 @@ public class CompanyResponse {
     private final String logoUrl;
     private final String coverImageUrl;
 
-    // ── Trạng thái xác thực
+    // ── Trạng thái xác thực ──────────────────────────────────────────────────
     private final VerificationStatus verificationStatus;
     private final String rejectionReason;
     private final boolean canPostJobs;
@@ -45,14 +45,23 @@ public class CompanyResponse {
     private final Integer activeJobCount;
     private final Double averageRating;
     private final Integer reviewCount;
-    // ── Nội dung mở rộng ──
+
+    /**
+     * planCode của subscription ACTIVE hiện tại: ENTERPRISE / BUSINESS / STARTER /
+     * FREE_COMPANY.
+     * null nếu không có sub (coi như FREE).
+     * FE dùng field này để render badge PRO / ENTERPRISE / v.v.
+     */
+    private final String planCode;
+
+    // ── Nội dung mở rộng ─────────────────────────────────────────────────────
     private final List<TeamMemberDto> teamMembers;
     private final List<GalleryImageDto> gallery;
-    private final List<DocumentDto> documents; // Chỉ admin thấy
+    private final List<DocumentDto> documents; // Chỉ admin / owner thấy
 
-    // ════════════════════════════════════════════════════════════
-    // Nested DTOs
-    // ════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════════
+    // Nested DTOs (giữ nguyên so với bản cũ)
+    // ════════════════════════════════════════════════════════════════════════
 
     @Getter
     @Builder
@@ -122,15 +131,17 @@ public class CompanyResponse {
         }
     }
 
-    // ════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════════
     // Factory methods
-    // ════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════════
 
-    /** Dành cho public / candidate — không có documents */
+    /** Public / candidate — không documents, có planCode để render badge */
     public static CompanyResponse from(CompanyProfile c,
             List<CompanyTeamMember> team,
-            List<CompanyGalleryImage> gallery) {
+            List<CompanyGalleryImage> gallery,
+            String planCode) {
         return base(c)
+                .planCode(planCode)
                 .teamMembers(toTeamDtos(team))
                 .gallery(toGalleryDtos(gallery))
                 .activeJobCount(c.getActiveJobCount())
@@ -139,7 +150,17 @@ public class CompanyResponse {
                 .build();
     }
 
-    /** Dành cho admin — có đầy đủ documents */
+    /**
+     * Overload không có planCode — dùng cho các context không cần badge
+     * (vd: employer xem hồ sơ của chính mình, admin detail).
+     */
+    public static CompanyResponse from(CompanyProfile c,
+            List<CompanyTeamMember> team,
+            List<CompanyGalleryImage> gallery) {
+        return from(c, team, gallery, null);
+    }
+
+    /** Admin — có documents đầy đủ */
     public static CompanyResponse forAdmin(CompanyProfile c,
             List<CompanyTeamMember> team,
             List<CompanyGalleryImage> gallery,
@@ -151,19 +172,29 @@ public class CompanyResponse {
                 .build();
     }
 
-    /** Dành cho employer xem hồ sơ của chính mình — có documents */
+    /** Owner xem hồ sơ của mình — có documents, có planCode */
     public static CompanyResponse forOwner(CompanyProfile c,
             List<CompanyTeamMember> team,
             List<CompanyGalleryImage> gallery,
-            List<CompanyDocument> documents) {
+            List<CompanyDocument> documents,
+            String planCode) {
         return base(c)
+                .planCode(planCode)
                 .teamMembers(toTeamDtos(team))
                 .gallery(toGalleryDtos(gallery))
                 .documents(documents.stream().map(DocumentDto::from).toList())
                 .build();
     }
 
-    // ── Helpers
+    /** Overload forOwner không planCode — backward compat */
+    public static CompanyResponse forOwner(CompanyProfile c,
+            List<CompanyTeamMember> team,
+            List<CompanyGalleryImage> gallery,
+            List<CompanyDocument> documents) {
+        return forOwner(c, team, gallery, documents, null);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static CompanyResponseBuilder base(CompanyProfile c) {
         return CompanyResponse.builder()

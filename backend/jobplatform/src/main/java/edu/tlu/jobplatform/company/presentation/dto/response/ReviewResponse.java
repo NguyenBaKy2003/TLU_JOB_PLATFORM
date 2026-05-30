@@ -16,6 +16,8 @@ import java.util.UUID;
 @Schema(description = "Response đánh giá công ty")
 public class ReviewResponse {
 
+    // ─── Review fields ───────────────────────────────────────────────────────
+
     @Schema(description = "ID của review")
     private UUID id;
 
@@ -61,15 +63,30 @@ public class ReviewResponse {
     @Schema(description = "Thời gian được duyệt/từ chối (chỉ cho admin/company)")
     private LocalDateTime reviewedAt;
 
-    /**
-     * Convert từ domain model sang DTO
-     * Cần inject UserService để lấy tên reviewer nếu không anonymous
-     */
+    // ─── Company snapshot (đủ để render UI, không cần gọi thêm API) ─────────
+
+    @Schema(description = "Tên công ty")
+    private String companyName;
+
+    @Schema(description = "Slug công ty (dùng cho URL)")
+    private String companySlug;
+
+    @Schema(description = "URL logo công ty")
+    private String companyLogoUrl;
+
+    @Schema(description = "Ngành nghề chính")
+    private String companyIndustry;
+
+    @Schema(description = "Địa điểm (thành phố / tỉnh)")
+    private String companyLocation;
+
+    // ─── Factory methods ─────────────────────────────────────────────────────
+
     public static ReviewResponse from(CompanyReview review) {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .companyId(review.getCompanyId())
-                .reviewerName(review.isAnonymous() ? "Ẩn danh" : null) // Sẽ được set sau khi fetch user info
+                .reviewerName(review.isAnonymous() ? "Ẩn danh" : null)
                 .rating(review.getRating())
                 .title(review.getTitle())
                 .content(review.getContent())
@@ -86,11 +103,33 @@ public class ReviewResponse {
     }
 
     /**
-     * Convert từ domain model sang DTO với tên reviewer
+     * Convert kèm tên reviewer.
      */
     public static ReviewResponse from(CompanyReview review, String reviewerName) {
         ReviewResponse response = from(review);
         response.setReviewerName(review.isAnonymous() ? "Ẩn danh" : reviewerName);
         return response;
+    }
+
+    public static ReviewResponse from(CompanyReview review,
+            String reviewerName,
+            CompanySnapshot company) {
+        ReviewResponse response = from(review, reviewerName);
+        if (company != null) {
+            response.setCompanyName(company.name());
+            response.setCompanySlug(company.slug());
+            response.setCompanyLogoUrl(company.logoUrl());
+            response.setCompanyIndustry(company.industry());
+            response.setCompanyLocation(company.location());
+        }
+        return response;
+    }
+
+    public record CompanySnapshot(
+            String name,
+            String slug,
+            String logoUrl,
+            String industry,
+            String location) {
     }
 }

@@ -17,13 +17,11 @@ interface Props {
   title?:        string;
   subtitle?:     string;
   onMenuToggle?: () => void;
-  // notificationCount prop removed — Header reads unreadCount directly from useWebSocket()
 }
 
 export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props) {
   const router           = useRouter();
   const { user, logout } = useAuth();
-  // Source of truth — updates instantly on optimistic writes from markAsRead/markAllAsRead
   const { unreadCount }  = useWebSocket();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -76,8 +74,9 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
   const msgHref = isEmployer ? "/employer/messages" : "/messages";
 
   return (
+    // z-40: đủ cao hơn sidebar (không set z) và các card thông thường
     <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white
-      border-b border-gray-100 sticky top-0 z-20 shrink-0">
+      border-b border-gray-100 sticky top-0 z-40 shrink-0">
 
       {/* ── Left ──────── */}
       <div className="flex items-center gap-3 min-w-0">
@@ -104,50 +103,6 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
       {/* ── Right ─────── */}
       <div className="flex items-center gap-1.5 sm:gap-2.5">
 
-        {/* Search — desktop */}
-        <div className="hidden sm:block relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 text-[16px] bg-gray-50 border border-gray-200 rounded-xl
-              w-44 lg:w-52 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-              focus:border-blue-400 transition-all"
-          />
-        </div>
-
-        {/* Search — mobile toggle */}
-        {!showSearch ? (
-          <button
-            onClick={() => setShowSearch(true)}
-            className="sm:hidden w-9 h-9 flex items-center justify-center text-gray-500
-              hover:bg-gray-50 rounded-xl transition-colors"
-          >
-            <Search size={18} />
-          </button>
-        ) : (
-          <div className="sm:hidden fixed inset-x-0 top-0 z-20 flex items-center gap-2
-            px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
-            <Search size={15} className="text-gray-400 shrink-0" />
-            <input
-              ref={searchRef}
-              type="text"
-              placeholder="Tìm kiếm..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-[16px] bg-transparent focus:outline-none
-                text-gray-800 placeholder-gray-400"
-            />
-            <button
-              onClick={() => setShowSearch(false)}
-              className="text-[16px] font-medium text-blue-600 shrink-0"
-            >
-              Huỷ
-            </button>
-          </div>
-        )}
 
         {/* Role badge */}
         <span className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded-full
@@ -176,8 +131,11 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
             )}
           </button>
 
+          {/* NotificationPanel: z-50 để nổi trên Header (z-40) */}
           {notifOpen && (
-            <NotificationPanel onClose={() => setNotifOpen(false)} />
+            <div className="relative z-50">
+              <NotificationPanel onClose={() => setNotifOpen(false)} />
+            </div>
           )}
         </div>
 
@@ -224,9 +182,10 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
               <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
             </button>
 
+            {/* Dropdown: z-50 để luôn nổi trên Header sticky (z-40) và sidebar */}
             {userMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl
-                border border-gray-100 shadow-lg py-1 z-20">
+                border border-gray-100 shadow-lg py-1 z-50">
                 {/* Mobile-only user info */}
                 <div className="px-4 py-2.5 border-b border-gray-50 lg:hidden">
                   <p className="text-xs font-semibold text-gray-800">{user.fullName}</p>

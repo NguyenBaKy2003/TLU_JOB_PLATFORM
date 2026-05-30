@@ -2,205 +2,137 @@
 
 import type { ICompanyRepository } from "@/domain/repositories/ICompanyRepository";
 import type {
-  CompanyProfile,
-  CompanyReview,
-  CreateCompanyPayload,
-  UpdateCompanyPayload,
-  CreateReviewPayload,
-  CompanyListParams,
-  PageResponse,
-  TeamMember,
-  CreateTeamMemberPayload,
-  UpdateTeamMemberPayload,
-  GalleryImage,
-  CompanyDocument,
-  CompanyDocumentType,
+  CompanyProfile, CompanyReview, CompanyListParams, PageResponse,
+  CreateCompanyPayload, UpdateCompanyPayload, CreateReviewPayload,
+  TeamMember, CreateTeamMemberPayload, UpdateTeamMemberPayload,
+  GalleryImage, CompanyDocument, CompanyDocumentType,
+  CompanySize, CompanyPlanCode,
 } from "@/domain/models/Company";
-import { JobPost } from "@/domain/models/Job";
+import type { JobPost } from "@/domain/models/Job";
 
 export class CompanyService {
 
   constructor(private readonly repo: ICompanyRepository) {}
 
-  // ── Public ────────────
+  // ── Public ────────────────────────────────────────────────────────────────
 
-  /** Danh sách công ty đã xác thực — dùng trên trang /companies */
+  /**
+   * Danh sách / tìm kiếm công ty VERIFIED — sort plan tier (ENTERPRISE→FREE).
+   * Không truyền params = trả toàn bộ.
+   */
   listVerified(params?: CompanyListParams): Promise<PageResponse<CompanyProfile>> {
     return this.repo.listVerified(params);
   }
 
-  /** Chi tiết công ty theo ID — dùng trên trang /companies/[id] */
+  /**
+   * Tìm kiếm đa điều kiện — wrapper tiện dùng hơn listVerified.
+   * Tất cả filter đều optional.
+   */
+  search(opts: {
+    keyword?:   string;
+    city?:      string;
+    size?:      CompanySize;
+    planCode?:  CompanyPlanCode;
+    minRating?: number;
+    page?:      number;
+    pageSize?:  number;
+  }): Promise<PageResponse<CompanyProfile>> {
+    return this.repo.listVerified({
+      keyword:   opts.keyword,
+      city:      opts.city,
+      size_:     opts.size,
+      planCode:  opts.planCode,
+      minRating: opts.minRating,
+      page:      opts.page ?? 0,
+      pageSize:  opts.pageSize ?? 12,
+    });
+  }
+
   getById(id: string): Promise<CompanyProfile> {
     return this.repo.getById(id);
   }
 
-  /** Chi tiết công ty theo slug — dùng khi navigate từ URL đẹp */
   getBySlug(slug: string): Promise<CompanyProfile> {
     return this.repo.getBySlug(slug);
   }
 
-   getJobsByCompany(
-    companyId: string,
-    page = 0,
-    size = 10,
-  ): Promise<PageResponse<JobPost>> {
+  getJobsByCompany(companyId: string, page = 0, size = 10): Promise<PageResponse<JobPost>> {
     return this.repo.getJobsByCompany(companyId, page, size);
   }
 
-  // ── Employer ──────────
+  // ── Employer ──────────────────────────────────────────────────────────────
 
-  /** Hồ sơ công ty của employer đang đăng nhập */
   getMyCompany(): Promise<CompanyProfile> {
     return this.repo.getMyCompany();
   }
 
-  /** Tạo hồ sơ công ty mới (sau khi đăng ký employer) */
   createCompany(payload: CreateCompanyPayload): Promise<CompanyProfile> {
     return this.repo.create(payload);
   }
 
-  /** Cập nhật thông tin công ty */
   updateCompany(id: string, payload: UpdateCompanyPayload): Promise<CompanyProfile> {
     return this.repo.update(id, payload);
   }
 
-  /**
-   * Upload logo công ty.
-   * Backend xác định công ty qua JWT token — không cần truyền id.
-   */
   uploadLogo(file: File): Promise<CompanyProfile> {
     return this.repo.uploadLogo(file);
   }
 
-  /**
-   * Upload ảnh bìa công ty.
-   * Backend xác định công ty qua JWT token — không cần truyền id.
-   */
   uploadCover(file: File): Promise<CompanyProfile> {
     return this.repo.uploadCover(file);
   }
 
-  // ── Reviews ───────────
+  // ── Reviews ───────────────────────────────────────────────────────────────
 
-  /** Danh sách review của công ty — dùng trên tab "Tổng quan" */
-  listReviews(
-    companyId: string,
-    page = 0,
-    size = 10,
-  ): Promise<PageResponse<CompanyReview>> {
+  listReviews(companyId: string, page = 0, size = 10): Promise<PageResponse<CompanyReview>> {
     return this.repo.listReviews(companyId, page, size);
   }
 
-  /** Viết review cho công ty */
   createReview(companyId: string, payload: CreateReviewPayload): Promise<CompanyReview> {
     return this.repo.createReview(companyId, payload);
   }
 
-  /** Xóa review (chủ review hoặc admin) */
   deleteReview(companyId: string, reviewId: string): Promise<void> {
     return this.repo.deleteReview(companyId, reviewId);
   }
 
-  // ── Admin ─────────────
+  // ── Admin ─────────────────────────────────────────────────────────────────
 
-  /** [ADMIN] Danh sách công ty chờ duyệt */
   adminListPending(page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
     return this.repo.adminList("UNVERIFIED", page, size);
   }
 
-  /** [ADMIN] Danh sách theo trạng thái bất kỳ */
-  adminListByStatus(
-    status: string,
-    page = 0,
-    size = 20,
-  ): Promise<PageResponse<CompanyProfile>> {
+  adminListByStatus(status: string, page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
     return this.repo.adminList(status, page, size);
   }
 
-  /** [ADMIN] Duyệt xác thực công ty */
-  adminVerify(id: string): Promise<CompanyProfile> {
-    return this.repo.adminVerify(id);
-  }
+  adminVerify(id: string): Promise<CompanyProfile>                  { return this.repo.adminVerify(id); }
+  adminReject(id: string, reason: string): Promise<CompanyProfile>  { return this.repo.adminReject(id, reason); }
+  adminSuspend(id: string): Promise<CompanyProfile>                 { return this.repo.adminSuspend(id); }
+  adminHideReview(reviewId: string): Promise<void>                  { return this.repo.adminHideReview(reviewId); }
 
-  /** [ADMIN] Từ chối xác thực */
-  adminReject(id: string, reason: string): Promise<CompanyProfile> {
-    return this.repo.adminReject(id, reason);
-  }
+  // ── Team members ──────────────────────────────────────────────────────────
 
-  /** [ADMIN] Khoá công ty */
-  adminSuspend(id: string): Promise<CompanyProfile> {
-    return this.repo.adminSuspend(id);
-  }
+  listTeamMembers(companyId: string): Promise<TeamMember[]>                                          { return this.repo.listTeamMembers(companyId); }
+  addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember>                               { return this.repo.addTeamMember(payload); }
+  updateTeamMember(memberId: string, payload: UpdateTeamMemberPayload): Promise<TeamMember>          { return this.repo.updateTeamMember(memberId, payload); }
+  uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember>                          { return this.repo.uploadTeamMemberAvatar(memberId, file); }
+  deleteTeamMember(memberId: string): Promise<void>                                                  { return this.repo.deleteTeamMember(memberId); }
 
-  /** [ADMIN] Ẩn review vi phạm */
-  adminHideReview(reviewId: string): Promise<void> {
-    return this.repo.adminHideReview(reviewId);
-  }
- // ── Team Members ─────
+  // ── Gallery ───────────────────────────────────────────────────────────────
 
-  listTeamMembers(companyId: string): Promise<TeamMember[]> {
-    return this.repo.listTeamMembers(companyId);
-  }
+  listGallery(companyId: string): Promise<GalleryImage[]>                   { return this.repo.listGallery(companyId); }
+  addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]>    { return this.repo.addGalleryImage(file, caption); }
+  deleteGalleryImage(imageId: string): Promise<void>                        { return this.repo.deleteGalleryImage(imageId); }
 
-  addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember> {
-    return this.repo.addTeamMember(payload);
-  }
+  // ── Documents ─────────────────────────────────────────────────────────────
 
-  updateTeamMember(memberId: string, payload: UpdateTeamMemberPayload): Promise<TeamMember> {
-    return this.repo.updateTeamMember(memberId, payload);
-  }
+  listDocuments(): Promise<CompanyDocument[]>                                        { return this.repo.listDocuments(); }
+  uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument>    { return this.repo.uploadDocument(type, file); }
+  deleteDocument(documentId: string): Promise<void>                                  { return this.repo.deleteDocument(documentId); }
 
-  uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember> {
-    return this.repo.uploadTeamMemberAvatar(memberId, file);
-  }
-
-  deleteTeamMember(memberId: string): Promise<void> {
-    return this.repo.deleteTeamMember(memberId);
-  }
-
-  // ── Gallery ───────────
-
-  listGallery(companyId: string): Promise<GalleryImage[]> {
-    return this.repo.listGallery(companyId);
-  }
-
-addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]> {
-    return this.repo.addGalleryImage(file, caption);
-}
-
-  deleteGalleryImage(imageId: string): Promise<void> {
-    return this.repo.deleteGalleryImage(imageId);
-  }
-
-  // ── Documents ─────────
-
-  listDocuments(): Promise<CompanyDocument[]> {
-    return this.repo.listDocuments();
-  }
-
-  uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument> {
-    return this.repo.uploadDocument(type, file);
-  }
-
-  deleteDocument(documentId: string): Promise<void> {
-    return this.repo.deleteDocument(documentId);
-  }
-
-  // ── Helper: Kiểm tra xem user có thể thấy documents không ─
-
-  /**
-   * Kiểm tra xem current user có thể xem documents của công ty không
-   * Dựa trên verification status hoặc role
-   */
   canViewDocuments(company: CompanyProfile, currentUserId?: string): boolean {
-    // Admin xem được tất cả
-    
-    // Owner xem được của chính mình
     if (currentUserId && company.ownerId === currentUserId) return true;
-    
-    // Public chỉ xem được nếu verified (không có documents)
     return false;
   }
-
-
 }

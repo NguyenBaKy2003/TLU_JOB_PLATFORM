@@ -5,6 +5,8 @@ import type {
   JobPost, JobPostDetail, CreateJobPayload, UpdateJobPayload,
   JobSearchParams, PageResponse,
   SubmitReviewResponse,
+  SavedJobsParams,
+  MySavedJobsResponse,
 } from "@/domain/models/Job";
 import api from "@/lib/axios";
 
@@ -41,9 +43,14 @@ export class JobRepository implements IJobRepository {
     return this.get(this.BASE, { page, size });
   }
 
-  async search(params: JobSearchParams): Promise<PageResponse<JobPost>> {
-    return this.get(`${this.BASE}/search`, params as Record<string, unknown>);
-  }
+async search(params: JobSearchParams): Promise<PageResponse<JobPost>> {
+  const { jobTypes, levels, ...rest } = params;
+  return this.get(`${this.BASE}/search`, {
+    ...rest,
+    ...(jobTypes?.length ? { jobTypes } : {}),
+    ...(levels?.length   ? { levels }   : {}),
+  } as Record<string, unknown>);
+}
 
   async getById(id: string): Promise<JobPostDetail> {
     return this.get(`${this.BASE}/${id}`);
@@ -59,9 +66,19 @@ export class JobRepository implements IJobRepository {
     return this.post(`${this.BASE}/${jobPostId}/save`);
   }
 
-  async listSaved(page = 0, size = 10): Promise<PageResponse<JobPost>> {
-    return this.get(`${this.BASE}/saved`, { page, size });
-  }
+async listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJobsResponse> {
+  return this.get(`${this.BASE}/saved`, {
+    page,
+    size,
+    keyword:     params?.keyword     || undefined,
+    jobType:     params?.jobType     || undefined,
+    category:    params?.category    || undefined,
+    savedAtFrom: params?.savedAtFrom || undefined,
+    savedAtTo:   params?.savedAtTo   || undefined,
+    sortBy:      params?.sortBy      || undefined,
+    sortDir:     params?.sortDir     || undefined,
+  });
+}
 
   async checkSaved(jobPostId: string): Promise<boolean> {
     try {

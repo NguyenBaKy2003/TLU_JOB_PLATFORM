@@ -1,23 +1,31 @@
-// src/domain/models/Company.ts
-
-export interface Company {
-  id:                 string;
-  name:               string;
-  industry:           string | null;
-  location:           string | null;       // city
-  description:        string | null;
-  logoUrl:            string | null;
-  size:               string | null;       // sizeLabel
-  isVerified:         boolean;
-  jobCount:           number;              // activeJobCount
-  rating:             number;              // averageRating
-  reviewCount:        number;
-  foundedYear:        number | null;
-  website:            string | null;
-}
+// src/presentation/components/companies/types.ts
 
 export interface CompanyFilters {
-  benefits:  string[];   // Phúc lợi hấp dẫn checkboxes
-  gender:    string;     // "Nam" | "Nữ" | "Khác" | ""
-  companySize: string;   // "1-50" | "51-200" | etc
+  benefits:    string[];
+  gender:      string;
+  companySize: string;
+}
+
+/**
+ * View model dùng trong CompanyCard — đã được flatten từ CompanyProfile.
+ * Thêm planCode để render PlanBadge.
+ */
+export interface Company {
+  id:          string;
+  name:        string;
+  slug:        string;
+  logoUrl:     string | null;
+  industry:    string | null;
+  size:        string | null;
+  location:    string | null;
+  description: string | null;
+  rating:      number;
+  reviewCount: number;
+  jobCount:    number;
+  foundedYear: number | null;
+  isVerified:  boolean;
+  isOnline:    boolean;
+  tags:        string[];
+  /** Plan tier — null = FREE, không hiển thị badge */
+  planCode:    string | null;
 }

@@ -2,12 +2,15 @@ package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminCompanyUseCase;
 import edu.tlu.jobplatform.admin.presentation.dto.request.ReasonRequest;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.model.VerificationStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyDocumentRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyGalleryRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyTeamMemberRepository;
 import edu.tlu.jobplatform.company.presentation.dto.response.CompanyResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +39,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Admin - Companies")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminCompanyController {
 
     private final AdminCompanyUseCase adminCompanyUseCase;
@@ -46,6 +49,7 @@ public class AdminCompanyController {
 
     @Operation(summary = "Danh sách công ty — filter theo trạng thái xác thực")
     @GetMapping
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<CompanyResponse>>> list(
             @RequestParam(required = false) VerificationStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -64,6 +68,7 @@ public class AdminCompanyController {
 
     @Operation(summary = "Chi tiết công ty — admin thấy đầy đủ documents")
     @GetMapping("/{id}")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<CompanyResponse>> getById(@PathVariable UUID id) {
         CompanyProfile company = adminCompanyUseCase.getById(id);
         return ResponseEntity.ok(ApiResponse.success(buildAdminResponse(company)));
@@ -71,6 +76,8 @@ public class AdminCompanyController {
 
     @Operation(summary = "Duyệt xác thực công ty")
     @PostMapping("/{id}/approve")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_APPROVE_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> approve(@PathVariable UUID id) {
         CompanyProfile company = adminCompanyUseCase.approve(id);
         return ResponseEntity.ok(ApiResponse.success(
@@ -79,6 +86,8 @@ public class AdminCompanyController {
 
     @Operation(summary = "Từ chối xác thực (kèm lý do)")
     @PostMapping("/{id}/reject")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_REJECT_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> reject(
             @PathVariable UUID id,
             @Valid @RequestBody ReasonRequest req) {
@@ -89,6 +98,8 @@ public class AdminCompanyController {
 
     @Operation(summary = "Khoá công ty")
     @PostMapping("/{id}/suspend")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_SUSPEND_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> suspend(
             @PathVariable UUID id,
             @Valid @RequestBody ReasonRequest req) {
@@ -99,6 +110,8 @@ public class AdminCompanyController {
 
     @Operation(summary = "Mở khoá công ty")
     @PostMapping("/{id}/unsuspend")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_UNSUSPEND_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> unsuspend(@PathVariable UUID id) {
         CompanyProfile company = adminCompanyUseCase.unsuspend(id);
         return ResponseEntity.ok(ApiResponse.success(

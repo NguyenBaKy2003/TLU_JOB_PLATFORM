@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = { "name", "level", "yearsOfExp" }) // ← THÊM
 public class SkillEmbeddable {
 
     @Column(name = "skill_name", length = 100)

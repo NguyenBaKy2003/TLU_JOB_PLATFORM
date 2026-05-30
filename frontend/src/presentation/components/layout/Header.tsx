@@ -2,14 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Bell, LogOut, Search, X, ChevronDown,
-  Bookmark, FileText, Settings,
-  Building2, LayoutDashboard, Users, PlusCircle, BarChart2,
-  Crown, UserCircle,
+  Bell,
+  LogOut,
+  Search,
+  X,
+  ChevronDown,
+  Bookmark,
+  FileText,
+  Settings,
+  Building2,
+  LayoutDashboard,
+  Users,
+  PlusCircle,
+  BarChart2,
+  Crown,
+  UserCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth }      from "@/application/contexts/AuthContext";
+import { useAuth } from "@/application/contexts/AuthContext";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { NotificationPanel } from "@/presentation/components/shared/NotificationPanel";
 import { AISearchBox } from "@/presentation/components/ai/AISearchBox";
@@ -37,37 +48,37 @@ type PlanBanner = {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { label: "Trang chủ",   href: "/",         key: "trang-chu" },
-  { label: "Tìm Việc",    href: "/jobs",      key: "tim-viec"  },
-  { label: "Công Ty",     href: "/companies", key: "cong-ty"   },
-  { label: "Tạo CV",      href: "/cv",        key: "tao-cv"    },
-  { label: "Live Stream", href: "/streams",   key: "streams"   },
+  { label: "Trang chủ", href: "/", key: "trang-chu" },
+  { label: "Tìm Việc", href: "/jobs", key: "tim-viec" },
+  { label: "Công Ty", href: "/companies", key: "cong-ty" },
+  { label: "Tạo CV", href: "/cv", key: "tao-cv" },
+  { label: "Live Stream", href: "/streams", key: "streams" },
 ] as const;
 
 const CANDIDATE_DROPDOWN = [
-  { label: "Hồ sơ của tôi",  href: "/candidate/profile",      Icon: UserCircle },
-  { label: "Việc đã lưu",    href: "/candidate/saved-jobs",   Icon: Bookmark   },
-  { label: "Đơn ứng tuyển",  href: "/candidate/applications", Icon: FileText   },
-  { label: "Cài đặt",        href: "/candidate/settings",     Icon: Settings   },
+  { label: "Hồ sơ của tôi", href: "/candidate/profile", Icon: UserCircle },
+  { label: "Việc đã lưu", href: "/candidate/saved-jobs", Icon: Bookmark },
+  { label: "Đơn ứng tuyển", href: "/candidate/applications", Icon: FileText },
+  { label: "Cài đặt", href: "/candidate/settings", Icon: Settings },
 ];
 
 const EMPLOYER_DROPDOWN = [
-  { label: "Dashboard",              href: "/employer/dashboard",    Icon: LayoutDashboard },
-  { label: "Quản lý tin tuyển dụng", href: "/employer/jobs",         Icon: FileText        },
-  { label: "Ứng viên",               href: "/employer/applications", Icon: Users           },
-  { label: "Đăng tin mới",           href: "/employer/jobs/new",     Icon: PlusCircle      },
-  { label: "Thống kê",               href: "/employer/analytics",    Icon: BarChart2       },
-  { label: "Hồ sơ công ty",          href: "/employer/profile",      Icon: Building2       },
-  { label: "Cài đặt",                href: "/employer/settings",     Icon: Settings        },
+  { label: "Dashboard", href: "/employer/dashboard", Icon: LayoutDashboard },
+  { label: "Quản lý tin tuyển dụng", href: "/employer/jobs", Icon: FileText },
+  { label: "Ứng viên", href: "/employer/applications", Icon: Users },
+  { label: "Đăng tin mới", href: "/employer/jobs/new", Icon: PlusCircle },
+  { label: "Thống kê", href: "/employer/analytics", Icon: BarChart2 },
+  { label: "Hồ sơ công ty", href: "/employer/profile", Icon: Building2 },
+  { label: "Cài đặt", href: "/employer/settings", Icon: Settings },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resolveActivePage(pathname: string): ActivePage {
-  if (pathname === "/")                    return "trang-chu";
-  if (pathname.startsWith("/jobs"))        return "tim-viec";
-  if (pathname.startsWith("/companies"))  return "cong-ty";
-  if (pathname.startsWith("/cv"))         return "tao-cv";
+  if (pathname === "/") return "trang-chu";
+  if (pathname.startsWith("/jobs")) return "tim-viec";
+  if (pathname.startsWith("/companies")) return "cong-ty";
+  if (pathname.startsWith("/cv")) return "tao-cv";
   return "trang-chu";
 }
 
@@ -95,7 +106,10 @@ function getPlanBanner(user: User): PlanBanner | null {
   if (!sub || sub.free) return null;
 
   const daysLeft = sub.expiresAt
-    ? Math.max(0, Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 86400000))
+    ? Math.max(
+        0,
+        Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 86400000),
+      )
     : null;
 
   if (user.role === "CANDIDATE") {
@@ -162,10 +176,10 @@ function DropdownUserInfo({
   isEmployer: boolean;
   onClose: () => void;
 }) {
-  const planBadge  = getPlanBadge(user.subscription?.planCode);
+  const planBadge = getPlanBadge(user.subscription?.planCode);
   const planBanner = getPlanBanner(user);
-  const isFree     = user.subscription?.free ?? true;
-  const pricingHref = isEmployer ? "/employer/pricing" : "/pricing";
+  const isFree = user.subscription?.free ?? true;
+  const pricingHref = isEmployer ? "/employer/subscription" : "/candidate/subscription";
 
   return (
     <div className="px-4 py-3 border-b border-gray-50">
@@ -173,12 +187,12 @@ function DropdownUserInfo({
       <p className="text-[15px] font-semibold text-gray-900 truncate">
         {user.fullName}
       </p>
-      <p className="text-xs text-gray-400 mt-0.5 mb-2 truncate">
-        {user.email}
-      </p>
+      <p className="text-xs text-gray-400 mt-0.5 mb-2 truncate">{user.email}</p>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
+        <span
+          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}
+        >
           {roleLabel}
         </span>
         {planBadge && (
@@ -197,7 +211,8 @@ function DropdownUserInfo({
         <div className="mt-3 px-3 py-2 rounded-xl bg-gray-50 text-xs">
           <p className="text-gray-500">
             {user.subscription?.planCode?.replace(/_/g, " ")}
-            {planBanner.daysLeft !== null && ` · còn ${planBanner.daysLeft} ngày`}
+            {planBanner.daysLeft !== null &&
+              ` · còn ${planBanner.daysLeft} ngày`}
           </p>
           {planBanner.quotaHint && (
             <p className="text-gray-400 mt-0.5">{planBanner.quotaHint}</p>
@@ -225,22 +240,22 @@ function DropdownUserInfo({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function Header() {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
-  const { unreadCount, isConnected }      = useWebSocket();
+  const { unreadCount, isConnected } = useWebSocket();
 
   const activePage = resolveActivePage(pathname);
   const isEmployer = user?.role === "EMPLOYER";
 
-  const [scrolled,     setScrolled]     = useState(false);
-  const [searchOpen,   setSearchOpen]   = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notifOpen,    setNotifOpen]    = useState(false);
-  const [mobileOpen,   setMobileOpen]   = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dropdownRef        = useRef<HTMLDivElement>(null);
-  const notifRef           = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Shadow on scroll
@@ -253,11 +268,17 @@ export function Header() {
   // Close panels on outside click
   useEffect(() => {
     const fn = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      )
         setDropdownOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node))
         setNotifOpen(false);
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node))
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      )
         setSearchOpen(false);
     };
     document.addEventListener("mousedown", fn);
@@ -265,7 +286,9 @@ export function Header() {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     setDropdownOpen(false);
@@ -274,14 +297,24 @@ export function Header() {
   };
 
   const initials = user?.fullName
-    ? user.fullName.trim().split(" ").slice(-2).map((w) => w[0]).join("").toUpperCase()
+    ? user.fullName
+        .trim()
+        .split(" ")
+        .slice(-2)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
     : "U";
 
-  const dropdownItems  = isEmployer ? EMPLOYER_DROPDOWN : CANDIDATE_DROPDOWN;
-  const roleLabel      = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
-  const avatarGradient = isEmployer ? "from-violet-500 to-indigo-600" : "from-blue-500 to-cyan-500";
-  const ringColor      = isEmployer ? "ring-violet-100" : "ring-blue-100";
-  const badgeClass     = isEmployer ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700";
+  const dropdownItems = isEmployer ? EMPLOYER_DROPDOWN : CANDIDATE_DROPDOWN;
+  const roleLabel = isEmployer ? "Nhà tuyển dụng" : "Ứng viên";
+  const avatarGradient = isEmployer
+    ? "from-violet-500 to-indigo-600"
+    : "from-blue-500 to-cyan-500";
+  const ringColor = isEmployer ? "ring-violet-100" : "ring-blue-100";
+  const badgeClass = isEmployer
+    ? "bg-violet-100 text-violet-700"
+    : "bg-blue-100 text-blue-700";
 
   return (
     <>
@@ -292,7 +325,6 @@ export function Header() {
           transition-shadow duration-200 ${scrolled ? "shadow-md" : "shadow-sm"}`}
       >
         <div className="max-w-[1232px] mx-auto px-4 h-[80px] flex items-center gap-6">
-
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <img src="/Logo.svg" alt="JobPlatform" className="h-10 w-auto" />
@@ -306,9 +338,11 @@ export function Header() {
                 href={item.href}
                 className={`relative px-4 py-2 rounded-lg text-[15px] font-medium
                   transition-colors duration-150
-                  ${activePage === item.key
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"}`}
+                  ${
+                    activePage === item.key
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
               >
                 {item.label}
                 {activePage === item.key && (
@@ -320,7 +354,6 @@ export function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-1 ml-auto">
-
             {/* Search */}
             <div ref={searchContainerRef} className="relative">
               <button
@@ -351,7 +384,10 @@ export function Header() {
             {isAuthenticated && (
               <div className="relative" ref={notifRef}>
                 <button
-                  onClick={() => { setNotifOpen((v) => !v); setDropdownOpen(false); }}
+                  onClick={() => {
+                    setNotifOpen((v) => !v);
+                    setDropdownOpen(false);
+                  }}
                   className="relative w-9 h-9 flex items-center justify-center rounded-lg
                     text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                 >
@@ -369,10 +405,14 @@ export function Header() {
                   <span
                     className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white
                       ${isConnected ? "bg-green-500" : "bg-red-400 animate-pulse"}`}
-                    title={isConnected ? "Kết nối realtime" : "Đang kết nối lại..."}
+                    title={
+                      isConnected ? "Kết nối realtime" : "Đang kết nối lại..."
+                    }
                   />
                 </button>
-                {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
+                {notifOpen && (
+                  <NotificationPanel onClose={() => setNotifOpen(false)} />
+                )}
               </div>
             )}
 
@@ -381,24 +421,32 @@ export function Header() {
             {/* Logged in */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
-               {/* Thay đổi duy nhất — switch role link */}
-{user.subscription?.planCode?.toUpperCase() !== "PREMIUM" &&
- user.subscription?.planCode?.toUpperCase() !== "PREMIUM_COMPANY" && (
-  <Link
-    href={isEmployer ? "/employer/subscription" : "/candidate/subscription"}
-    className="hidden lg:flex items-center gap-1.5 text-[14px] font-medium
+                {/* Thay đổi duy nhất — switch role link */}
+                {user.subscription?.planCode?.toUpperCase() !== "PREMIUM" &&
+                  user.subscription?.planCode?.toUpperCase() !==
+                    "PREMIUM_COMPANY" && (
+                    <Link
+                      href={
+                        isEmployer
+                          ? "/employer/subscription"
+                          : "/candidate/subscription"
+                      }
+                      className="hidden lg:flex items-center gap-1.5 text-[14px] font-medium
       text-violet-600 hover:text-violet-700 transition-colors px-3 py-1.5
       rounded-lg hover:bg-violet-50 border border-violet-200 hover:border-violet-300"
-  >
-    <Crown size={13} />
-    Nâng cấp gói
-  </Link>
-)}
+                    >
+                      <Crown size={13} />
+                      Nâng cấp gói
+                    </Link>
+                  )}
 
                 {/* Avatar + dropdown */}
                 <div ref={dropdownRef} className="relative">
                   <button
-                    onClick={() => { setDropdownOpen((v) => !v); setNotifOpen(false); }}
+                    onClick={() => {
+                      setDropdownOpen((v) => !v);
+                      setNotifOpen(false);
+                    }}
                     className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl
                       hover:bg-gray-50 transition-colors"
                   >
@@ -438,7 +486,10 @@ export function Header() {
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px]
                               text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                           >
-                            <Icon size={15} className="text-gray-400 shrink-0" />
+                            <Icon
+                              size={15}
+                              className="text-gray-400 shrink-0"
+                            />
                             {label}
                           </Link>
                         ))}
@@ -488,9 +539,15 @@ export function Header() {
               {mobileOpen ? (
                 <X size={20} />
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="6"  x2="21" y2="6"  />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
@@ -507,9 +564,11 @@ export function Header() {
                 key={item.key}
                 href={item.href}
                 className={`block px-3 py-3 rounded-xl text-[15px] font-medium mb-1
-                  ${activePage === item.key
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:bg-gray-50"}`}
+                  ${
+                    activePage === item.key
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
               >
                 {item.label}
               </Link>

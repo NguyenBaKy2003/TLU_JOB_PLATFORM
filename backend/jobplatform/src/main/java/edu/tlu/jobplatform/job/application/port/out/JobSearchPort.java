@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -17,18 +20,12 @@ import java.util.UUID;
  */
 @Component
 public interface JobSearchPort {
-
-    /**
-     * Tìm kiếm bài đăng với filter.
-     * 
-     * @param keyword   từ khoá tìm kiếm trong title/description
-     * @param city      lọc theo thành phố
-     * @param category  lọc theo ngành nghề
-     * @param jobType   FULL_TIME, PART_TIME, CONTRACT, INTERN
-     * @param level     JUNIOR, MIDDLE, SENIOR...
-     * @param companyId lọc theo công ty cụ thể (nullable)
-     */
-    Page<JobPost> search(String keyword, String city, String category,
-            String jobType, String level, UUID companyId,
+    Page<JobPost> search(
+            String keyword, String city, String category, UUID companyId,
+            String workLocType,
+            String currency,
+            BigDecimal minSalary, BigDecimal maxSalary,
+            LocalDateTime postedAfter,
+            List<String> jobTypes, List<String> levels,
             Pageable pageable);
 }

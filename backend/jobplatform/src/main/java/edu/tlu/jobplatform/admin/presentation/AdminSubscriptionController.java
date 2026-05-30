@@ -40,7 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Admin - Subscriptions")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminSubscriptionController {
 
         private final AdminSubscriptionUseCase adminSubscriptionUseCase;
@@ -103,7 +103,7 @@ public class AdminSubscriptionController {
 
         @Operation(summary = "Thu hồi subscription (vi phạm)")
         @PostMapping("/company/{companyId}/revoke")
-        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<CompanySubscription>> revoke(
                         @PathVariable UUID companyId,
                         @Valid @RequestBody ReasonRequest req) {

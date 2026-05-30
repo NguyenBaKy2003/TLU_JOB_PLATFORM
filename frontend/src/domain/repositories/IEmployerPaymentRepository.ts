@@ -1,13 +1,16 @@
-import type {
-  EmployerPayment,
-  EmployerPaymentFilters,
-  EmployerPaymentPage,
-} from "@/domain/models/EmployerPayment";
+import type { EmployerPayment, PaymentListResponse, PaymentStatus } from '../models/EmployerPayment';
+
+export interface PaymentSearchParams {
+  status?: PaymentStatus;
+  gateway?: string;
+  keyword?: string;
+  fromDate?: string;   // ISO 8601
+  toDate?: string;     // ISO 8601
+  page?: number;
+  size?: number;
+}
 
 export interface IEmployerPaymentRepository {
-  /** GET /api/v1/payments/my */
-  listMyPayments(filters: EmployerPaymentFilters): Promise<EmployerPaymentPage>;
-
-  /** GET /api/v1/payments/my/{id} */
+  getMyPayments(params: PaymentSearchParams): Promise<PaymentListResponse>;
   getMyPaymentDetail(id: string): Promise<EmployerPayment>;
 }

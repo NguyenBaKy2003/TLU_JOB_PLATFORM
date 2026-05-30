@@ -1,4 +1,3 @@
-// application/usecase/StartConversationUseCase.java
 package edu.tlu.jobplatform.message.application.usecase;
 
 import edu.tlu.jobplatform.message.application.port.out.ParticipantQueryPort;
@@ -8,11 +7,14 @@ import edu.tlu.jobplatform.message.domain.service.ConversationDomainService;
 import edu.tlu.jobplatform.message.presentation.dto.response.ConversationResponse;
 import edu.tlu.jobplatform.message.presentation.dto.response.ParticipantInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StartConversationUseCase {
@@ -25,14 +27,28 @@ public class StartConversationUseCase {
 
     @Transactional
     public ConversationResponse execute(Command cmd) {
-        // Idempotent — trả về conversation cũ nếu đã tồn tại
-        Conversation conversation = conversationRepository
-                .findByParticipantsAndJobPost(cmd.employerId(), cmd.candidateId(), cmd.jobPostId())
-                .orElseGet(() -> {
-                    Conversation created = ConversationDomainService.createConversation(
-                            cmd.employerId(), cmd.candidateId(), cmd.jobPostId());
-                    return conversationRepository.save(created);
-                });
+        Conversation conversation;
+
+        try {
+            conversation = conversationRepository
+                    // FIX: chỉ tìm theo cặp người dùng, bỏ jobPostId
+                    .findByParticipants(cmd.employerId(), cmd.candidateId())
+                    .orElseGet(() -> {
+                        log.info("Creating new conversation: employer={}, candidate={}",
+                                cmd.employerId(), cmd.candidateId());
+                        Conversation created = ConversationDomainService.createConversation(
+                                cmd.employerId(), cmd.candidateId(), cmd.jobPostId());
+                        return conversationRepository.save(created);
+                    });
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate conversation (race condition), fetching existing. employer={}, candidate={}",
+                    cmd.employerId(), cmd.candidateId());
+            conversation = conversationRepository
+                    .findByParticipants(cmd.employerId(), cmd.candidateId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Conversation not found after duplicate key conflict", e));
+        }
 
         ParticipantInfo employer = participantQueryPort.getEmployer(conversation.getParticipantA());
         ParticipantInfo candidate = participantQueryPort.getCandidate(conversation.getParticipantB());
