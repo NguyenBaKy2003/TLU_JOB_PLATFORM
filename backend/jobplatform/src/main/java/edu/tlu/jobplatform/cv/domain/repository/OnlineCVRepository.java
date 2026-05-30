@@ -20,6 +20,8 @@ public interface OnlineCVRepository {
 
     List<OnlineCV> findAllByCandidateId(UUID candidateId);
 
+    List<OnlineCV> findPublishedByCandidateId(UUID candidateId);
+
     void deleteById(UUID id);
 
     boolean existsBySlug(String slug);

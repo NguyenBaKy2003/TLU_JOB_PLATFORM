@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback }        from "react";
+import { createPortal }                 from "react-dom";
 import {
   FileText, Download, Eye, Trash2,
   Star, X, Loader2, ListVideo,
@@ -12,22 +13,18 @@ import { extractErrorMessage }          from "@/lib/extractErrorMessage";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PAGE_SIZE = 2; // items per page per section
+const PAGE_SIZE = 2;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Props {
   cvList:        CandidateCV[];
   loading:       boolean;
-  /** UPLOADED: mở blob URL trong tab */
   onView:        (cvId: string) => Promise<void>;
-  /** UPLOADED: download blob */
   onDownload:    (cvId: string, title: string) => Promise<void>;
   onDelete:      (cvId: string) => Promise<void>;
   onSetPrimary:  (cvId: string) => Promise<void>;
-  /** ONLINE: navigate tới CV builder */
   onEdit:        (cvId: string) => void;
-  /** ONLINE: mở preview HTML hoặc slug page */
   onViewOnline:  (cv: CandidateCV) => void;
   onClose:       () => void;
 }
@@ -173,7 +170,7 @@ function CVRow({
     finally   { setBusy(null); }
   };
 
-  const isBusy = (t: ActionType) => busy === t;
+  const isBusy     = (t: ActionType) => busy === t;
   const isOnline   = cv.source === "ONLINE";
   const isUploaded = cv.source === "UPLOADED";
 
@@ -266,18 +263,6 @@ function CVRow({
           </>
         )}
 
-        {/* Set primary — both sources */}
-        {!cv.primary && (
-          <ActionBtn
-            busy={isBusy("primary")}
-            disabled={!!busy}
-            title="Đặt làm CV chính"
-            color="yellow"
-            icon={<Star size={15} />}
-            onClick={() => run("primary", () => onSetPrimary(cv.id))}
-          />
-        )}
-
         {/* Delete — both sources */}
         <ActionBtn
           busy={isBusy("delete")}
@@ -307,12 +292,12 @@ const colorMap: Record<BtnColor, string> = {
 function ActionBtn({
   busy, disabled, title, color, icon, onClick,
 }: {
-  busy: boolean;
+  busy:     boolean;
   disabled: boolean;
-  title: string;
-  color: BtnColor;
-  icon: React.ReactNode;
-  onClick: () => void;
+  title:    string;
+  color:    BtnColor;
+  icon:     React.ReactNode;
+  onClick:  () => void;
 }) {
   return (
     <button
@@ -332,16 +317,8 @@ function ActionBtn({
 // ─── Paginated Section ────────────────────────────────────────────────────────
 
 function PaginatedSection({
-  items,
-  icon,
-  label,
-  color,
-  onView,
-  onDownload,
-  onDelete,
-  onSetPrimary,
-  onEdit,
-  onViewOnline,
+  items, icon, label, color,
+  onView, onDownload, onDelete, onSetPrimary, onEdit, onViewOnline,
 }: {
   items:        CandidateCV[];
   icon:         React.ReactNode;
@@ -357,14 +334,11 @@ function PaginatedSection({
   const [page, setPage] = useState(0);
 
   const totalPages = Math.ceil(items.length / PAGE_SIZE);
-
-  // Reset to last valid page if items shrink (e.g. after delete)
   const safePage   = Math.min(page, Math.max(0, totalPages - 1));
   const pageItems  = items.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   const handleDelete = useCallback(async (id: string) => {
     await onDelete(id);
-    // After deletion, if current page is now out of bounds, go back one
     const newTotal = items.length - 1;
     const newPages = Math.ceil(newTotal / PAGE_SIZE);
     if (safePage >= newPages && safePage > 0) {
@@ -400,6 +374,32 @@ function PaginatedSection({
   );
 }
 
+// ─── Section header helper ────────────────────────────────────────────────────
+
+function SectionHeader({
+  icon, label, color, count,
+}: {
+  icon:  React.ReactNode;
+  label: string;
+  color: "violet" | "emerald";
+  count: number;
+}) {
+  const colors = {
+    violet:  "text-violet-600 bg-violet-50 border-violet-200",
+    emerald: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px]
+        font-semibold rounded-full border ${colors[color]}`}>
+        {icon} {label}
+      </span>
+      <span className="text-[11px] text-gray-400">{count} CV</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 export default function CVListModal({
@@ -411,9 +411,12 @@ export default function CVListModal({
   const uploaded = cvList.filter(cv => cv.source !== "ONLINE");
   const online   = cvList.filter(cv => cv.source === "ONLINE");
 
-  return (
+  // Dùng createPortal để render thẳng vào <body>,
+  // thoát hoàn toàn khỏi stacking context của sidebar và Header.
+  // z-[200] đảm bảo nổi trên mọi thứ (Header z-40, dropdown z-50).
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4
         bg-black/30 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -428,7 +431,7 @@ export default function CVListModal({
             {!loading && (
               <span className="px-2 py-0.5 text-[10px] font-medium text-gray-500
                 bg-gray-100 rounded-full">
-                {cvList.length}/5
+                {cvList.length}
               </span>
             )}
           </div>
@@ -489,39 +492,8 @@ export default function CVListModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/60">
-          <p className="text-[11px] text-gray-400 text-center">
-            Tối đa 5 CV · Nhấn ⭐ để đặt làm CV chính khi ứng tuyển
-          </p>
-        </div>
       </div>
-    </div>
-  );
-}
-
-// ─── Section header helper ────────────────────────────────────────────────────
-
-function SectionHeader({
-  icon, label, color, count,
-}: {
-  icon:  React.ReactNode;
-  label: string;
-  color: "violet" | "emerald";
-  count: number;
-}) {
-  const colors = {
-    violet:  "text-violet-600 bg-violet-50 border-violet-200",
-    emerald: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  };
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px]
-        font-semibold rounded-full border ${colors[color]}`}>
-        {icon} {label}
-      </span>
-      <span className="text-[11px] text-gray-400">{count} CV</span>
-      <div className="flex-1 h-px bg-gray-100" />
-    </div>
+    </div>,
+    document.body
   );
 }

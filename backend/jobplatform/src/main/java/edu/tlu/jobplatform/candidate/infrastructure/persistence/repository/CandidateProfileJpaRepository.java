@@ -23,7 +23,10 @@ public interface CandidateProfileJpaRepository
          */
         @EntityGraph(attributePaths = {
                         "skills", "experiences", "educations",
-                        "languages", "socialLinks", "desiredJobs", "benefits"
+                        "languages", "socialLinks", "benefits",
+                        "desiredJobs",
+                        "desiredJobs.contractTypes",
+                        "desiredJobs.levels"
         })
         @Query("SELECT p FROM CandidateProfileJpaEntity p WHERE p.userId = :userId")
         Optional<CandidateProfileJpaEntity> findByUserIdWithDetails(@Param("userId") UUID userId);

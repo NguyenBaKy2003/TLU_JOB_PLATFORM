@@ -19,6 +19,9 @@ public interface OnlineCVJpaRepository extends JpaRepository<OnlineCVJpaEntity, 
 
         boolean existsBySlug(String slug);
 
+        @Query("SELECT c FROM OnlineCVJpaEntity c WHERE c.candidateId = :candidateId AND c.status = 'PUBLISHED'")
+        List<OnlineCVJpaEntity> findPublishedByCandidateId(@Param("candidateId") UUID candidateId);
+
         long countByCandidateId(UUID candidateId);
 
         /**

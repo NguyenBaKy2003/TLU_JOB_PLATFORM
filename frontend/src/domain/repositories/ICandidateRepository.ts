@@ -26,11 +26,12 @@ export interface ICandidateRepository {
   updateEducation(id: string, data: EducationPayload): Promise<CandidateProfile>;
   deleteEducation(id: string): Promise<void>;
 
-  // ── CV ────
-  listCVs(): Promise<CandidateCV[]>;
-  uploadCV(data: UploadCVPayload & { setAsPrimary?: boolean }): Promise<CandidateCV>;
-  createOnlineCV(data: CreateOnlineCVPayload): Promise<CandidateCV>;
-  setPrimaryCV(cvId: string): Promise<void>;
-  deleteCV(cvId: string): Promise<void>;
-  fetchBlobUrl(cvId: string, mode: "view" | "download"): Promise<string>;
+ // ── CV ────
+listCVs(): Promise<CandidateCV[]>;
+listApplicableCVs(): Promise<ApplicableCV[]>;   // ← thêm
+uploadCV(data: UploadCVPayload & { setAsPrimary?: boolean }): Promise<CandidateCV>;
+createOnlineCV(data: CreateOnlineCVPayload): Promise<CandidateCV>;
+setPrimaryCV(cvId: string): Promise<void>;
+deleteCV(cvId: string): Promise<void>;
+fetchBlobUrl(cvId: string, mode: "view" | "download"): Promise<string>;
 }

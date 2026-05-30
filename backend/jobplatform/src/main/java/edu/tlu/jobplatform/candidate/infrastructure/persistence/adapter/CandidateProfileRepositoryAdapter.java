@@ -28,7 +28,9 @@ public class CandidateProfileRepositoryAdapter implements CandidateProfileReposi
 
         @Override
         public Optional<CandidateProfile> findByUserId(UUID userId) {
-                return jpaRepo.findByUserIdWithDetails(userId).map(mapper::toDomain);
+                return jpaRepo
+                                .findByUserIdWithDetails(userId)
+                                .map(mapper::toDomain);
         }
 
         @Override

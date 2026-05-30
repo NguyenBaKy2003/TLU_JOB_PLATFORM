@@ -148,4 +148,8 @@ export class CandidateService {
     if (!data.current && !data.endDate)
       throw new Error("Ngày kết thúc không được để trống khi không phải việc hiện tại");
   }
+
+  async listApplicableCVs(): Promise<ApplicableCV[]> {
+  return this.repo.listApplicableCVs();
+}
 }

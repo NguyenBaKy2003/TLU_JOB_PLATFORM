@@ -64,4 +64,10 @@ public class OnlineCVRepositoryAdapter implements OnlineCVRepository {
     public long countByCandidateId(UUID candidateId) {
         return jpaRepo.countByCandidateId(candidateId);
     }
+
+    @Override
+    public List<OnlineCV> findPublishedByCandidateId(UUID candidateId) {
+        return jpaRepo.findPublishedByCandidateId(candidateId)
+                .stream().map(mapper::toDomain).toList();
+    }
 }
