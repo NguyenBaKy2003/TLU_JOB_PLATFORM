@@ -1,5 +1,8 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.subscription.application.usecase.CreateCandidatePlanUseCase;
 import edu.tlu.jobplatform.subscription.application.usecase.UpdateCandidatePlanUseCase;
@@ -44,70 +47,17 @@ public class AdminCandidateSubscriptionPlanController {
 
     // ── GET / ─────────────────────────────────────────────────────────
 
-    @GetMapping
     @Operation(summary = "Lấy tất cả gói Candidate (kể cả inactive)")
+    @GetMapping
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<List<CandidateSubscriptionPlan>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success(planRepository.findAll()));
     }
 
-    // ── POST / ────────────────────────────────────────────────────────
-
-    /**
-     * Ví dụ body tạo gói FREE_CANDIDATE (miễn phí):
-     * {
-     * "code": "FREE_CANDIDATE",
-     * "name": "Gói Cơ Bản",
-     * "description": "Miễn phí, 5 đơn/tháng, tạo 1 CV, template thường",
-     * "priceMonthly": null,
-     * "priceYearly": null,
-     * "applicationLimit": 5,
-     * "cvBoostLimit": 0,
-     * "cvCreateLimit": 1,
-     * "aiCvWriter": false,
-     * "premiumTemplateAccess": false,
-     * "durationDays": null,
-     * "free": true,
-     * "active": true
-     * }
-     * 
-     * Ví dụ body tạo gói PRO:
-     * {
-     * "code": "PRO",
-     * "name": "Gói Chuyên Nghiệp",
-     * "description": "99k/tháng, unlimited apply, boost CV, tạo 5 CV, template
-     * premium",
-     * "priceMonthly": 99000,
-     * "priceYearly": 899000,
-     * "applicationLimit": -1,
-     * "cvBoostLimit": 3,
-     * "cvCreateLimit": 5,
-     * "aiCvWriter": false,
-     * "premiumTemplateAccess": true,
-     * "durationDays": 30,
-     * "free": false,
-     * "active": true
-     * }
-     * 
-     * Ví dụ body tạo gói PREMIUM:
-     * {
-     * "code": "PREMIUM",
-     * "name": "Gói Cao Cấp",
-     * "description": "199k/tháng, tất cả Pro + AI viết CV, tạo unlimited CV,
-     * template premium",
-     * "priceMonthly": 199000,
-     * "priceYearly": 1799000,
-     * "applicationLimit": -1,
-     * "cvBoostLimit": 10,
-     * "cvCreateLimit": -1,
-     * "aiCvWriter": true,
-     * "premiumTemplateAccess": true,
-     * "durationDays": 30,
-     * "free": false,
-     * "active": true
-     * }
-     */
     @PostMapping
     @Operation(summary = "Tạo gói dịch vụ Candidate mới")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_CREATE_CANDIDATE_PLAN", resourceType = "CandidateSubscriptionPlan")
     public ResponseEntity<ApiResponse<CandidateSubscriptionPlan>> create(
             @Valid @RequestBody CreateCandidatePlanRequest req) {
 
@@ -131,18 +81,10 @@ public class AdminCandidateSubscriptionPlanController {
 
     // ── PATCH /{planId} ───────────────────────────────────────────────
 
-    /**
-     * Partial update - chỉ gửi các field muốn thay đổi.
-     * 
-     * Ví dụ toggle active: { "active": false }
-     * Ví dụ đổi giá: { "priceMonthly": 120000, "priceYearly": 1090000 }
-     * Ví dụ nâng cấp tính năng: { "aiCvWriter": true, "premiumTemplateAccess": true
-     * }
-     * Ví dụ tăng quota: { "applicationLimit": -1, "cvBoostLimit": 5,
-     * "cvCreateLimit": -1 }
-     */
-    @PatchMapping("/{planId}")
     @Operation(summary = "Cập nhật gói Candidate (partial update). Chỉ gửi các field cần thay đổi.")
+    @PatchMapping("/{planId}")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_UPDATE_CANDIDATE_PLAN", resourceType = "CandidateSubscriptionPlan")
     public ResponseEntity<ApiResponse<CandidateSubscriptionPlan>> update(
             @PathVariable UUID planId,
             @Valid @RequestBody UpdateCandidatePlanRequest req) {

@@ -1,7 +1,12 @@
 package edu.tlu.jobplatform.subscription.application.usecase;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.tlu.jobplatform.auditlog.domain.model.AuditLog;
+import edu.tlu.jobplatform.auditlog.infrastructure.aspect.AuditLogWriter;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import edu.tlu.jobplatform.subscription.application.snapshot.PlanSnapshot.CandidatePlanSnapshot;
 import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionPlan;
 import edu.tlu.jobplatform.subscription.domain.repository.CandidateSubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,8 @@ import java.util.UUID;
 public class UpdateCandidatePlanUseCase {
 
         private final CandidateSubscriptionPlanRepository planRepository;
+        private final AuditLogWriter auditLogWriter;
+        private final ObjectMapper objectMapper;
 
         @Transactional
         public CandidateSubscriptionPlan execute(UUID planId, Command cmd) {
@@ -30,10 +37,12 @@ public class UpdateCandidatePlanUseCase {
                 if (cmd.priceYearly() != null && cmd.priceYearly().compareTo(BigDecimal.ZERO) < 0)
                         throw new BusinessRuleException("Giá theo năm không hợp lệ.", "INVALID_PRICE");
 
+                String oldSnapshot = toJson(CandidatePlanSnapshot.from(existing));
+
                 CandidateSubscriptionPlan updated = CandidateSubscriptionPlan.builder()
                                 .id(existing.getId())
-                                .code(existing.getCode()) // immutable
-                                .free(existing.isFree()) // immutable
+                                .code(existing.getCode())
+                                .free(existing.isFree())
                                 .name(cmd.name() != null ? cmd.name().trim() : existing.getName())
                                 .description(cmd.description() != null ? cmd.description() : existing.getDescription())
                                 .priceMonthly(cmd.priceMonthly() != null ? cmd.priceMonthly()
@@ -55,8 +64,39 @@ public class UpdateCandidatePlanUseCase {
                                 .build();
 
                 CandidateSubscriptionPlan saved = planRepository.save(updated);
-                log.info("[UpdateCandidatePlan] Updated: id={} code={}", saved.getId(), saved.getCode());
+
+                String newSnapshot = toJson(CandidatePlanSnapshot.from(saved));
+
+                auditLogWriter.save(AuditLog.change(
+                                resolveActorId(),
+                                "ADMIN_UPDATE_CANDIDATE_PLAN",
+                                "CandidateSubscriptionPlan",
+                                planId.toString(),
+                                oldSnapshot,
+                                newSnapshot,
+                                null, null, null));
+
+                log.info("[UpdateCandidatePlan] id={} code={}", saved.getId(), saved.getCode());
                 return saved;
+        }
+
+        private String toJson(Object obj) {
+                try {
+                        return objectMapper.writeValueAsString(obj);
+                } catch (Exception e) {
+                        log.warn("[UpdateCandidatePlan] Failed to serialize snapshot: {}", e.getMessage());
+                        return null;
+                }
+        }
+
+        private String resolveActorId() {
+                try {
+                        return SecurityUtils.getCurrentUserId()
+                                        .map(UUID::toString)
+                                        .orElse(null);
+                } catch (Exception e) {
+                        return null;
+                }
         }
 
         public record Command(

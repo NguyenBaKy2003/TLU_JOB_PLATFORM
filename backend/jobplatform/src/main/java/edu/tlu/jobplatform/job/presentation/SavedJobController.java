@@ -5,6 +5,8 @@ import edu.tlu.jobplatform.job.application.usecase.candidate.GetSavedJobsUseCase
 import edu.tlu.jobplatform.job.application.usecase.candidate.SaveJobUseCase;
 import edu.tlu.jobplatform.job.domain.repository.SavedJobRepository;
 import edu.tlu.jobplatform.job.presentation.dto.response.MySavedJobsResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -41,6 +43,7 @@ public class SavedJobController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/api/v1/jobs/{jobPostId}/save")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Boolean>> toggle(@PathVariable UUID jobPostId) {
 
         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
@@ -58,6 +61,7 @@ public class SavedJobController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/api/v1/jobs/saved")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<MySavedJobsResponse>> getSaved(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -99,6 +103,7 @@ public class SavedJobController {
     @Operation(summary = "Kiểm tra đã lưu bài đăng này chưa")
     @GetMapping("/api/v1/jobs/{jobPostId}/saved")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Boolean>> checkSaved(@PathVariable UUID jobPostId) {
         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
         boolean saved = savedJobRepository.existsByCandidateIdAndJobPostId(candidateId, jobPostId);

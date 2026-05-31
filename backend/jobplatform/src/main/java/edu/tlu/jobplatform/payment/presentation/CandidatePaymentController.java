@@ -3,6 +3,8 @@ package edu.tlu.jobplatform.payment.presentation;
 import edu.tlu.jobplatform.payment.application.usecase.candidate.GetMyCandidatePaymentsUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +40,7 @@ public class CandidatePaymentController {
 
     @Operation(summary = "Danh sách giao dịch của tôi")
     @GetMapping("/my")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getMyPayments(
             @RequestParam(required = false) PaymentStatus status,
             @RequestParam(required = false) String gateway,
@@ -55,6 +58,7 @@ public class CandidatePaymentController {
 
     @Operation(summary = "Chi tiết giao dịch kèm thông tin gói dịch vụ")
     @GetMapping("/my/{id}")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PaymentResponse>> getMyPaymentDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(
                 getMyPaymentsUseCase.getMyPaymentDetail(id)));

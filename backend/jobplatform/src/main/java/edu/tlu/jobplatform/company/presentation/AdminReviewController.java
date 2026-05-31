@@ -1,11 +1,14 @@
 package edu.tlu.jobplatform.company.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.application.usecase.*;
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
 import edu.tlu.jobplatform.company.domain.repository.CompanyReviewRepository;
 import edu.tlu.jobplatform.company.presentation.dto.request.RejectReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.ReviewResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -39,6 +42,7 @@ public class AdminReviewController {
 
     @Operation(summary = "Xem tất cả review chờ duyệt")
     @GetMapping("/pending")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getPendingReviews(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -51,7 +55,9 @@ public class AdminReviewController {
     }
 
     @Operation(summary = "Xem tất cả review (có thể lọc theo status)")
+
     @GetMapping
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getAllReviews(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,6 +72,7 @@ public class AdminReviewController {
 
     @Operation(summary = "Xem chi tiết review")
     @GetMapping("/{reviewId}")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<ReviewResponse>> getDetail(
             @PathVariable UUID reviewId) {
 
@@ -74,7 +81,8 @@ public class AdminReviewController {
     }
 
     @Operation(summary = "Duyệt review")
-    @PutMapping("/{reviewId}/approve")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_APPROVE_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<ReviewResponse>> approve(
             @PathVariable UUID reviewId) {
 
@@ -92,6 +100,8 @@ public class AdminReviewController {
 
     @Operation(summary = "Từ chối review")
     @PutMapping("/{reviewId}/reject")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_REJECT_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<ReviewResponse>> reject(
             @PathVariable UUID reviewId,
             @Valid @RequestBody RejectReviewRequest req) {
@@ -111,6 +121,8 @@ public class AdminReviewController {
 
     @Operation(summary = "Ẩn đánh giá vi phạm")
     @PatchMapping("/{reviewId}/hide")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_HIDE_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<Void>> hide(@PathVariable UUID reviewId) {
         moderateReviewUseCase.hide(reviewId);
         return ResponseEntity.ok(ApiResponse.success(null, "Đánh giá đã bị ẩn."));
@@ -118,6 +130,8 @@ public class AdminReviewController {
 
     @Operation(summary = "Hiển thị lại đánh giá")
     @PatchMapping("/{reviewId}/show")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_SHOW_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<Void>> show(@PathVariable UUID reviewId) {
         moderateReviewUseCase.show(reviewId);
         return ResponseEntity.ok(ApiResponse.success(null, "Đánh giá đã được hiển thị lại."));
@@ -125,6 +139,8 @@ public class AdminReviewController {
 
     @Operation(summary = "Xóa đánh giá")
     @DeleteMapping("/{reviewId}")
+    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "ADMIN_DELETE_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID reviewId) {
         deleteReviewUseCase.deleteByAdmin(reviewId);
         return ResponseEntity.ok(ApiResponse.success(null, "Đã xóa đánh giá."));

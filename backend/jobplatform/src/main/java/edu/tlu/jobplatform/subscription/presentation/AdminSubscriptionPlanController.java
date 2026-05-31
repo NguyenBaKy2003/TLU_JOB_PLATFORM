@@ -5,7 +5,10 @@ import edu.tlu.jobplatform.subscription.application.usecase.UpdateSubscriptionPl
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
 import edu.tlu.jobplatform.subscription.presentation.dto.request.CreatePlanRequest;
 import edu.tlu.jobplatform.subscription.presentation.dto.request.UpdatePlanRequest;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.job.application.usecase.admin.GetAllPlansUseCase;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,10 +34,6 @@ import java.util.UUID;
  *
  * Tất cả endpoint yêu cầu role ADMIN.
  *
- * FIX: Removed the separate /deactivate endpoint — toggling active/inactive is
- * done via PATCH /{planId} with { "active": false } or { "active": true }.
- * The frontend sends only the `active` field when toggling, so no separate
- * endpoint is needed and the API surface stays consistent.
  */
 @RestController
 @RequestMapping("/api/v1/admin/subscription-plans")
@@ -43,53 +42,28 @@ import java.util.UUID;
 @Tag(name = "Admin - Subscription Plans", description = "Quản lý gói dịch vụ (chỉ Admin)")
 public class AdminSubscriptionPlanController {
 
-        // FIX: use GetAllPlansUseCase (returns active + inactive) instead of
-        // GetAvailablePlansUseCase (returns only active — meant for the public pricing
-        // page)
         private final GetAllPlansUseCase getAllPlansUseCase;
         private final CreateSubscriptionPlanUseCase createPlanUseCase;
         private final UpdateSubscriptionPlanUseCase updatePlanUseCase;
 
-        // ─
         // GET /api/v1/admin/subscription-plans
-        // ─
-
         /**
          * Lấy TẤT CẢ plan, bao gồm các plan đã bị tắt (active = false).
          *
-         * FIX: endpoint cũ dùng GetAvailablePlansUseCase chỉ trả về active plans,
-         * nên admin không thể thấy / bật lại các plan đã tắt.
          */
-        @GetMapping
         @Operation(summary = "Lấy danh sách tất cả gói dịch vụ (kể cả inactive)")
+        @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> getAllPlans() {
                 return ResponseEntity.ok(ApiResponse.success(getAllPlansUseCase.execute()));
         }
 
-        // ─
         // POST /api/v1/admin/subscription-plans
-        // ─
 
-        /**
-         * Tạo gói dịch vụ mới.
-         *
-         * Request body:
-         * {
-         * "code": "BUSINESS",
-         * "name": "Gói Business",
-         * "description": "Dành cho doanh nghiệp vừa",
-         * "priceMonthly": 1500000,
-         * "priceYearly": 14400000,
-         * "jobPostLimit": 20,
-         * "featuredJobLimit": 5,
-         * "cvViewLimit": 200,
-         * "aiFeatures": true,
-         * "analyticsAccess": true,
-         * "durationDays": 30
-         * }
-         */
-        @PostMapping
         @Operation(summary = "Tạo gói dịch vụ mới")
+        @PostMapping
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_CREATE_SUBSCRIPTION_PLAN", resourceType = "SubscriptionPlan")
         public ResponseEntity<ApiResponse<SubscriptionPlan>> createPlan(
                         @Valid @RequestBody CreatePlanRequest request) {
 
@@ -111,9 +85,7 @@ public class AdminSubscriptionPlanController {
                                 .body(ApiResponse.success(created));
         }
 
-        // ─
         // PATCH /api/v1/admin/subscription-plans/{planId}
-        // ─
 
         /**
          * Cập nhật một phần thông tin gói dịch vụ (PATCH / partial update).
@@ -123,13 +95,12 @@ public class AdminSubscriptionPlanController {
          * Toggle active OFF: { "active": false }
          * Đổi giá: { "priceMonthly": 1800000, "priceYearly": 17000000 }
          *
-         * FIX: Removed the separate DELETE /{planId}/deactivate endpoint.
-         * Deactivating is simply PATCH with { "active": false }, which is already
-         * supported here. Having two paths for the same operation was confusing
-         * and caused the frontend to call a non-existent /toggle endpoint.
+         * 
          */
-        @PatchMapping("/{planId}")
         @Operation(summary = "Cập nhật gói dịch vụ (partial update). Dùng { \"active\": false } để deactivate.")
+        @PatchMapping("/{planId}")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_UPDATE_SUBSCRIPTION_PLAN", resourceType = "SubscriptionPlan")
         public ResponseEntity<ApiResponse<SubscriptionPlan>> updatePlan(
                         @PathVariable UUID planId,
                         @RequestBody UpdatePlanRequest request) {

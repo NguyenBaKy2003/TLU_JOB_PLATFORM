@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.company.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.application.usecase.ApproveReviewUseCase;
 import edu.tlu.jobplatform.company.application.usecase.RejectReviewUseCase;
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
@@ -8,6 +9,8 @@ import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyReviewRepository;
 import edu.tlu.jobplatform.company.presentation.dto.request.RejectReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.ReviewResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -41,6 +44,7 @@ public class CompanyReviewManagementController {
 
         @Operation(summary = "Xem review chờ duyệt của công ty mình")
         @GetMapping("/pending")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getPendingReviews(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size) {
@@ -57,6 +61,7 @@ public class CompanyReviewManagementController {
 
         @Operation(summary = "Xem tất cả review của công ty mình")
         @GetMapping
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getAllReviews(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -75,6 +80,8 @@ public class CompanyReviewManagementController {
 
         @Operation(summary = "Duyệt review")
         @PutMapping("/{reviewId}/approve")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_APPROVE_REVIEW", resourceType = "CompanyReview")
         public ResponseEntity<ApiResponse<ReviewResponse>> approve(
                         @CurrentUser UUID userId,
                         @PathVariable UUID reviewId) {
@@ -94,6 +101,8 @@ public class CompanyReviewManagementController {
 
         @Operation(summary = "Từ chối review")
         @PutMapping("/{reviewId}/reject")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_REJECT_REVIEW", resourceType = "CompanyReview")
         public ResponseEntity<ApiResponse<ReviewResponse>> reject(
                         @CurrentUser UUID userId,
                         @PathVariable UUID reviewId,

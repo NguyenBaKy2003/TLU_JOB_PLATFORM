@@ -3,6 +3,8 @@ package edu.tlu.jobplatform.notification.presentation;
 import edu.tlu.jobplatform.notification.application.usecase.GetNotificationsUseCase;
 import edu.tlu.jobplatform.notification.application.usecase.MarkNotificationReadUseCase;
 import edu.tlu.jobplatform.notification.presentation.dto.NotificationResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +22,8 @@ public class NotificationController {
     private final GetNotificationsUseCase getNotifications;
     private final MarkNotificationReadUseCase markRead;
 
-    /** GET /api/v1/notifications?page=0&size=20 */
     @GetMapping
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Result>> list(
             @AuthenticationPrincipal String userId,
             @RequestParam(defaultValue = "0") int page,
@@ -36,6 +38,7 @@ public class NotificationController {
 
     /** PATCH /api/v1/notifications/{id}/read */
     @PatchMapping("/{id}/read")
+    @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Void>> markOneRead(
             @PathVariable UUID id,
             @AuthenticationPrincipal String userId) {
@@ -46,6 +49,7 @@ public class NotificationController {
 
     /** PATCH /api/v1/notifications/read-all */
     @PatchMapping("/read-all")
+    @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<Integer>> markAllRead(
             @AuthenticationPrincipal String userId) {
 
@@ -55,6 +59,7 @@ public class NotificationController {
 
     /** GET /api/v1/notifications/recent — lấy 10 thông báo gần nhất */
     @GetMapping("/recent")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> recent(
             @AuthenticationPrincipal String userId) {
 
@@ -68,6 +73,7 @@ public class NotificationController {
 
     /** GET /api/v1/notifications/unread-count */
     @GetMapping("/unread-count")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<UnreadCountResult>> unreadCount(
             @AuthenticationPrincipal String userId) {
 

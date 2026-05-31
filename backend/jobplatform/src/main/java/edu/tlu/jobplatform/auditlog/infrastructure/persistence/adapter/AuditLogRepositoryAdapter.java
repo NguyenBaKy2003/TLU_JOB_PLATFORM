@@ -4,6 +4,7 @@ import edu.tlu.jobplatform.auditlog.domain.model.AuditLog;
 import edu.tlu.jobplatform.auditlog.domain.repository.AuditLogRepository;
 import edu.tlu.jobplatform.auditlog.infrastructure.persistence.entity.AuditLogJpaEntity;
 import edu.tlu.jobplatform.auditlog.infrastructure.persistence.repository.AuditLogJpaRepository;
+import edu.tlu.jobplatform.auditlog.infrastructure.persistence.repository.AuditLogSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,48 +19,56 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuditLogRepositoryAdapter implements AuditLogRepository {
 
-    private final AuditLogJpaRepository jpaRepository;
+    private final AuditLogJpaRepository jpa;
 
-    // ── Write ────────────────────────────────────────────────────────
+    // ── Write ─────────────────────────────────────────────────────────
 
     @Override
-    public void save(AuditLog auditLog) {
-        jpaRepository.save(toEntity(auditLog));
+    public void save(AuditLog log) {
+        jpa.save(toEntity(log));
     }
 
-    // ── Read ─────────────────────────────────────────────────────────
+    // ── Read — by actor ───────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findByActorId(String actorId, String action,
-            String resourceType, LocalDateTime from,
-            LocalDateTime to, Pageable pageable) {
-        return jpaRepository
-                .findByActorId(actorId, action, resourceType, from, to, pageable)
-                .map(this::toDomain);
+                                         String resourceType,
+                                         LocalDateTime from, LocalDateTime to,
+                                         Pageable pageable) {
+        return jpa.findAll(
+                AuditLogSpec.filter(actorId, action, resourceType, null, null, from, to),
+                pageable
+        ).map(this::toDomain);
     }
+
+    // ── Read — by resource ────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findByResource(String resourceType, String resourceId,
-            Pageable pageable) {
-        return jpaRepository
-                .findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
-                        resourceType, resourceId, pageable)
-                .map(this::toDomain);
+                                          Pageable pageable) {
+        return jpa.findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
+                resourceType, resourceId, pageable
+        ).map(this::toDomain);
     }
+
+    // ── Read — system wide ────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findAll(String actorId, String action,
-            String resourceType, String result,
-            LocalDateTime from, LocalDateTime to,
-            Pageable pageable) {
-        return jpaRepository
-                .findAllFiltered(actorId, action, resourceType, result, from, to, pageable)
-                .map(this::toDomain);
+                                   String resourceType, String result,
+                                   LocalDateTime from, LocalDateTime to,
+                                   Pageable pageable) {
+        return jpa.findAll(
+                AuditLogSpec.filter(actorId, action, resourceType, null, result, from, to),
+                pageable
+        ).map(this::toDomain);
     }
+
+    // ── Stats ─────────────────────────────────────────────────────────
 
     @Override
     public Map<String, Long> countByAction(LocalDateTime from, LocalDateTime to) {
-        List<Object[]> rows = jpaRepository.countGroupByAction(from, to);
+        List<Object[]> rows = jpa.countGroupByAction(from, to);
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : rows) {
             result.put((String) row[0], (Long) row[1]);
@@ -67,13 +76,15 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
         return result;
     }
 
+    // ── Brute-force detection ─────────────────────────────────────────
+
     @Override
     public long countFailures(String actorId, String action, LocalDateTime after) {
-        return jpaRepository.countByActionAndActorIdAndResultAndOccurredAtAfter(
+        return jpa.countByActionAndActorIdAndResultAndOccurredAtAfter(
                 action, actorId, "FAILURE", after);
     }
 
-    // ── Mappers ──────────────────────────────────────────────────────
+    // ── Mappers ───────────────────────────────────────────────────────
 
     private AuditLogJpaEntity toEntity(AuditLog d) {
         return AuditLogJpaEntity.builder()

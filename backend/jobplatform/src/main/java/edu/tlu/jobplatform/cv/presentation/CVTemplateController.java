@@ -2,6 +2,8 @@ package edu.tlu.jobplatform.cv.presentation;
 
 import edu.tlu.jobplatform.cv.application.usecase.GetCVTemplatesUseCase;
 import edu.tlu.jobplatform.cv.presentation.dto.response.CVTemplateResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +32,7 @@ public class CVTemplateController {
             Field `premium = true` → yêu cầu subscription để sử dụng.
             """)
     @GetMapping
+    @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<List<CVTemplateResponse>>> getTemplates() {
         List<CVTemplateResponse> templates = getTemplatesUseCase.execute()
                 .stream().map(CVTemplateResponse::from).toList();
