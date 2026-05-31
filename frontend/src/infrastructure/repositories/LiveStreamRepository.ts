@@ -45,6 +45,13 @@ export class LiveStreamRepository implements ILiveStreamRepository {
     return res.data.data;
   }
 
+async getAnalytics(sessionId: string): Promise<StreamAnalytics> {
+  const res = await api.get<ApiResponse<StreamAnalytics>>(
+    `${this.BASE}/${sessionId}/analytics`
+  );
+  return res.data.data;
+}
+
   async endStream(sessionId: string): Promise<void> {
     await api.post(`${this.BASE}/${sessionId}/end`);
   }

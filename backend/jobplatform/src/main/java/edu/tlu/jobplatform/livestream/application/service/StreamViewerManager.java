@@ -13,24 +13,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * In-memory viewer tracking cho livestream sessions.
- *
- * Design:
- * - activeViewers : viewerId → sessionId (biết viewer đang ở session nào)
- * - sessionCounts : sessionId → AtomicInteger (counter per-session, atomic)
- * - sessionViewers : sessionId → Set<viewerId> (dedup — tránh count 2 lần cùng
- * userId)
- *
- * Source of truth: viewer được tính khi join qua HTTP (JoinLiveStreamUseCase)
- * HOẶC subscribe STOMP — dedup hoàn toàn theo viewerId, không đếm 2 lần.
- *
- * Thread safety:
- * - ConcurrentHashMap cho tất cả map
- * - AtomicInteger cho counter (increment/decrement atomic, không dùng merge)
- * - Set<viewerId> per session là ConcurrentHashMap.newKeySet() (thread-safe)
- * - updateViewerCount() trong DB dùng method riêng (không load aggregate)
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,24 +22,15 @@ public class StreamViewerManager {
     private final StreamEventPublisher eventPublisher;
     private final StreamAnalyticsRepository analyticsRepository;
 
-    /** viewerId → sessionId — biết viewer đang xem session nào */
     private final Map<UUID, UUID> activeViewers = new ConcurrentHashMap<>();
-
-    /** sessionId → AtomicInteger count */
     private final Map<UUID, AtomicInteger> sessionCounts = new ConcurrentHashMap<>();
-
-    /** sessionId → Set<viewerId> — dedup per session */
     private final Map<UUID, Set<UUID>> sessionViewerSets = new ConcurrentHashMap<>();
+    private final Map<UUID, AtomicInteger> peakViewerCounts = new ConcurrentHashMap<>();
+    /** "sessionId:viewerId" → joinTimeMillis */
+    private final Map<String, Long> viewerJoinTimes = new ConcurrentHashMap<>(); // ← THÊM
 
-    // Public API ─
+    // ── Public API ──────────────────────────────────────────────────────────────
 
-    /**
-     * Ghi nhận viewer tham gia session.
-     * Idempotent: gọi nhiều lần với cùng (viewerId, sessionId) chỉ tính 1 lần.
-     * Nếu viewer đang ở session khác, tự động rời trước.
-     *
-     * @return viewer count hiện tại sau khi join
-     */
     public int viewerJoined(UUID sessionId, UUID viewerId) {
         UUID previousSession = activeViewers.get(viewerId);
         if (previousSession != null && !previousSession.equals(sessionId)) {
@@ -74,13 +47,20 @@ public class StreamViewerManager {
         }
 
         activeViewers.put(viewerId, sessionId);
+
+        // ✅ Ghi nhận thời điểm join
+        viewerJoinTimes.put(joinKey(sessionId, viewerId), System.currentTimeMillis());
+
         int newCount = sessionCounts
                 .computeIfAbsent(sessionId, k -> new AtomicInteger(0))
                 .incrementAndGet();
 
+        peakViewerCounts
+                .computeIfAbsent(sessionId, k -> new AtomicInteger(0))
+                .accumulateAndGet(newCount, Math::max);
+
         persistAndPublish(sessionId, newCount);
 
-        // ← THÊM: chỉ tăng khi added == true (viewer mới thật sự)
         try {
             analyticsRepository.incrementTotalViewers(sessionId);
         } catch (Exception e) {
@@ -91,54 +71,68 @@ public class StreamViewerManager {
         return newCount;
     }
 
-    /**
-     * Ghi nhận viewer rời session.
-     *
-     * @return viewer count hiện tại sau khi rời
-     */
     public int viewerLeft(UUID sessionId, UUID viewerId) {
         activeViewers.remove(viewerId);
+        // ✅ Tính watch time khi rời
+        persistWatchTime(sessionId, viewerId);
         return removeFromSession(sessionId, viewerId);
     }
 
-    /**
-     * Xử lý WebSocket disconnect — viewer bị ngắt kết nối không chủ động rời.
-     * Tra theo viewerId để tìm session đang xem.
-     */
     public void viewerDisconnected(UUID viewerId) {
         UUID sessionId = activeViewers.remove(viewerId);
         if (sessionId == null)
             return;
+        persistWatchTime(sessionId, viewerId);
         int newCount = removeFromSession(sessionId, viewerId);
         log.debug("Viewer {} disconnected from session {}, count={}", viewerId, sessionId, newCount);
     }
 
-    /**
-     * Lấy viewer count hiện tại từ in-memory (không query DB).
-     */
     public int getCurrentViewerCount(UUID sessionId) {
         AtomicInteger counter = sessionCounts.get(sessionId);
         return counter != null ? counter.get() : 0;
     }
 
+    public int getPeakViewerCount(UUID sessionId) {
+        AtomicInteger peak = peakViewerCounts.get(sessionId);
+        return peak != null ? peak.get() : 0;
+    }
+
+    public int getTotalViewerCount(UUID sessionId) {
+        return analyticsRepository.findBySessionId(sessionId)
+                .map(a -> a.getTotalViewerCount())
+                .orElse(0);
+    }
+
     /**
-     * Dọn dẹp toàn bộ dữ liệu của session khi session kết thúc.
-     * Gọi sau khi session chuyển sang ENDED/CANCELLED.
-     *
-     * Không có race condition với viewerJoined vì:
-     * - Sau khi session ENDED, server không chấp nhận join mới
-     * - Các viewer đang xem sẽ nhận event và disconnect
+     * Drain watch time của tất cả viewer còn lại khi stream kết thúc.
+     * Gọi từ EndLiveStreamUseCase trước cleanupSession().
+     * 
+     * @return tổng giây xem của tất cả viewer còn trong session
      */
+    public long drainTotalWatchSeconds(UUID sessionId) {
+        Set<UUID> viewers = sessionViewerSets.getOrDefault(sessionId, Set.of());
+        long now = System.currentTimeMillis();
+        long total = 0L;
+        for (UUID viewerId : viewers) {
+            Long joinTime = viewerJoinTimes.remove(joinKey(sessionId, viewerId));
+            if (joinTime != null) {
+                total += (now - joinTime) / 1000;
+            }
+        }
+        return total;
+    }
+
     public void cleanupSession(UUID sessionId) {
         Set<UUID> viewers = sessionViewerSets.remove(sessionId);
         if (viewers != null) {
-            viewers.forEach(viewerId -> activeViewers.remove(viewerId, sessionId) // chỉ remove nếu vẫn map đến session
-                                                                                  // này
-            );
+            viewers.forEach(viewerId -> {
+                activeViewers.remove(viewerId, sessionId);
+                viewerJoinTimes.remove(joinKey(sessionId, viewerId)); // ← THÊM
+            });
         }
         sessionCounts.remove(sessionId);
+        peakViewerCounts.remove(sessionId);
 
-        // Publish count = 0 để client cập nhật UI
         try {
             eventPublisher.publishViewerCount(sessionId, 0);
         } catch (Exception e) {
@@ -148,16 +142,28 @@ public class StreamViewerManager {
         log.info("Cleaned up viewer tracking for session {}", sessionId);
     }
 
-    // Private helpers ──
+    // ── Private helpers ─────────────────────────────────────────────────────────
 
-    /**
-     * Xóa viewer khỏi session set và giảm counter.
-     * Trả về count mới. Không thay đổi activeViewers map (caller tự xử lý).
-     */
+    private void persistWatchTime(UUID sessionId, UUID viewerId) {
+        Long joinTime = viewerJoinTimes.remove(joinKey(sessionId, viewerId));
+        if (joinTime == null)
+            return;
+        long seconds = (System.currentTimeMillis() - joinTime) / 1000;
+        if (seconds <= 0)
+            return;
+        try {
+            analyticsRepository.findBySessionId(sessionId).ifPresent(analytics -> {
+                analytics.addWatchTime(seconds);
+                analyticsRepository.save(analytics);
+            });
+        } catch (Exception e) {
+            log.warn("Failed to persist watch time for viewer {} in session {}", viewerId, sessionId, e);
+        }
+    }
+
     private int removeFromSession(UUID sessionId, UUID viewerId) {
         Set<UUID> viewers = sessionViewerSets.get(sessionId);
         if (viewers == null || !viewers.remove(viewerId)) {
-            // Viewer không thực sự ở trong set này — không giảm count
             return getCurrentViewerCount(sessionId);
         }
 
@@ -166,7 +172,6 @@ public class StreamViewerManager {
                 ? Math.max(0, counter.decrementAndGet())
                 : 0;
 
-        // Fix counter nếu bị âm (edge case)
         if (counter != null && counter.get() < 0) {
             counter.set(0);
             newCount = 0;
@@ -176,26 +181,20 @@ public class StreamViewerManager {
         return newCount;
     }
 
-    /**
-     * Persist count vào DB (dùng updateViewerCount — không load aggregate)
-     * và publish realtime event.
-     *
-     * Fire-and-forget cho DB: lỗi DB không nên block luồng realtime.
-     */
     private void persistAndPublish(UUID sessionId, int count) {
-        // Persist
         try {
             sessionRepository.updateViewerCount(sessionId, count);
         } catch (Exception e) {
             log.error("Failed to persist viewer count {} for session {}", count, sessionId, e);
-            // Không ném exception — in-memory vẫn đúng, DB sync sau
         }
-
-        // Publish realtime
         try {
             eventPublisher.publishViewerCount(sessionId, count);
         } catch (Exception e) {
             log.error("Failed to publish viewer count event for session {}", sessionId, e);
         }
+    }
+
+    private static String joinKey(UUID sessionId, UUID viewerId) {
+        return sessionId + ":" + viewerId;
     }
 }

@@ -38,7 +38,7 @@ public class EmployerStreamController {
         private final SpotlightJobPostUseCase spotlightJobUseCase;
         private final InviteCandidateToSlotUseCase inviteToSlotUseCase;
         private final LiveStreamSessionRepository sessionRepository;
-
+        private final GetStreamAnalyticsUseCase getAnalyticsUseCase;
         // ── POST /api/v1/streams ──
 
         @Operation(summary = "Tạo phiên stream mới", description = "Tạo phiên JOB_FAIR hoặc INTERVIEW. Trạng thái ban đầu là SCHEDULED.")
@@ -151,5 +151,16 @@ public class EmployerStreamController {
                                                 UUID.randomUUID(), s.startTime(), s.durationMinutes(),
                                                 null, InterviewSlot.SlotStatus.OPEN))
                                 .toList();
+        }
+
+        @Operation(summary = "Thống kê phiên stream", description = "Lấy analytics sau khi stream ENDED.")
+        @GetMapping("/{sessionId}/analytics")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<StreamAnalyticsResponse>> getAnalytics(
+                        @PathVariable UUID sessionId) {
+
+                UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+                StreamAnalyticsResponse response = getAnalyticsUseCase.execute(sessionId, companyId);
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
 }
