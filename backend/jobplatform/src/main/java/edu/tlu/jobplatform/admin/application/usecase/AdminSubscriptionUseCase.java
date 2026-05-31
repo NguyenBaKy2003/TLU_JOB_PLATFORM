@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,13 @@ public class AdminSubscriptionUseCase {
     @Transactional(readOnly = true)
     public List<CompanySubscription> listByCompany(UUID companyId) {
         return subscriptionRepo.findByCompanyId(companyId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompanySubscription> listAllForExport() {
+        return subscriptionRepo
+                .findAll(PageRequest.of(0, Integer.MAX_VALUE, Sort.by("createdAt").descending()))
+                .getContent();
     }
 
     @Transactional(readOnly = true)

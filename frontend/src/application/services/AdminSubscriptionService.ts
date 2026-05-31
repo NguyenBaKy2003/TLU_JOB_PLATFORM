@@ -1,16 +1,13 @@
-// src/application/services/AdminSubscriptionService.ts
+import { triggerBlobDownload } from "@/lib/download";
 import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 import type {
-  IAdminSubscriptionRepository,
-  PlanPayload,
-  AdminSubscriptionRow,
-  PageResult,
+  IAdminSubscriptionRepository, PlanPayload,
+  AdminSubscriptionRow, PageResult,
 } from "@/domain/repositories/IAdminSubscriptionRepository";
-
 export class AdminSubscriptionService {
   constructor(private readonly repo: IAdminSubscriptionRepository) {}
 
-  // ── Plans ────────────
+  // ── Plans ─────────────────────────────────────────────────────────────────
 
   getAllPlans(): Promise<SubscriptionPlan[]> {
     return this.repo.adminGetAllPlans();
@@ -24,30 +21,23 @@ export class AdminSubscriptionService {
     return this.repo.adminUpdatePlan(id, payload);
   }
 
-  // Nhận full plan để có thể truyền id (string) và active (boolean) đúng type —
-  // không cần ép kiểu `as unknown as string` vì SubscriptionPlan.id là string.
   toggleActive(plan: SubscriptionPlan): Promise<SubscriptionPlan> {
     return this.repo.adminTogglePlan(plan.id, plan.active);
   }
 
-  // ── Subscriptions ────
+  // ── Subscriptions ──────────────────────────────────────────────────────────
 
-  listSubscriptions(
-    page = 0,
-    size = 20,
-    status?: string,
-  ): Promise<PageResult<AdminSubscriptionRow>> {
+  listSubscriptions(page = 0, size = 20, status?: string): Promise<PageResult<AdminSubscriptionRow>> {
     return this.repo.adminListSubscriptions(page, size, status);
   }
 
-  // ── Formatting ───────
+async downloadExcel(): Promise<void> {
+  const blob = await this.repo.exportExcel();
+  triggerBlobDownload(blob, `company_subs_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
 
-  formatPrice(amount: number): string {
-    if (amount === 0) return "Miễn phí";
-    return new Intl.NumberFormat("vi-VN", {
-      style:                 "currency",
-      currency:              "VND",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  }
+async downloadPdf(): Promise<void> {
+  const blob = await this.repo.exportPdf();
+  triggerBlobDownload(blob, `company_subs_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
 }

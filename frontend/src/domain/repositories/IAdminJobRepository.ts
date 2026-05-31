@@ -5,12 +5,10 @@ import type {
 } from "@/domain/models/AdminJob";
 
 export interface IAdminJobRepository {
-  /** GET /api/v1/admin/jobs?status=&page=&size= */
   listJobs(filters: AdminJobFilters): Promise<AdminJobPage>;
-
-  /** POST /api/v1/admin/jobs/{id}/close?reason= */
+  searchJobs(filters: AdminJobFilters): Promise<AdminJobPage>;
   forceClose(id: string, reason: string): Promise<AdminJob>;
-
-  /** DELETE /api/v1/admin/jobs/{id}?reason= */
   forceDelete(id: string, reason: string): Promise<void>;
+  exportExcel(filters: Omit<AdminJobFilters, "page" | "size">): Promise<Blob>;
+  exportPdf(filters: Omit<AdminJobFilters, "page" | "size">): Promise<Blob>;
 }
