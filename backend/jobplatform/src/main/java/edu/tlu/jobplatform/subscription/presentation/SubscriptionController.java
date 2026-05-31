@@ -1,6 +1,9 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
@@ -38,6 +41,7 @@ public class SubscriptionController {
 
     @Operation(summary = "Danh sách gói dịch vụ (trang pricing)")
     @GetMapping("/plans")
+    @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<List<SubscriptionPlan>>> getPlans() {
         return ResponseEntity.ok(ApiResponse.success(planRepository.findAllActive()));
     }
@@ -46,8 +50,9 @@ public class SubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my")
     @PreAuthorize("hasRole('EMPLOYER')")
+    @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<?>> getMySubscription() {
-        UUID companyId = resolveCompanyId(); // fix: dùng companyId thay vì userId
+        UUID companyId = resolveCompanyId();
         Optional<CompanySubscription> optional = subscriptionRepository
                 .findActiveByCompanyId(companyId);
 
@@ -61,6 +66,7 @@ public class SubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my/quota")
     @PreAuthorize("hasRole('EMPLOYER')")
+    @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<CheckQuotaUseCase.Result>> getQuota() {
         UUID companyId = resolveCompanyId();
         return ResponseEntity.ok(ApiResponse.success(checkQuotaUseCase.execute(companyId)));
@@ -70,6 +76,8 @@ public class SubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('EMPLOYER')")
+    @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "EMPLOYER_PURCHASE_PLAN", resourceType = "CompanySubscription")
     public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchase(
             @Valid @RequestBody PurchaseRequest req) {
 

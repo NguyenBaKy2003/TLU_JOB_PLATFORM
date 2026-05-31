@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.message.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.message.application.usecase.*;
 import edu.tlu.jobplatform.message.presentation.dto.request.SendMessageRequest;
 import edu.tlu.jobplatform.message.presentation.dto.request.StartConversationRequest;
@@ -34,13 +35,13 @@ public class MessageController {
         private final MarkReadUseCase markRead;
 
         @Operation(summary = "Tạo cuộc hội thoại", description = "Employer bắt đầu cuộc hội thoại với ứng viên theo job post")
-
         @PostMapping("/conversations")
+        @RateLimit(policy = "employer-write", scope = Scope.USER)
+        @Loggable(action = "START_CONVERSATION", resourceType = "Conversation")
         public ResponseEntity<ApiResponse<ConversationResponse>> startConversation(
                         @Valid @RequestBody StartConversationRequest request,
                         @Parameter(hidden = true) @AuthenticationPrincipal String userId) {
 
-                // Use case đã trả về ConversationResponse — không cần .from() ở đây nữa
                 ConversationResponse response = startConversation.execute(new StartConversationUseCase.Command(
                                 UUID.fromString(userId),
                                 request.candidateId(),
@@ -51,6 +52,7 @@ public class MessageController {
 
         @Operation(summary = "Lấy danh sách hội thoại", description = "Trả về inbox của user (candidate hoặc employer)")
         @GetMapping("/conversations")
+        @RateLimit(policy = "candidate-read", scope = Scope.USER)
         public ResponseEntity<ApiResponse<GetConversationsUseCase.Result>> getInbox(
                         @Parameter(hidden = true) @AuthenticationPrincipal String userId,
                         @Parameter(description = "Số trang (default = 0)") @RequestParam(defaultValue = "0") int page,
@@ -62,6 +64,7 @@ public class MessageController {
 
         @Operation(summary = "Lấy danh sách tin nhắn", description = "Lấy toàn bộ message trong một conversation")
         @GetMapping("/conversations/{conversationId}")
+        @RateLimit(policy = "candidate-read", scope = Scope.USER)
         public ResponseEntity<ApiResponse<List<MessageResponse>>> getThread(
                         @Parameter(description = "ID của conversation") @PathVariable UUID conversationId,
                         @Parameter(hidden = true) @AuthenticationPrincipal String userId,
@@ -93,6 +96,7 @@ public class MessageController {
 
         @Operation(summary = "Đánh dấu đã đọc", description = "Đánh dấu toàn bộ tin nhắn trong conversation là đã đọc")
         @PatchMapping("/conversations/{conversationId}/read")
+        @RateLimit(policy = "candidate-write", scope = Scope.USER)
         public ResponseEntity<ApiResponse<Void>> markAsRead(
                         @Parameter(description = "ID của conversation") @PathVariable UUID conversationId,
                         @Parameter(hidden = true) @AuthenticationPrincipal String userId) {

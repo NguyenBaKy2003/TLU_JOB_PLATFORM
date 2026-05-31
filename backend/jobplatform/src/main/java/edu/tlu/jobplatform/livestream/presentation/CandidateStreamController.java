@@ -1,8 +1,8 @@
 package edu.tlu.jobplatform.livestream.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.livestream.application.service.StreamViewerManager;
 import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetSessionUseCase;
-import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetStreamReplayUseCase;
 import edu.tlu.jobplatform.livestream.application.usecase.candidate.GetUpcomingStreamsUseCase;
 import edu.tlu.jobplatform.livestream.application.usecase.candidate.JoinLiveStreamUseCase;
 import edu.tlu.jobplatform.livestream.application.usecase.candidate.LeaveStreamUseCase; // ← THÊM
@@ -10,6 +10,8 @@ import edu.tlu.jobplatform.livestream.application.usecase.candidate.RespondToPol
 import edu.tlu.jobplatform.livestream.application.usecase.candidate.SubmitQAQuestionUseCase;
 import edu.tlu.jobplatform.livestream.presentation.dto.request.*;
 import edu.tlu.jobplatform.livestream.presentation.dto.response.*;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +41,6 @@ public class CandidateStreamController {
         private final LeaveStreamUseCase leaveStreamUseCase; // ← THÊM
         private final SubmitQAQuestionUseCase submitQAUseCase;
         private final RespondToPollUseCase respondPollUseCase;
-        private final GetStreamReplayUseCase replayUseCase;
         private final GetUpcomingStreamsUseCase upcomingUseCase;
         private final GetSessionUseCase getSessionUseCase;
         private final StreamViewerManager viewerManager;
@@ -54,6 +55,7 @@ public class CandidateStreamController {
                         2. Phiên SCHEDULED theo thời gian gần nhất
                         """)
         @GetMapping("/upcoming")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<List<SessionResponse>>> getUpcoming() {
                 List<SessionResponse> sessions = upcomingUseCase.execute()
                                 .stream()
@@ -71,6 +73,8 @@ public class CandidateStreamController {
                         """)
         @PostMapping("/{sessionId}/join")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "stream-join", scope = RateLimitPolicy.Scope.USER) // LiveKit token generation
+        @Loggable(action = "CANDIDATE_JOIN_STREAM", resourceType = "LiveStreamSession")
         @SecurityRequirement(name = "bearerAuth")
         public ResponseEntity<ApiResponse<SessionJoinResponse>> joinStream(
                         @PathVariable UUID sessionId) {
@@ -88,11 +92,11 @@ public class CandidateStreamController {
 
         @Operation(summary = "Rời phiên stream")
         @PostMapping("/{sessionId}/leave")
-        // ← BỎ @PreAuthorize và @SecurityRequirement — Security config đã handle
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         @ResponseStatus(HttpStatus.NO_CONTENT)
         public void leave(@PathVariable UUID sessionId, Authentication authentication) {
                 if (authentication == null || !authentication.isAuthenticated()) {
-                        return; // Anonymous → skip gracefully, không throw 403
+                        return;
                 }
                 try {
                         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
@@ -105,6 +109,7 @@ public class CandidateStreamController {
         @Operation(summary = "Đặt câu hỏi Q&A", description = "Yêu cầu role CANDIDATE.")
         @PostMapping("/{sessionId}/questions")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "stream-interact", scope = RateLimitPolicy.Scope.USER)
         @SecurityRequirement(name = "bearerAuth")
         public ResponseEntity<ApiResponse<Void>> submitQuestion(
                         @PathVariable UUID sessionId,
@@ -118,6 +123,7 @@ public class CandidateStreamController {
 
         @Operation(summary = "Lấy thông tin chi tiết phiên stream")
         @GetMapping("/{sessionId}")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<SessionResponse>> getSession(
                         @PathVariable UUID sessionId) {
 
@@ -128,6 +134,7 @@ public class CandidateStreamController {
         @Operation(summary = "Trả lời poll")
         @PostMapping("/{sessionId}/polls/{pollEventId}/respond")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @RateLimit(policy = "stream-interact", scope = RateLimitPolicy.Scope.USER)
         @SecurityRequirement(name = "bearerAuth")
         public ResponseEntity<ApiResponse<Void>> respondPoll(
                         @PathVariable UUID sessionId,
@@ -142,6 +149,7 @@ public class CandidateStreamController {
 
         @Operation(summary = "Lấy số lượng người xem hiện tại", description = "Fallback cho WebSocket mất kết nối.")
         @GetMapping("/{sessionId}/viewer-count")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<Integer>> getCurrentViewerCount(
                         @PathVariable UUID sessionId) {
 

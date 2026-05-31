@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.job.presentation;
 
 import edu.tlu.jobplatform.ai.domain.model.JdGuidelineCheckResult;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.application.usecase.employer.CloseJobPostUseCase;
 import edu.tlu.jobplatform.job.application.usecase.employer.CreateJobPostUseCase;
@@ -20,6 +21,8 @@ import edu.tlu.jobplatform.job.presentation.dto.request.UpdateJobPostRequest;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.SubmitForReviewResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
@@ -71,6 +74,8 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_CREATE_JOB_POST", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<JobPostDetailResponse>> create(
                         @Valid @RequestBody CreateJobPostRequest req) {
 
@@ -110,6 +115,7 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/jobs/my")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> getMyJobs(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -149,6 +155,7 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/jobs/my/counts")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<Map<String, Long>>> getMyJobCounts() {
                 UUID postedBy = SecurityUtils.getCurrentUserIdOrThrow();
                 Map<String, Long> counts = getMyJobCountsUseCase.execute(postedBy);
@@ -161,6 +168,8 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs/{id}/submit")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_SUBMIT_JOB_FOR_REVIEW", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<SubmitForReviewResponse>> submit(
                         @PathVariable UUID id,
                         @RequestBody(required = false) PublishJobPostRequest req) {
@@ -190,6 +199,8 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping("/api/v1/jobs/{id}")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_JOB_POST", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<JobPostDetailResponse>> update(
                         @PathVariable UUID id,
                         @Valid @RequestBody UpdateJobPostRequest req) {
@@ -238,6 +249,8 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/jobs/{id}/close")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_CLOSE_JOB_POST", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<JobPostDetailResponse>> close(@PathVariable UUID id) {
                 JobPost job = closeUseCase.execute(id);
                 return ResponseEntity.ok(
@@ -250,6 +263,8 @@ public class JobPostController {
         @SecurityRequirement(name = "bearerAuth")
         @DeleteMapping("/api/v1/jobs/{id}")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_DELETE_JOB_POST", resourceType = "JobPost")
         public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
                 deleteUseCase.execute(id);
                 return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã được xóa."));

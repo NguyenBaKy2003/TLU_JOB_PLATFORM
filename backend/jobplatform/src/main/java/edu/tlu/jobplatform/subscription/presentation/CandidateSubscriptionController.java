@@ -1,5 +1,8 @@
 package edu.tlu.jobplatform.subscription.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import edu.tlu.jobplatform.subscription.application.usecase.*;
@@ -46,6 +49,7 @@ public class CandidateSubscriptionController {
 
     @Operation(summary = "Danh sách gói dịch vụ Candidate (pricing page)")
     @GetMapping("/plans")
+    @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<List<CandidateSubscriptionPlan>>> getPlans() {
         return ResponseEntity.ok(ApiResponse.success(getPlansUseCase.execute()));
     }
@@ -56,6 +60,7 @@ public class CandidateSubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<?>> getMy() {
         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
         Optional<CandidateSubscription> optional = subscriptionRepository.findActiveByCandidate(candidateId);
@@ -72,6 +77,7 @@ public class CandidateSubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/my/quota")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<CheckCandidateQuotaUseCase.Result>> getQuota() {
         UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
         return ResponseEntity.ok(ApiResponse.success(checkQuotaUseCase.execute(candidateId)));
@@ -83,6 +89,8 @@ public class CandidateSubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('CANDIDATE')")
+    @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
+    @Loggable(action = "CANDIDATE_PURCHASE_PLAN", resourceType = "CandidateSubscription")
     public ResponseEntity<ApiResponse<PurchaseCandidatePlanUseCase.Result>> purchase(
             @Valid @RequestBody CandidatePurchaseRequest req) {
 

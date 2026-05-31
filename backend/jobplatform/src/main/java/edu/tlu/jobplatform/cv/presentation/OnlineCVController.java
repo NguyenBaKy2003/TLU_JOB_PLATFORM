@@ -1,11 +1,14 @@
 package edu.tlu.jobplatform.cv.presentation;
 
 import edu.tlu.jobplatform.ai.domain.model.CvOptimizationResult;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.cv.application.usecase.*;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.domain.model.vo.PersonalInfo;
 import edu.tlu.jobplatform.cv.presentation.dto.request.*;
 import edu.tlu.jobplatform.cv.presentation.dto.response.*;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +56,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Danh sách CV của tôi")
         @GetMapping
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<OnlineCVResponse>>> listMyCVs(
                         @CurrentUser UUID candidateId) {
                 List<OnlineCVResponse> list = getMyCVsUseCase.execute(candidateId)
@@ -69,6 +73,8 @@ public class OnlineCVController {
                           Gửi `templateId` của template thường nếu chưa có gói.
                         """)
         @PostMapping
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_CREATE_ONLINE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> createCV(
                         @CurrentUser UUID candidateId,
                         @Valid @RequestBody CreateOnlineCVRequest req) {
@@ -82,6 +88,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Chi tiết CV (để chỉnh sửa)")
         @GetMapping("/{cvId}")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> getCVDetail(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -96,6 +103,8 @@ public class OnlineCVController {
                         Đổi sang **premium template** yêu cầu gói **PRO trở lên**.
                         """)
         @PutMapping("/{cvId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_ONLINE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> updateCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -111,6 +120,8 @@ public class OnlineCVController {
 
         @Operation(summary = "Xóa CV")
         @DeleteMapping("/{cvId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DELETE_ONLINE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<Void>> deleteCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -122,6 +133,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Thêm section mới vào CV")
         @PostMapping("/{cvId}/sections")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<CVSectionResponse>> addSection(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -137,6 +149,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Cập nhật nội dung section")
         @PutMapping("/{cvId}/sections/{sectionId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<CVSectionResponse>> updateSection(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -153,6 +166,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Xóa section khỏi CV")
         @DeleteMapping("/{cvId}/sections/{sectionId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<Void>> deleteSection(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -165,6 +179,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Sắp xếp lại thứ tự sections")
         @PatchMapping("/{cvId}/sections/reorder")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> reorderSections(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -178,7 +193,8 @@ public class OnlineCVController {
         // ── POST /api/v1/cv/{cvId}/publish ───────────────────────────────
 
         @Operation(summary = "Publish CV")
-        @PostMapping("/{cvId}/publish")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_PUBLISH_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> publishCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -192,6 +208,8 @@ public class OnlineCVController {
 
         @Operation(summary = "Archive CV")
         @PostMapping("/{cvId}/archive")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_ARCHIVE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> archiveCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -204,6 +222,8 @@ public class OnlineCVController {
 
         @Operation(summary = "Restore CV từ ARCHIVED → DRAFT")
         @PostMapping("/{cvId}/restore")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_RESTORE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> restoreCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -216,6 +236,8 @@ public class OnlineCVController {
 
         @Operation(summary = "Nhân bản CV")
         @PostMapping("/{cvId}/duplicate")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DUPLICATE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> duplicateCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -231,6 +253,8 @@ public class OnlineCVController {
                         Lần đầu: render + upload S3. Lần sau: tải từ cache S3.
                         """)
         @PostMapping("/{cvId}/export")
+        @RateLimit(policy = "cv-export", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_EXPORT_CV_PDF", resourceType = "OnlineCV")
         public ResponseEntity<InputStreamResource> exportCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -274,6 +298,8 @@ public class OnlineCVController {
                         Kết quả chỉ là gợi ý — bạn tự quyết định áp dụng hay không.
                         """)
         @PostMapping("/{cvId}/ai-optimize")
+        @RateLimit(policy = "ai-heavy", scope = RateLimitPolicy.Scope.USER) // tái dùng policy đã có
+        @Loggable(action = "CANDIDATE_AI_OPTIMIZE_CV", resourceType = "OnlineCV")
         public ResponseEntity<ApiResponse<CvOptimizationResult>> aiOptimize(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId,
@@ -290,6 +316,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Import từ hồ sơ ứng viên")
         @PostMapping("/{cvId}/import-from-profile")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> importFromProfile(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -302,6 +329,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Preview CV dưới dạng HTML")
         @GetMapping("/{cvId}/preview-html")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<String>> previewHTML(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {
@@ -313,6 +341,7 @@ public class OnlineCVController {
 
         @Operation(summary = "Xem CV PDF (inline)")
         @GetMapping("/{cvId}/view")
+        @RateLimit(policy = "cv-stream", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<InputStreamResource> viewCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {

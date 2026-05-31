@@ -1,9 +1,12 @@
 package edu.tlu.jobplatform.payment.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.payment.application.usecase.admin.AdminPaymentUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentStatsResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +46,7 @@ public class AdminPaymentController {
 
         @Operation(summary = "Tìm kiếm giao dịch — lọc theo companyId, candidateId, status, gateway, ngày")
         @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> search(
                         @RequestParam(required = false) UUID companyId,
                         @RequestParam(required = false) UUID candidateId,
@@ -62,6 +66,7 @@ public class AdminPaymentController {
 
         @Operation(summary = "Thống kê doanh thu — mặc định 30 ngày gần nhất")
         @GetMapping("/stats")
+        @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PaymentStatsResponse>> getStats(
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
@@ -81,6 +86,7 @@ public class AdminPaymentController {
 
         @Operation(summary = "Chi tiết giao dịch")
         @GetMapping("/{id}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PaymentResponse>> getById(@PathVariable UUID id) {
                 return ResponseEntity.ok(
                                 ApiResponse.success(PaymentResponse.from(adminPaymentUseCase.getById(id))));
@@ -88,6 +94,7 @@ public class AdminPaymentController {
 
         @Operation(summary = "Tất cả giao dịch của 1 công ty")
         @GetMapping("/company/{companyId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getByCompany(
                         @PathVariable UUID companyId,
                         @RequestParam(required = false) PaymentStatus status,
@@ -102,6 +109,7 @@ public class AdminPaymentController {
 
         @Operation(summary = "Tất cả giao dịch của 1 ứng viên")
         @GetMapping("/candidate/{candidateId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getByCandidate(
                         @PathVariable UUID candidateId,
                         @RequestParam(required = false) PaymentStatus status,
@@ -116,6 +124,8 @@ public class AdminPaymentController {
 
         @Operation(summary = "Hoàn tiền giao dịch — chỉ ADMIN")
         @PostMapping("/{id}/refund")
+        @RateLimit(policy = "admin-sensitive", scope = RateLimitPolicy.Scope.USER) // tác động tài chính thực
+        @Loggable(action = "ADMIN_REFUND_PAYMENT", resourceType = "Payment")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<ApiResponse<PaymentResponse>> refund(
                         @PathVariable UUID id,

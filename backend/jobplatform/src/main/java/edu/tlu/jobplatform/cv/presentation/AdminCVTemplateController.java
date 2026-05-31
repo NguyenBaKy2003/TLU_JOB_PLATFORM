@@ -1,10 +1,13 @@
 package edu.tlu.jobplatform.cv.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.cv.application.usecase.admin.*;
 import edu.tlu.jobplatform.cv.domain.model.CVTemplate;
 import edu.tlu.jobplatform.cv.presentation.dto.request.CreateCVTemplateRequest;
 import edu.tlu.jobplatform.cv.presentation.dto.request.UpdateCVTemplateRequest;
 import edu.tlu.jobplatform.cv.presentation.dto.response.AdminCVTemplateResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,6 +52,7 @@ public class AdminCVTemplateController {
 
         @Operation(summary = "Danh sách tất cả templates (kể cả inactive)")
         @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<AdminCVTemplateResponse>>> listAll() {
                 List<AdminCVTemplateResponse> list = getAllUseCase.execute()
                                 .stream().map(AdminCVTemplateResponse::fromList).toList();
@@ -89,6 +93,8 @@ public class AdminCVTemplateController {
                         ```
                         """)
         @PostMapping
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_CREATE_CV_TEMPLATE", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> create(
                         @Valid @RequestBody CreateCVTemplateRequest req) {
 
@@ -108,6 +114,8 @@ public class AdminCVTemplateController {
                         Các CV đang dùng template này sẽ tự động dùng HTML mới khi export lần tiếp.
                         """)
         @PutMapping("/{templateId}")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_UPDATE_CV_TEMPLATE", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> update(
                         @PathVariable UUID templateId,
                         @Valid @RequestBody UpdateCVTemplateRequest req) {
@@ -127,6 +135,8 @@ public class AdminCVTemplateController {
                         Template được activate sẽ hiển thị trong danh sách candidate chọn.
                         """)
         @PatchMapping("/{templateId}/activate")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_ACTIVATE_CV_TEMPLATE", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> activate(
                         @PathVariable UUID templateId) {
 
@@ -143,6 +153,8 @@ public class AdminCVTemplateController {
                         Các CV đã tạo từ template này vẫn render bình thường.
                         """)
         @PatchMapping("/{templateId}/deactivate")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_DEACTIVATE_CV_TEMPLATE", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> deactivate(
                         @PathVariable UUID templateId) {
 
@@ -156,6 +168,7 @@ public class AdminCVTemplateController {
 
         @Operation(summary = "Chi tiết template (kèm htmlContent)")
         @GetMapping("/{templateId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> getDetail(
                         @PathVariable UUID templateId) {
 
@@ -164,8 +177,10 @@ public class AdminCVTemplateController {
                                 AdminCVTemplateResponse.from(template)));
         }
 
-        @PatchMapping("/{templateId}/thumbnail")
         @Operation(summary = "Upload thumbnail cho template")
+        @PatchMapping("/{templateId}/thumbnail")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER) // S3 upload
+        @Loggable(action = "ADMIN_UPLOAD_CV_TEMPLATE_THUMBNAIL", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> uploadThumbnail(
                         @PathVariable UUID templateId,
                         @RequestParam("file") MultipartFile file) {

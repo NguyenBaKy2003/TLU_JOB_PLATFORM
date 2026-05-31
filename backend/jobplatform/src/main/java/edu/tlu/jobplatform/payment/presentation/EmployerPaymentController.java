@@ -3,6 +3,8 @@ package edu.tlu.jobplatform.payment.presentation;
 import edu.tlu.jobplatform.payment.application.usecase.employer.GetMyPaymentsUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +39,7 @@ public class EmployerPaymentController {
 
     @Operation(summary = "Danh sách giao dịch của công ty tôi")
     @GetMapping("/my")
+    @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<PaymentResponse>>> getMyPayments(
             @RequestParam(required = false) PaymentStatus status,
             @RequestParam(required = false) String gateway,
@@ -54,8 +57,8 @@ public class EmployerPaymentController {
 
     @Operation(summary = "Chi tiết giao dịch kèm thông tin gói dịch vụ")
     @GetMapping("/my/{id}")
+    @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PaymentResponse>> getMyPaymentDetail(@PathVariable UUID id) {
-        // getMyPaymentDetail trả thẳng PaymentResponse kèm SubscriptionSummary
         return ResponseEntity.ok(ApiResponse.success(
                 getMyPaymentsUseCase.getMyPaymentDetail(id)));
     }
