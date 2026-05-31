@@ -23,7 +23,7 @@ export function EmptyState({ onCreateClick }: EmptyStateProps) {
       </p>
       <button
         onClick={onCreateClick}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-white text-[16px] font-semibold rounded-xl hover:bg-slate-900"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-800 text-white text-[16px] font-semibold rounded-xl hover:bg-blue-900"
       >
         <Plus className="w-4 h-4" />
         Tạo phiên stream đầu tiên

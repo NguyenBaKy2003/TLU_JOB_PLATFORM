@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.company.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.application.usecase.CreateReviewUseCase;
 import edu.tlu.jobplatform.company.application.usecase.DeleteReviewUseCase;
 import edu.tlu.jobplatform.company.application.usecase.GetMyReviewsUseCase;
@@ -9,6 +10,8 @@ import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
 import edu.tlu.jobplatform.company.presentation.dto.request.CreateReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.request.UpdateReviewRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.ReviewResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +44,8 @@ public class CandidateReviewController {
 
         @Operation(summary = "Viết đánh giá công ty")
         @PostMapping("/api/v1/companies/{companyId}/reviews")
+        @RateLimit(policy = "review-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_CREATE_REVIEW", resourceType = "CompanyReview")
         public ResponseEntity<ApiResponse<ReviewResponse>> create(
                         @PathVariable UUID companyId,
                         @Valid @RequestBody CreateReviewRequest req) {
@@ -67,6 +72,8 @@ public class CandidateReviewController {
 
         @Operation(summary = "Cập nhật đánh giá của mình")
         @PutMapping("/api/v1/companies/{companyId}/reviews/{reviewId}")
+        @RateLimit(policy = "review-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_UPDATE_REVIEW", resourceType = "CompanyReview")
         public ResponseEntity<ApiResponse<ReviewResponse>> update(
                         @PathVariable UUID companyId,
                         @PathVariable UUID reviewId,
@@ -91,6 +98,8 @@ public class CandidateReviewController {
 
         @Operation(summary = "Xóa đánh giá của mình")
         @DeleteMapping("/api/v1/companies/{companyId}/reviews/{reviewId}")
+        @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "CANDIDATE_DELETE_REVIEW", resourceType = "CompanyReview")
         public ResponseEntity<ApiResponse<Void>> delete(
                         @PathVariable UUID companyId,
                         @PathVariable UUID reviewId) {
@@ -102,6 +111,7 @@ public class CandidateReviewController {
 
         @Operation(summary = "Xem danh sách đánh giá của tôi")
         @GetMapping("/api/v1/my-reviews")
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<GetMyReviewsUseCase.Result>> getMyReviews(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "12") int size,

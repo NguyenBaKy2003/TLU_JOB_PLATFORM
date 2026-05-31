@@ -1,11 +1,14 @@
 package edu.tlu.jobplatform.livestream.presentation;
 
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.livestream.application.usecase.employer.*;
 import edu.tlu.jobplatform.livestream.domain.model.LiveStreamSession;
 import edu.tlu.jobplatform.livestream.domain.model.vo.InterviewSlot;
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
 import edu.tlu.jobplatform.livestream.presentation.dto.request.*;
 import edu.tlu.jobplatform.livestream.presentation.dto.response.*;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,11 +38,13 @@ public class EmployerStreamController {
         private final SpotlightJobPostUseCase spotlightJobUseCase;
         private final InviteCandidateToSlotUseCase inviteToSlotUseCase;
         private final LiveStreamSessionRepository sessionRepository;
-
+        private final GetStreamAnalyticsUseCase getAnalyticsUseCase;
         // ── POST /api/v1/streams ──
 
         @Operation(summary = "Tạo phiên stream mới", description = "Tạo phiên JOB_FAIR hoặc INTERVIEW. Trạng thái ban đầu là SCHEDULED.")
         @PostMapping
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_CREATE_STREAM_SESSION", resourceType = "LiveStreamSession")
         public ResponseEntity<ApiResponse<SessionResponse>> createSession(
                         @Valid @RequestBody CreateSessionRequest req) {
 
@@ -64,6 +69,7 @@ public class EmployerStreamController {
 
         @Operation(summary = "Danh sách phiên stream của công ty")
         @GetMapping
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<List<SessionResponse>>> getMySessions() {
                 UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
                 List<SessionResponse> sessions = sessionRepository
@@ -76,6 +82,8 @@ public class EmployerStreamController {
 
         @Operation(summary = "Bắt đầu live stream", description = "Chuyển SCHEDULED → LIVE. Trả về LiveKit host token để bật camera.")
         @PostMapping("/{sessionId}/start")
+        @RateLimit(policy = "stream-lifecycle", scope = RateLimitPolicy.Scope.USER) // LiveKit token + state transition
+        @Loggable(action = "EMPLOYER_START_STREAM", resourceType = "LiveStreamSession")
         public ResponseEntity<ApiResponse<SessionStartResponse>> startStream(
                         @PathVariable UUID sessionId) {
 
@@ -89,6 +97,8 @@ public class EmployerStreamController {
 
         @Operation(summary = "Kết thúc live stream", description = "Chuyển LIVE → ENDED. Tự động trigger recording và AI summary async.")
         @PostMapping("/{sessionId}/end")
+        @RateLimit(policy = "stream-lifecycle", scope = RateLimitPolicy.Scope.USER) // trigger recording + AI async
+        @Loggable(action = "EMPLOYER_END_STREAM", resourceType = "LiveStreamSession")
         public ResponseEntity<ApiResponse<Void>> endStream(
                         @PathVariable UUID sessionId) {
 
@@ -101,6 +111,8 @@ public class EmployerStreamController {
 
         @Operation(summary = "Ghim job post lên stream", description = "Hiển thị CTA ứng tuyển trong khi đang LIVE. Push realtime tới tất cả viewer.")
         @PostMapping("/{sessionId}/spotlight")
+        @RateLimit(policy = "stream-interact", scope = RateLimitPolicy.Scope.USER) // realtime push tới tất cả viewer
+        @Loggable(action = "EMPLOYER_SPOTLIGHT_JOB", resourceType = "LiveStreamSession")
         public ResponseEntity<ApiResponse<Void>> spotlightJob(
                         @PathVariable UUID sessionId,
                         @Valid @RequestBody SpotlightJobRequest req) {
@@ -116,6 +128,8 @@ public class EmployerStreamController {
 
         @Operation(summary = "Mời candidate vào interview slot", description = "Assign slot cho candidate. Candidate nhận thông báo realtime qua WebSocket.")
         @PostMapping("/{sessionId}/invite-slot")
+        @RateLimit(policy = "stream-interact", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_INVITE_CANDIDATE_TO_SLOT", resourceType = "LiveStreamSession")
         public ResponseEntity<ApiResponse<InterviewSlot>> inviteToSlot(
                         @PathVariable UUID sessionId,
                         @Valid @RequestBody InviteToSlotRequest req) {
@@ -137,5 +151,16 @@ public class EmployerStreamController {
                                                 UUID.randomUUID(), s.startTime(), s.durationMinutes(),
                                                 null, InterviewSlot.SlotStatus.OPEN))
                                 .toList();
+        }
+
+        @Operation(summary = "Thống kê phiên stream", description = "Lấy analytics sau khi stream ENDED.")
+        @GetMapping("/{sessionId}/analytics")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<StreamAnalyticsResponse>> getAnalytics(
+                        @PathVariable UUID sessionId) {
+
+                UUID companyId = SecurityUtils.getCurrentUserIdOrThrow();
+                StreamAnalyticsResponse response = getAnalyticsUseCase.execute(sessionId, companyId);
+                return ResponseEntity.ok(ApiResponse.success(response));
         }
 }

@@ -1,4 +1,3 @@
-// presentation/components/stream/candidate/CandidateViewerPage.tsx
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -18,8 +17,11 @@ import { LoadingScreen } from "@/presentation/components/stream/common/LoadingSc
 import { ErrorScreen } from "@/presentation/components/stream/common/ErrorScreen";
 import { LiveStreamService } from "@/application/services/LiveStreamService";
 import { PollBanner, SpotlightBanner } from "@/presentation/components/stream/candidate";
-
-const service = new LiveStreamService(new LiveStreamRepository());
+import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository"; // ← THÊM
+import type { SubmitApplicationRequest } from "@/domain/models/Application";                 // ← THÊM
+import { ApplyModal }              from "@/presentation/components/job-detail/ApplyModal";
+const service         = new LiveStreamService(new LiveStreamRepository());
+const applicationRepo = new ApplicationRepository(); // ← THÊM
 
 type TabType = "chat" | "qa";
 
@@ -40,32 +42,35 @@ interface PollData {
 interface SpotlightJob { jobPostId: string; title?: string }
 
 export default function CandidateViewerPage() {
-  const params = useParams<{ sessionId: string }>();
-  const router = useRouter();
+  const params    = useParams<{ sessionId: string }>();
+  const router    = useRouter();
   const sessionId = params.sessionId;
-  const { subscribeTopic, publishMessage } = useWebSocket();
+
+  const { subscribeTopic, publishMessage, isConnected } = useWebSocket();
   const { user } = useAuth();
 
-  const [session, setSession] = useState<LiveStreamSession | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [livekitUrl, setLivekitUrl] = useState("");
+  const [session,         setSession]         = useState<LiveStreamSession | null>(null);
+  const [token,           setToken]           = useState<string | null>(null);
+  const [livekitUrl,      setLivekitUrl]      = useState("");
 
-  const [loadingSession, setLoadingSession] = useState(true);
-  const [joining, setJoining] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
+  const [loadingSession,  setLoadingSession]  = useState(true);
+  const [joining,         setJoining]         = useState(false);
+  const [hasJoined,       setHasJoined]       = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [messages, setMessages] = useState<ChatMessageData[]>([]);
-  const [tab, setTab] = useState<TabType>("chat");
-  const [sending, setSending] = useState(false);
-  const [activePoll, setActivePoll] = useState<PollData | null>(null);
-  const [spotlightJob, setSpotlightJob] = useState<SpotlightJob | null>(null);
-  const [canPublish, setCanPublish] = useState(false);
-  // Mobile bottom drawer
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [error,           setError]           = useState<string | null>(null);
+  const [viewerCount,     setViewerCount]     = useState(0);
+  const [messages,        setMessages]        = useState<ChatMessageData[]>([]);
+  const [tab,             setTab]             = useState<TabType>("chat");
+  const [sending,         setSending]         = useState(false);
+  const [activePoll,      setActivePoll]      = useState<PollData | null>(null);
+  const [spotlightJob,    setSpotlightJob]    = useState<SpotlightJob | null>(null);
+  const [canPublish,      setCanPublish]      = useState(false);
+  const [mobileDrawerOpen,setMobileDrawerOpen]= useState(false);
+  const [applyModalOpen,  setApplyModalOpen]  = useState(false); // ← THÊM
+
   const currentUserId = user?.id;
 
+  // ── Load session info ──────────────────────────────────────────
   useEffect(() => {
     service.getSession(sessionId)
       .then(s => { setSession(s); setViewerCount(s.viewerCount || 0); })
@@ -73,6 +78,7 @@ export default function CandidateViewerPage() {
       .finally(() => setLoadingSession(false));
   }, [sessionId]);
 
+  // ── Join ───────────────────────────────────────────────────────
   const handleJoin = useCallback(async () => {
     setJoining(true);
     try {
@@ -89,6 +95,7 @@ export default function CandidateViewerPage() {
     }
   }, [sessionId]);
 
+  // ── Leave on unmount ───────────────────────────────────────────
   const sessionIdRef = useRef(sessionId);
   const hasJoinedRef = useRef(hasJoined);
   useEffect(() => { hasJoinedRef.current = hasJoined; }, [hasJoined]);
@@ -100,51 +107,113 @@ export default function CandidateViewerPage() {
     };
   }, []);
 
+  // ── Stream events ──────────────────────────────────────────────
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/stream/${sessionId}/events`, (event: any) => {
-      if (event.type === "VIEWER_COUNT_UPDATE") setViewerCount(event.payload.count);
-    });
-    return () => unsub();
-  }, [sessionId, subscribeTopic]);
+    if (!isConnected) return;
+    const unsub = subscribeTopic(
+      `/topic/streams/${sessionId}/events`,
+      (event: any) => {
+        const payload = event.payload ?? event.data ?? {};
+        switch (event.type) {
+          case "VIEWER_COUNT_UPDATE":
+            setViewerCount(payload.count ?? 0);
+            break;
 
+          case "JOB_SPOTLIGHT": {
+            const d = typeof payload === "string" ? JSON.parse(payload) : payload;
+            if (d?.jobPostId) {
+              setSpotlightJob({
+                jobPostId:   d.jobPostId,
+                title:       d.title       ?? "Việc làm nổi bật",
+                companyName: d.companyName ?? "",
+                location:    d.location    ?? "",
+                salaryRange: d.salaryRange ?? "",
+              });
+            }
+            break;
+          }
+
+          case "POLL_STARTED":
+            setActivePoll({
+              eventId: payload.eventId ?? payload.id,
+              question: payload.question,
+              options:  payload.options ?? [],
+              responses: {},
+              myAnswer: null,
+            });
+            break;
+
+          case "POLL_ENDED":
+            setActivePoll(null);
+            break;
+        }
+      }
+    );
+    return () => unsub();
+  }, [sessionId, subscribeTopic, isConnected]);
+
+  // ── Chat messages ──────────────────────────────────────────────
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/streams/${sessionId}/chat`, (wsPayload: WsPayload<WsChatMessagePayload>) => {
-      const d = wsPayload.data;
-      setMessages(prev => {
-        if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, { id: d.id, senderName: d.senderName, content: d.content, type: "CHAT", time: new Date(d.sentAt), isMe: d.senderId === currentUserId }];
-      });
-    });
+    if (!isConnected) return;
+    const unsub = subscribeTopic(
+      `/topic/streams/${sessionId}/chat`,
+      (wsPayload: WsPayload<WsChatMessagePayload>) => {
+        const d = wsPayload.data;
+        setMessages(prev => {
+          if (prev.some(m => m.id === d.id)) return prev;
+          return [...prev, {
+            id: d.id, senderName: d.senderName, content: d.content,
+            type: "CHAT" as const, time: new Date(d.sentAt),
+            isMe: d.senderId === currentUserId,
+          }];
+        });
+      }
+    );
     return () => unsub();
-  }, [sessionId, subscribeTopic, currentUserId]);
+  }, [sessionId, subscribeTopic, currentUserId, isConnected]);
 
+  // ── Q&A messages ───────────────────────────────────────────────
   useEffect(() => {
-    const unsub = subscribeTopic(`/topic/streams/${sessionId}/qa`, (wsPayload: WsPayload<WsQAQuestionPayload>) => {
-      const d = wsPayload.data;
-      setMessages(prev => {
-        if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, { id: d.id, senderName: d.candidateName, content: d.question, type: "Q_AND_A", time: new Date(d.askedAt), isMe: d.candidateId === currentUserId }];
-      });
-    });
+    if (!isConnected) return;
+    const unsub = subscribeTopic(
+      `/topic/streams/${sessionId}/qa`,
+      (wsPayload: WsPayload<WsQAQuestionPayload>) => {
+        const d = wsPayload.data;
+        setMessages(prev => {
+          if (prev.some(m => m.id === d.id)) return prev;
+          return [...prev, {
+            id: d.id, senderName: d.candidateName, content: d.question,
+            type: "Q_AND_A" as const, time: new Date(d.askedAt),
+            isMe: d.candidateId === currentUserId,
+          }];
+        });
+      }
+    );
     return () => unsub();
-  }, [sessionId, subscribeTopic, currentUserId]);
+  }, [sessionId, subscribeTopic, currentUserId, isConnected]);
 
+  // ── Interview invite ───────────────────────────────────────────
   useEffect(() => {
-    const unsub = subscribeTopic(`/user/queue/stream-invite`, (invite: any) => { console.log("Invite:", invite); });
+    if (!isConnected) return;
+    const unsub = subscribeTopic(
+      `/user/queue/stream-invite`,
+      (invite: any) => { console.log("Invite:", invite); }
+    );
     return () => unsub();
-  }, [subscribeTopic]);
+  }, [subscribeTopic, isConnected]);
 
+  // ── Send handlers ──────────────────────────────────────────────
   const handleSendChat = useCallback((msg: string) => {
     setSending(true);
     try { publishMessage(`/app/streams/${sessionId}/chat`, { content: msg }); }
     finally { setSending(false); }
   }, [sessionId, publishMessage]);
 
-  const handleAskQuestion = useCallback(async (q: string) => {
+  const handleAskQuestion = useCallback((q: string) => {
     setSending(true);
-    try { await service.submitQuestion(sessionId, q); }
+    try { publishMessage(`/app/streams/${sessionId}/qa`, { question: q }); }
     finally { setSending(false); }
-  }, [sessionId]);
+  }, [sessionId, publishMessage]);
 
   const handlePollAnswer = useCallback(async (idx: number) => {
     if (!activePoll) return;
@@ -159,8 +228,26 @@ export default function CandidateViewerPage() {
     router.back();
   }, [sessionId, hasJoined, router]);
 
+  // ── Apply from stream ──────────────────────────────────────────  ← THÊM
+  const handleApplyFromStream = useCallback(
+    async (cvUrl: string, coverLetter: string, expectedSalary: string) => {
+      if (!spotlightJob) return;
+      const req: SubmitApplicationRequest = {
+        jobPostId: spotlightJob.jobPostId,
+        cvUrl,
+        coverLetter:    coverLetter    || undefined,
+        expectedSalary: expectedSalary || undefined,
+      };
+      await applicationRepo.submit(req);
+      setApplyModalOpen(false);
+      setSpotlightJob(null); // dismiss banner sau khi nộp thành công
+    },
+    [spotlightJob],
+  );
+
+  // ── Guards ─────────────────────────────────────────────────────
   if (loadingSession) return <LoadingScreen />;
-  if (error) return <ErrorScreen message={error} onBack={() => router.back()} />;
+  if (error)          return <ErrorScreen message={error} onBack={() => router.back()} />;
 
   // ── Màn hình chờ ───────────────────────────────────────────────
   if (!hasJoined || !token) {
@@ -225,47 +312,49 @@ export default function CandidateViewerPage() {
   }
 
   // ── Live viewer ────────────────────────────────────────────────
+  const chatMessages = messages.filter(m => m.type === "CHAT" || m.type === "SYSTEM");
+  const qaMessages   = messages.filter(m => m.type === "Q_AND_A");
   const messageCount = messages.filter(m => m.type !== "SYSTEM").length;
 
-  // Chat/Q&A panel — dùng chung cho desktop sidebar và mobile drawer
   const panelContent = (
     <>
       <div className="flex p-2 gap-1 border-b border-slate-200 shrink-0">
-        {(["chat", "qa"] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
-              ${tab === t ? "bg-slate-100 text-slate-800" : "bg-transparent text-slate-400 hover:text-slate-600"}`}
-          >
-            {t === "chat" ? (
-              <>
-                <MessageCircle className="w-3.5 h-3.5" />
-                Chat
-                {messageCount > 0 && (
-                  <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[18px] text-center">
-                    {messageCount}
-                  </span>
-                )}
-              </>
-            ) : (
-              <>
-                <HelpCircle className="w-3.5 h-3.5" />
-                Q&A
-              </>
-            )}
-          </button>
-        ))}
+        <button
+          onClick={() => setTab("chat")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
+            ${tab === "chat" ? "bg-slate-100 text-slate-800" : "bg-transparent text-slate-400 hover:text-slate-600"}`}
+        >
+          <MessageCircle className="w-3.5 h-3.5" />
+          Chat
+          {chatMessages.length > 0 && (
+            <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[18px] text-center">
+              {chatMessages.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab("qa")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
+            ${tab === "qa" ? "bg-slate-100 text-slate-800" : "bg-transparent text-slate-400 hover:text-slate-600"}`}
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+          Q&A
+          {qaMessages.length > 0 && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[18px] text-center">
+              {qaMessages.length}
+            </span>
+          )}
+        </button>
       </div>
-      <div className="flex-1 overflow-hidden">
+
+      <div className="flex-1 overflow-hidden relative">
         <ChatPanel
-          messages={messages}
-          onSend={(content) => tab === "chat" ? handleSendChat(content) : handleAskQuestion(content)}
+          messages={tab === "chat" ? chatMessages : qaMessages}
+          onSend={tab === "chat" ? handleSendChat : handleAskQuestion}
           sending={sending}
           variant="candidate"
           placeholder={tab === "qa" ? "Đặt câu hỏi cho host..." : "Nhắn tin..."}
           maxLength={tab === "qa" ? 500 : 300}
-          filterFn={(m, t) => t === "qa" ? m.type === "Q_AND_A" : m.type !== "Q_AND_A"}
         />
       </div>
     </>
@@ -293,7 +382,6 @@ export default function CandidateViewerPage() {
           )}
           <ViewerCount count={viewerCount} variant="dark" />
 
-          {/* Nút mở chat — chỉ hiện trên mobile */}
           <button
             onClick={() => setMobileDrawerOpen(true)}
             className="relative inline-flex items-center gap-1.5 p-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-200 md:hidden"
@@ -319,7 +407,6 @@ export default function CandidateViewerPage() {
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Video area */}
         <div className="flex-1 flex flex-col min-w-0 p-3 sm:p-5 gap-3 sm:gap-4">
           <LiveKitRoom
             serverUrl={livekitUrl}
@@ -340,25 +427,35 @@ export default function CandidateViewerPage() {
                 />
               )}
               {activePoll && <PollBanner poll={activePoll} onAnswer={handlePollAnswer} />}
+
+              {/* ── SpotlightBanner + ApplyModal ── */}
               {spotlightJob && (
-                <SpotlightBanner
-                  job={spotlightJob}
-                  onApply={() => router.push(`/jobs/${spotlightJob.jobPostId}/apply?from=stream&session=${sessionId}`)}
-                  onDismiss={() => setSpotlightJob(null)}
-                />
+                <>
+                  <SpotlightBanner
+                    job={spotlightJob}
+                    onApply={() => setApplyModalOpen(true)}     
+                    onDismiss={() => setSpotlightJob(null)}
+                  />
+                  {applyModalOpen && (
+                    <ApplyModal 
+                      jobTitle={spotlightJob.title ?? "Việc làm nổi bật"}
+                      onClose={() => setApplyModalOpen(false)}
+                      onSubmit={handleApplyFromStream}
+                    />
+                  )}
+                </>
               )}
             </div>
           </LiveKitRoom>
         </div>
 
-        {/* Desktop: right panel cố định — ẩn trên mobile */}
+        {/* Desktop: right panel */}
         <div className="hidden md:flex w-[340px] shrink-0 border-l border-slate-200 flex-col bg-white">
           {panelContent}
         </div>
       </div>
 
-      {/* Mobile: bottom sheet drawer ───────────────────────────── */}
-      {/* Backdrop */}
+      {/* Mobile: backdrop */}
       <div
         className={`fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300 ${
           mobileDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
@@ -366,7 +463,7 @@ export default function CandidateViewerPage() {
         onClick={() => setMobileDrawerOpen(false)}
       />
 
-      {/* Drawer panel — trượt lên từ dưới, chiếm 70vh */}
+      {/* Mobile: bottom sheet drawer */}
       <div
         className={`
           fixed bottom-0 left-0 right-0 z-50 md:hidden
@@ -377,7 +474,6 @@ export default function CandidateViewerPage() {
         `}
         style={{ height: "70dvh" }}
       >
-        {/* Handle bar + header */}
         <div className="relative flex items-center justify-between px-4 pt-4 pb-2 border-b border-slate-100 shrink-0">
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-9 h-1 bg-slate-200 rounded-full" />
           <span className="text-[13px] font-semibold text-slate-700">
@@ -390,8 +486,6 @@ export default function CandidateViewerPage() {
             <ChevronDown className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Tái sử dụng panelContent bên trong drawer */}
         <div className="flex flex-col flex-1 overflow-hidden">
           {panelContent}
         </div>

@@ -8,9 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// ============================================================
 // GetUpcomingStreamsUseCase (Marketplace)
-// ============================================================
 @Service
 @RequiredArgsConstructor
 public class GetUpcomingStreamsUseCase {

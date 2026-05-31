@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Audit Log - Admin", description = "Quản trị lịch sử hành động hệ thống")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminAuditLogController {
 
     private final GetSystemAuditLogsUseCase getSystemLogsUseCase;

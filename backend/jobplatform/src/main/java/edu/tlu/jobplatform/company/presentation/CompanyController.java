@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.company.presentation;
 
 import edu.tlu.jobplatform.ai.application.usecase.TrackCandidateBehaviorUseCase;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.application.usecase.*;
 import edu.tlu.jobplatform.company.domain.model.*;
 import edu.tlu.jobplatform.company.domain.repository.*;
@@ -10,6 +11,8 @@ import edu.tlu.jobplatform.company.presentation.dto.request.UpdateCompanyRequest
 import edu.tlu.jobplatform.company.presentation.dto.request.UpdateTeamMemberRequest;
 import edu.tlu.jobplatform.company.presentation.dto.response.CompanyResponse;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
@@ -73,6 +76,7 @@ public class CompanyController {
          */
         @Operation(summary = "Danh sách / tìm kiếm công ty (sort: gói cao nhất lên đầu)")
         @GetMapping("/api/v1/companies")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<PageResponse<CompanyResponse>>> listVerified(
                         @RequestParam(required = false) String keyword,
                         @RequestParam(required = false) String city,
@@ -91,6 +95,7 @@ public class CompanyController {
 
         @Operation(summary = "Chi tiết công ty theo ID")
         @GetMapping("/api/v1/companies/{id}")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<CompanyResponse>> getById(
                         @PathVariable UUID id,
                         Authentication auth) {
@@ -108,6 +113,7 @@ public class CompanyController {
 
         @Operation(summary = "Chi tiết công ty theo slug")
         @GetMapping("/api/v1/companies/slug/{slug}")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<CompanyResponse>> getBySlug(
                         @PathVariable String slug,
                         Authentication auth) {
@@ -122,6 +128,7 @@ public class CompanyController {
 
         @Operation(summary = "Danh sách việc làm đang tuyển của công ty")
         @GetMapping("/api/v1/companies/{id}/jobs")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
         public ResponseEntity<ApiResponse<PageResponse<JobPost>>> getCompanyJobs(
                         @PathVariable UUID id,
                         @RequestParam(defaultValue = "0") int page,
@@ -142,6 +149,7 @@ public class CompanyController {
         @Operation(summary = "Xem hồ sơ công ty của tôi")
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/companies/my")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<CompanyResponse>> getMyCompany(@CurrentUser UUID userId) {
 
@@ -167,6 +175,8 @@ public class CompanyController {
         @Operation(summary = "Tạo hồ sơ công ty")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/companies")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_CREATE_COMPANY", resourceType = "Company")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<CompanyResponse>> create(
                         @CurrentUser UUID userId,
@@ -186,6 +196,8 @@ public class CompanyController {
         @Operation(summary = "Cập nhật hồ sơ công ty")
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping("/api/v1/companies/{id}")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_COMPANY", resourceType = "Company")
         @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
         public ResponseEntity<ApiResponse<CompanyResponse>> update(
                         @PathVariable UUID id,
@@ -205,6 +217,8 @@ public class CompanyController {
         @Operation(summary = "Upload logo công ty")
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping(value = "/api/v1/companies/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_LOGO", resourceType = "Company")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<CompanyResponse>> updateLogo(
                         @CurrentUser UUID userId,
@@ -222,6 +236,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping(value = "/api/v1/companies/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_COVER", resourceType = "Company")
         public ResponseEntity<ApiResponse<CompanyResponse>> updateCover(
                         @CurrentUser UUID userId,
                         @RequestPart("file") MultipartFile file) {
@@ -241,6 +257,8 @@ public class CompanyController {
         @Operation(summary = "Thêm thành viên đội ngũ")
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping("/api/v1/companies/team")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_ADD_TEAM_MEMBER", resourceType = "Company")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<CompanyResponse.TeamMemberDto>> addTeamMember(
                         @CurrentUser UUID userId,
@@ -260,6 +278,8 @@ public class CompanyController {
         @Operation(summary = "Cập nhật thành viên đội ngũ")
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping("/api/v1/companies/team/{memberId}")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_TEAM_MEMBER", resourceType = "Company")
         @PreAuthorize("hasRole('EMPLOYER')")
         public ResponseEntity<ApiResponse<CompanyResponse.TeamMemberDto>> updateTeamMember(
                         @CurrentUser UUID userId,
@@ -281,6 +301,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @PatchMapping(value = "/api/v1/companies/team/{memberId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPDATE_MEMBER_AVATAR", resourceType = "Company")
         public ResponseEntity<ApiResponse<CompanyResponse.TeamMemberDto>> uploadMemberAvatar(
                         @CurrentUser UUID userId,
                         @PathVariable UUID memberId,
@@ -297,6 +319,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @DeleteMapping("/api/v1/companies/team/{memberId}")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_DELETE_TEAM_MEMBER", resourceType = "Company")
         public ResponseEntity<ApiResponse<Void>> deleteTeamMember(
                         @CurrentUser UUID userId,
                         @PathVariable UUID memberId) {
@@ -320,6 +344,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping(value = "/api/v1/companies/gallery", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPLOAD_GALLERY", resourceType = "Company")
         public ResponseEntity<ApiResponse<List<CompanyResponse.GalleryImageDto>>> uploadGalleryImages(
                         @CurrentUser UUID userId,
                         @RequestPart(value = "files", required = false) List<MultipartFile> files,
@@ -349,6 +375,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @DeleteMapping("/api/v1/companies/gallery/{imageId}")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "employer-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_DELETE_GALLERY_IMAGE", resourceType = "Company")
         public ResponseEntity<ApiResponse<Void>> deleteGalleryImage(
                         @CurrentUser UUID userId,
                         @PathVariable UUID imageId) {
@@ -372,6 +400,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @PostMapping(value = "/api/v1/companies/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPLOAD_DOCUMENT", resourceType = "Company")
         public ResponseEntity<ApiResponse<CompanyResponse.DocumentDto>> uploadDocument(
                         @CurrentUser UUID userId,
                         @RequestParam CompanyDocumentType type,
@@ -389,6 +419,8 @@ public class CompanyController {
         @SecurityRequirement(name = "bearerAuth")
         @GetMapping("/api/v1/companies/documents")
         @PreAuthorize("hasRole('EMPLOYER')")
+        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "EMPLOYER_UPLOAD_DOCUMENT", resourceType = "Company")
         public ResponseEntity<ApiResponse<List<CompanyResponse.DocumentDto>>> myDocuments(
                         @CurrentUser UUID userId) {
 

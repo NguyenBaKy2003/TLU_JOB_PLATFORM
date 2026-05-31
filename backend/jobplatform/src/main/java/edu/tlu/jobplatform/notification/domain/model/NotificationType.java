@@ -23,6 +23,8 @@ public enum NotificationType {
     // ── Chung ─
     NEW_MESSAGE, // badge only — không gửi email
     SYSTEM_ANNOUNCEMENT, // không gửi email
+    INTERVIEW_INVITE,
+    JOB_SPOTLIGHT,
 
     // Review types — thêm mới
     REVIEW_CREATED,

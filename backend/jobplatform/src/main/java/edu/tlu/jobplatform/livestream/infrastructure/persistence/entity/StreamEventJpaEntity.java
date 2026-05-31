@@ -8,6 +8,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 //  StreamEvent ─
 @Entity
 @Table(name = "stream_events", indexes = @Index(name = "idx_event_session", columnList = "session_id, occurred_at"))
@@ -27,7 +30,7 @@ public class StreamEventJpaEntity extends BaseJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30)
     private StreamEventType type;
-
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", columnDefinition = "jsonb")
     private String payload;
 

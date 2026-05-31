@@ -28,7 +28,6 @@ import { useAuth } from "@/application/contexts/AuthContext";
 
 const jobService = new JobService(new JobRepository());
 const appService = new ApplicationService(new ApplicationRepository());
-// ✅ Giữ aiService chỉ cho passProbability — competition không cần nữa
 const aiService  = new AiService(new AiRepository());
 
 // ── Competition Card ──────────────────────────────────────────────────────────

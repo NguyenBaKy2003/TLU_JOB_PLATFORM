@@ -173,13 +173,6 @@ public class CandidateApplicationController {
 
         /**
          * Rút đơn ứng tuyển.
-         *
-         * Thay đổi so với controller cũ:
-         * - withdrawUseCase.execute() trả về void (không trả Application) vì
-         * WithdrawApplicationUseCase mới nhận thêm candidateId để authorize
-         * và hoàn quota — không cần return Application.
-         * - Sau khi rút thành công, load lại Application từ repo để build response
-         * thay vì nhận từ useCase — tách biệt concern rõ ràng hơn.
          */
         @Operation(summary = "Rút đơn ứng tuyển")
         @DeleteMapping("/api/v1/applications/{id}/withdraw")
@@ -190,10 +183,8 @@ public class CandidateApplicationController {
 
                 UUID candidateId = SecurityUtils.getCurrentUserIdOrThrow();
 
-                // execute() kiểm tra ownership bên trong — ném FORBIDDEN nếu không phải owner
                 withdrawUseCase.execute(id, candidateId);
 
-                // Load lại để build response với status WITHDRAWN mới nhất
                 Application updated = applicationRepo.findById(id)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Application", id));
 
@@ -214,6 +205,7 @@ public class CandidateApplicationController {
         @Operation(summary = "Chấp nhận offer")
         @PreAuthorize("hasRole('CANDIDATE')")
         @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+        @PatchMapping("/api/v1/applications/{id}/accept-offer")
         @Loggable(action = "CANDIDATE_ACCEPT_OFFER", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> acceptOffer(
                         @PathVariable UUID id,
@@ -227,6 +219,7 @@ public class CandidateApplicationController {
 
         @Operation(summary = "Từ chối offer")
         @PreAuthorize("hasRole('CANDIDATE')")
+        @PatchMapping("/api/v1/applications/{id}/decline-offer")
         @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         @Loggable(action = "CANDIDATE_DECLINE_OFFER", resourceType = "Application")
         public ResponseEntity<ApiResponse<ApplicationResponse>> declineOffer(

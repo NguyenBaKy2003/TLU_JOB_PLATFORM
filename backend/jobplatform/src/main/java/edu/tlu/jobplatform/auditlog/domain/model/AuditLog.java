@@ -80,4 +80,22 @@ public class AuditLog {
                 .errorMessage(errorMessage)
                 .build();
     }
+    public static AuditLog change(String actorId, String action,
+        String resourceType, String resourceId,
+        String oldValue, String newValue,
+        String ipAddress, String userAgent, String traceId) {
+    return AuditLog.builder()
+            .actorId(actorId)
+            .action(action)
+            .resourceType(resourceType)
+            .resourceId(resourceId)
+            .oldValue(oldValue)
+            .newValue(newValue)
+            .ipAddress(ipAddress)
+            .userAgent(userAgent)
+            .traceId(traceId)
+            .occurredAt(LocalDateTime.now())
+            .result("SUCCESS")
+            .build();
+}
 }

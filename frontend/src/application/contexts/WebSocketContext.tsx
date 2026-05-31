@@ -47,32 +47,30 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
-// ── FIX: Backend gửi { type, data: { notificationId, title, ... }, timestamp }
-//         → phải đọc từ raw.data, không phải raw trực tiếp
 function mapRawNotification(raw: any): NotificationItem {
-  const payload = raw.data ?? raw; // fallback về raw nếu backend thay đổi format
+  const payload = raw.data ?? raw;
   return {
     notificationId: payload.notificationId ?? payload.id ?? "",
-    type:           payload.type ?? raw.type ?? "",
-    title:          payload.title ?? "",
-    body:           payload.body ?? payload.message ?? payload.content ?? "",
-    link:           payload.link ?? payload.url ?? null,
-    read:           payload.read === true || payload.isRead === true,
-    readAt:         payload.readAt ?? null,
-    createdAt:      payload.createdAt ?? raw.timestamp ?? new Date().toISOString(),
+    type: payload.type ?? raw.type ?? "",
+    title: payload.title ?? "",
+    body: payload.body ?? payload.message ?? payload.content ?? "",
+    link: payload.link ?? payload.url ?? null,
+    read: payload.read === true || payload.isRead === true,
+    readAt: payload.readAt ?? null,
+    createdAt: payload.createdAt ?? raw.timestamp ?? new Date().toISOString(),
   };
 }
 
 function mapRestNotification(raw: any): NotificationItem {
   return {
     notificationId: raw.id ?? raw.notificationId ?? "",
-    type:           raw.type,
-    title:          raw.title ?? "",
-    body:           raw.body ?? "",
-    link:           raw.link ?? null,
-    read:           raw.read === true,
-    readAt:         raw.readAt ?? null,
-    createdAt:      raw.createdAt ?? "",
+    type: raw.type,
+    title: raw.title ?? "",
+    body: raw.body ?? "",
+    link: raw.link ?? null,
+    read: raw.read === true,
+    readAt: raw.readAt ?? null,
+    createdAt: raw.createdAt ?? "",
   };
 }
 
@@ -82,19 +80,21 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const messageHandlersRef       = useRef<Set<(msg: IncomingMessage) => void>>(new Set());
-  const newNotifHandlersRef      = useRef<Set<(n: NotificationItem) => void>>(new Set());
-  const allReadHandlersRef       = useRef<Set<() => void>>(new Set());
-  const notifDeletedHandlersRef  = useRef<Set<(id: string) => void>>(new Set());
+  const messageHandlersRef = useRef<Set<(msg: IncomingMessage) => void>>(new Set());
+  const newNotifHandlersRef = useRef<Set<(n: NotificationItem) => void>>(new Set());
+  const allReadHandlersRef = useRef<Set<() => void>>(new Set());
+  const notifDeletedHandlersRef = useRef<Set<(id: string) => void>>(new Set());
 
-  const clientRef               = useRef<Client | null>(null);
-  const reconnectTimeoutRef     = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef    = useRef(0);
-  const connectRef              = useRef<() => void>(() => {});
-  const MAX_RECONNECT_ATTEMPTS  = 5;
+  const clientRef = useRef<Client | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const connectRef = useRef<() => void>(() => {});
+  const MAX_RECONNECT_ATTEMPTS = 5;
 
+  // pendingSubscriptionsRef : topic → handler mới nhất (kể cả khi chưa connected)
+  // activeSubscriptionsRef  : topic → hàm unsubscribe STOMP thực sự
   const pendingSubscriptionsRef = useRef<Map<string, (body: any) => void>>(new Map());
-  const activeSubscriptionsRef  = useRef<Map<string, () => void>>(new Map());
+  const activeSubscriptionsRef = useRef<Map<string, () => void>>(new Map());
 
   const notificationsRef = useRef<NotificationItem[]>(notifications);
   useEffect(() => { notificationsRef.current = notifications; }, [notifications]);
@@ -187,15 +187,37 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadInitialNotifications]);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // subscribeTopic — thiết kế đúng cho race condition giữa mount và connect:
+  //
+  // Luồng 1 (đã connected khi gọi):
+  //   → Subscribe STOMP ngay, lưu unsub vào activeSubscriptionsRef
+  //   → cleanup: hủy STOMP sub VÀ xóa pending (handler đã "active", không cần restore)
+  //
+  // Luồng 2 (chưa connected khi gọi):
+  //   → Chỉ lưu handler vào pendingSubscriptionsRef
+  //   → onConnect sẽ flush tất cả pending → subscribe STOMP
+  //   → cleanup: CHỈ xóa pending (không có active sub để hủy)
+  //     ⚠️  KHÔNG xóa active ở đây vì onConnect có thể đã tạo active sub
+  //         trong khoảng thời gian giữa mount và cleanup chạy.
+  //         onConnect tự kiểm tra has(topic) trước khi subscribe.
+  //
+  // Luồng 3 (CandidateViewerPage thêm isConnected vào dep array):
+  //   → Khi WS reconnect (isConnected: false→true), useEffect re-run
+  //   → subscribeTopic được gọi lại với handler mới nhất → subscribe đúng
+  // ─────────────────────────────────────────────────────────────────────────
   const subscribeTopic = useCallback(
     (topic: string, handler: (body: any) => void): (() => void) => {
+      // Luôn cập nhật handler mới nhất vào pending
       pendingSubscriptionsRef.current.set(topic, handler);
 
       if (clientRef.current?.connected) {
+        // Hủy subscription STOMP cũ nếu đang tồn tại (tránh duplicate)
         const existingUnsub = activeSubscriptionsRef.current.get(topic);
         if (existingUnsub) existingUnsub();
 
         const sub = clientRef.current.subscribe(topic, (msg: IMessage) => {
+          // Đọc handler mới nhất tại thời điểm nhận message (closure-safe)
           const currentHandler = pendingSubscriptionsRef.current.get(topic);
           if (currentHandler) currentHandler(JSON.parse(msg.body));
         });
@@ -203,13 +225,29 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         const unsub = () => {
           sub.unsubscribe();
           activeSubscriptionsRef.current.delete(topic);
+          // Xóa pending vì subscription này đã active và bây giờ bị hủy chủ động
+          pendingSubscriptionsRef.current.delete(topic);
         };
         activeSubscriptionsRef.current.set(topic, unsub);
         return unsub;
       }
 
-      return () => { activeSubscriptionsRef.current.delete(topic); };
-    }, [],
+      // Chưa connected: handler đã lưu vào pending, onConnect sẽ flush
+      // cleanup chỉ xóa pending — KHÔNG chạm activeSubscriptionsRef
+      // (phòng trường hợp onConnect đã chạy xong và tạo active sub rồi)
+      return () => {
+        // Chỉ xóa pending nếu handler vẫn là handler này (không bị overwrite)
+        if (pendingSubscriptionsRef.current.get(topic) === handler) {
+          pendingSubscriptionsRef.current.delete(topic);
+        }
+        // Nếu active sub đã được tạo bởi onConnect, hủy nó luôn
+        const activeUnsub = activeSubscriptionsRef.current.get(topic);
+        if (activeUnsub) {
+          activeUnsub();
+        }
+      };
+    },
+    [],
   );
 
   const publishMessage = useCallback((destination: string, body: object) => {
@@ -229,7 +267,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const wsUrl      = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080";
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080";
     const wsEndpoint = `${wsUrl}/api/v1/ws`;
 
     const client = new Client({
@@ -244,39 +282,37 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
 
-        // ── Chat messages ────────────────────────────────────────────────────
+        // ── Chat messages ────────────────────────────────────────────────
         client.subscribe("/user/queue/messages", (message: IMessage) => {
           const incoming: IncomingMessage = JSON.parse(message.body);
           messageHandlersRef.current.forEach((h) => h(incoming));
         });
 
-        // ── FIX: Tách xử lý NOTIFICATION vs UNREAD_BADGE ────────────────────
-        // Backend gửi 2 loại event qua cùng 1 topic:
-        //   { type: "UNREAD_BADGE", data: { unreadCount: N }, timestamp }
-        //   { type: "NOTIFICATION", data: { notificationId, title, body, link, createdAt }, timestamp }
         const handleNewNotif = (raw: any) => {
-          // UNREAD_BADGE — chỉ update count, không push vào list
           if (raw.type === "UNREAD_BADGE") {
             const count = raw.data?.unreadCount;
             if (typeof count === "number") setUnreadCount(count);
             return;
           }
 
-          // NOTIFICATION — map từ raw.data và push vào list
           if (raw.type === "NOTIFICATION") {
             const notification = mapRawNotification(raw);
-            if (!notification.notificationId) return; // guard: bỏ qua nếu id rỗng
+            if (!notification.notificationId) return;
 
+            let isNew = false;
             setNotifications((prev) => {
               const exists = prev.some(
                 (n) => n.notificationId === notification.notificationId,
               );
               if (exists) return prev;
+              isNew = true;
               return [notification, ...prev.slice(0, 19)];
             });
-            // Không tự tăng unreadCount ở đây —
-            // backend đã push UNREAD_BADGE riêng nên tránh double-count
-            emitNewNotification(notification);
+
+            if (isNew && !notification.read) {
+              setUnreadCount((prev) => prev + 1);
+            }
+            if (isNew) emitNewNotification(notification);
           }
         };
 
@@ -287,13 +323,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           handleNewNotif(JSON.parse(message.body));
         });
 
-        // ── Unread count (legacy channel — vẫn giữ để backward compat) ───────
+        // ── Unread count (legacy) ────────────────────────────────────────
         client.subscribe("/user/queue/unread-count", (message: IMessage) => {
           const count = parseInt(message.body, 10);
           if (!isNaN(count)) setUnreadCount(count);
         });
 
-        // ── Single read (idempotent với optimistic update) ────────────────────
+        // ── Single read ──────────────────────────────────────────────────
         client.subscribe("/user/queue/notification-read", (message: IMessage) => {
           let readId: string;
           try {
@@ -309,10 +345,9 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                 : n,
             ),
           );
-          // unreadCount đã được giảm bởi optimistic update — không giảm lại
         });
 
-        // ── All read (idempotent) ─────────────────────────────────────────────
+        // ── All read ─────────────────────────────────────────────────────
         client.subscribe("/user/queue/all-read", () => {
           setNotifications((prev) =>
             prev.map((n) => ({
@@ -325,7 +360,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           emitAllRead();
         });
 
-        // ── Notification deleted ──────────────────────────────────────────────
+        // ── Notification deleted ──────────────────────────────────────────
         client.subscribe("/user/queue/notification-deleted", (message: IMessage) => {
           const deletedId = message.body.replace(/"/g, "");
           setNotifications((prev) => {
@@ -336,13 +371,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           emitNotificationDeleted(deletedId);
         });
 
-        // ── Re-subscribe pending topics sau reconnect ─────────────────────────
+        // ── Flush pending topics (dynamic subscriptions từ các component) ─
+        // Chạy sau tất cả system subscriptions, guard has() để tránh duplicate.
         pendingSubscriptionsRef.current.forEach((_, topic) => {
+          if (activeSubscriptionsRef.current.has(topic)) return;
+
           const sub = client.subscribe(topic, (msg: IMessage) => {
             const currentHandler = pendingSubscriptionsRef.current.get(topic);
             if (currentHandler) currentHandler(JSON.parse(msg.body));
           });
-          activeSubscriptionsRef.current.set(topic, () => sub.unsubscribe());
+          activeSubscriptionsRef.current.set(topic, () => {
+            sub.unsubscribe();
+            activeSubscriptionsRef.current.delete(topic);
+          });
         });
 
         loadInitialNotifications();
@@ -361,6 +402,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       onDisconnect: () => {
         console.log("🔌 [WebSocket] Disconnected");
         setIsConnected(false);
+        // Xóa active subs (STOMP subs đã invalid) nhưng GIỮ pending
+        // để onConnect có thể restore khi reconnect thành công.
         activeSubscriptionsRef.current.clear();
 
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {

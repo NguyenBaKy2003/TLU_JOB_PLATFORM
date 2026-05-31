@@ -1,6 +1,9 @@
 package edu.tlu.jobplatform.user.presentation;
 
 import edu.tlu.jobplatform.auth.infrastructure.security.JwtTokenProvider;
+import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.user.application.usecase.*;
@@ -19,15 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * Controller: Cài đặt tài khoản.
- *
- * Authentication: tất cả endpoint yêu cầu JWT.
- * UserId được lấy từ SecurityContext (principal = userId string từ
- * JwtAuthFilter).
- *
- * Base path: /api/v1/settings
- */
 @RestController
 @RequestMapping("/api/v1/settings")
 @RequiredArgsConstructor
@@ -43,87 +37,69 @@ public class SettingsController {
         private final DeleteAccountUseCase deleteAccountUseCase;
         private final JwtTokenProvider jwtTokenProvider;
 
-        // ── PATCH /api/v1/settings/name ─
+        // ── PATCH /api/v1/settings/name ───────────────────────────────────
 
         @Operation(summary = "Cập nhật họ và tên")
         @PatchMapping("/name")
+        @RateLimit(policy = "user-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "USER_UPDATE_NAME", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> updateName(
                         @AuthenticationPrincipal String userId,
                         @Valid @RequestBody UpdateNameRequest req) {
 
                 updateNameUseCase.execute(
                                 new UpdateNameUseCase.Command(UUID.fromString(userId), req.getFullName()));
-
                 return ResponseEntity.ok(ApiResponse.success("Họ và tên đã được cập nhật."));
         }
 
-        // ── POST /api/v1/settings/email/change-request
+        // ── POST /api/v1/settings/email/change-request ────────────────────
 
-        @Operation(summary = "Yêu cầu đổi email — gửi link xác nhận đến email mới", description = """
-                        Gửi link xác nhận đến email mới (TTL 15 phút).
-                        User phải click link trong email mới để hoàn tất đổi email.
-
-                        **Lưu ý:** Link xác nhận gửi đến email MỚI, không phải email cũ.
-                        """)
+        @Operation(summary = "Yêu cầu đổi email — gửi link xác nhận đến email mới")
         @PostMapping("/email/change-request")
+        @RateLimit(policy = "user-sensitive", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "USER_REQUEST_EMAIL_CHANGE", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> requestEmailChange(
                         @AuthenticationPrincipal String userId,
                         @Valid @RequestBody RequestEmailChangeRequest req) {
 
                 requestEmailChangeUseCase.execute(
                                 new RequestEmailChangeUseCase.Command(UUID.fromString(userId), req.getNewEmail()));
-
                 return ResponseEntity.ok(ApiResponse.success(
                                 "Link xác nhận đã được gửi đến " + req.getNewEmail() + ". Vui lòng kiểm tra hộp thư."));
         }
 
-        // ── GET /api/v1/settings/email/confirm
+        // ── POST /api/v1/settings/email/confirm ───────────────────────────
 
-        @Operation(summary = "Xác nhận đổi email bằng token từ link email", description = """
-                        Endpoint này được gọi khi user click link trong email xác nhận.
-
-                        Frontend nhận token + userId từ URL:
-                        `/settings/confirm-email?token={token}&userId={userId}`
-                        → gọi endpoint này để hoàn tất đổi email.
-
-                        **Sau khi thành công:** Tất cả session bị revoke, cần đăng nhập lại.
-                        """)
+        @Operation(summary = "Xác nhận đổi email bằng token từ link email")
         @PostMapping("/email/confirm")
+        @RateLimit(policy = "user-sensitive", scope = RateLimitPolicy.Scope.IP)
+        @Loggable(action = "USER_CONFIRM_EMAIL_CHANGE", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> confirmEmailChange(
                         @RequestParam UUID userId,
                         @RequestParam String token) {
 
                 confirmEmailChangeUseCase.execute(
                                 new ConfirmEmailChangeUseCase.Command(userId, token));
-
                 return ResponseEntity.ok(ApiResponse.success(
                                 "Email đã được cập nhật thành công. Vui lòng đăng nhập lại."));
         }
 
-        // ── PATCH /api/v1/settings/password ──
+        // ── PATCH /api/v1/settings/password ──────────────────────────────
 
-        @Operation(summary = "Đổi mật khẩu khi đã đăng nhập", description = """
-                        Yêu cầu nhập mật khẩu hiện tại để xác minh danh tính.
-
-                        **Mật khẩu mới yêu cầu:** ≥8 ký tự, ít nhất 1 chữ hoa, 1 chữ thường, 1 số.
-
-                        **Sau khi đổi:** Tất cả session trên các thiết bị khác bị revoke.
-                        Session hiện tại vẫn giữ nguyên.
-                        """)
+        @Operation(summary = "Đổi mật khẩu khi đã đăng nhập")
         @PatchMapping("/password")
+        @RateLimit(policy = "user-sensitive", scope = RateLimitPolicy.Scope.IP)
+        @Loggable(action = "USER_CHANGE_PASSWORD", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> changePassword(
                         @AuthenticationPrincipal String userId,
                         @RequestHeader("Authorization") String authHeader,
                         @Valid @RequestBody ChangePasswordRequest req) {
 
-                // Validate confirmPassword khớp với newPassword
                 if (!req.getNewPassword().equals(req.getConfirmPassword())) {
                         throw new BusinessRuleException("Mật khẩu xác nhận không khớp.", "PASSWORD_MISMATCH");
                 }
 
-                // Lấy tokenId từ JWT để giữ session hiện tại sau khi đổi mật khẩu
-                String accessToken = extractToken(authHeader);
-                String currentTokenId = jwtTokenProvider.extractTokenId(accessToken);
+                String currentTokenId = jwtTokenProvider.extractTokenId(extractToken(authHeader));
 
                 changePasswordUseCase.execute(new ChangePasswordUseCase.Command(
                                 UUID.fromString(userId),
@@ -134,10 +110,12 @@ public class SettingsController {
                 return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã được đổi thành công."));
         }
 
-        // ── PATCH /api/v1/settings/notifications ─
+        // ── PATCH /api/v1/settings/notifications ─────────────────────────
 
         @Operation(summary = "Cập nhật cài đặt thông báo")
         @PatchMapping("/notifications")
+        @RateLimit(policy = "user-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "USER_UPDATE_NOTIFICATIONS", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> updateNotifications(
                         @AuthenticationPrincipal String userId,
                         @Valid @RequestBody UpdateNotificationRequest req) {
@@ -147,35 +125,30 @@ public class SettingsController {
                                 req.isNewJobs(),
                                 req.isApplications(),
                                 req.isMessages()));
-
                 return ResponseEntity.ok(ApiResponse.success("Cài đặt thông báo đã được lưu."));
         }
 
-        // ── DELETE /api/v1/settings/account ──
+        // ── DELETE /api/v1/settings/account ──────────────────────────────
 
-        @Operation(summary = "Xóa tài khoản", description = """
-                        Soft delete tài khoản. Hành động **không thể hoàn tác**.
-
-                        Tất cả session bị revoke ngay lập tức.
-                        Data sẽ bị xóa hoàn toàn sau 30 ngày (GDPR compliance).
-                        """)
+        @Operation(summary = "Xóa tài khoản")
         @DeleteMapping("/account")
+        @RateLimit(policy = "user-sensitive", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "USER_DELETE_ACCOUNT", resourceType = "User", logResult = true)
         public ResponseEntity<ApiResponse<Void>> deleteAccount(
                         @AuthenticationPrincipal String userId) {
 
                 deleteAccountUseCase.execute(new DeleteAccountUseCase.Command(UUID.fromString(userId)));
-
                 return ResponseEntity.ok(ApiResponse.success(
                                 "Tài khoản đã được xóa. Chúng tôi rất tiếc khi bạn rời đi."));
         }
 
-        // ── Helper
+        // ── Helper ────────────────────────────────────────────────────────
 
         private String extractToken(String authHeader) {
                 return authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
         }
 
-        // ── Inner DTOs ──
+        // ── Inner DTOs ────────────────────────────────────────────────────
 
         @Getter
         static class UpdateNameRequest {

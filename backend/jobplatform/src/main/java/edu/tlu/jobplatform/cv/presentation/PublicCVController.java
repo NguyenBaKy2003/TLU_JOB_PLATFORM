@@ -4,6 +4,8 @@ import edu.tlu.jobplatform.cv.application.service.CVRenderService;
 import edu.tlu.jobplatform.cv.application.usecase.GetPublicCVUseCase;
 import edu.tlu.jobplatform.cv.domain.model.OnlineCV;
 import edu.tlu.jobplatform.cv.presentation.dto.response.PublicCVResponse;
+import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
+import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +25,7 @@ public class PublicCVController {
 
     @Operation(summary = "Xem CV public JSON theo slug")
     @GetMapping("/{slug}")
+    @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<PublicCVResponse>> getPublicCV(
             @PathVariable String slug,
             HttpServletRequest request) {
@@ -33,6 +36,7 @@ public class PublicCVController {
 
     @Operation(summary = "Xem HTML CV public theo slug")
     @GetMapping("/{slug}/html")
+    @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
     public ResponseEntity<ApiResponse<String>> getPublicCVHtml(
             @PathVariable String slug,
             HttpServletRequest request) {
