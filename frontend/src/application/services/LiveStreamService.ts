@@ -1,4 +1,3 @@
-// application/services/LiveStreamService.ts
 import type { ILiveStreamRepository } from "@/domain/repositories/ILiveStreamRepository";
 import type {
   LiveStreamSession,
@@ -8,12 +7,13 @@ import type {
   SpotlightJobRequest,
   InviteToSlotRequest,
   InterviewSlot,
+  StreamAnalytics, // ← THÊM
 } from "@/domain/models/LiveStream";
 
 export class LiveStreamService {
   constructor(private readonly repo: ILiveStreamRepository) {}
 
-  // ─── Employer Methods ───────────
+  // ─── Employer Methods ────────────────────────────────────────────
 
   createSession(req: CreateSessionRequest): Promise<LiveStreamSession> {
     return this.repo.createSession(req);
@@ -25,6 +25,10 @@ export class LiveStreamService {
 
   getSession(sessionId: string): Promise<LiveStreamSession> {
     return this.repo.getSession(sessionId);
+  }
+
+  getAnalytics(sessionId: string): Promise<StreamAnalytics> {
+    return this.repo.getAnalytics(sessionId);
   }
 
   startStream(sessionId: string): Promise<SessionStartResponse> {
@@ -39,21 +43,19 @@ export class LiveStreamService {
     return this.repo.spotlightJob(sessionId, req);
   }
 
-  inviteToSlot(
-    sessionId: string,
-    req: InviteToSlotRequest
-  ): Promise<InterviewSlot> {
+  inviteToSlot(sessionId: string, req: InviteToSlotRequest): Promise<InterviewSlot> {
     return this.repo.inviteToSlot(sessionId, req);
   }
 
-  // ─── Candidate Methods ──────────
+  // ─── Candidate Methods ───────────────────────────────────────────
 
   joinStream(sessionId: string): Promise<JoinSessionResponse> {
     return this.repo.joinStream(sessionId);
   }
+
   leaveStream(sessionId: string): Promise<void> {
     return this.repo.leaveStream(sessionId);
-}
+  }
 
   getUpcomingStreams(): Promise<LiveStreamSession[]> {
     return this.repo.getUpcomingStreams();
@@ -63,25 +65,17 @@ export class LiveStreamService {
     return this.repo.submitQuestion(sessionId, question);
   }
 
-  respondToPoll(
-    sessionId: string,
-    pollEventId: string,
-    optionIndex: number
-  ): Promise<void> {
+  respondToPoll(sessionId: string, pollEventId: string, optionIndex: number): Promise<void> {
     return this.repo.respondToPoll(sessionId, pollEventId, optionIndex);
   }
 
-  // ─── Common Methods ─────────────
-  
-  /**
-   * Get current viewer count (fallback when WebSocket is not available)
-   */
+  // ─── Common Methods ──────────────────────────────────────────────
+
   async getViewerCount(sessionId: string): Promise<number> {
     try {
       const session = await this.getSession(sessionId);
       return session.viewerCount || 0;
-    } catch (error) {
-      console.error("Failed to get viewer count:", error);
+    } catch {
       return 0;
     }
   }

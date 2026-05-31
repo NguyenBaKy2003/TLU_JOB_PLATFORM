@@ -18,32 +18,31 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GetStreamReplayUseCase {
 
-    private final LiveStreamSessionRepository sessionRepository;
-    private final StreamRecordingRepository recordingRepository;
+        private final LiveStreamSessionRepository sessionRepository;
+        private final StreamRecordingRepository recordingRepository;
 
-    public record Result(
-            String videoUrl,
-            String aiSummary,
-            List<String> topQuestions,
-            List<String> keyTopics,
-            boolean hasApplyCTA,
-            List<UUID> spotlightedJobIds) {
-    }
+        public record Result(
+                        String videoUrl,
+                        String aiSummary,
+                        List<String> topQuestions,
+                        List<String> keyTopics,
+                        boolean hasApplyCTA,
+                        List<UUID> spotlightedJobIds) {
+        }
 
-    public Result execute(UUID sessionId) {
-        LiveStreamSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên stream"));
+        public Result execute(UUID sessionId) {
+                LiveStreamSession session = sessionRepository.findById(sessionId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiên stream"));
 
-        StreamRecording recording = recordingRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Recording chưa sẵn sàng"));
+                StreamRecording recording = recordingRepository.findBySessionId(sessionId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Recording chưa sẵn sàng"));
 
-        return new Result(
-                recording.getRecordingUrl(),
-                recording.getAiSummary(),
-                recording.getTopQuestions(),
-                recording.getKeyTopics(),
-                true, // Apply CTA vẫn hoạt động khi xem replay
-                List.of() // TODO: query spotlighted jobs từ StreamEvent log
-        );
-    }
+                return new Result(
+                                recording.getRecordingUrl(),
+                                recording.getAiSummary(),
+                                recording.getTopQuestions(),
+                                recording.getKeyTopics(),
+                                true,
+                                List.of());
+        }
 }

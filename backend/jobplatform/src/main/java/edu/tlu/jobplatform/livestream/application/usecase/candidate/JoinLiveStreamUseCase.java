@@ -3,6 +3,7 @@ package edu.tlu.jobplatform.livestream.application.usecase.candidate;
 import edu.tlu.jobplatform.livestream.application.port.out.MediaServerPort;
 import edu.tlu.jobplatform.livestream.application.service.StreamViewerManager;
 import edu.tlu.jobplatform.livestream.domain.model.LiveStreamSession;
+import edu.tlu.jobplatform.livestream.domain.model.vo.InterviewSlot;
 import edu.tlu.jobplatform.livestream.domain.model.vo.SessionStatus;
 import edu.tlu.jobplatform.livestream.domain.model.vo.SessionType;
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
@@ -47,23 +48,33 @@ public class JoinLiveStreamUseCase {
                                         "SESSION_NOT_LIVE");
                 }
 
-                // Phân biệt token dựa vào session type
                 String viewerToken;
                 boolean canPublish;
 
                 if (session.getSessionType() == SessionType.INTERVIEW) {
-                        // Interview: Candidate có quyền bật cam/mic
-                        viewerToken = mediaServerPort.generateSpeakerToken(sessionId, candidateId);
-                        canPublish = true;
+                        boolean hasInvitedSlot = session.getInterviewSlots().stream()
+                                        .anyMatch(slot -> candidateId.equals(slot.assignedCandidateId()) &&
+                                                        slot.status() == InterviewSlot.SlotStatus.BOOKED);
+
+                        if (!hasInvitedSlot) {
+                                viewerToken = mediaServerPort.generateViewerToken(sessionId, candidateId);
+                                canPublish = false;
+                                log.info("[Join] candidateId={} joined INTERVIEW sessionId={} as VIEWER (no slot assigned)",
+                                                candidateId, sessionId);
+                        } else {
+                                viewerToken = mediaServerPort.generateSpeakerToken(sessionId, candidateId);
+                                canPublish = true;
+                                log.info("[Join] candidateId={} joined INTERVIEW sessionId={} as SPEAKER (slot assigned)",
+                                                candidateId, sessionId);
+                        }
                 } else {
                         viewerToken = mediaServerPort.generateViewerToken(sessionId, candidateId);
                         canPublish = false;
+
+                        log.info("[Join] candidateId={} joined JOB_FAIR sessionId={}", candidateId, sessionId);
                 }
 
                 int currentCount = viewerManager.viewerJoined(sessionId, candidateId);
-
-                log.info("[Join] candidateId={} joined sessionId={}, type={}, canPublish={}, currentCount={}",
-                                candidateId, sessionId, session.getSessionType(), canPublish, currentCount);
 
                 return new Result(viewerToken, livekitUrl, currentCount, canPublish);
         }

@@ -10,7 +10,16 @@ export interface InterviewSlot {
   candidateId: string | null;
   status: SlotStatus;
 }
-
+export interface StreamAnalytics {
+  sessionId:         string;
+  peakViewerCount:   number;
+  totalViewerCount:  number;
+  totalWatchSeconds: number;
+  applyClickCount:   number;
+  cvViewCount:       number;
+  pollResponseCount: number;
+  qaQuestionCount:   number;
+}
 export interface LiveStreamSession {
   id: string;
   companyId: string;

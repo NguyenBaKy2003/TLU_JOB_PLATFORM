@@ -8,18 +8,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
-
 import java.util.Map;
 
-/**
- * Lắng nghe StreamEvent được publish sau khi transaction commit,
- * rồi push xuống tất cả viewer qua WebSocket STOMP.
- *
- * Destination: /topic/stream/{sessionId}/events
- *
- * Frontend subscribe:
- * stompClient.subscribe('/topic/stream/{sessionId}/events', callback)
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -31,7 +21,7 @@ public class StreamEventWsPusher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onStreamEvent(StreamEventCreatedEvent appEvent) {
         StreamEvent event = appEvent.streamEvent();
-        String destination = "/topic/stream/" + event.getSessionId() + "/events";
+        String destination = "/topic/streams/" + event.getSessionId() + "/events";
 
         try {
             Map<String, Object> wsPayload = Map.of(
@@ -49,20 +39,13 @@ public class StreamEventWsPusher {
         }
     }
 
-    /**
-     * Push viewer count update riêng — chạy tần suất cao hơn, không cần persist.
-     */
     public void pushViewerCount(String sessionId, int count) {
-        String destination = "/topic/stream/" + sessionId + "/events";
+        String destination = "/topic/streams/" + sessionId + "/events";
         messagingTemplate.convertAndSend(destination, Map.of(
                 "type", "VIEWER_COUNT_UPDATE",
                 "payload", Map.of("count", count)));
     }
 
-    /**
-     * Push interview invite riêng cho 1 candidate (private queue).
-     * Destination: /queue/stream-invite (personal queue của user)
-     */
     public void pushInterviewInvite(String candidateUserId, Object invitePayload) {
         messagingTemplate.convertAndSendToUser(
                 candidateUserId,
@@ -75,7 +58,7 @@ public class StreamEventWsPusher {
         try {
             return objectMapper.readValue(json, Object.class);
         } catch (Exception e) {
-            return json; // trả về string nếu không parse được
+            return json;
         }
     }
 }

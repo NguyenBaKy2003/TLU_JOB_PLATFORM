@@ -6,45 +6,28 @@ import type {
   SpotlightJobRequest,
   InviteToSlotRequest,
   InterviewSlot,
+  StreamAnalytics,
 } from "@/domain/models/LiveStream";
 
 export interface ILiveStreamRepository {
-  // ─── Employer Endpoints ─────────
+  // ─── Employer Endpoints ─────────────────────────────────────────
 
-  /** POST /api/v1/streams — Tạo phiên stream mới */
   createSession(req: CreateSessionRequest): Promise<LiveStreamSession>;
-
-  /** GET /api/v1/streams — Danh sách phiên của employer */
   getMySessions(): Promise<LiveStreamSession[]>;
-
-  /** GET /api/v1/streams/{id} — Chi tiết phiên */
   getSession(sessionId: string): Promise<LiveStreamSession>;
-
-  /** POST /api/v1/streams/{id}/start — Bắt đầu stream, lấy host token */
   startStream(sessionId: string): Promise<SessionStartResponse>;
-
-  /** POST /api/v1/streams/{id}/end — Kết thúc stream */
   endStream(sessionId: string): Promise<void>;
-
-  /** POST /api/v1/streams/{id}/spotlight — Ghim job post */
   spotlightJob(sessionId: string, req: SpotlightJobRequest): Promise<void>;
-
-  /** POST /api/v1/streams/{id}/invite-slot — Mời candidate vào slot */
   inviteToSlot(sessionId: string, req: InviteToSlotRequest): Promise<InterviewSlot>;
 
-  // ─── Candidate Endpoints ────────
+  /** GET /api/v1/streams/{id}/analytics — Thống kê sau stream */
+  getAnalytics(sessionId: string): Promise<StreamAnalytics>; // ← THÊM
 
-  /** POST /api/v1/streams/{id}/join — Candidate lấy viewer token để vào xem */
+  // ─── Candidate Endpoints ────────────────────────────────────────
+
   joinStream(sessionId: string): Promise<JoinSessionResponse>;
-
-  /** GET /api/v1/streams/upcoming — Danh sách phiên sắp diễn ra (public) */
   getUpcomingStreams(): Promise<LiveStreamSession[]>;
-  /** POST /api/v1/streams/{id}/leave — Candidate rời phiên stream */
-  leaveStream(sessionId: string): Promise<void>;           // ← THÊM
-
-  /** POST /api/v1/streams/{id}/questions — Gửi câu hỏi Q&A */
+  leaveStream(sessionId: string): Promise<void>;
   submitQuestion(sessionId: string, question: string): Promise<void>;
-
-  /** POST /api/v1/streams/{id}/polls/{pollId}/respond — Trả lời poll */
   respondToPoll(sessionId: string, pollEventId: string, optionIndex: number): Promise<void>;
 }

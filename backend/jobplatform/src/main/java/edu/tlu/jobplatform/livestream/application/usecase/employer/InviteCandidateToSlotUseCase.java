@@ -7,16 +7,17 @@ import edu.tlu.jobplatform.livestream.domain.model.vo.StreamEventType;
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
 import edu.tlu.jobplatform.livestream.domain.repository.StreamEventRepository;
 import edu.tlu.jobplatform.livestream.domain.service.SessionDomainService;
+import edu.tlu.jobplatform.shared.event.livestream.StreamEventCreatedEvent;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-// ============================================================
 // InviteCandidateToSlotUseCase
-// ============================================================
 @Service
 @RequiredArgsConstructor
 public class InviteCandidateToSlotUseCase {
@@ -24,6 +25,7 @@ public class InviteCandidateToSlotUseCase {
         private final LiveStreamSessionRepository sessionRepository;
         private final StreamEventRepository eventRepository;
         private final SessionDomainService sessionDomainService;
+        private final ApplicationEventPublisher eventPublisher;
 
         public record Command(UUID sessionId, UUID hostUserId, UUID candidateId, UUID slotId) {
         }
@@ -35,18 +37,16 @@ public class InviteCandidateToSlotUseCase {
 
                 sessionDomainService.validateCanInviteToSlot(session, cmd.hostUserId());
 
-                // Assign slot trong domain (validate slot còn trống)
                 InterviewSlot assignedSlot = session.assignSlotToCandidate(cmd.slotId(), cmd.candidateId());
                 sessionRepository.save(session);
 
-                // Tạo stream event để WS notify candidate
                 String payload = """
                                 {"candidateId":"%s","slotId":"%s","startTime":"%s","durationMinutes":%d}
                                 """.formatted(
                                 cmd.candidateId(),
                                 assignedSlot.slotId(),
                                 assignedSlot.startTime(),
-                                assignedSlot.durationMinutes());
+                                assignedSlot.durationMinutes()).strip();
 
                 StreamEvent inviteEvent = StreamEvent.of(
                                 cmd.sessionId(),
@@ -55,9 +55,11 @@ public class InviteCandidateToSlotUseCase {
                                 payload);
                 eventRepository.save(inviteEvent);
 
-                // Publish event → WS push private notification cho candidate
-                // eventPublisher.publishEvent(new InterviewInviteEvent(cmd.candidateId(),
-                // assignedSlot, cmd.sessionId()));
+                eventPublisher.publishEvent(new StreamEventCreatedEvent(
+                                cmd.candidateId(),
+                                cmd.sessionId(),
+                                StreamEventType.INTERVIEW_INVITE,
+                                payload));
 
                 return assignedSlot;
         }

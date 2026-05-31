@@ -185,7 +185,11 @@ jobs:
             echo "▶ Restart backend..."
             IMAGE_TAG=${{ needs.build-image.outputs.image-tag }} \
             docker compose -f docker-compose.dev.yml --env-file .env \
-              up -d --no-deps --wait backend
+              up -d --no-deps backend
+
+            echo "▶ Chờ backend khởi động..."
+            sleep 20
+            docker logs jobplatform-backend-dev --tail 80
 
             echo "▶ Health check (tối đa 5 phút)..."
             for i in $(seq 1 40); do

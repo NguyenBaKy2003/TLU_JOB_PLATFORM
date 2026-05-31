@@ -1,16 +1,18 @@
-// livestream/application/usecase/candidate/SubmitQAQuestionUseCase.java
 package edu.tlu.jobplatform.livestream.application.usecase.candidate;
 
 import edu.tlu.jobplatform.livestream.domain.model.LiveStreamSession;
 import edu.tlu.jobplatform.livestream.domain.model.QAQuestion;
+import edu.tlu.jobplatform.livestream.domain.model.StreamAnalytics;
 import edu.tlu.jobplatform.livestream.domain.repository.LiveStreamSessionRepository;
 import edu.tlu.jobplatform.livestream.domain.repository.QAQuestionRepository;
+import edu.tlu.jobplatform.livestream.domain.repository.StreamAnalyticsRepository;
 import edu.tlu.jobplatform.livestream.presentation.dto.ws.payload.QAQuestionPayload;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.websocket.application.port.out.WsPushPort;
 import edu.tlu.jobplatform.websocket.domain.model.WsPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,19 +20,20 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubmitQAQuestionUseCase {
 
     private final LiveStreamSessionRepository sessionRepository;
     private final QAQuestionRepository qaRepository;
+    private final StreamAnalyticsRepository analyticsRepository; // ← THÊM
     private final WsPushPort wsPushPort;
-    private final UserDisplayNameResolver nameResolver; // xem mục 4
+    private final UserDisplayNameResolver nameResolver;
 
     public record Command(UUID sessionId, UUID candidateId, String question) {
     }
 
     @Transactional
     public void execute(Command cmd) {
-        // 1. Kiểm tra session tồn tại và đang LIVE
         LiveStreamSession session = sessionRepository.findById(cmd.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Phiên stream không tồn tại", "STREAM_NOT_FOUND"));
@@ -41,16 +44,24 @@ public class SubmitQAQuestionUseCase {
                     "STREAM_NOT_LIVE");
         }
 
-        // 2. Lấy tên hiển thị — validation trong domain model
         String candidateName = nameResolver.resolve(cmd.candidateId());
 
-        // 3. Tạo — validation nằm trong domain
         QAQuestion question = QAQuestion.create(
                 cmd.sessionId(), cmd.candidateId(), candidateName, cmd.question());
 
         QAQuestion saved = qaRepository.save(question);
 
-        // 4. Broadcast tới employer (subscribe /topic/streams/{id}/qa)
+        // ✅ Tăng qaQuestionCount
+        try {
+            StreamAnalytics analytics = analyticsRepository
+                    .findBySessionId(cmd.sessionId())
+                    .orElseGet(() -> StreamAnalytics.createFor(cmd.sessionId()));
+            analytics.recordQaQuestion();
+            analyticsRepository.save(analytics);
+        } catch (Exception e) {
+            log.warn("Failed to update qaQuestionCount for session {}", cmd.sessionId(), e);
+        }
+
         wsPushPort.pushToTopic(
                 streamTopic(cmd.sessionId(), "qa"),
                 WsPayload.of(WsPayload.Type.STREAM_QA_QUESTION, QAQuestionPayload.from(saved)));
