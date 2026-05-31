@@ -30,12 +30,12 @@ public class AdminUserUseCase {
     private final ProfileCreationService profileCreationService;
 
     @Transactional(readOnly = true)
-    public Page<User> listUsers(String keyword, UserRole role, Pageable pageable) {
-        if (keyword != null && !keyword.isBlank())
-            return userRepo.searchByKeyword(keyword, pageable);
-        if (role != null)
-            return userRepo.findByRole(role, pageable);
-        return userRepo.findAll(pageable);
+    public Page<User> listUsers(String keyword, UserRole role, Boolean active, Pageable pageable) {
+        return userRepo.searchUsers(
+                (keyword != null && !keyword.isBlank()) ? keyword.trim() : null,
+                role,
+                active,
+                pageable);
     }
 
     @Transactional(readOnly = true)

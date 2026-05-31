@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminCompanyUseCase;
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportCompaniesUseCase;
 import edu.tlu.jobplatform.admin.presentation.dto.request.ReasonRequest;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
@@ -26,14 +27,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * GET /api/v1/admin/companies Danh sách (filter theo verification status)
- * GET /api/v1/admin/companies/{id} Chi tiết (có documents + team + gallery)
- * POST /api/v1/admin/companies/{id}/approve Duyệt xác thực
- * POST /api/v1/admin/companies/{id}/reject Từ chối (kèm lý do)
- * POST /api/v1/admin/companies/{id}/suspend Khoá
- * POST /api/v1/admin/companies/{id}/unsuspend Mở khoá
- */
 @RestController
 @RequestMapping("/api/v1/admin/companies")
 @RequiredArgsConstructor
@@ -43,9 +36,12 @@ import java.util.UUID;
 public class AdminCompanyController {
 
     private final AdminCompanyUseCase adminCompanyUseCase;
+    private final AdminExportCompaniesUseCase adminExportCompaniesUseCase;
     private final CompanyTeamMemberRepository teamMemberRepository;
     private final CompanyGalleryRepository galleryRepository;
     private final CompanyDocumentRepository documentRepository;
+
+    // ── List / Search ─────────────────────────────────────────────────────────
 
     @Operation(summary = "Danh sách công ty — filter theo trạng thái xác thực")
     @GetMapping
@@ -57,31 +53,48 @@ public class AdminCompanyController {
 
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         var result = adminCompanyUseCase.list(status, pageable)
-                .map(c -> CompanyResponse.forAdmin(
-                        c,
-                        teamMemberRepository.findVisibleByCompanyId(c.getId()),
-                        galleryRepository.findByCompanyId(c.getId()),
-                        documentRepository.findByCompanyId(c.getId())));
-
+                .map(c -> buildAdminResponse(c));
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
+
+    @GetMapping("/search")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<ApiResponse<PageResponse<CompanyResponse>>> search(
+            @RequestParam(required = false) VerificationStatus status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String planCode,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize) {
+
+        var pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        var result = adminCompanyUseCase
+                .adminSearch(status, keyword, city, size, planCode, minRating, pageable)
+                .map(c -> buildAdminResponse(c));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+    }
+
+    // ── Detail ────────────────────────────────────────────────────────────────
 
     @Operation(summary = "Chi tiết công ty — admin thấy đầy đủ documents")
     @GetMapping("/{id}")
     @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<CompanyResponse>> getById(@PathVariable UUID id) {
-        CompanyProfile company = adminCompanyUseCase.getById(id);
-        return ResponseEntity.ok(ApiResponse.success(buildAdminResponse(company)));
+        return ResponseEntity.ok(ApiResponse.success(
+                buildAdminResponse(adminCompanyUseCase.getById(id))));
     }
+
+    // ── Actions ───────────────────────────────────────────────────────────────
 
     @Operation(summary = "Duyệt xác thực công ty")
     @PostMapping("/{id}/approve")
     @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "ADMIN_APPROVE_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> approve(@PathVariable UUID id) {
-        CompanyProfile company = adminCompanyUseCase.approve(id);
         return ResponseEntity.ok(ApiResponse.success(
-                buildAdminResponse(company), "Công ty đã được xác thực."));
+                buildAdminResponse(adminCompanyUseCase.approve(id)), "Công ty đã được xác thực."));
     }
 
     @Operation(summary = "Từ chối xác thực (kèm lý do)")
@@ -91,9 +104,8 @@ public class AdminCompanyController {
     public ResponseEntity<ApiResponse<CompanyResponse>> reject(
             @PathVariable UUID id,
             @Valid @RequestBody ReasonRequest req) {
-        CompanyProfile company = adminCompanyUseCase.reject(id, req.getReason());
         return ResponseEntity.ok(ApiResponse.success(
-                buildAdminResponse(company), "Đã từ chối xác thực."));
+                buildAdminResponse(adminCompanyUseCase.reject(id, req.getReason())), "Đã từ chối xác thực."));
     }
 
     @Operation(summary = "Khoá công ty")
@@ -103,9 +115,8 @@ public class AdminCompanyController {
     public ResponseEntity<ApiResponse<CompanyResponse>> suspend(
             @PathVariable UUID id,
             @Valid @RequestBody ReasonRequest req) {
-        CompanyProfile company = adminCompanyUseCase.suspend(id, req.getReason());
         return ResponseEntity.ok(ApiResponse.success(
-                buildAdminResponse(company), "Công ty đã bị khoá."));
+                buildAdminResponse(adminCompanyUseCase.suspend(id, req.getReason())), "Công ty đã bị khoá."));
     }
 
     @Operation(summary = "Mở khoá công ty")
@@ -113,12 +124,45 @@ public class AdminCompanyController {
     @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "ADMIN_UNSUSPEND_COMPANY", resourceType = "Company")
     public ResponseEntity<ApiResponse<CompanyResponse>> unsuspend(@PathVariable UUID id) {
-        CompanyProfile company = adminCompanyUseCase.unsuspend(id);
         return ResponseEntity.ok(ApiResponse.success(
-                buildAdminResponse(company), "Công ty đã được mở khoá."));
+                buildAdminResponse(adminCompanyUseCase.unsuspend(id)), "Công ty đã được mở khoá."));
     }
 
-    // ── Helper ─
+    // ── Export ────────────────────────────────────────────────────────────────
+
+    @Operation(summary = "Xuất danh sách công ty ra Excel (.xlsx)")
+    @GetMapping("/export/excel")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportExcel(
+            @RequestParam(required = false) VerificationStatus status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String planCode,
+            @RequestParam(required = false) Double minRating) {
+
+        var cmd = new AdminExportCompaniesUseCase.Command(status, keyword, city, size, planCode, minRating);
+        return adminExportCompaniesUseCase.execute(cmd, AdminExportCompaniesUseCase.Format.EXCEL)
+                .toResponseEntity();
+    }
+
+    @Operation(summary = "Xuất danh sách công ty ra PDF")
+    @GetMapping("/export/pdf")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) VerificationStatus status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String planCode,
+            @RequestParam(required = false) Double minRating) {
+
+        var cmd = new AdminExportCompaniesUseCase.Command(status, keyword, city, size, planCode, minRating);
+        return adminExportCompaniesUseCase.execute(cmd, AdminExportCompaniesUseCase.Format.PDF)
+                .toResponseEntity();
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
 
     private CompanyResponse buildAdminResponse(CompanyProfile company) {
         UUID id = company.getId();

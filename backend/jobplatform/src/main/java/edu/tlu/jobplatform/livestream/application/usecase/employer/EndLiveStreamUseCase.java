@@ -37,13 +37,13 @@ public class EndLiveStreamUseCase {
         session.end();
         sessionRepository.save(session);
 
-        // ── Đọc stats TRƯỚC khi cleanup ──────────────────────────────────────
+        // ── Đọc stats TRƯỚC khi cleanup
         int peakViewers = viewerManager.getPeakViewerCount(sessionId);
         int totalViewers = viewerManager.getTotalViewerCount(sessionId);
 
         long extraWatchSeconds = viewerManager.drainTotalWatchSeconds(sessionId);
 
-        // ── Upsert analytics ──────────────────────────────────────────────────
+        // ── Upsert analytics
         StreamAnalytics analytics = analyticsRepository
                 .findBySessionId(sessionId)
                 .orElseGet(() -> StreamAnalytics.createFor(sessionId));
@@ -60,7 +60,7 @@ public class EndLiveStreamUseCase {
         log.info("[End] sessionId={} — peakViewers={}, totalViewers={}, extraWatchSeconds={}",
                 sessionId, peakViewers, totalViewers, extraWatchSeconds);
 
-        // ── Cleanup SAU khi đã đọc stats ─────────────────────────────────────
+        // ── Cleanup SAU khi đã đọc stats
         viewerManager.cleanupSession(sessionId);
         mediaServerPort.endRoom(sessionId);
 

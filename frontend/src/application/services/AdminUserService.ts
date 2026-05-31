@@ -1,5 +1,21 @@
+// src/application/services/AdminUserService.ts
 import type { IAdminUserRepository } from "@/domain/repositories/IAdminUserRepository";
-import type { AdminUser, AdminUserFilters, AdminUserPage, AdminUserRole } from "@/domain/models/AdminUser";
+import type {
+  AdminUser, AdminUserFilters,
+  AdminUserPage, AdminUserRole,
+} from "@/domain/models/AdminUser";
+
+/** Trigger browser download từ một Blob */
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement("a");
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export class AdminUserService {
   constructor(private readonly repo: IAdminUserRepository) {}
@@ -17,7 +33,18 @@ export class AdminUserService {
   }
 
   changeRole(id: string, role: AdminUserRole): Promise<AdminUser> {
-    if (!role) throw new Error("Role không hợp lệ");
     return this.repo.changeRole(id, role);
+  }
+
+  async downloadExcel(filters: Omit<AdminUserFilters, "page" | "size">): Promise<void> {
+    const blob = await this.repo.exportExcel(filters);
+    const now  = new Date().toISOString().slice(0, 10);
+    triggerDownload(blob, `users_${now}.xlsx`);
+  }
+
+  async downloadPdf(filters: Omit<AdminUserFilters, "page" | "size">): Promise<void> {
+    const blob = await this.repo.exportPdf(filters);
+    const now  = new Date().toISOString().slice(0, 10);
+    triggerDownload(blob, `users_${now}.pdf`);
   }
 }

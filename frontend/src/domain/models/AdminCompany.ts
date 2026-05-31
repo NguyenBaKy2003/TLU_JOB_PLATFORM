@@ -8,8 +8,10 @@ export interface AdminCompany {
   website:            string | null;
   industry:           string | null;
   city:               string | null;
+  size:               string | null;
   verificationStatus: VerificationStatus;
   rejectionReason:    string | null;
+  isActive:           boolean;
   createdAt:          string;
   updatedAt:          string | null;
 }
@@ -23,7 +25,12 @@ export interface AdminCompanyPage {
 }
 
 export interface AdminCompanyFilters {
-  status?: VerificationStatus | "";
-  page:    number;
-  size:    number;
+  status?:    VerificationStatus | "";
+  keyword?:   string;
+  city?:      string;
+  size?:      string;
+  planCode?:  string;
+  minRating?: number | "";
+  page:       number;
+  pageSize:   number;
 }

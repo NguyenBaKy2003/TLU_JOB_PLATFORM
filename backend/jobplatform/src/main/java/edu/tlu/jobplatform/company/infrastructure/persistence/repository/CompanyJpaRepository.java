@@ -231,4 +231,79 @@ public interface CompanyJpaRepository extends JpaRepository<CompanyJpaEntity, UU
             @Param("planCode") String planCode,
             @Param("minRating") Double minRating,
             Pageable pageable);
+
+    @Query(value = """
+            SELECT c.*
+            FROM company_profiles c
+            LEFT JOIN (
+                SELECT DISTINCT ON (company_id) company_id, plan_code
+                FROM company_subscriptions
+                WHERE status = 'ACTIVE'
+                  AND expires_at > NOW()
+                ORDER BY company_id, expires_at DESC
+            ) s ON s.company_id = c.id
+            LEFT JOIN (
+                SELECT company_id,
+                       COALESCE(AVG(rating), 0) AS avg_rating
+                FROM company_reviews
+                WHERE visible = true
+                GROUP BY company_id
+            ) rating_agg ON rating_agg.company_id = c.id
+            WHERE (CAST(:status AS text) IS NULL OR c.verification_status = CAST(:status AS text))
+              AND (
+                    CAST(:keyword AS text) IS NULL
+                    OR LOWER(c.name)        LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+                    OR LOWER(c.description) LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+                    OR LOWER(c.industry)    LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+              )
+              AND (CAST(:city      AS text)    IS NULL OR LOWER(c.city) = LOWER(CAST(:city AS text)))
+              AND (CAST(:size      AS text)    IS NULL OR c.size        = CAST(:size AS text))
+              AND (CAST(:planCode  AS text)    IS NULL OR COALESCE(s.plan_code, 'FREE_COMPANY') = CAST(:planCode AS text))
+              AND (CAST(:minRating AS numeric) IS NULL OR COALESCE(rating_agg.avg_rating, 0) >= CAST(:minRating AS numeric))
+            ORDER BY
+                CASE COALESCE(s.plan_code, 'FREE_COMPANY')
+                    WHEN 'ENTERPRISE' THEN 1
+                    WHEN 'BUSINESS'   THEN 2
+                    WHEN 'STARTER'    THEN 3
+                    ELSE                   4
+                END ASC,
+                COALESCE(rating_agg.avg_rating, 0) DESC,
+                c.created_at ASC
+            """, countQuery = """
+            SELECT COUNT(c.id)
+            FROM company_profiles c
+            LEFT JOIN (
+                SELECT DISTINCT ON (company_id) company_id, plan_code
+                FROM company_subscriptions
+                WHERE status = 'ACTIVE'
+                  AND expires_at > NOW()
+                ORDER BY company_id, expires_at DESC
+            ) s ON s.company_id = c.id
+            LEFT JOIN (
+                SELECT company_id,
+                       COALESCE(AVG(rating), 0) AS avg_rating
+                FROM company_reviews
+                WHERE visible = true
+                GROUP BY company_id
+            ) rating_agg ON rating_agg.company_id = c.id
+            WHERE (CAST(:status AS text) IS NULL OR c.verification_status = CAST(:status AS text))
+              AND (
+                    CAST(:keyword AS text) IS NULL
+                    OR LOWER(c.name)        LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+                    OR LOWER(c.description) LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+                    OR LOWER(c.industry)    LIKE LOWER('%' || CAST(:keyword AS text) || '%')
+              )
+              AND (CAST(:city      AS text)    IS NULL OR LOWER(c.city) = LOWER(CAST(:city AS text)))
+              AND (CAST(:size      AS text)    IS NULL OR c.size        = CAST(:size AS text))
+              AND (CAST(:planCode  AS text)    IS NULL OR COALESCE(s.plan_code, 'FREE_COMPANY') = CAST(:planCode AS text))
+              AND (CAST(:minRating AS numeric) IS NULL OR COALESCE(rating_agg.avg_rating, 0) >= CAST(:minRating AS numeric))
+            """, nativeQuery = true)
+    Page<CompanyJpaEntity> adminSearch(
+            @Param("status") String status,
+            @Param("keyword") String keyword,
+            @Param("city") String city,
+            @Param("size") String size,
+            @Param("planCode") String planCode,
+            @Param("minRating") Double minRating,
+            Pageable pageable);
 }

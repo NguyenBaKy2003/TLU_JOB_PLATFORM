@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminJobUseCase;
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportJobsUseCase;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
@@ -35,6 +36,7 @@ import java.util.UUID;
 public class AdminJobController {
 
     private final AdminJobUseCase adminJobUseCase;
+    private final AdminExportJobsUseCase adminExportJobsUseCase;
 
     @Operation(summary = "Danh sách bài đăng theo status")
     @GetMapping
@@ -48,6 +50,52 @@ public class AdminJobController {
         var result = adminJobUseCase.listByStatus(status, pageable)
                 .map(JobPostResponse::from);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+    }
+
+    @Operation(summary = "Tìm kiếm đa điều kiện tin tuyển dụng")
+    @GetMapping("/search")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> search(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        var result = adminJobUseCase
+                .adminSearch(keyword, status, city, category, pageable)
+                .map(JobPostResponse::from);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+    }
+
+    @Operation(summary = "Xuất danh sách tin tuyển dụng ra Excel")
+    @GetMapping("/export/excel")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportExcel(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String category) {
+
+        var cmd = new AdminExportJobsUseCase.Command(keyword, status, city, category);
+        return adminExportJobsUseCase.execute(cmd, AdminExportJobsUseCase.Format.EXCEL)
+                .toResponseEntity();
+    }
+
+    @Operation(summary = "Xuất danh sách tin tuyển dụng ra PDF")
+    @GetMapping("/export/pdf")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String category) {
+
+        var cmd = new AdminExportJobsUseCase.Command(keyword, status, city, category);
+        return adminExportJobsUseCase.execute(cmd, AdminExportJobsUseCase.Format.PDF)
+                .toResponseEntity();
     }
 
     @Operation(summary = "Force-close bài vi phạm")
@@ -64,7 +112,7 @@ public class AdminJobController {
     }
 
     @Operation(summary = "Force-delete bài vi phạm")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "ADMIN_FORCE_DELETE_JOB", resourceType = "JobPost")
     public ResponseEntity<ApiResponse<Void>> forceDelete(

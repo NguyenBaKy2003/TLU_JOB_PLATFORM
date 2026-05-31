@@ -43,4 +43,9 @@ public interface JobPostRepository {
     void deleteById(UUID id);
 
     List<JobPost> findAllById(Collection<UUID> ids);
+
+    Page<JobPost> findAllExceptDeleted(Pageable pageable);
+
+    Page<JobPost> adminSearch(String keyword, JobStatus status,
+            String city, String category, Pageable pageable);
 }

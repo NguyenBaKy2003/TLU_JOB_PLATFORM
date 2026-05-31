@@ -5,10 +5,10 @@ import type { AdminUser, AdminUserRole } from "@/domain/models/AdminUser";
 import { UserRoleBadge }      from "./UserRoleBadge";
 import { UserStatusBadge }    from "./UserStatusBadge";
 
-const ALL_ROLES: AdminUserRole[] = ["CANDIDATE", "EMPLOYER", "ADMIN", "SUPER_ADMIN"];
+const ALL_ROLES: AdminUserRole[] = ["CANDIDATE", "EMPLOYER", "ADMIN"];
 const ROLE_LABELS: Record<AdminUserRole, string> = {
   CANDIDATE: "Ứng viên", EMPLOYER: "Nhà tuyển dụng",
-  ADMIN: "Admin", SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
 };
 
 function fmt(dateStr: string | null) {

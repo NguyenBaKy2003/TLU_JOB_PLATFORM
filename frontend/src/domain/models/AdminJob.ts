@@ -30,7 +30,10 @@ export interface AdminJobPage {
 }
 
 export interface AdminJobFilters {
-  status?: JobStatus | "";
-  page:    number;
-  size:    number;
+  status?:   JobStatus | "";
+  keyword?:  string;
+  city?:     string;
+  category?: string;
+  page:      number;
+  size:      number;
 }

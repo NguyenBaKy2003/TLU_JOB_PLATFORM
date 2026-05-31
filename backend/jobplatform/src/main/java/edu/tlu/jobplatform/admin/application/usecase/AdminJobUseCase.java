@@ -60,4 +60,11 @@ public class AdminJobUseCase {
         log.warn("Admin force-deleted job: {}", jobPostId);
     }
 
+    /** Tìm kiếm đa điều kiện cho admin */
+    @Transactional(readOnly = true)
+    public Page<JobPost> adminSearch(String keyword, JobStatus status,
+            String city, String category, Pageable pageable) {
+        return jobPostRepo.adminSearch(keyword, status, city, category, pageable);
+    }
+
 }

@@ -2,6 +2,7 @@ package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminCreateUserUseCase;
 import edu.tlu.jobplatform.admin.application.usecase.AdminUserUseCase;
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportUsersUseCase;
 import edu.tlu.jobplatform.admin.presentation.dto.request.AdminCreateUserRequest;
 import edu.tlu.jobplatform.admin.presentation.dto.response.AdminUserResponse;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
@@ -22,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.UUID;
 
 /**
@@ -42,6 +42,7 @@ public class AdminUserController {
 
         private final AdminUserUseCase adminUserUseCase;
         private final AdminCreateUserUseCase adminCreateUserUseCase;
+        private final AdminExportUsersUseCase adminExportUsersUseCase;
 
         @Operation(summary = "Danh sách users (có filter)")
         @GetMapping
@@ -49,11 +50,12 @@ public class AdminUserController {
         public ResponseEntity<ApiResponse<PageResponse<AdminUserResponse>>> listUsers(
                         @RequestParam(required = false) String keyword,
                         @RequestParam(required = false) UserRole role,
+                        @RequestParam(required = false) Boolean active,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size) {
 
                 var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-                var result = adminUserUseCase.listUsers(keyword, role, pageable)
+                var result = adminUserUseCase.listUsers(keyword, role, active, pageable) // ← truyền active
                                 .map(AdminUserResponse::from);
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
@@ -106,4 +108,33 @@ public class AdminUserController {
                 return ResponseEntity.ok(
                                 ApiResponse.success(AdminUserResponse.from(user), "Role đã được cập nhật."));
         }
+
+        @Operation(summary = "Xuất danh sách user ra Excel (.xlsx)")
+        @GetMapping("/export/excel")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportExcel(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) UserRole role,
+                        @RequestParam(required = false) Boolean active) {
+
+                return adminExportUsersUseCase
+                                .execute(new AdminExportUsersUseCase.Command(keyword, role, active),
+                                                AdminExportUsersUseCase.Format.EXCEL)
+                                .toResponseEntity();
+        }
+
+        @Operation(summary = "Xuất danh sách user ra PDF")
+        @GetMapping("/export/pdf")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportPdf(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) UserRole role,
+                        @RequestParam(required = false) Boolean active) {
+
+                return adminExportUsersUseCase
+                                .execute(new AdminExportUsersUseCase.Command(keyword, role, active),
+                                                AdminExportUsersUseCase.Format.PDF)
+                                .toResponseEntity();
+        }
+
 }

@@ -1,4 +1,4 @@
-export type AdminUserRole   = "CANDIDATE" | "EMPLOYER" | "ADMIN" | "SUPER_ADMIN";
+export type AdminUserRole = "CANDIDATE" | "EMPLOYER" | "ADMIN";
 
 export interface AdminUser {
   id:          string;
@@ -14,13 +14,17 @@ export interface AdminUserPage {
   content:       AdminUser[];
   totalElements: number;
   totalPages:    number;
-  number:        number;
+  page:          number;   
   size:          number;
+  first:         boolean;
+  last:          boolean;
+  empty:         boolean;
 }
 
 export interface AdminUserFilters {
   keyword?: string;
   role?:    AdminUserRole | "";
+  active?:  boolean | "";   
   page:     number;
   size:     number;
 }

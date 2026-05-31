@@ -189,4 +189,12 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     private static double round(double value) {
         return Math.round(value * 10.0) / 10.0;
     }
+
+    @Override
+    public Page<CompanyProfile> adminSearch(
+            String status, String keyword, String city, String size,
+            String planCode, Double minRating, Pageable pageable) {
+        return jpaRepo.adminSearch(status, keyword, city, size, planCode, minRating, pageable)
+                .map(mapper::toDomain);
+    }
 }

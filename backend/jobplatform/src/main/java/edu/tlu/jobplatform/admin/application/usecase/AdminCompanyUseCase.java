@@ -29,8 +29,16 @@ public class AdminCompanyUseCase {
     public Page<CompanyProfile> list(VerificationStatus status, Pageable pageable) {
         if (status != null)
             return companyRepo.findByVerificationStatus(status, pageable);
-        // Không filter → trả về toàn bộ công ty
         return companyRepo.findAll(pageable);
+    }
+
+    /** Tìm kiếm đa điều kiện — tất cả filter đều optional */
+    @Transactional(readOnly = true)
+    public Page<CompanyProfile> adminSearch(VerificationStatus status, String keyword,
+            String city, String size, String planCode, Double minRating, Pageable pageable) {
+        // Chuyển enum → String cho native query; null = không filter
+        String statusStr = status != null ? status.name() : null;
+        return companyRepo.adminSearch(statusStr, keyword, city, size, planCode, minRating, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +47,6 @@ public class AdminCompanyUseCase {
                 .orElseThrow(() -> ResourceNotFoundException.of("Company", companyId));
     }
 
-    /** Duyệt xác thực công ty */
     @Transactional
     public CompanyProfile approve(UUID companyId) {
         CompanyProfile company = getById(companyId);
@@ -57,7 +64,6 @@ public class AdminCompanyUseCase {
         return saved;
     }
 
-    /** Từ chối xác thực */
     @Transactional
     public CompanyProfile reject(UUID companyId, String reason) {
         if (reason == null || reason.isBlank())
@@ -68,7 +74,6 @@ public class AdminCompanyUseCase {
         return companyRepo.save(company);
     }
 
-    /** Khoá công ty */
     @Transactional
     public CompanyProfile suspend(UUID companyId, String reason) {
         CompanyProfile company = getById(companyId);
@@ -77,11 +82,9 @@ public class AdminCompanyUseCase {
         return companyRepo.save(company);
     }
 
-    /** Mở khoá công ty */
     @Transactional
     public CompanyProfile unsuspend(UUID companyId) {
         CompanyProfile company = getById(companyId);
-        // Cho phép kích hoạt lại — reset về VERIFIED nếu trước đó đã verified
         company.verify(SecurityUtils.getCurrentUserIdOrThrow());
         log.info("Admin unsuspended company: {}", companyId);
         return companyRepo.save(company);
