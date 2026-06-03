@@ -64,14 +64,14 @@ public class CandidateSubscriptionJpaEntity extends BaseJpaEntity {
     @Column(name = "cv_create_quota_used", nullable = false)
     private int cvCreateQuotaUsed;
 
-    // ── Feature flags ─────────────────────────────────────────────────
+    // ── Feature flags
     @Column(name = "ai_cv_writer", nullable = false)
     private boolean aiCvWriter;
 
     @Column(name = "premium_template_access", nullable = false)
     private boolean premiumTemplateAccess;
 
-    // ── Metadata ──────────────────────────────────────────────────────
+    // ── Metadata ─────
     @Column(name = "current_payment_id")
     private UUID currentPaymentId;
 

@@ -42,7 +42,7 @@ public class EmployerAnalyticsController {
         private final GetApplicationTrendUseCase getApplicationTrend;
         private final CompanyRepository companyRepository;
 
-        // ── Dashboard ─────────────────────────────────────────────────────────────
+        // ── Dashboard ────────────
 
         @GetMapping("/dashboard")
         @PreAuthorize("hasRole('EMPLOYER')")
@@ -58,7 +58,7 @@ public class EmployerAnalyticsController {
                 return ResponseEntity.ok(ApiResponse.success(data));
         }
 
-        // ── Trend ─────────────────────────────────────────────────────────────────
+        // ── Trend ────────────────
 
         /**
          * GET /api/v1/employer/analytics/trend?months=12
@@ -83,7 +83,7 @@ public class EmployerAnalyticsController {
                 return ResponseEntity.ok(ApiResponse.success(data));
         }
 
-        // ── Job performance ───────────────────────────────────────────────────────
+        // ── Job performance ──────
 
         @GetMapping("/jobs/performance")
         @PreAuthorize("hasRole('EMPLOYER')")
@@ -99,7 +99,7 @@ public class EmployerAnalyticsController {
                 return ResponseEntity.ok(ApiResponse.success(data));
         }
 
-        // ── Application funnel ────────────────────────────────────────────────────
+        // ── Application funnel ───
 
         @GetMapping("/applications/funnel")
         @PreAuthorize("hasRole('EMPLOYER')")
@@ -133,7 +133,7 @@ public class EmployerAnalyticsController {
                 return ResponseEntity.ok(ApiResponse.success(data));
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────────
+        // ── Helper ───────────────
 
         private UUID resolveCompanyId() {
                 UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();

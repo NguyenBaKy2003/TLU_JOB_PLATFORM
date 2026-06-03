@@ -12,66 +12,74 @@ import java.util.UUID;
 
 public interface PaymentRepository {
 
-    // ── Common ────────────────────────────────────────────────────────
+        // ── Common ───────────────────────────────────────────────────────────────
 
-    Optional<Payment> findById(UUID id);
+        Optional<Payment> findById(UUID id);
 
-    Optional<Payment> findByGatewayOrderCode(String orderCode);
+        Optional<Payment> findByGatewayOrderCode(String orderCode);
 
-    Payment save(Payment payment);
+        Payment save(Payment payment);
 
-    // ── Company ───────────────────────────────────────────────────────
+        // ── Company ──────────────────────────────────────────────────────────────
 
-    Optional<Payment> findPendingByCompanyId(UUID companyId);
+        Optional<Payment> findPendingByCompanyId(UUID companyId);
 
-    Page<Payment> findByCompanyId(UUID companyId, Pageable pageable);
+        Page<Payment> findByCompanyId(UUID companyId, Pageable pageable);
 
-    Page<Payment> findByCompanyIdAndStatus(UUID companyId, PaymentStatus status, Pageable pageable);
+        Page<Payment> findByCompanyIdAndStatus(UUID companyId, PaymentStatus status, Pageable pageable);
 
-    // ── Candidate ─────────────────────────────────────────────────────
+        // ── Candidate ────────────────────────────────────────────────────────────
 
-    Optional<Payment> findPendingByCandidateId(UUID candidateId);
+        Optional<Payment> findPendingByCandidateId(UUID candidateId);
 
-    Page<Payment> findByCandidateId(UUID candidateId, Pageable pageable);
+        Page<Payment> findByCandidateId(UUID candidateId, Pageable pageable);
 
-    Page<Payment> findByCandidateIdAndStatus(UUID candidateId, PaymentStatus status, Pageable pageable);
+        Page<Payment> findByCandidateIdAndStatus(UUID candidateId, PaymentStatus status, Pageable pageable);
 
-    // ── Admin ─────────────────────────────────────────────────────────
+        // ── Admin search ──────────────────────────────────────────────────────────
 
-    /**
-     * Search đa điều kiện — tham số null = bỏ qua điều kiện đó.
-     * companyId và candidateId loại trừ nhau; truyền cái nào lọc theo cái đó.
-     */
-    Page<Payment> search(
-            UUID companyId,
-            UUID candidateId,
-            PaymentStatus status,
-            String gateway,
-            LocalDateTime fromDate,
-            LocalDateTime toDate,
-            Pageable pageable);
+        /**
+         * Search đa điều kiện — tham số null = bỏ qua.
+         * companyId và candidateId loại trừ nhau.
+         */
+        Page<Payment> search(
+                        UUID companyId,
+                        UUID candidateId,
+                        PaymentStatus status,
+                        String gateway,
+                        LocalDateTime fromDate,
+                        LocalDateTime toDate,
+                        Pageable pageable);
 
-    /** Tổng doanh thu SUCCESS trong khoảng thời gian */
-    BigDecimal sumSuccessAmount(LocalDateTime from, LocalDateTime to);
+        Page<Payment> searchByCompanyId(
+                        UUID companyId,
+                        PaymentStatus status,
+                        String gateway,
+                        String keyword,
+                        LocalDateTime fromDate,
+                        LocalDateTime toDate,
+                        Pageable pageable);
 
-    /** Đếm theo status — dùng cho dashboard */
-    long countByStatus(PaymentStatus status);
+        Page<Payment> searchByCandidateId(
+                        UUID candidateId,
+                        PaymentStatus status,
+                        String gateway,
+                        String keyword,
+                        LocalDateTime fromDate,
+                        LocalDateTime toDate,
+                        Pageable pageable);
 
-    Page<Payment> searchByCandidateId(
-            UUID candidateId,
-            PaymentStatus status,
-            String gateway,
-            String keyword,
-            LocalDateTime fromDate,
-            LocalDateTime toDate,
-            Pageable pageable);
+        // ── Stats ─────────────────────────────────────────────────────────────────
 
-    Page<Payment> searchByCompanyId(
-            UUID companyId,
-            PaymentStatus status,
-            String gateway,
-            String keyword,
-            LocalDateTime fromDate,
-            LocalDateTime toDate,
-            Pageable pageable);
+        /** Tổng doanh thu SUCCESS trong khoảng thời gian */
+        BigDecimal sumSuccessAmount(LocalDateTime from, LocalDateTime to);
+
+        /** Đếm tất cả giao dịch trong khoảng thời gian */
+        long countByPeriod(LocalDateTime from, LocalDateTime to);
+
+        /** Đếm theo status trong khoảng thời gian */
+        long countByStatusAndPeriod(PaymentStatus status, LocalDateTime from, LocalDateTime to);
+
+        /** Đếm theo status — dùng cho dashboard tổng */
+        long countByStatus(PaymentStatus status);
 }

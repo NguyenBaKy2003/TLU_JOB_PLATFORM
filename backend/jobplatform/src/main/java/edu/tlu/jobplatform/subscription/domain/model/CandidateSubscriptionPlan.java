@@ -27,7 +27,7 @@ public class CandidateSubscriptionPlan {
     private final BigDecimal priceMonthly; // null nếu miễn phí
     private final BigDecimal priceYearly; // null nếu miễn phí
 
-    // ── Quota limits ──────────────────────────────────────────────────
+    // ── Quota limits ─
 
     /** Số đơn ứng tuyển / tháng. -1 = unlimited */
     private final int applicationLimit;
@@ -41,7 +41,7 @@ public class CandidateSubscriptionPlan {
      */
     private final int cvCreateLimit;
 
-    // ── Feature flags ─────────────────────────────────────────────────
+    // ── Feature flags
 
     /** AI viết & tối ưu CV theo JD — chỉ PREMIUM */
     private final boolean aiCvWriter;

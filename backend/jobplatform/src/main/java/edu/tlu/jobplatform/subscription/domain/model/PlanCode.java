@@ -8,7 +8,7 @@ public final class PlanCode {
     private PlanCode() {
     }
 
-    // ── Company plans ─────────────────────────────────────────────────
+    // ── Company plans
     public static final String FREE_COMPANY = "FREE_COMPANY";
     public static final String STARTER = "STARTER";
     public static final String BUSINESS = "BUSINESS";

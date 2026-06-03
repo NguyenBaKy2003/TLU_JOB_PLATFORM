@@ -31,52 +31,52 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GetMyPaymentsUseCase {
 
-    private final PaymentRepository paymentRepo;
-    private final CompanyRepository companyRepo;
-    private final SubscriptionPlanRepository planRepository;
+        private final PaymentRepository paymentRepo;
+        private final CompanyRepository companyRepo;
+        private final SubscriptionPlanRepository planRepository;
 
-    @Transactional(readOnly = true)
-    public Page<PaymentResponse> listMyPayments(
-            PaymentStatus status,
-            String gateway,
-            String keyword,
-            LocalDateTime fromDate,
-            LocalDateTime toDate,
-            Pageable pageable) {
+        @Transactional(readOnly = true)
+        public Page<PaymentResponse> listMyPayments(
+                        PaymentStatus status,
+                        String gateway,
+                        String keyword,
+                        LocalDateTime fromDate,
+                        LocalDateTime toDate,
+                        Pageable pageable) {
 
-        UUID companyId = resolveMyCompanyId();
-        return paymentRepo
-                .searchByCompanyId(companyId, status, gateway, keyword, fromDate, toDate, pageable)
-                .map(PaymentResponse::from);
-    }
+                UUID companyId = resolveMyCompanyId();
+                return paymentRepo
+                                .searchByCompanyId(companyId, status, gateway, keyword, fromDate, toDate, pageable)
+                                .map(PaymentResponse::from);
+        }
 
-    @Transactional(readOnly = true)
-    public PaymentResponse getMyPaymentDetail(UUID paymentId) {
-        UUID companyId = resolveMyCompanyId();
+        @Transactional(readOnly = true)
+        public PaymentResponse getMyPaymentDetail(UUID paymentId) {
+                UUID companyId = resolveMyCompanyId();
 
-        Payment payment = paymentRepo.findById(paymentId)
-                .orElseThrow(() -> ResourceNotFoundException.of("Payment", paymentId));
+                Payment payment = paymentRepo.findById(paymentId)
+                                .orElseThrow(() -> ResourceNotFoundException.of("Payment", paymentId));
 
-        // Bảo vệ: chỉ xem được payment của công ty mình
-        if (!payment.getCompanyId().equals(companyId))
-            throw new BusinessRuleException(
-                    "Bạn không có quyền xem giao dịch này.", "FORBIDDEN");
+                // Bảo vệ: chỉ xem được payment của công ty mình
+                if (!payment.getCompanyId().equals(companyId))
+                        throw new BusinessRuleException(
+                                        "Bạn không có quyền xem giao dịch này.", "FORBIDDEN");
 
-        // Load plan để nhúng SubscriptionSummary
-        SubscriptionPlan plan = planRepository
-                .findByCode(payment.getPlanCode())
-                .orElse(null);
+                // Load plan để nhúng SubscriptionSummary
+                SubscriptionPlan plan = planRepository
+                                .findByCode(payment.getPlanCode())
+                                .orElse(null);
 
-        return PaymentResponse.from(payment, plan);
-    }
+                return PaymentResponse.from(payment, plan);
+        }
 
-    // ── Helper ────────────────────────────────────────────────────────
+        // ── Helper ───────
 
-    private UUID resolveMyCompanyId() {
-        UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
-        CompanyProfile company = companyRepo.findByOwnerId(ownerId)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Bạn chưa có hồ sơ công ty.", "COMPANY_NOT_FOUND"));
-        return company.getId();
-    }
+        private UUID resolveMyCompanyId() {
+                UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
+                CompanyProfile company = companyRepo.findByOwnerId(ownerId)
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Bạn chưa có hồ sơ công ty.", "COMPANY_NOT_FOUND"));
+                return company.getId();
+        }
 }

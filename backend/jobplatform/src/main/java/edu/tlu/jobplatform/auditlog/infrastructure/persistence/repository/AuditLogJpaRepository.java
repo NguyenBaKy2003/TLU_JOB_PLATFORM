@@ -12,29 +12,29 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AuditLogJpaRepository
-        extends JpaRepository<AuditLogJpaEntity, Long>,
+                extends JpaRepository<AuditLogJpaEntity, Long>,
                 JpaSpecificationExecutor<AuditLogJpaEntity> {
 
-    // ── By resource — không có nullable param → giữ derived query ────
+        // ── By resource — không có nullable param → giữ derived query ────
 
-    Page<AuditLogJpaEntity> findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
-            String resourceType, String resourceId, Pageable pageable);
+        Page<AuditLogJpaEntity> findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
+                        String resourceType, String resourceId, Pageable pageable);
 
-    // ── Stats ─────────────────────────────────────────────────────────
+        // ── Stats ────────
 
-    @Query("""
-            SELECT a.action, COUNT(a)
-            FROM AuditLogJpaEntity a
-            WHERE a.occurredAt BETWEEN :from AND :to
-            GROUP BY a.action
-            ORDER BY COUNT(a) DESC
-            """)
-    List<Object[]> countGroupByAction(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to);
+        @Query("""
+                        SELECT a.action, COUNT(a)
+                        FROM AuditLogJpaEntity a
+                        WHERE a.occurredAt BETWEEN :from AND :to
+                        GROUP BY a.action
+                        ORDER BY COUNT(a) DESC
+                        """)
+        List<Object[]> countGroupByAction(
+                        @Param("from") LocalDateTime from,
+                        @Param("to") LocalDateTime to);
 
-    // ── Brute-force detection — không có nullable param ───────────────
+        // ── Brute-force detection — không có nullable param ───────────────
 
-    long countByActionAndActorIdAndResultAndOccurredAtAfter(
-            String action, String actorId, String result, LocalDateTime after);
+        long countByActionAndActorIdAndResultAndOccurredAtAfter(
+                        String action, String actorId, String result, LocalDateTime after);
 }

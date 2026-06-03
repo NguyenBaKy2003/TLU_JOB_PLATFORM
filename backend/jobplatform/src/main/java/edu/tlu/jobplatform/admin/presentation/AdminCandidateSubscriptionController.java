@@ -6,6 +6,8 @@ import edu.tlu.jobplatform.admin.presentation.dto.request.ReasonRequest;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscription;
+import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionStatus;
+import edu.tlu.jobplatform.subscription.presentation.dto.response.CandidateSubscriptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,17 +47,20 @@ public class AdminCandidateSubscriptionController {
 
     @Operation(summary = "Danh sách tất cả Candidate subscription")
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<CandidateSubscription>>> listAll(
+    public ResponseEntity<ApiResponse<PageResponse<CandidateSubscriptionResponse>>> listAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) CandidateSubscriptionStatus status) {
 
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return ResponseEntity.ok(ApiResponse.success(useCase.listAll(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(
+                useCase.listAll(keyword, status, pageable)));
     }
 
     @Operation(summary = "Lịch sử subscription theo candidate")
     @GetMapping("/candidate/{candidateId}")
-    public ResponseEntity<ApiResponse<List<CandidateSubscription>>> listByCandidate(
+    public ResponseEntity<ApiResponse<List<CandidateSubscriptionResponse>>> listByCandidate(
             @PathVariable UUID candidateId) {
         return ResponseEntity.ok(ApiResponse.success(useCase.listByCandidate(candidateId)));
     }

@@ -70,7 +70,7 @@ public class JobPostDetailResponse {
          */
         private final CompetitionRateResult competition;
 
-        // ── Factory methods ──────────────────────────────────────────────────────
+        // ── Factory methods ─────
 
         /** Dùng cho GetJobDetailUseCase trả Result có company + competition */
         public static JobPostDetailResponse from(GetJobDetailUseCase.Result result) {
@@ -133,7 +133,7 @@ public class JobPostDetailResponse {
                                 .build();
         }
 
-        // ── Inner DTOs ────────────────────────────────────────────────────────────
+        // ── Inner DTOs ───────────
 
         @Getter
         @Builder

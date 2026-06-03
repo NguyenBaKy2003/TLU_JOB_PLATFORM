@@ -71,4 +71,11 @@ public class CandidateSubscriptionRepositoryAdapter
         }
         return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(sub)));
     }
+
+    @Override
+    public Page<CandidateSubscription> findByKeywordAndStatus(
+            String keyword, CandidateSubscriptionStatus status, Pageable pageable) {
+        return jpaRepo.findByKeywordAndStatus(keyword, status, pageable)
+                .map(mapper::toDomain);
+    }
 }

@@ -84,7 +84,7 @@ public class AiOptimizeCVUseCase {
         return aiCvOptimizePort.optimize(request);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────
+    // ── Helpers ──────
 
     private String serializeCvToText(OnlineCV cv) {
         StringBuilder sb = new StringBuilder();

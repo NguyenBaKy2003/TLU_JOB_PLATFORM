@@ -2,6 +2,9 @@ package edu.tlu.jobplatform.subscription.infrastructure.persistence.repository;
 
 import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionStatus;
 import edu.tlu.jobplatform.subscription.infrastructure.persistence.entity.CandidateSubscriptionJpaEntity;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,26 +17,39 @@ import java.util.UUID;
 
 @Repository
 public interface CandidateSubscriptionJpaRepo
-        extends JpaRepository<CandidateSubscriptionJpaEntity, UUID> {
+                extends JpaRepository<CandidateSubscriptionJpaEntity, UUID> {
 
-    Optional<CandidateSubscriptionJpaEntity> findByCandidateIdAndStatus(
-            UUID candidateId, CandidateSubscriptionStatus status);
+        Optional<CandidateSubscriptionJpaEntity> findByCandidateIdAndStatus(
+                        UUID candidateId, CandidateSubscriptionStatus status);
 
-    List<CandidateSubscriptionJpaEntity> findByCandidateIdOrderByCreatedAtDesc(UUID candidateId);
+        List<CandidateSubscriptionJpaEntity> findByCandidateIdOrderByCreatedAtDesc(UUID candidateId);
 
-    List<CandidateSubscriptionJpaEntity> findByStatusAndExpiresAtBefore(
-            CandidateSubscriptionStatus status, LocalDateTime threshold);
+        List<CandidateSubscriptionJpaEntity> findByStatusAndExpiresAtBefore(
+                        CandidateSubscriptionStatus status, LocalDateTime threshold);
 
-    /**
-     * Tìm ACTIVE subscriptions cần reset quota tháng.
-     * Điều kiện: lastQuotaResetAt IS NULL hoặc lastQuotaResetAt < threshold.
-     * threshold thường là (now - 1 tháng).
-     */
-    @Query("""
-            SELECT s FROM CandidateSubscriptionJpaEntity s
-            WHERE s.status = 'ACTIVE'
-              AND (s.lastQuotaResetAt IS NULL OR s.lastQuotaResetAt < :threshold)
-            """)
-    List<CandidateSubscriptionJpaEntity> findActiveNeedingQuotaReset(
-            @Param("threshold") LocalDateTime threshold);
+        /**
+         * Tìm ACTIVE subscriptions cần reset quota tháng.
+         * Điều kiện: lastQuotaResetAt IS NULL hoặc lastQuotaResetAt < threshold.
+         * threshold thường là (now - 1 tháng).
+         */
+        @Query("""
+                        SELECT s FROM CandidateSubscriptionJpaEntity s
+                        WHERE s.status = 'ACTIVE'
+                          AND (s.lastQuotaResetAt IS NULL OR s.lastQuotaResetAt < :threshold)
+                        """)
+        List<CandidateSubscriptionJpaEntity> findActiveNeedingQuotaReset(
+                        @Param("threshold") LocalDateTime threshold);
+
+        @Query("""
+                        SELECT s FROM CandidateSubscriptionJpaEntity s
+                        WHERE (:status IS NULL OR s.status = :status)
+                          AND (:keyword IS NULL OR :keyword = ''
+                               OR LOWER(s.planCode) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                               OR CAST(s.candidateId AS string) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                        ORDER BY s.createdAt DESC
+                        """)
+        Page<CandidateSubscriptionJpaEntity> findByKeywordAndStatus(
+                        @Param("keyword") String keyword,
+                        @Param("status") CandidateSubscriptionStatus status,
+                        Pageable pageable);
 }

@@ -21,7 +21,7 @@ import java.util.Map;
  * Core email service — render Thymeleaf template rồi gửi qua JavaMail.
  *
  * Template reuse strategy:
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  * Candidate email TÁI SỬ DỤNG 2 template của Company:
  *
  * subscription-activated.html → dùng cho cả Employer và Candidate
@@ -42,7 +42,7 @@ import java.util.Map;
  * ├── subscription-activated.html (Company + Candidate — đã cập nhật)
  * ├── subscription-expired.html (Company + Candidate — đã cập nhật)
  * └── ... (các template khác giữ nguyên)
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  */
 @Slf4j
 @Service
@@ -66,7 +66,7 @@ public class EmailService {
                 this.templateEngine = templateEngine;
         }
 
-        // ── Auth emails ───────────────────────────────────────────────────
+        // ── Auth emails ──
 
         @Async("aiTaskExecutor")
         public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
@@ -115,7 +115,7 @@ public class EmailService {
                                                 "deletedAt", LocalDateTime.now().format(DATETIME_FMT)));
         }
 
-        // ── Other emails ──────────────────────────────────────────────────
+        // ── Other emails ─
 
         @Async("aiTaskExecutor")
         public void sendInterviewScheduledEmail(String toEmail, String candidateName,
@@ -259,7 +259,7 @@ public class EmailService {
                                                 "supportEmail", "support@jobplatform.vn"));
         }
 
-        // ── Core send ─────────────────────────────────────────────────────
+        // ── Core send ────
 
         /**
          * Render Thymeleaf template → HTML → gửi MimeMessage.

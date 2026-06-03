@@ -46,7 +46,7 @@ public class CandidateSubscription {
      */
     private CandidateQuota cvCreateQuota;
 
-    // ── Feature flags ─────────────────────────────────────────────────
+    // ── Feature flags
 
     /** AI viết & tối ưu CV theo JD — chỉ PREMIUM */
     private final boolean aiCvWriter;

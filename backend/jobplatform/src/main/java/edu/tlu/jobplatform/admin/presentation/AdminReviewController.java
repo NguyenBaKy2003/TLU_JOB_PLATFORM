@@ -1,6 +1,8 @@
-package edu.tlu.jobplatform.company.presentation;
+package edu.tlu.jobplatform.admin.presentation;
 
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportReviewsUseCase;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.company.application.usecase.*;
 import edu.tlu.jobplatform.company.domain.model.CompanyReview;
 import edu.tlu.jobplatform.company.domain.model.ReviewStatus;
@@ -39,6 +41,8 @@ public class AdminReviewController {
     private final DeleteReviewUseCase deleteReviewUseCase;
     private final GetReviewUseCase getReviewUseCase;
     private final CompanyReviewRepository reviewRepository;
+    private final AdminExportReviewsUseCase exportUseCase;
+    private final CandidateProfileRepository candidateProfileRepository;
 
     @Operation(summary = "Xem tất cả review chờ duyệt")
     @GetMapping("/pending")
@@ -49,13 +53,18 @@ public class AdminReviewController {
 
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         var result = reviewRepository.findByStatus(ReviewStatus.PENDING, pageable)
-                .map(ReviewResponse::from);
-
+                .map(review -> {
+                    String name = review.isAnonymous()
+                            ? "Ẩn danh"
+                            : candidateProfileRepository.findByUserId(review.getReviewerId())
+                                    .map(p -> (p.getFirstName() + " " + p.getLastName()).trim())
+                                    .orElse("Người dùng ẩn danh");
+                    return ReviewResponse.from(review, name);
+                });
         return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
     @Operation(summary = "Xem tất cả review (có thể lọc theo status)")
-
     @GetMapping
     @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
     public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getAllReviews(
@@ -64,10 +73,17 @@ public class AdminReviewController {
             @RequestParam(required = false) ReviewStatus status) {
 
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        var result = reviewRepository.findByStatus(status, pageable);
+        var result = reviewRepository.findByStatus(status, pageable)
+                .map(review -> {
+                    String name = review.isAnonymous()
+                            ? "Ẩn danh"
+                            : candidateProfileRepository.findByUserId(review.getReviewerId())
+                                    .map(p -> (p.getFirstName() + " " + p.getLastName()).trim())
+                                    .orElse("Người dùng ẩn danh");
+                    return ReviewResponse.from(review, name);
+                });
 
-        return ResponseEntity.ok(ApiResponse.success(
-                PageResponse.from(result.map(ReviewResponse::from))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
     }
 
     @Operation(summary = "Xem chi tiết review")
@@ -77,10 +93,17 @@ public class AdminReviewController {
             @PathVariable UUID reviewId) {
 
         CompanyReview review = getReviewUseCase.byId(reviewId);
-        return ResponseEntity.ok(ApiResponse.success(ReviewResponse.from(review)));
+        String name = review.isAnonymous()
+                ? "Ẩn danh"
+                : candidateProfileRepository.findByUserId(review.getReviewerId())
+                        .map(p -> (p.getFirstName() + " " + p.getLastName()).trim())
+                        .orElse("Người dùng ẩn danh");
+
+        return ResponseEntity.ok(ApiResponse.success(ReviewResponse.from(review, name)));
     }
 
     @Operation(summary = "Duyệt review")
+    @PostMapping("/{reviewId}/approve")
     @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "ADMIN_APPROVE_REVIEW", resourceType = "CompanyReview")
     public ResponseEntity<ApiResponse<ReviewResponse>> approve(
@@ -144,5 +167,35 @@ public class AdminReviewController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID reviewId) {
         deleteReviewUseCase.deleteByAdmin(reviewId);
         return ResponseEntity.ok(ApiResponse.success(null, "Đã xóa đánh giá."));
+    }
+
+    @Operation(summary = "Xuất danh sách đánh giá ra Excel")
+    @GetMapping("/export/excel")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportExcel(
+            @RequestParam(required = false) ReviewStatus status) {
+
+        var cmd = new AdminExportReviewsUseCase.Command(status);
+        return exportUseCase.execute(cmd, AdminExportReviewsUseCase.Format.EXCEL)
+                .toResponseEntity();
+    }
+
+    @Operation(summary = "Xuất danh sách đánh giá ra PDF")
+    @GetMapping("/export/pdf")
+    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam(required = false) ReviewStatus status) {
+
+        var cmd = new AdminExportReviewsUseCase.Command(status);
+        return exportUseCase.execute(cmd, AdminExportReviewsUseCase.Format.PDF)
+                .toResponseEntity();
+    }
+
+    private String resolveReviewerName(CompanyReview review) {
+        if (review.isAnonymous())
+            return "Ẩn danh";
+        return candidateProfileRepository.findByUserId(review.getReviewerId())
+                .map(p -> (p.getFirstName() + " " + p.getLastName()).trim())
+                .orElse("Người dùng ẩn danh");
     }
 }

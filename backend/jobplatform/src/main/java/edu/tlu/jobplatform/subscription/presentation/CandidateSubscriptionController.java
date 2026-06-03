@@ -45,7 +45,7 @@ public class CandidateSubscriptionController {
     private final CheckCandidateQuotaUseCase checkQuotaUseCase;
     private final CandidateSubscriptionRepository subscriptionRepository;
 
-    // ── GET /plans ────────────────────────────────────────────────────
+    // ── GET /plans ───
 
     @Operation(summary = "Danh sách gói dịch vụ Candidate (pricing page)")
     @GetMapping("/plans")
@@ -54,7 +54,7 @@ public class CandidateSubscriptionController {
         return ResponseEntity.ok(ApiResponse.success(getPlansUseCase.execute()));
     }
 
-    // ── GET /my ───────────────────────────────────────────────────────
+    // ── GET /my ──────
 
     @Operation(summary = "Subscription hiện tại của Candidate")
     @SecurityRequirement(name = "bearerAuth")
@@ -71,7 +71,7 @@ public class CandidateSubscriptionController {
         return ResponseEntity.ok(ApiResponse.success("Bạn chưa có gói dịch vụ nào."));
     }
 
-    // ── GET /my/quota ─────────────────────────────────────────────────
+    // ── GET /my/quota
 
     @Operation(summary = "Quota còn lại của Candidate")
     @SecurityRequirement(name = "bearerAuth")

@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public interface AuditLogRepository {
 
-        // ── Write ────────────────────────────────────────────────────────
+        // ── Write ───────
 
         void save(AuditLog auditLog);
 

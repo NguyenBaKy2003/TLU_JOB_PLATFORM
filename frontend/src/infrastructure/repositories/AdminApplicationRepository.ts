@@ -1,6 +1,6 @@
-import api from "@/lib/axios";
-import { getAdminAccessToken } from "@/lib/auth-helpers";
-import type { IAdminApplicationRepository } from "@/domain/repositories/IAdminApplicationRepository";
+import api from '@/lib/axios';
+import { getAdminAccessToken } from '@/lib/auth-helpers';
+import type { IAdminApplicationRepository } from '@/domain/repositories/IAdminApplicationRepository';
 import type {
   AdminApplication,
   AdminApplicationDetail,
@@ -8,7 +8,8 @@ import type {
   AdminApplicationPage,
   ApplicationStatus,
   ApplicationStatusLog,
-} from "@/domain/models/AdminApplication";
+  OverrideStatusRequest,
+} from '@/domain/models/AdminApplication';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -24,20 +25,37 @@ function adminConfig(params?: Record<string, unknown>) {
   };
 }
 
+function adminBlobConfig(params?: Record<string, unknown>) {
+  const token = getAdminAccessToken();
+  return {
+    responseType: 'blob' as const,
+    ...(params ? { params } : {}),
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}
+
+function buildParams(
+  filters: Omit<AdminApplicationFilters, 'companyId' | 'jobPostId'>,
+): Record<string, unknown> {
+  const p: Record<string, unknown> = {
+    page: filters.page,
+    size: filters.size,
+  };
+  if (filters.status?.trim())  p.status  = filters.status;
+  if (filters.keyword?.trim()) p.keyword = filters.keyword.trim();
+  return p;
+}
+
 export class AdminApplicationRepository implements IAdminApplicationRepository {
-  private readonly BASE = "/admin/applications";
+  private readonly BASE = '/admin/applications';
 
   /** GET /api/v1/admin/applications */
   async listAll(
-    filters: Omit<AdminApplicationFilters, "companyId" | "jobPostId">,
+    filters: Omit<AdminApplicationFilters, 'companyId' | 'jobPostId'>,
   ): Promise<AdminApplicationPage> {
     const res = await api.get<ApiResponse<AdminApplicationPage>>(
       this.BASE,
-      adminConfig({
-        page: filters.page,
-        size: filters.size,
-        ...(filters.status ? { status: filters.status } : {}),
-      }),
+      adminConfig(buildParams(filters)),
     );
     return res.data.data;
   }
@@ -46,23 +64,16 @@ export class AdminApplicationRepository implements IAdminApplicationRepository {
   async listByCompany(filters: AdminApplicationFilters): Promise<AdminApplicationPage> {
     const res = await api.get<ApiResponse<AdminApplicationPage>>(
       `${this.BASE}/company/${filters.companyId}`,
-      adminConfig({
-        page: filters.page,
-        size: filters.size,
-      }),
+      adminConfig(buildParams(filters)),
     );
     return res.data.data;
   }
 
-  /** GET /api/v1/admin/applications/job/{jobPostId}?status=&page=&size= */
+  /** GET /api/v1/admin/applications/job/{jobPostId} */
   async listByJob(filters: AdminApplicationFilters): Promise<AdminApplicationPage> {
     const res = await api.get<ApiResponse<AdminApplicationPage>>(
       `${this.BASE}/job/${filters.jobPostId}`,
-      adminConfig({
-        page:   filters.page,
-        size:   filters.size,
-        ...(filters.status ? { status: filters.status } : {}),
-      }),
+      adminConfig(buildParams(filters)),
     );
     return res.data.data;
   }
@@ -91,23 +102,47 @@ export class AdminApplicationRepository implements IAdminApplicationRepository {
     status: ApplicationStatus,
     reason: string,
   ): Promise<AdminApplication> {
+    const body: OverrideStatusRequest = { status, reason };
     const res = await api.patch<ApiResponse<AdminApplication>>(
       `${this.BASE}/${id}/override-status`,
-      { status, reason },
+      body,
       adminConfig(),
     );
     return res.data.data;
   }
 
-  /** POST /api/v1/admin/applications/cancel-by-job/{jobPostId}?reason= */
+  /** POST /api/v1/admin/applications/cancel-by-job/{jobPostId} */
   async cancelByJob(jobPostId: string, reason: string): Promise<number> {
     const res = await api.post<ApiResponse<string>>(
       `${this.BASE}/cancel-by-job/${jobPostId}`,
       null,
       adminConfig({ reason }),
     );
-    // Backend trả "N đơn đã được cancel." — parse số
-    const match = res.data.data.match(/\d+/);
-    return match ? parseInt(match[0], 10) : 0;
+    // response là "N đơn đã được cancel." — parse số đầu
+    return parseInt(res.data.data) || 0;
+  }
+
+  /** GET /api/v1/admin/applications/export/excel */
+  async exportExcel(status?: ApplicationStatus | '', keyword?: string): Promise<Blob> {
+    const params: Record<string, unknown> = {};
+    if (status?.trim())  params.status  = status;
+    if (keyword?.trim()) params.keyword = keyword.trim();
+    const res = await api.get<Blob>(
+      `${this.BASE}/export/excel`,
+      adminBlobConfig(params),
+    );
+    return res.data;
+  }
+
+  /** GET /api/v1/admin/applications/export/pdf */
+  async exportPdf(status?: ApplicationStatus | '', keyword?: string): Promise<Blob> {
+    const params: Record<string, unknown> = {};
+    if (status?.trim())  params.status  = status;
+    if (keyword?.trim()) params.keyword = keyword.trim();
+    const res = await api.get<Blob>(
+      `${this.BASE}/export/pdf`,
+      adminBlobConfig(params),
+    );
+    return res.data;
   }
 }

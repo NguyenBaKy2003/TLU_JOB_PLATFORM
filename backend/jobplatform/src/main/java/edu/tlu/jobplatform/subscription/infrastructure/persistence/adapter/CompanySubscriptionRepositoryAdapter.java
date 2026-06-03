@@ -69,4 +69,11 @@ public class CompanySubscriptionRepositoryAdapter implements CompanySubscription
         }
         return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(sub)));
     }
+
+    @Override
+    public Page<CompanySubscription> findByKeywordAndStatus(
+            String keyword, SubscriptionStatus status, Pageable pageable) {
+        return jpaRepo.findByKeywordAndStatus(keyword, status, pageable)
+                .map(mapper::toDomain);
+    }
 }

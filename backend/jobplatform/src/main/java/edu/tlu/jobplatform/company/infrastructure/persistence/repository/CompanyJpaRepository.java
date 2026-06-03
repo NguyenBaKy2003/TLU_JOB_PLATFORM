@@ -49,7 +49,7 @@ public interface CompanyJpaRepository extends JpaRepository<CompanyJpaEntity, UU
             """)
     Page<CompanyJpaEntity> findVerifiedCompaniesWithOpenJobs(Pageable pageable);
 
-    // ── Stats projections ─────────────────────────────────────────────────────
+    // ── Stats projections ────
 
     interface CompanyStatsProjection {
         UUID getCompanyId();
@@ -109,7 +109,7 @@ public interface CompanyJpaRepository extends JpaRepository<CompanyJpaEntity, UU
             """, nativeQuery = true)
     List<CompanyJobCountProjection> countOpenJobsByCompanyIds(@Param("companyIds") Set<UUID> companyIds);
 
-    // ── Plan-tier sort ────────────────────────────────────────────────────────
+    // ── Plan-tier sort ───────
 
     @Query(value = """
             SELECT c.*

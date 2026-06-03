@@ -23,9 +23,9 @@ const CANDIDATE_NAV = [
   { label: "Thông báo",          icon: <Bell size={18} />,             href: "/candidate/notifications",     badgeKey: "notification" },
   { label: "Tin nhắn",           icon: <MessageSquare size={18} />,    href: "/candidate/messages",          badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/candidate/subscription",      badgeKey: null           },
-  { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/candidate/payments",          badgeKey: null           },  // ← THÊM DÒNG NÀY
-  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/candidate/activity",          badgeKey: null           },
+  { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/candidate/payments",          badgeKey: null           }, 
   { label: "Bình luận",          icon: <MessageCircleMore size={18} />, href: "/candidate/reviews",          badgeKey: null           },
+  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/candidate/activity",          badgeKey: null           },
   { label: "Cài đặt tài khoản", icon: <Settings size={18} />,         href: "/candidate/settings",          badgeKey: null           },
 ];
 
@@ -38,8 +38,7 @@ const EMPLOYER_NAV = [
   { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",     badgeKey: null           },
   { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/profile",       badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
-  { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/employer/payments",          badgeKey: null           },  // ← THÊM DÒNG NÀY
- 
+  { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/employer/payments",          badgeKey: null           },  
   { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },
   { label: "Bình luận",          icon: <MessageCircleMore size={18} />,         href: "/employer/reviews",          badgeKey: null           },
   { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
@@ -54,7 +53,7 @@ interface Props {
   mobileOpen:         boolean;
   onMobileClose:      () => void;
   notificationCount:  number;
-  activeHref?:        string;   // ← thêm (optional, fallback về usePathname)
+  activeHref?:        string;  
 }
 
 // ─── NavLink ──────────────

@@ -30,7 +30,7 @@ public class AdminAnalyticsQueryService {
     @PersistenceContext
     private final EntityManager em;
 
-    // ── Dashboard ─────────────────────────────────────────────────────────────
+    // ── Dashboard ────────────
 
     @Cacheable(value = "analytics:admin:dashboard", key = "'global'", unless = "#result == null")
     public AdminDashboardStats buildAdminDashboard() {
@@ -40,7 +40,7 @@ public class AdminAnalyticsQueryService {
         LocalDateTime startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime startOfLastMonth = startOfMonth.minusMonths(1);
 
-        // ── Users ─────────────────────────────────────────────────────────────
+        // ── Users ────────────
         long totalCandidates = countByRole("CANDIDATE");
         long totalEmployers = countByRole("EMPLOYER");
         long totalUsers = totalCandidates + totalEmployers;
@@ -49,7 +49,7 @@ public class AdminAnalyticsQueryService {
         long newUsersLastMonth = countNewUsersBetween(startOfLastMonth, startOfMonth);
         double userGrowthRate = growthRate(newUsersLastMonth, newUsersThisMonth);
 
-        // ── Companies ─────────────────────────────────────────────────────────
+        // ── Companies ────────
         Object[] companyStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                                  AS total,
@@ -63,7 +63,7 @@ public class AdminAnalyticsQueryService {
         long verifiedCompanies = toLong(companyStats[1]);
         long pendingVerification = toLong(companyStats[2]);
 
-        // ── Jobs ──────────────────────────────────────────────────────────────
+        // ── Jobs ─────────────
         Object[] jobStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                              AS total,
@@ -84,7 +84,7 @@ public class AdminAnalyticsQueryService {
         long jobsLastMonth = toLong(jobStats[3]);
         double jobGrowthRate = growthRate(jobsLastMonth, jobsThisMonth);
 
-        // ── Applications ──────────────────────────────────────────────────────
+        // ── Applications ─────
         Object[] appStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                              AS total,
@@ -103,7 +103,7 @@ public class AdminAnalyticsQueryService {
         long applicationsLastMonth = toLong(appStats[2]);
         double applicationGrowthRate = growthRate(applicationsLastMonth, applicationsThisMonth);
 
-        // ── Revenue ───────────────────────────────────────────────────────────
+        // ── Revenue ──────────
         Object[] revenueStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COALESCE(SUM(amount) FILTER (WHERE completed_at >= :startOfMonth), 0)  AS this_month,
@@ -120,7 +120,7 @@ public class AdminAnalyticsQueryService {
         BigDecimal revenueLastMonth = toBigDecimal(revenueStats[1]);
         double revenueGrowthRate = growthRate(revenueLastMonth.doubleValue(), revenueThisMonth.doubleValue());
 
-        // ── Livestream ────────────────────────────────────────────────────────
+        // ── Livestream ───────
         Object[] streamStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*)                                              AS total,
@@ -138,7 +138,7 @@ public class AdminAnalyticsQueryService {
         long totalStreamViewers = toLong(streamStats[2]);
         long appliesFromStream = toLong(streamStats[3]);
 
-        // ── Moderation queue ──────────────────────────────────────────────────
+        // ── Moderation queue ─
         Object[] moderationStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     (SELECT COUNT(*) FROM company_profiles
@@ -179,7 +179,7 @@ public class AdminAnalyticsQueryService {
                 .build();
     }
 
-    // ── Time series ───────────────────────────────────────────────────────────
+    // ── Time series ──────────
 
     public List<TimeSeriesData> getUserGrowthTimeSeries(int months) {
         @SuppressWarnings("unchecked")
@@ -278,7 +278,7 @@ public class AdminAnalyticsQueryService {
         return TimeSeriesData.ofMonthly(rows);
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ──────
 
     private long countByRole(String role) {
         return ((Number) em.createNativeQuery(

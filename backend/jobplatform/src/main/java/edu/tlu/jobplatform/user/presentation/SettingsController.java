@@ -142,13 +142,13 @@ public class SettingsController {
                                 "Tài khoản đã được xóa. Chúng tôi rất tiếc khi bạn rời đi."));
         }
 
-        // ── Helper ────────────────────────────────────────────────────────
+        // ── Helper ───────
 
         private String extractToken(String authHeader) {
                 return authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
         }
 
-        // ── Inner DTOs ────────────────────────────────────────────────────
+        // ── Inner DTOs ───
 
         @Getter
         static class UpdateNameRequest {
