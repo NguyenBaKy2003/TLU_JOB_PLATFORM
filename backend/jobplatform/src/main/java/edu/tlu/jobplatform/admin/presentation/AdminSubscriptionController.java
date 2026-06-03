@@ -9,6 +9,8 @@ import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
+import edu.tlu.jobplatform.subscription.domain.model.SubscriptionStatus;
+import edu.tlu.jobplatform.subscription.presentation.dto.response.CompanySubscriptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,17 +51,20 @@ public class AdminSubscriptionController {
 
         @Operation(summary = "Danh sách tất cả Company subscription")
         @GetMapping
-        public ResponseEntity<ApiResponse<PageResponse<CompanySubscription>>> listAll(
+        public ResponseEntity<ApiResponse<PageResponse<CompanySubscriptionResponse>>> listAll(
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size,
                         @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @RequestParam(defaultValue = "desc") String direction) {
+                        @RequestParam(defaultValue = "desc") String direction,
+                        @RequestParam(required = false) String keyword, // ← thêm
+                        @RequestParam(required = false) SubscriptionStatus status) { // ← thêm
 
                 Sort sort = direction.equalsIgnoreCase("asc")
                                 ? Sort.by(sortBy).ascending()
                                 : Sort.by(sortBy).descending();
                 Pageable pageable = PageRequest.of(page, size, sort);
-                return ResponseEntity.ok(ApiResponse.success(useCase.listAll(pageable)));
+                return ResponseEntity.ok(ApiResponse.success(
+                                useCase.listAll(keyword, status, pageable)));
         }
 
         // ── Plans ─────────────────────────────────────────────────────────────────
@@ -74,7 +79,7 @@ public class AdminSubscriptionController {
 
         @Operation(summary = "Lịch sử subscription của công ty")
         @GetMapping("/company/{companyId}")
-        public ResponseEntity<ApiResponse<List<CompanySubscription>>> listByCompany(
+        public ResponseEntity<ApiResponse<List<CompanySubscriptionResponse>>> listByCompany(
                         @PathVariable UUID companyId) {
                 return ResponseEntity.ok(ApiResponse.success(useCase.listByCompany(companyId)));
         }

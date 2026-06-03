@@ -1,6 +1,7 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminApplicationUseCase;
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportApplicationsUseCase;
 import edu.tlu.jobplatform.admin.presentation.dto.request.OverrideStatusRequest;
 import edu.tlu.jobplatform.application.domain.model.ApplicationStatusLog;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
@@ -46,19 +47,20 @@ import java.util.UUID;
 public class AdminApplicationController {
 
         private final AdminApplicationUseCase adminApplicationUseCase;
+        private final AdminExportApplicationsUseCase exportUseCase;
 
         @Operation(summary = "Tất cả đơn ứng tuyển trong hệ thống", description = "Lọc theo status và tìm kiếm theo tên/email ứng viên, tên bài đăng.")
         @GetMapping
         @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
         public ResponseEntity<ApiResponse<PageResponse<ApplicationResponse>>> listAll(
-                        @Parameter(description = "Lọc trạng thái") @RequestParam(required = false) ApplicationStatus status,
-                        @Parameter(description = "Tìm theo tên/email ứng viên hoặc tiêu đề bài đăng") @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) ApplicationStatus status,
+                        @RequestParam(required = false) String keyword,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size) {
 
                 var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
                 var result = adminApplicationUseCase.listAll(status, keyword, pageable)
-                                .map(ApplicationResponse::from);
+                                .map(adminApplicationUseCase::buildFullResponse);
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
@@ -74,7 +76,7 @@ public class AdminApplicationController {
 
                 var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
                 var result = adminApplicationUseCase.listByCompany(companyId, status, keyword, pageable)
-                                .map(ApplicationResponse::from);
+                                .map(adminApplicationUseCase::buildFullResponse); // ← enrich
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
@@ -90,7 +92,7 @@ public class AdminApplicationController {
 
                 var pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
                 var result = adminApplicationUseCase.listByJob(jobPostId, status, keyword, pageable)
-                                .map(ApplicationResponse::from);
+                                .map(adminApplicationUseCase::buildFullResponse); // ← enrich
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
@@ -100,7 +102,13 @@ public class AdminApplicationController {
         public ResponseEntity<ApiResponse<ApplicationDetailResponse>> getById(@PathVariable UUID id) {
                 var app = adminApplicationUseCase.getById(id);
                 var logs = adminApplicationUseCase.getStatusLogs(id);
-                return ResponseEntity.ok(ApiResponse.success(ApplicationDetailResponse.from(app, logs)));
+                return ResponseEntity.ok(ApiResponse.success(
+                                ApplicationDetailResponse.from(
+                                                app,
+                                                logs,
+                                                adminApplicationUseCase.buildCandidateInfo(app.getCandidateId()),
+                                                adminApplicationUseCase.buildJobInfo(app.getJobPostId()),
+                                                adminApplicationUseCase.buildCompanyInfo(app.getCompanyId()))));
         }
 
         @Operation(summary = "Lịch sử thay đổi trạng thái")
@@ -122,8 +130,9 @@ public class AdminApplicationController {
                         @Valid @RequestBody OverrideStatusRequest req) {
 
                 var app = adminApplicationUseCase.overrideStatus(id, req.getStatus(), req.getReason());
-                return ResponseEntity.ok(
-                                ApiResponse.success(ApplicationResponse.from(app), "Trạng thái đã được cập nhật."));
+                return ResponseEntity.ok(ApiResponse.success(
+                                adminApplicationUseCase.buildFullResponse(app), // ← enrich
+                                "Trạng thái đã được cập nhật."));
         }
 
         @Operation(summary = "Cancel toàn bộ đơn của 1 bài đăng — ADMIN")
@@ -135,5 +144,29 @@ public class AdminApplicationController {
 
                 int count = adminApplicationUseCase.cancelAllForJob(jobPostId, reason);
                 return ResponseEntity.ok(ApiResponse.success(count + " đơn đã được cancel."));
+        }
+
+        @Operation(summary = "Xuất danh sách đơn ứng tuyển ra Excel")
+        @GetMapping("/export/excel")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportExcel(
+                        @RequestParam(required = false) ApplicationStatus status,
+                        @RequestParam(required = false) String keyword) {
+
+                var cmd = new AdminExportApplicationsUseCase.Command(status, keyword);
+                return exportUseCase.execute(cmd, AdminExportApplicationsUseCase.Format.EXCEL)
+                                .toResponseEntity();
+        }
+
+        @Operation(summary = "Xuất danh sách đơn ứng tuyển ra PDF")
+        @GetMapping("/export/pdf")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportPdf(
+                        @RequestParam(required = false) ApplicationStatus status,
+                        @RequestParam(required = false) String keyword) {
+
+                var cmd = new AdminExportApplicationsUseCase.Command(status, keyword);
+                return exportUseCase.execute(cmd, AdminExportApplicationsUseCase.Format.PDF)
+                                .toResponseEntity();
         }
 }

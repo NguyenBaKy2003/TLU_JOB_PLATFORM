@@ -2,10 +2,12 @@ export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 export interface AdminPayment {
   id: string;
-  companyId: string;
-  companyName: string;
-  subscriptionId: string;
-  planCode: string;
+  companyId: string | null;
+  companyName: string | null;
+  candidateId: string | null;
+  candidateName: string | null;
+  subscriptionId: string | null;
+  planCode: string | null;
   amount: number;
   currency: string;
   amountFormatted: string;
@@ -31,6 +33,11 @@ export interface AdminPaymentPage {
 export interface AdminPaymentFilters {
   status?: PaymentStatus;
   planCode?: string;
+  companyId?: string;
+  candidateId?: string;
+  gateway?: string;
+  fromDate?: string;
+  toDate?: string;
   page: number;
   size: number;
 }
@@ -40,6 +47,8 @@ export interface AdminPaymentStats {
   totalTransactions: number;
   successCount: number;
   failedCount: number;
+  refundedCount: number;
+  pendingCount: number;
   revenueTrend?: number;
   transactionsTrend?: number;
 }

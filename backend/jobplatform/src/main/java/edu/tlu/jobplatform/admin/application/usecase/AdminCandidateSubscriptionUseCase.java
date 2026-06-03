@@ -1,18 +1,20 @@
 package edu.tlu.jobplatform.admin.application.usecase;
 
+import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscription;
+import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionStatus;
 import edu.tlu.jobplatform.subscription.domain.repository.CandidateSubscriptionRepository;
+import edu.tlu.jobplatform.subscription.presentation.dto.response.CandidateSubscriptionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,18 +30,28 @@ import java.util.UUID;
 public class AdminCandidateSubscriptionUseCase {
 
     private final CandidateSubscriptionRepository subscriptionRepo;
-
+    private final CandidateProfileRepository candidateProfileRepository;
     // ── List ──────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public PageResponse<CandidateSubscription> listAll(Pageable pageable) {
-        Page<CandidateSubscription> page = subscriptionRepo.findAll(pageable);
-        return PageResponse.from(page);
+    public PageResponse<CandidateSubscriptionResponse> listAll(
+            String keyword, CandidateSubscriptionStatus status, Pageable pageable) {
+        return PageResponse.from(
+                subscriptionRepo.findByKeywordAndStatus(keyword, status, pageable)
+                        .map(sub -> {
+                            CandidateProfile profile = candidateProfileRepository
+                                    .findByUserId(sub.getCandidateId()).orElse(null);
+                            return CandidateSubscriptionResponse.from(sub, profile);
+                        }));
     }
 
     @Transactional(readOnly = true)
-    public List<CandidateSubscription> listByCandidate(UUID candidateId) {
-        return subscriptionRepo.findByCandidate(candidateId);
+    public List<CandidateSubscriptionResponse> listByCandidate(UUID candidateId) {
+        CandidateProfile profile = candidateProfileRepository
+                .findByUserId(candidateId).orElse(null);
+        return subscriptionRepo.findByCandidate(candidateId).stream()
+                .map(sub -> CandidateSubscriptionResponse.from(sub, profile))
+                .toList();
     }
 
     @Transactional(readOnly = true)

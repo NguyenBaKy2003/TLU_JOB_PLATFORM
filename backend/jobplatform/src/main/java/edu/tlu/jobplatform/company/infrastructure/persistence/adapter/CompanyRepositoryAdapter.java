@@ -156,7 +156,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
         });
     }
 
-    // ── Plan-tier sort ────────────────────────────────────────────────────────
+    // ── Plan-tier sort ───────
 
     @Override
     public Page<CompanyProfile> findVerifiedCompaniesSortedByPlan(Pageable pageable) {
@@ -174,7 +174,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                         (existing, replacement) -> existing));
     }
 
-    // ── Multi-criteria search ─────────────────────────────────────────────────
+    // ── Multi-criteria search
 
     @Override
     public Page<CompanyProfile> search(
@@ -184,7 +184,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                 .map(mapper::toDomain);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────
 
     private static double round(double value) {
         return Math.round(value * 10.0) / 10.0;

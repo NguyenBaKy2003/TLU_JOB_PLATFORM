@@ -6,7 +6,7 @@ import {
   TableActions, FormModel, FormField, DetailModel, DetailField, TablePagination,
 } from '@/presentation/components/common';
 import { AdminJobRepository } from '@/infrastructure/repositories/AdminJobRepository';
-import type { AdminJob, AdminJobFilters, JobStatus } from '@/domain/models/AdminJob';
+import type { AdminJob, AdminJobDetail, AdminJobFilters, JobStatus } from '@/domain/models/AdminJob';
 import { AdminJobService } from '@/application/services/AdminJobService';
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
@@ -26,16 +26,18 @@ const statusOptions = [
 ];
 
 const statusConfig: Record<JobStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  DRAFT:     { label: 'Bản nháp', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',         icon: <Clock className="w-3 h-3" /> },
-  PUBLISHED: { label: 'Đã đăng',  color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',  icon: <CheckCircle className="w-3 h-3" /> },
-  CLOSED:    { label: 'Đã đóng',  color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',          icon: <XCircle className="w-3 h-3" /> },
+  DRAFT:     { label: 'Bản nháp', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',            icon: <Clock className="w-3 h-3" /> },
+  PUBLISHED: { label: 'Đã đăng',  color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',     icon: <CheckCircle className="w-3 h-3" /> },
+  CLOSED:    { label: 'Đã đóng',  color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',             icon: <XCircle className="w-3 h-3" /> },
   EXPIRED:   { label: 'Hết hạn',  color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: <AlertCircle className="w-3 h-3" /> },
-  DELETED:   { label: 'Đã xóa',   color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',         icon: <Trash2 className="w-3 h-3" /> },
+  DELETED:   { label: 'Đã xóa',   color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',            icon: <Trash2 className="w-3 h-3" /> },
 };
 
-const formatCurrency = (amount: number | null, currency: string | null): string => {
-  if (!amount) return 'Thỏa thuận';
-  return `${currency === 'USD' ? '$' : '₫'}${amount.toLocaleString()}`;
+const competitionLevelConfig: Record<string, { label: string; color: string }> = {
+  LOW:     { label: 'Thấp',    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+  MEDIUM:  { label: 'Trung bình', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  HIGH:    { label: 'Cao',     color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
+  EXTREME: { label: 'Rất cao', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -50,14 +52,15 @@ export default function AdminJobsPage() {
   const pageSizeRef = useRef(10);
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [jobs,          setJobs]          = useState<AdminJob[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
-  const [totalElements, setTotalElements] = useState(0);
-  const [totalPages,    setTotalPages]    = useState(0);
-  const [currentPage,   setCurrentPage]   = useState(0);
-  const [pageSize,      setPageSize]      = useState(10);
-  const [selectedJob,   setSelectedJob]   = useState<AdminJob | null>(null);
+  const [jobs,            setJobs]            = useState<AdminJob[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [exporting,       setExporting]       = useState<'excel' | 'pdf' | null>(null);
+  const [totalElements,   setTotalElements]   = useState(0);
+  const [totalPages,      setTotalPages]      = useState(0);
+  const [currentPage,     setCurrentPage]     = useState(0);
+  const [pageSize,        setPageSize]        = useState(10);
+  const [selectedDetail,  setSelectedDetail]  = useState<AdminJobDetail | null>(null);
+  const [detailLoading,   setDetailLoading]   = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   const [closeFormModal, setCloseFormModal] = useState<{
@@ -80,7 +83,7 @@ export default function AdminJobsPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch list ─────────────────────────────────────────────────────────────
   const fetchJobs = useCallback(async (
     filterValues: { keyword?: string; status?: string; city?: string; category?: string },
     page = 0,
@@ -122,6 +125,27 @@ export default function AdminJobsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.keyword, filters.status, filters.city, filters.category]);
 
+  // ── Fetch detail ───────────────────────────────────────────────────────────
+  const handleViewDetail = useCallback(async (record: AdminJob) => {
+    setDetailModalOpen(true);
+    setSelectedDetail(null);   // clear → skeleton hiện ngay
+    setDetailLoading(true);
+    try {
+      const detail = await serviceRef.current.getJobDetail(record.id);
+      setSelectedDetail(detail);
+    } catch (error) {
+      toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể tải chi tiết tin tuyển dụng'));
+      setDetailModalOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setDetailModalOpen(false);
+    setSelectedDetail(null);
+  }, []);
+
   // ── Pagination ─────────────────────────────────────────────────────────────
   const currentFilters = useCallback(() => ({
     keyword:  getFilterValue('keyword'),
@@ -142,10 +166,10 @@ export default function AdminJobsPage() {
 
   // ── Export ─────────────────────────────────────────────────────────────────
   const exportFilters = useCallback((): Omit<AdminJobFilters, 'page' | 'size'> => ({
-    status:   (getFilterValue('status')   || '') as JobStatus | '',
-    keyword:  getFilterValue('keyword')   || '',
-    city:     getFilterValue('city')      || '',
-    category: getFilterValue('category')  || '',
+    status:   (getFilterValue('status')  || '') as JobStatus | '',
+    keyword:  getFilterValue('keyword')  || '',
+    city:     getFilterValue('city')     || '',
+    category: getFilterValue('category') || '',
   }), [getFilterValue]);
 
   const handleExportExcel = useCallback(async () => {
@@ -209,14 +233,15 @@ export default function AdminJobsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchJobs, currentFilters, currentPage]);
 
-  // ── Table ──────────────────────────────────────────────────────────────────
+  // ── Table columns ──────────────────────────────────────────────────────────
   const getActions = (record: AdminJob): ActionItem<AdminJob>[] => {
     const actions: ActionItem<AdminJob>[] = [{
       key: 'view', label: 'Xem chi tiết', icon: <Eye className="w-4 h-4" />,
-      onClick: () => { setSelectedJob(record); setDetailModalOpen(true); },
+      onClick: () => handleViewDetail(record),
       color: 'default',
     }];
-    if (record.status !== 'CLOSED' && record.status !== 'DELETED') {
+    // Chỉ cho close khi PUBLISHED (backend yêu cầu)
+    if (record.status === 'PUBLISHED') {
       actions.push({
         key: 'close', label: 'Đóng tin', icon: <XCircle className="w-4 h-4" />,
         onClick: () => setCloseFormModal({ isOpen: true, job: record, loading: false }),
@@ -235,19 +260,20 @@ export default function AdminJobsPage() {
 
   const columns: Column<AdminJob>[] = [
     {
-      key: 'title', title: 'Tiêu đề', sortable: true, width: '300px',
+      key: 'title', title: 'Tiêu đề', sortable: true, width: '280px',
       render: (value, record) => (
         <div>
           <div className="font-medium text-foreground">{value}</div>
           <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-            <Building2 className="w-3 h-3" />{record.companyName}
+            <Building2 className="w-3 h-3" />{record.companyName ?? '—'}
           </div>
         </div>
       ),
     },
-    { key: 'level', title: 'Cấp bậc', width: '120px', render: (v) => v || '—' },
+    { key: 'level',    title: 'Cấp bậc',  width: '100px', render: (v) => v || '—' },
+    { key: 'category', title: 'Danh mục', width: '130px', render: (v) => v || '—' },
     {
-      key: 'location', title: 'Địa điểm', width: '150px',
+      key: 'workLocationCity', title: 'Địa điểm', width: '130px',
       render: (value) => (
         <div className="flex items-center gap-1">
           <MapPin className="w-3 h-3 text-muted-foreground" />
@@ -256,12 +282,11 @@ export default function AdminJobsPage() {
       ),
     },
     {
-      key: 'salary', title: 'Mức lương', width: '160px',
-      render: (_, record) =>
-        `${formatCurrency(record.salaryMin, record.currency)} - ${formatCurrency(record.salaryMax, record.currency)}`,
+      key: 'salaryDisplay', title: 'Mức lương', width: '180px',
+      render: (value) => value ?? 'Thỏa thuận',
     },
     {
-      key: 'deadline', title: 'Hạn nộp', width: '120px',
+      key: 'deadline', title: 'Hạn nộp', width: '110px',
       render: (value) => {
         if (!value) return '—';
         const d = new Date(value);
@@ -284,46 +309,141 @@ export default function AdminJobsPage() {
         );
       },
     },
-    { key: 'createdAt', title: 'Ngày tạo', width: '120px', sortable: true, render: (v) => new Date(v).toLocaleDateString('vi-VN') },
     {
-      key: 'actions', title: 'Thao tác', width: '150px', align: 'center',
+      key: 'createdAt', title: 'Ngày tạo', width: '110px', sortable: true,
+      render: (v) => new Date(v).toLocaleDateString('vi-VN'),
+    },
+    {
+      key: 'actions', title: 'Thao tác', width: '120px', align: 'center',
       render: (_, record) => <TableActions record={record} actions={getActions(record)} showLabel={false} />,
     },
   ];
 
+  // ── Detail fields ──────────────────────────────────────────────────────────
   const getDetailFields = (): DetailField[] => {
-    if (!selectedJob) return [];
+    if (!selectedDetail) return [];
+    const d = selectedDetail;
+    const compLvl = d.competition ? competitionLevelConfig[d.competition.level] : null;
+
     return [
-      { key: 'title',     label: 'Tiêu đề',           value: selectedJob.title,       copyable: true },
-      { key: 'company',   label: 'Công ty',            value: selectedJob.companyName, copyable: true },
-      { key: 'status',    label: 'Trạng thái',         type: 'badge',
+      // ── Thông tin cơ bản
+      { key: 'title',      label: 'Tiêu đề',    value: d.title,       copyable: true },
+      { key: 'company',    label: 'Công ty',     value: d.companyName ?? '—', copyable: true },
+      {
+        key: 'status', label: 'Trạng thái', type: 'badge',
         value: (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[selectedJob.status].color}`}>
-            {statusConfig[selectedJob.status].icon}{statusConfig[selectedJob.status].label}
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[d.status].color}`}>
+            {statusConfig[d.status].icon}{statusConfig[d.status].label}
           </span>
         ),
       },
-      { key: 'level',     label: 'Cấp bậc',            value: selectedJob.level    || 'Chưa có' },
-      { key: 'location',  label: 'Địa điểm',            value: selectedJob.location || 'Chưa có' },
-      { key: 'salary',    label: 'Mức lương',
-        value: `${formatCurrency(selectedJob.salaryMin, selectedJob.currency)} - ${formatCurrency(selectedJob.salaryMax, selectedJob.currency)}`,
+      { key: 'jobType',    label: 'Loại hình',   value: d.jobType ?? '—' },
+      { key: 'level',      label: 'Cấp bậc',     value: d.level    ?? '—' },
+      { key: 'category',   label: 'Danh mục',    value: d.category ?? '—' },
+      { key: 'experience', label: 'Kinh nghiệm', value: d.experienceYears != null ? `${d.experienceYears} năm` : '—' },
+      { key: 'vacancies',  label: 'Số lượng tuyển', value: d.vacancies != null ? `${d.vacancies} người` : '—' },
+
+      // ── Địa điểm & lương
+      { key: 'city',    label: 'Thành phố',   value: d.workLocationCity    ?? '—' },
+      { key: 'address', label: 'Địa chỉ',     value: d.workLocationAddress ?? '—' },
+      { key: 'salary',  label: 'Mức lương',   value: d.salaryDisplay ?? 'Thỏa thuận' },
+      {
+        key: 'negotiable', label: 'Thương lượng lương',
+        value: d.salaryNegotiable ? 'Có thể thương lượng' : 'Cố định',
       },
-      { key: 'deadline',  label: 'Hạn nộp',   type: 'date',
-        value: selectedJob.deadline ? new Date(selectedJob.deadline).toLocaleDateString('vi-VN') : 'Chưa có',
+
+      // ── Thời hạn
+      {
+        key: 'deadline', label: 'Hạn nộp', type: 'date',
+        value: d.deadline ? new Date(d.deadline).toLocaleDateString('vi-VN') : '—',
       },
-      { key: 'createdAt', label: 'Ngày tạo',   type: 'date', value: new Date(selectedJob.createdAt).toLocaleString('vi-VN') },
-      { key: 'updatedAt', label: 'Cập nhật lần cuối', type: 'date',
-        value: selectedJob.updatedAt ? new Date(selectedJob.updatedAt).toLocaleString('vi-VN') : '—',
+      {
+        key: 'publishedAt', label: 'Ngày đăng', type: 'date',
+        value: d.publishedAt ? new Date(d.publishedAt).toLocaleString('vi-VN') : '—',
       },
+      {
+        key: 'createdAt', label: 'Ngày tạo', type: 'date',
+        value: new Date(d.createdAt).toLocaleString('vi-VN'),
+      },
+
+      // ── Thống kê
+      { key: 'viewCount',        label: 'Lượt xem',         value: `${d.viewCount} lượt` },
+      { key: 'applicationCount', label: 'Số ứng viên',      value: `${d.applicationCount} người` },
+
+      // ── Skills
+      ...(d.skills?.length > 0 ? [{
+        key: 'skills', label: 'Kỹ năng yêu cầu',
+        value: (
+          <div className="flex flex-wrap gap-1.5">
+            {d.skills.map((s, i) => (
+              <span key={i}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border
+                  ${s.required
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                  }`}
+              >
+                {s.skillName}
+                <span className="opacity-60">· {s.level}</span>
+              </span>
+            ))}
+          </div>
+        ),
+      }] : []),
+
+      // ── Mô tả
+      ...(d.description ? [{
+        key: 'description', label: 'Mô tả công việc', type: 'html' as const,
+        value: d.description,
+      }] : []),
+
+      ...(d.requirements ? [{
+        key: 'requirements', label: 'Yêu cầu', type: 'html' as const,
+        value: d.requirements,
+      }] : []),
+
+      ...(d.benefits ? [{
+        key: 'benefits', label: 'Phúc lợi', type: 'html' as const,
+        value: d.benefits,
+      }] : []),
+
+      // ── Cạnh tranh
+      ...(d.competition && compLvl ? [
+        {
+          key: 'compLevel', label: 'Mức cạnh tranh',
+          value: (
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${compLvl.color}`}>
+              {compLvl.label} · {d.competition.competitionScore}/100
+            </span>
+          ),
+        },
+        { key: 'compApplicants', label: 'Tổng ứng viên', value: `${d.competition.totalApplicants} người` },
+        { key: 'compAdvice',     label: 'Nhận xét',       value: d.competition.candidateAdvice },
+        { key: 'compInsight',    label: 'Gợi ý nhà tuyển', value: d.competition.employerInsight },
+      ] : []),
+
+      // ── Công ty
+      ...(d.companyWebsite ? [{
+        key: 'website', label: 'Website công ty',
+        value: (
+          <a href={d.companyWebsite} target="_blank" rel="noreferrer"
+            className="text-blue-600 hover:underline dark:text-blue-400 break-all">
+            {d.companyWebsite}
+          </a>
+        ),
+      }] : []),
+      ...(d.companyIndustry ? [{ key: 'industry', label: 'Ngành nghề',  value: d.companyIndustry }] : []),
+      ...(d.companySize     ? [{ key: 'compSize', label: 'Quy mô công ty', value: d.companySize }] : []),
     ];
   };
 
-  const closeFormFields: FormField[]  = [{ name: 'reason', label: 'Lý do đóng tin', type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do đóng tin tuyển dụng...' }];
-  const deleteFormFields: FormField[] = [{ name: 'reason', label: 'Lý do xóa tin',  type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do xóa tin tuyển dụng...' }];
-
+  // ── Derived pagination values ───────────────────────────────────────────────
   const page1Based = currentPage + 1;
   const startIndex = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex   = Math.min((currentPage + 1) * pageSize, totalElements);
+
+  const closeFormFields:  FormField[] = [{ name: 'reason', label: 'Lý do đóng tin', type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do đóng tin tuyển dụng...' }];
+  const deleteFormFields: FormField[] = [{ name: 'reason', label: 'Lý do xóa tin',  type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do xóa tin tuyển dụng...' }];
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -403,29 +523,33 @@ export default function AdminJobsPage() {
         />
       </div>
 
+      {/* Detail Modal */}
       <DetailModel
         isOpen={detailModalOpen}
-        onClose={() => setDetailModalOpen(false)}
-        title={`Chi tiết tin tuyển dụng - ${selectedJob?.title || ''}`}
+        onClose={handleCloseDetail}
+        title={selectedDetail ? `Chi tiết tin tuyển dụng — ${selectedDetail.title}` : 'Chi tiết tin tuyển dụng'}
         fields={getDetailFields()}
+        loading={detailLoading}
       />
 
+      {/* Close Form */}
       <FormModel
         isOpen={closeFormModal.isOpen}
         onClose={() => setCloseFormModal({ isOpen: false, job: null, loading: false })}
         onSubmit={(data) => { if (closeFormModal.job) handleForceClose(closeFormModal.job.id, data.reason); }}
-        title={`Đóng tin tuyển dụng - ${closeFormModal.job?.title ?? ''}`}
+        title={`Đóng tin tuyển dụng — ${closeFormModal.job?.title ?? ''}`}
         fields={closeFormFields}
         initialData={{ reason: '' }}
         submitText="Xác nhận đóng"
         loading={closeFormModal.loading}
       />
 
+      {/* Delete Form */}
       <FormModel
         isOpen={deleteFormModal.isOpen}
         onClose={() => setDeleteFormModal({ isOpen: false, job: null, loading: false })}
         onSubmit={(data) => { if (deleteFormModal.job) handleForceDelete(deleteFormModal.job.id, data.reason); }}
-        title={`Xóa tin tuyển dụng - ${deleteFormModal.job?.title ?? ''}`}
+        title={`Xóa tin tuyển dụng — ${deleteFormModal.job?.title ?? ''}`}
         fields={deleteFormFields}
         initialData={{ reason: '' }}
         submitText="Xác nhận xóa"

@@ -45,7 +45,7 @@ public class AdminCandidateSubscriptionPlanController {
     private final CreateCandidatePlanUseCase createPlanUseCase;
     private final UpdateCandidatePlanUseCase updatePlanUseCase;
 
-    // ── GET / ─────────────────────────────────────────────────────────
+    // ── GET / ────────
 
     @Operation(summary = "Lấy tất cả gói Candidate (kể cả inactive)")
     @GetMapping

@@ -2,7 +2,7 @@
 
 import type { IAdminReviewRepository } from "@/domain/repositories/IAdminReviewRepository";
 import type { CompanyReview, PageResponse, ReviewStatus } from "@/domain/models/CompanyReview";
-
+import { triggerBlobDownload } from "@/lib/download";
 export class AdminReviewService {
   constructor(private readonly repo: IAdminReviewRepository) {}
 
@@ -46,4 +46,13 @@ export class AdminReviewService {
   deleteReview(reviewId: string): Promise<void> {
     return this.repo.adminDeleteReview(reviewId);
   }
+  async downloadExcel(status?: ReviewStatus): Promise<void> {
+  const blob = await this.repo.exportExcel(status);
+  triggerBlobDownload(blob, `reviews_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+async downloadPdf(status?: ReviewStatus): Promise<void> {
+  const blob = await this.repo.exportPdf(status);
+  triggerBlobDownload(blob, `reviews_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
 }

@@ -53,7 +53,7 @@ public class ExcelExportService {
 
             int rowIdx = 0;
 
-            // ── Title row ─────────────────────────────────────────────────
+            // ── Title row
             rowIdx = writeTitleRow(wb, sheet, request.getTitle(), request.getColumns().size(), rowIdx);
 
             // ── Subtitle / generated-at row ───────────────────────────────
@@ -65,7 +65,7 @@ public class ExcelExportService {
             // ── Header row ────────────────────────────────────────────────
             rowIdx = writeHeaderRow(wb, sheet, request.getColumns(), rowIdx);
 
-            // ── Data rows ─────────────────────────────────────────────────
+            // ── Data rows
             writeDataRows(wb, sheet, request.getColumns(), request.getData(), rowIdx);
 
             // ── Auto-size columns ─────────────────────────────────────────
@@ -82,7 +82,7 @@ public class ExcelExportService {
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ──────
 
     private int writeTitleRow(Workbook wb, Sheet sheet, String title, int colCount, int rowIdx) {
         Row row = sheet.createRow(rowIdx);

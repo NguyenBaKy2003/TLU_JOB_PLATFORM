@@ -17,7 +17,7 @@ import java.util.UUID;
  * UseCase: Candidate boost CV/profile lên top kết quả tìm kiếm employer.
  *
  * Cơ chế:
- * ──────────────────────────────────────────────────────────────────
+ * ─────────────────
  * - Set boostedUntil = now() + BOOST_DAYS (7 ngày) trên CandidateProfile
  * - Employer search → kết quả sort ưu tiên candidate có boostedUntil > now()
  * - Hết hạn → tự nhiên mất ưu tiên (không cần scheduler xóa)
@@ -35,7 +35,7 @@ import java.util.UUID;
  * Rollback safety:
  * - @Transactional: nếu save profile thất bại → quota refund tự động
  * (quota consume và profile save cùng transaction)
- * ──────────────────────────────────────────────────────────────────
+ * ─────────────────
  */
 @Slf4j
 @Service

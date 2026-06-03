@@ -10,7 +10,7 @@ import type {
 
 interface ApiResponse<T> {
   success: boolean;
-  data:    T;
+  data: T;
   message?: string;
 }
 
@@ -22,6 +22,26 @@ function adminConfig(params?: Record<string, unknown>) {
   };
 }
 
+function adminBlobConfig(params?: Record<string, unknown>) {
+  const token = getAdminAccessToken();
+  return {
+    responseType: 'blob' as const,
+    ...(params ? { params } : {}),
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}
+
+function buildExportParams(filters: Omit<AdminPaymentFilters, 'page' | 'size'>) {
+  return {
+    ...(filters.companyId   ? { companyId:   filters.companyId   } : {}),
+    ...(filters.candidateId ? { candidateId: filters.candidateId } : {}),
+    ...(filters.status      ? { status:      filters.status      } : {}),
+    ...(filters.gateway     ? { gateway:     filters.gateway     } : {}),
+    ...(filters.fromDate    ? { fromDate:    filters.fromDate    } : {}),
+    ...(filters.toDate      ? { toDate:      filters.toDate      } : {}),
+  };
+}
+
 export class AdminPaymentRepository implements IAdminPaymentRepository {
   private readonly BASE = "/admin/payments";
 
@@ -29,13 +49,15 @@ export class AdminPaymentRepository implements IAdminPaymentRepository {
     const res = await api.get<ApiResponse<AdminPaymentPage>>(
       this.BASE,
       adminConfig({
-        page:      filters.page,
-        size:      filters.size,
-        ...(filters.companyId ? { companyId: filters.companyId } : {}),
-        ...(filters.status    ? { status:    filters.status    } : {}),
-        ...(filters.gateway   ? { gateway:   filters.gateway   } : {}),
-        ...(filters.fromDate  ? { fromDate:  filters.fromDate  } : {}),
-        ...(filters.toDate    ? { toDate:    filters.toDate    } : {}),
+        page:                          filters.page,
+        size:                          filters.size,
+        ...(filters.companyId   ? { companyId:   filters.companyId   } : {}),
+        ...(filters.candidateId ? { candidateId: filters.candidateId } : {}),
+        ...(filters.status      ? { status:      filters.status      } : {}),
+        ...(filters.planCode    ? { planCode:    filters.planCode    } : {}),
+        ...(filters.gateway     ? { gateway:     filters.gateway     } : {}),
+        ...(filters.fromDate    ? { fromDate:    filters.fromDate    } : {}),
+        ...(filters.toDate      ? { toDate:      filters.toDate      } : {}),
       }),
     );
     return res.data.data;
@@ -76,5 +98,29 @@ export class AdminPaymentRepository implements IAdminPaymentRepository {
       adminConfig({ reason }),
     );
     return res.data.data;
+  }
+
+  async exportExcel(filters: Omit<AdminPaymentFilters, 'page' | 'size'>): Promise<Blob> {
+    const res = await api.get(
+      `${this.BASE}/export/excel`,
+      adminBlobConfig(buildExportParams(filters)),
+    );
+    return res.data as Blob;
+  }
+
+  async exportPdf(filters: Omit<AdminPaymentFilters, 'page' | 'size'>): Promise<Blob> {
+    const res = await api.get(
+      `${this.BASE}/export/pdf`,
+      adminBlobConfig(buildExportParams(filters)),
+    );
+    return res.data as Blob;
+  }
+
+  async downloadInvoice(id: string): Promise<Blob> {
+    const res = await api.get(
+      `${this.BASE}/${id}/invoice`,
+      adminBlobConfig(),
+    );
+    return res.data as Blob;
   }
 }

@@ -64,7 +64,7 @@ public class ProfileCreationService {
         }
     }
 
-    // ── Candidate ─────────────────────────────────────────────────────
+    // ── Candidate ────
 
     private void createCandidateProfile(User user) {
         if (candidateProfileRepository.existsByUserId(user.getId())) {
@@ -110,7 +110,7 @@ public class ProfileCreationService {
         }
     }
 
-    // ── Company ───────────────────────────────────────────────────────
+    // ── Company ──────
 
     private void createCompanyProfile(User user) {
         if (companyRepository.existsByOwnerId(user.getId())) {
@@ -198,7 +198,7 @@ public class ProfileCreationService {
         return slug;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────
+    // ── Helpers ──────
     // (giữ nguyên)
 
     private static String[] splitFullName(String fullName) {
@@ -213,7 +213,7 @@ public class ProfileCreationService {
         return new String[] { first, last.isEmpty() ? null : last };
     }
 
-    // ── Guards ────────────────────────────────────────────────────────
+    // ── Guards ───────
     // (giữ nguyên toàn bộ)
 
     public boolean hasProfile(User user) {

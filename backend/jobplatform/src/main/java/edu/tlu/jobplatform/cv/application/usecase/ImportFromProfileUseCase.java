@@ -68,13 +68,13 @@ public class ImportFromProfileUseCase {
 
         cv.updateMetadata(cv.getTitle(), personalInfo, cv.getTemplateId(), cv.getVisibility());
 
-        // ── SUMMARY ───────────────────────────────────────────────────────
+        // ── SUMMARY ──────
         if (hasText(snapshot.summary())) {
             upsertSection(cv, SectionType.SUMMARY, "Giới thiệu bản thân",
                     toJson(Map.of("text", snapshot.summary())));
         }
 
-        // ── EXPERIENCE ────────────────────────────────────────────────────
+        // ── EXPERIENCE ───
         if (!isEmpty(snapshot.experiences())) {
             List<Map<String, Object>> list = snapshot.experiences().stream()
                     .map(ImportFromProfileUseCase::mapExperience)
@@ -82,7 +82,7 @@ public class ImportFromProfileUseCase {
             upsertSection(cv, SectionType.EXPERIENCE, "Kinh nghiệm làm việc", toJson(list));
         }
 
-        // ── EDUCATION ─────────────────────────────────────────────────────
+        // ── EDUCATION ────
         if (!isEmpty(snapshot.educations())) {
             List<Map<String, Object>> list = snapshot.educations().stream()
                     .map(ImportFromProfileUseCase::mapEducation)
@@ -90,7 +90,7 @@ public class ImportFromProfileUseCase {
             upsertSection(cv, SectionType.EDUCATION, "Học vấn", toJson(list));
         }
 
-        // ── SKILL ─────────────────────────────────────────────────────────
+        // ── SKILL ────────
         if (!isEmpty(snapshot.skills())) {
             List<String> names = snapshot.skills().stream()
                     .map(SkillItem::name)
@@ -102,7 +102,7 @@ public class ImportFromProfileUseCase {
             }
         }
 
-        // ── LANGUAGE ──────────────────────────────────────────────────────
+        // ── LANGUAGE ─────
         if (!isEmpty(snapshot.languages())) {
             List<Map<String, Object>> list = snapshot.languages().stream()
                     .map(ImportFromProfileUseCase::mapLanguage)
@@ -110,7 +110,7 @@ public class ImportFromProfileUseCase {
             upsertSection(cv, SectionType.LANGUAGE, "Ngoại ngữ", toJson(list));
         }
 
-        // ── SOCIAL LINK ───────────────────────────────────────────────────
+        // ── SOCIAL LINK ──
         if (!isEmpty(snapshot.socialLinks())) {
             List<Map<String, Object>> list = snapshot.socialLinks().stream()
                     .map(ImportFromProfileUseCase::mapSocialLink)
@@ -160,7 +160,7 @@ public class ImportFromProfileUseCase {
         return m;
     }
 
-    // ── Section upsert ────────────────────────────────────────────────────────
+    // ── Section upsert ───────
 
     /** Update nếu section đã tồn tại, add mới nếu chưa có. */
     private void upsertSection(OnlineCV cv, SectionType type, String title, String content) {
@@ -173,7 +173,7 @@ public class ImportFromProfileUseCase {
                         () -> cv.addSection(type, title, content));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────
 
     /**
      * Trả về value đầu tiên có nội dung, hoặc null nếu tất cả đều blank.

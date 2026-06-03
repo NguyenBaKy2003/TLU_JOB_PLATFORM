@@ -27,4 +27,7 @@ public interface CompanySubscriptionRepository {
                         SubscriptionStatus status, LocalDateTime threshold);
 
         CompanySubscription save(CompanySubscription subscription);
+
+        Page<CompanySubscription> findByKeywordAndStatus(String keyword, SubscriptionStatus status, Pageable pageable);
+
 }

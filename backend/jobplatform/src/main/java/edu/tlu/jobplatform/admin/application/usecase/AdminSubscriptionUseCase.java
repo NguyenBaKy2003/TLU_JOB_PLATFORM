@@ -1,15 +1,18 @@
 package edu.tlu.jobplatform.admin.application.usecase;
 
+import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.response.PageResponse;
 import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
 import edu.tlu.jobplatform.subscription.domain.model.SubscriptionPlan;
+import edu.tlu.jobplatform.subscription.domain.model.SubscriptionStatus;
 import edu.tlu.jobplatform.subscription.domain.repository.CompanySubscriptionRepository;
 import edu.tlu.jobplatform.subscription.domain.repository.SubscriptionPlanRepository;
+import edu.tlu.jobplatform.subscription.presentation.dto.response.CompanySubscriptionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,12 +37,27 @@ public class AdminSubscriptionUseCase {
 
     private final CompanySubscriptionRepository subscriptionRepo;
     private final SubscriptionPlanRepository planRepo;
+    private final CompanyRepository companyProfileRepository;
 
     // ── Subscription
+    @Transactional(readOnly = true)
+    public PageResponse<CompanySubscriptionResponse> listAll(
+            String keyword, SubscriptionStatus status, Pageable pageable) {
+        return PageResponse.from(
+                subscriptionRepo.findByKeywordAndStatus(keyword, status, pageable)
+                        .map(sub -> {
+                            CompanyProfile company = companyProfileRepository
+                                    .findById(sub.getCompanyId()).orElse(null);
+                            return CompanySubscriptionResponse.from(sub, company);
+                        }));
+    }
 
     @Transactional(readOnly = true)
-    public List<CompanySubscription> listByCompany(UUID companyId) {
-        return subscriptionRepo.findByCompanyId(companyId);
+    public List<CompanySubscriptionResponse> listByCompany(UUID companyId) {
+        CompanyProfile company = companyProfileRepository.findById(companyId).orElse(null);
+        return subscriptionRepo.findByCompanyId(companyId).stream()
+                .map(sub -> CompanySubscriptionResponse.from(sub, company))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -111,9 +129,4 @@ public class AdminSubscriptionUseCase {
         return planRepo.findAllActive();
     }
 
-    @Transactional(readOnly = true)
-    public PageResponse<CompanySubscription> listAll(Pageable pageable) {
-        Page<CompanySubscription> page = subscriptionRepo.findAll(pageable);
-        return PageResponse.from(page);
-    }
 }

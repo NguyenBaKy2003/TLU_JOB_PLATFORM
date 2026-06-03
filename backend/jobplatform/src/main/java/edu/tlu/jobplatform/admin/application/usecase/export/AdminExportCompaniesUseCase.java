@@ -24,7 +24,7 @@ public class AdminExportCompaniesUseCase {
     private final ExcelExportService excelExportService;
     private final PdfExportService pdfExportService;
 
-    // ── Column definitions ────────────────────────────────────────────────────
+    // ── Column definitions ───
 
     private static final List<ExportColumn<CompanyProfile>> COLUMNS = List.of(
             ExportColumn.of("Tên công ty", CompanyProfile::getName, 28),
@@ -47,7 +47,7 @@ public class AdminExportCompaniesUseCase {
                             : "",
                     14));
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // ── Commands ─────────────
 
     public record Command(
             VerificationStatus status,
@@ -62,7 +62,7 @@ public class AdminExportCompaniesUseCase {
         EXCEL, PDF
     }
 
-    // ── Execute ───────────────────────────────────────────────────────────────
+    // ── Execute ──────────────
     private List<CompanyProfile> fetchAll(Command cmd) {
         var pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.unsorted());
         return adminCompanyUseCase
@@ -85,7 +85,7 @@ public class AdminExportCompaniesUseCase {
         };
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ──────
 
     private ExportRequest<CompanyProfile> buildRequest(Command cmd, List<CompanyProfile> data) {
         String generatedAt = LocalDateTime.now()

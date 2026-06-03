@@ -49,7 +49,7 @@ public class CandidateCVApplicationController {
         return streamResponse(result, "inline");
     }
 
-    // ── Tải CV về máy ──────────────────────────────────────────────────────
+    // ── Tải CV về máy ─────
 
     @Operation(summary = "Candidate tải CV đã nộp về máy (attachment)")
     @GetMapping("/{applicationId}/cv/download")
@@ -61,7 +61,7 @@ public class CandidateCVApplicationController {
         return streamResponse(result, "attachment");
     }
 
-    // ── Helper ─────────────────────────────────────────────────────────────
+    // ── Helper ────────────
 
     private ResponseEntity<InputStreamResource> streamResponse(
             ViewOwnApplicationCVUseCase.Result result, String disposition) {

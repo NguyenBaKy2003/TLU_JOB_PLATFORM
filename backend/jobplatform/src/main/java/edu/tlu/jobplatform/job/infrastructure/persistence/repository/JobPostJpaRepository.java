@@ -44,7 +44,7 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
                @Param("status") JobStatus status,
                @Param("date") LocalDate date);
 
-     // ── Candidate search ──────────────────────────────────────────────────────
+     // ── Candidate search ─────
 
      @Query(value = """
                SELECT DISTINCT j.* FROM job_posts j

@@ -31,7 +31,7 @@ public class ReviewNotificationHandler {
                                 "Có đánh giá mới cần duyệt",
                                 "%s vừa gửi đánh giá %d⭐ cho công ty. Vui lòng kiểm duyệt."
                                                 .formatted(reviewerDisplay, event.getRating()),
-                                "/employer/reviews/pending"));
+                                "/employer/reviews"));
         }
 
         /**
@@ -46,7 +46,7 @@ public class ReviewNotificationHandler {
                                 "Đánh giá của bạn đã được duyệt",
                                 "Đánh giá %d⭐ của bạn đã được phê duyệt và hiển thị công khai."
                                                 .formatted(event.getRating()),
-                                "/reviews/" + event.getReviewId()));
+                                "/candidate/reviews/" + event.getReviewId()));
         }
 
         /**
@@ -61,7 +61,7 @@ public class ReviewNotificationHandler {
                                 "Đánh giá của bạn bị từ chối",
                                 "Đánh giá của bạn chưa được duyệt. Lý do: %s"
                                                 .formatted(event.getReason()),
-                                "/reviews/" + event.getReviewId() + "/edit"));
+                                "/candidate/reviews/" + event.getReviewId() + "/edit"));
         }
 
         /**
@@ -75,6 +75,6 @@ public class ReviewNotificationHandler {
                                 NotificationType.REVIEW_UPDATED,
                                 "Đánh giá đã được chỉnh sửa",
                                 "Một đánh giá vừa được cập nhật và cần duyệt lại.",
-                                "/employer/reviews/pending"));
+                                "/employer/reviews"));
         }
 }

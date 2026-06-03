@@ -29,7 +29,7 @@ public class EmployerAnalyticsQueryService {
     @PersistenceContext
     private final EntityManager em;
 
-    // ── Dashboard ─────────────────────────────────────────────────────────────
+    // ── Dashboard ────────────
 
     @Cacheable(value = "analytics:employer:dashboard", key = "#companyId", unless = "#result == null")
     public EmployerDashboardStats buildEmployerDashboard(UUID companyId) {
@@ -38,7 +38,7 @@ public class EmployerAnalyticsQueryService {
         LocalDateTime startOfToday = LocalDateTime.now()
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
-        // ── Job stats ─────────────────────────────────────────────────────────
+        // ── Job stats ────────
         Object[] jobStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(*) FILTER (WHERE status = 'PUBLISHED')                     AS active,
@@ -53,7 +53,7 @@ public class EmployerAnalyticsQueryService {
                 .setParameter("companyId", companyId)
                 .getSingleResult();
 
-        // ── Application stats ─────────────────────────────────────────────────
+        // ── Application stats
         // Dùng subquery thay vì JOIN để tránh row duplication khi một job_post
         // có nhiều bản ghi liên quan. COUNT(a.id) đếm đúng từng đơn một lần.
         // pendingReview gồm tất cả đơn chưa kết thúc (chưa HIRED/REJECTED/WITHDRAWN).
@@ -75,7 +75,7 @@ public class EmployerAnalyticsQueryService {
                 .setParameter("startOfToday", startOfToday)
                 .getSingleResult();
 
-        // ── Quota ─────────────────────────────────────────────────────────────
+        // ── Quota ────────────
         @SuppressWarnings("unchecked")
         List<Object[]> quotaRows = em.createNativeQuery("""
                 SELECT
@@ -99,7 +99,7 @@ public class EmployerAnalyticsQueryService {
                 ? new Object[] { 0, 0, 0, 0, 0, 0 }
                 : quotaRows.get(0);
 
-        // ── Livestream stats ──────────────────────────────────────────────────
+        // ── Livestream stats ─
         Object[] streamStats = (Object[]) em.createNativeQuery("""
                 SELECT
                     COUNT(DISTINCT lss.id)                AS total_sessions,
@@ -130,7 +130,7 @@ public class EmployerAnalyticsQueryService {
                 .build();
     }
 
-    // ── Job performance ───────────────────────────────────────────────────────
+    // ── Job performance ──────
 
     public List<JobPerformanceStats> getJobPerformance(UUID companyId) {
         @SuppressWarnings("unchecked")
@@ -175,7 +175,7 @@ public class EmployerAnalyticsQueryService {
         }).toList();
     }
 
-    // ── Application funnel ────────────────────────────────────────────────────
+    // ── Application funnel ───
 
     public ApplicationFunnelStats getApplicationFunnel(UUID companyId, UUID jobPostId) {
         String jobCondition = jobPostId != null ? "AND a.job_post_id = :jobPostId" : "";
@@ -221,7 +221,7 @@ public class EmployerAnalyticsQueryService {
                 .build();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ──────
 
     private static long toLong(Object o) {
         if (o == null)

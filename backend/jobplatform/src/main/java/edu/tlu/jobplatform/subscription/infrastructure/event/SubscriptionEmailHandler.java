@@ -56,7 +56,7 @@ public class SubscriptionEmailHandler {
                 event.getPlanCode()));
     }
 
-    // ── Helper ─────────────────────────────────────────────────────────
+    // ── Helper ────────
 
     @FunctionalInterface
     interface OwnerConsumer {

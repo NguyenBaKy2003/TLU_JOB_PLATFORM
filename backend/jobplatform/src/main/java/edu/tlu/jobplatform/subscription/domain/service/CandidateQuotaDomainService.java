@@ -54,7 +54,7 @@ public class CandidateQuotaDomainService {
         sub.consumeCvBoost();
     }
 
-    // ── Private ───────────────────────────────────────────────────────
+    // ── Private ──────
 
     private void requireActive(CandidateSubscription sub, String action) {
         if (sub == null || !sub.isActive())

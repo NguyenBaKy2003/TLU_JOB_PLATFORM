@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class PdfExportService {
 
-    // ── Màu sắc ───────────────────────────────────────────────────────────────
+    // ── Màu sắc ──────────────
     private static final Color COLOR_HEADER_BG = new Color(0x3B, 0x82, 0xF6);
     private static final Color COLOR_ROW_ODD = new Color(0xEF, 0xF6, 0xFF);
     private static final Color COLOR_ROW_EVEN = Color.WHITE;
@@ -29,7 +29,7 @@ public class PdfExportService {
     private static final String FONT_BOLD = "/fonts/DejaVuSans-Bold.ttf";
     private static final String FONT_ITALIC = "/fonts/DejaVuSans-Oblique.ttf";
 
-    // ── Font builders ─────────────────────────────────────────────────────────
+    // ── Font builders ────────
 
     private Font buildFont(String classpathPath, float size, Color color) {
         try {
@@ -44,7 +44,7 @@ public class PdfExportService {
         }
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
+    // ── Public API ───────────
 
     public <T> ExportResult export(ExportRequest<T> request) {
         log.debug("PDF export: title='{}', rows={}", request.getTitle(), request.getData().size());
@@ -71,7 +71,7 @@ public class PdfExportService {
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ──────
 
     private void addTitle(Document doc, String title) throws DocumentException {
         Font font = buildFont(FONT_BOLD, 16, COLOR_TITLE);
@@ -105,7 +105,7 @@ public class PdfExportService {
         table.setKeepTogether(false);
         table.setWidths(buildWidths(columns));
 
-        // ── Header ────────────────────────────────────────────────────────
+        // ── Header ───────
         for (ExportColumn<T> col : columns) {
             PdfPCell cell = new PdfPCell(new Phrase(col.getHeader(), headerFont));
             cell.setBackgroundColor(COLOR_HEADER_BG);
@@ -116,7 +116,7 @@ public class PdfExportService {
             table.addCell(cell);
         }
 
-        // ── Dữ liệu ──────────────────────────────────────────────────────
+        // ── Dữ liệu ─────
         for (int i = 0; i < data.size(); i++) {
             T item = data.get(i);
             Color bg = (i % 2 == 0) ? COLOR_ROW_EVEN : COLOR_ROW_ODD;
@@ -133,7 +133,7 @@ public class PdfExportService {
             }
         }
 
-        // ── Empty state ───────────────────────────────────────────────────
+        // ── Empty state ──
         if (data.isEmpty()) {
             PdfPCell empty = new PdfPCell(new Phrase("Không có dữ liệu", emptyFont));
             empty.setColspan(columns.size());
@@ -167,7 +167,7 @@ public class PdfExportService {
         return value.toString();
     }
 
-    // ── Page header/footer ────────────────────────────────────────────────────
+    // ── Page header/footer ───
 
     private static class PageHeaderFooter extends PdfPageEventHelper {
         private final String title;

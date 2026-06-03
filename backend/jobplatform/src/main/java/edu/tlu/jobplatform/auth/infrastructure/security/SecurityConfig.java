@@ -104,7 +104,7 @@ public class SecurityConfig {
 
                                                 .anyRequest().authenticated())
 
-                                // ── OAuth2 Login ─────────────────────────────────────────────────────
+                                // ── OAuth2 Login ────
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(ui -> ui.userService(oauth2UserService))
                                                 .successHandler(oauth2SuccessHandler)

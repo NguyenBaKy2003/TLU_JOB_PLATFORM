@@ -21,7 +21,7 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
 
     private final AuditLogJpaRepository jpa;
 
-    // ── Write ─────────────────────────────────────────────────────────
+    // ── Write ────────
 
     @Override
     public void save(AuditLog log) {
@@ -32,39 +32,36 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
 
     @Override
     public Page<AuditLog> findByActorId(String actorId, String action,
-                                         String resourceType,
-                                         LocalDateTime from, LocalDateTime to,
-                                         Pageable pageable) {
+            String resourceType,
+            LocalDateTime from, LocalDateTime to,
+            Pageable pageable) {
         return jpa.findAll(
                 AuditLogSpec.filter(actorId, action, resourceType, null, null, from, to),
-                pageable
-        ).map(this::toDomain);
+                pageable).map(this::toDomain);
     }
 
     // ── Read — by resource ────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findByResource(String resourceType, String resourceId,
-                                          Pageable pageable) {
+            Pageable pageable) {
         return jpa.findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
-                resourceType, resourceId, pageable
-        ).map(this::toDomain);
+                resourceType, resourceId, pageable).map(this::toDomain);
     }
 
     // ── Read — system wide ────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findAll(String actorId, String action,
-                                   String resourceType, String result,
-                                   LocalDateTime from, LocalDateTime to,
-                                   Pageable pageable) {
+            String resourceType, String result,
+            LocalDateTime from, LocalDateTime to,
+            Pageable pageable) {
         return jpa.findAll(
                 AuditLogSpec.filter(actorId, action, resourceType, null, result, from, to),
-                pageable
-        ).map(this::toDomain);
+                pageable).map(this::toDomain);
     }
 
-    // ── Stats ─────────────────────────────────────────────────────────
+    // ── Stats ────────
 
     @Override
     public Map<String, Long> countByAction(LocalDateTime from, LocalDateTime to) {
@@ -84,7 +81,7 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
                 action, actorId, "FAILURE", after);
     }
 
-    // ── Mappers ───────────────────────────────────────────────────────
+    // ── Mappers ──────
 
     private AuditLogJpaEntity toEntity(AuditLog d) {
         return AuditLogJpaEntity.builder()

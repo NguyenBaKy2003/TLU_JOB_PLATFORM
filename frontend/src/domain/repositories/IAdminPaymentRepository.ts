@@ -20,4 +20,13 @@ export interface IAdminPaymentRepository {
 
   /** POST /api/v1/admin/payments/{id}/refund?reason= */
   refund(id: string, reason: string): Promise<AdminPayment>;
+
+  /** GET /api/v1/admin/payments/export/excel — returns Blob */
+  exportExcel(filters: Omit<AdminPaymentFilters, 'page' | 'size'>): Promise<Blob>;
+
+  /** GET /api/v1/admin/payments/export/pdf — returns Blob */
+  exportPdf(filters: Omit<AdminPaymentFilters, 'page' | 'size'>): Promise<Blob>;
+
+  /** GET /api/v1/admin/payments/{id}/invoice — returns Blob */
+  downloadInvoice(id: string): Promise<Blob>;
 }

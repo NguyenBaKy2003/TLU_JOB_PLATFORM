@@ -38,107 +38,107 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminAuditLogController {
 
-    private final GetSystemAuditLogsUseCase getSystemLogsUseCase;
-    private final GetUserAuditLogsUseCase getUserLogsUseCase;
-    private final GetResourceAuditLogsUseCase getResourceLogsUseCase;
+        private final GetSystemAuditLogsUseCase getSystemLogsUseCase;
+        private final GetUserAuditLogsUseCase getUserLogsUseCase;
+        private final GetResourceAuditLogsUseCase getResourceLogsUseCase;
 
-    // ── GET / ─────────────────────────────────────────────────────────
+        // ── GET / ────────
 
-    @Operation(summary = "Toàn bộ audit log hệ thống", description = """
-            Filter theo actorId, action, resourceType, result (SUCCESS/FAILURE), khoảng thời gian.
-            Tất cả filter là optional — không truyền = lấy tất cả.
-            """)
-    @GetMapping
-    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> listAll(
-            @RequestParam(required = false) String actorId,
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) String resourceType,
-            @RequestParam(required = false) String result,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+        @Operation(summary = "Toàn bộ audit log hệ thống", description = """
+                        Filter theo actorId, action, resourceType, result (SUCCESS/FAILURE), khoảng thời gian.
+                        Tất cả filter là optional — không truyền = lấy tất cả.
+                        """)
+        @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> listAll(
+                        @RequestParam(required = false) String actorId,
+                        @RequestParam(required = false) String action,
+                        @RequestParam(required = false) String resourceType,
+                        @RequestParam(required = false) String result,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
-        var logs = getSystemLogsUseCase
-                .execute(actorId, action, resourceType, result, from, to, pageable)
-                .map(AuditLogResponse::from);
+                var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
+                var logs = getSystemLogsUseCase
+                                .execute(actorId, action, resourceType, result, from, to, pageable)
+                                .map(AuditLogResponse::from);
 
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
-    }
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
+        }
 
-    // ── GET /user/{userId} ────────────────────────────────────────────
+        // ── GET /user/{userId} ────────────────────────────────────────────
 
-    @Operation(summary = "Audit log của 1 user cụ thể")
-    @GetMapping("/user/{userId}")
-    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getByUser(
-            @PathVariable UUID userId,
-            @RequestParam(required = false) String action,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+        @Operation(summary = "Audit log của 1 user cụ thể")
+        @GetMapping("/user/{userId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getByUser(
+                        @PathVariable UUID userId,
+                        @RequestParam(required = false) String action,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
-        var logs = getUserLogsUseCase
-                .execute(userId, action, pageable)
-                .map(AuditLogResponse::from);
+                var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
+                var logs = getUserLogsUseCase
+                                .execute(userId, action, pageable)
+                                .map(AuditLogResponse::from);
 
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
-    }
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
+        }
 
-    // ── GET /resource/{type}/{id} ─────────────────────────────────────
+        // ── GET /resource/{type}/{id} ─────────────────────────────────────
 
-    @Operation(summary = "Audit log của 1 entity cụ thể", description = """
-            Xem toàn bộ thay đổi của một entity theo thời gian.
+        @Operation(summary = "Audit log của 1 entity cụ thể", description = """
+                        Xem toàn bộ thay đổi của một entity theo thời gian.
 
-            Ví dụ:
-            - `/resource/JobPost/550e8400-...`    — mọi thay đổi của 1 job post
-            - `/resource/Application/550e8400-...` — timeline trạng thái đơn ứng tuyển
-            - `/resource/User/550e8400-...`        — lịch sử tài khoản user
-            """)
-    @GetMapping("/resource/{resourceType}/{resourceId}")
-    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getByResource(
-            @PathVariable String resourceType,
-            @PathVariable UUID resourceId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+                        Ví dụ:
+                        - `/resource/JobPost/550e8400-...`    — mọi thay đổi của 1 job post
+                        - `/resource/Application/550e8400-...` — timeline trạng thái đơn ứng tuyển
+                        - `/resource/User/550e8400-...`        — lịch sử tài khoản user
+                        """)
+        @GetMapping("/resource/{resourceType}/{resourceId}")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getByResource(
+                        @PathVariable String resourceType,
+                        @PathVariable UUID resourceId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
-        var logs = getResourceLogsUseCase
-                .execute(resourceType, resourceId.toString(), pageable)
-                .map(AuditLogResponse::from);
+                var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
+                var logs = getResourceLogsUseCase
+                                .execute(resourceType, resourceId.toString(), pageable)
+                                .map(AuditLogResponse::from);
 
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
-    }
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
+        }
 
-    // ── GET /stats ────────────────────────────────────────────────────
+        // ── GET /stats ───
 
-    @Operation(summary = "Thống kê action counts", description = """
-            Đếm số lần xuất hiện của từng action trong khoảng thời gian.
-            Mặc định: 7 ngày gần nhất.
+        @Operation(summary = "Thống kê action counts", description = """
+                        Đếm số lần xuất hiện của từng action trong khoảng thời gian.
+                        Mặc định: 7 ngày gần nhất.
 
-            Response example:
-            ```json
-            {
-              "USER_LOGIN": 1240,
-              "CANDIDATE_SUBMIT_APPLICATION": 380,
-              "EMPLOYER_CREATE_JOB_POST": 95,
-              "ADMIN_APPROVE_COMPANY": 12
-            }
-            ```
-            """)
-    @GetMapping("/stats")
-    @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<Map<String, Long>>> getStats(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+                        Response example:
+                        ```json
+                        {
+                          "USER_LOGIN": 1240,
+                          "CANDIDATE_SUBMIT_APPLICATION": 380,
+                          "EMPLOYER_CREATE_JOB_POST": 95,
+                          "ADMIN_APPROVE_COMPANY": 12
+                        }
+                        ```
+                        """)
+        @GetMapping("/stats")
+        @RateLimit(policy = "analytics-admin", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<Map<String, Long>>> getStats(
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
-        LocalDateTime start = from != null ? from : LocalDateTime.now().minusDays(7);
-        LocalDateTime end = to != null ? to : LocalDateTime.now();
+                LocalDateTime start = from != null ? from : LocalDateTime.now().minusDays(7);
+                LocalDateTime end = to != null ? to : LocalDateTime.now();
 
-        return ResponseEntity.ok(ApiResponse.success(
-                getSystemLogsUseCase.countByAction(start, end)));
-    }
+                return ResponseEntity.ok(ApiResponse.success(
+                                getSystemLogsUseCase.countByAction(start, end)));
+        }
 }

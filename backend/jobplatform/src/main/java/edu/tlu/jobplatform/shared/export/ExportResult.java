@@ -17,7 +17,7 @@ public class ExportResult {
     private final String contentType;
     private final String filename; // bao gồm extension
 
-    // ── Factory ──────────────────────────────────────────────────────────────
+    // ── Factory ─────────────
 
     public static ExportResult excel(byte[] bytes, String filename) {
         return new ExportResult(
@@ -33,7 +33,7 @@ public class ExportResult {
                 filename.endsWith(".pdf") ? filename : filename + ".pdf");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────
 
     /** Build ResponseEntity sẵn dùng trong Controller */
     public ResponseEntity<byte[]> toResponseEntity() {

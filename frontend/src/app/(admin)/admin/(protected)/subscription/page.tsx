@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DataTable, Column, StatusBadge, AdminFilter, useFilter,
-  ConfirmModel, DetailModel, DetailField,
+  ConfirmModel, DetailModel, DetailField, TablePagination,
 } from '@/presentation/components/common';
 import { PlanFormModal } from '@/presentation/components/admin/subscription/PlanFormModal';
 import { CandidatePlanFormModal } from '@/presentation/components/admin/subscription/CandidatePlanFormModal';
@@ -36,27 +36,41 @@ const subscriptionStatusOptions = [
 ];
 
 const subscriptionStatusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  ACTIVE:    { label: 'Hoạt động',  color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',   icon: <CheckCircle className="w-3 h-3" /> },
-  EXPIRED:   { label: 'Hết hạn',   color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',            icon: <XCircle className="w-3 h-3" /> },
-  CANCELLED: { label: 'Đã hủy',    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',           icon: <XCircle className="w-3 h-3" /> },
-  FAILED:    { label: 'Thất bại',   color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',            icon: <XCircle className="w-3 h-3" /> },
+  ACTIVE:    { label: 'Hoạt động',  color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',    icon: <CheckCircle className="w-3 h-3" /> },
+  EXPIRED:   { label: 'Hết hạn',   color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',             icon: <XCircle className="w-3 h-3" /> },
+  CANCELLED: { label: 'Đã hủy',    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',            icon: <XCircle className="w-3 h-3" /> },
+  FAILED:    { label: 'Thất bại',   color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',             icon: <XCircle className="w-3 h-3" /> },
   PENDING:   { label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400', icon: <Clock className="w-3 h-3" /> },
 };
 
 type TabType = 'company-plans' | 'candidate-plans' | 'company-subs' | 'candidate-subs';
 
 const TABS: { key: TabType; label: string; icon: React.ReactNode }[] = [
-  { key: 'company-plans',   label: 'Gói Employer',       icon: <Building2 className="w-4 h-4" /> },
-  { key: 'candidate-plans', label: 'Gói Candidate',      icon: <User className="w-4 h-4" /> },
-  { key: 'company-subs',    label: 'Đăng ký Employer',   icon: <Briefcase className="w-4 h-4" /> },
-  { key: 'candidate-subs',  label: 'Đăng ký Candidate',  icon: <Users className="w-4 h-4" /> },
+  { key: 'company-plans',   label: 'Gói Employer',      icon: <Building2 className="w-4 h-4" /> },
+  { key: 'candidate-plans', label: 'Gói Candidate',     icon: <User className="w-4 h-4" /> },
+  { key: 'company-subs',    label: 'Đăng ký Employer',  icon: <Briefcase className="w-4 h-4" /> },
+  { key: 'candidate-subs',  label: 'Đăng ký Candidate', icon: <Users className="w-4 h-4" /> },
 ];
 
 const formatPrice = (amount: number): string => {
+  if (amount === undefined || amount === null || isNaN(amount)) return 'Miễn phí';
   if (amount === 0) return 'Miễn phí';
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(amount);
 };
-const formatQuota = (value: number): string => value === -1 ? 'Không giới hạn' : value.toLocaleString();
+
+const formatQuota = (value: number): string =>
+  value === -1 ? 'Không giới hạn' : value.toLocaleString();
+const formatDate = (value?: string | null) => {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return date.toLocaleDateString("vi-VN");
+};
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminSubscriptionPage() {
@@ -84,12 +98,16 @@ export default function AdminSubscriptionPage() {
   const [companySubs,        setCompanySubs]        = useState<AdminSubscriptionRow[]>([]);
   const [companySubsLoading, setCompanySubsLoading] = useState(true);
   const [companySubsTotal,   setCompanySubsTotal]   = useState(0);
+  const [companyPage,        setCompanyPage]        = useState(0);
+  const [companyPageSize,    setCompanyPageSize]    = useState(20);
   const [exportingCompany,   setExportingCompany]   = useState<'excel' | 'pdf' | null>(null);
 
   // ── Candidate subs ─────────────────────────────────────────────────────────
   const [candidateSubs,        setCandidateSubs]        = useState<AdminCandidateSubscriptionRow[]>([]);
   const [candidateSubsLoading, setCandidateSubsLoading] = useState(true);
   const [candidateSubsTotal,   setCandidateSubsTotal]   = useState(0);
+  const [candidatePage,        setCandidatePage]        = useState(0);
+  const [candidatePageSize,    setCandidatePageSize]    = useState(20);
   const [exportingCandidate,   setExportingCandidate]   = useState<'excel' | 'pdf' | null>(null);
 
   // ── Modals ─────────────────────────────────────────────────────────────────
@@ -134,27 +152,29 @@ export default function AdminSubscriptionPage() {
     } finally { setCandidatePlansLoading(false); }
   }, []);
 
-  const fetchCompanySubs = useCallback(async (status?: string) => {
+  const fetchCompanySubs = useCallback(async (status?: string, page = 0, size = 20) => {
     if (isFetchingCompany.current) return;
     isFetchingCompany.current = true;
     setCompanySubsLoading(true);
     try {
-      const result = await companyServiceRef.current.listSubscriptions(0, 20, status || undefined);
+      const result = await companyServiceRef.current.listSubscriptions(page, size, status || undefined);
       setCompanySubs(result.content);
       setCompanySubsTotal(result.totalElements);
+      setCompanyPage(page);
     } catch (error) {
       toastRef.current.error('Lỗi tải dữ liệu', extractErrorMessage(error, 'Không thể tải đăng ký Employer'));
     } finally { setCompanySubsLoading(false); isFetchingCompany.current = false; }
   }, []);
 
-  const fetchCandidateSubs = useCallback(async (status?: string) => {
+  const fetchCandidateSubs = useCallback(async (status?: string, page = 0, size = 20) => {
     if (isFetchingCandidate.current) return;
     isFetchingCandidate.current = true;
     setCandidateSubsLoading(true);
     try {
-      const result = await candidateSubServiceRef.current.listSubscriptions(0, 20, status || undefined);
+      const result = await candidateSubServiceRef.current.listSubscriptions(page, size, status || undefined);
       setCandidateSubs(result.content);
       setCandidateSubsTotal(result.totalElements);
+      setCandidatePage(page);
     } catch (error) {
       toastRef.current.error('Lỗi tải dữ liệu', extractErrorMessage(error, 'Không thể tải đăng ký Candidate'));
     } finally { setCandidateSubsLoading(false); isFetchingCandidate.current = false; }
@@ -164,50 +184,51 @@ export default function AdminSubscriptionPage() {
 
   useEffect(() => {
     const status = filters.status || undefined;
-    if (activeTab === 'company-subs')   fetchCompanySubs(status);
-    if (activeTab === 'candidate-subs') fetchCandidateSubs(status);
+    if (activeTab === 'company-subs')   fetchCompanySubs(status, 0, companyPageSize);
+    if (activeTab === 'candidate-subs') fetchCandidateSubs(status, 0, candidatePageSize);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.status, activeTab]);
 
   // ── Export ─────────────────────────────────────────────────────────────────
   const handleExportCompanyExcel = useCallback(async () => {
-  setExportingCompany('excel');
-  try {
-    await companyServiceRef.current.downloadExcel();
-    toastRef.current.success('Xuất Excel', 'File đã được tải xuống');
-  } catch (error) {
-    toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
-  } finally { setExportingCompany(null); }
-}, []);
+    setExportingCompany('excel');
+    try {
+      await companyServiceRef.current.downloadExcel();
+      toastRef.current.success('Xuất Excel', 'File đã được tải xuống');
+    } catch (error) {
+      toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
+    } finally { setExportingCompany(null); }
+  }, []);
 
-const handleExportCompanyPdf = useCallback(async () => {
-  setExportingCompany('pdf');
-  try {
-    await companyServiceRef.current.downloadPdf();
-    toastRef.current.success('Xuất PDF', 'File đã được tải xuống');
-  } catch (error) {
-    toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
-  } finally { setExportingCompany(null); }
-}, []);
+  const handleExportCompanyPdf = useCallback(async () => {
+    setExportingCompany('pdf');
+    try {
+      await companyServiceRef.current.downloadPdf();
+      toastRef.current.success('Xuất PDF', 'File đã được tải xuống');
+    } catch (error) {
+      toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
+    } finally { setExportingCompany(null); }
+  }, []);
 
-const handleExportCandidateExcel = useCallback(async () => {
-  setExportingCandidate('excel');
-  try {
-    await candidateSubServiceRef.current.downloadExcel();
-    toastRef.current.success('Xuất Excel', 'File đã được tải xuống');
-  } catch (error) {
-    toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
-  } finally { setExportingCandidate(null); }
-}, []);
+  const handleExportCandidateExcel = useCallback(async () => {
+    setExportingCandidate('excel');
+    try {
+      await candidateSubServiceRef.current.downloadExcel();
+      toastRef.current.success('Xuất Excel', 'File đã được tải xuống');
+    } catch (error) {
+      toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
+    } finally { setExportingCandidate(null); }
+  }, []);
 
-const handleExportCandidatePdf = useCallback(async () => {
-  setExportingCandidate('pdf');
-  try {
-    await candidateSubServiceRef.current.downloadPdf();
-    toastRef.current.success('Xuất PDF', 'File đã được tải xuống');
-  } catch (error) {
-    toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
-  } finally { setExportingCandidate(null); }
-}, []);
+  const handleExportCandidatePdf = useCallback(async () => {
+    setExportingCandidate('pdf');
+    try {
+      await candidateSubServiceRef.current.downloadPdf();
+      toastRef.current.success('Xuất PDF', 'File đã được tải xuống');
+    } catch (error) {
+      toastRef.current.error('Lỗi', extractErrorMessage(error, 'Không thể xuất file'));
+    } finally { setExportingCandidate(null); }
+  }, []);
 
   // ── Plan handlers ──────────────────────────────────────────────────────────
   const handleSaveCompanyPlan = useCallback(async (payload: PlanPayload) => {
@@ -275,19 +296,23 @@ const handleExportCandidatePdf = useCallback(async () => {
 
   // ── Table columns ──────────────────────────────────────────────────────────
   const companyPlanColumns: Column<SubscriptionPlan>[] = [
-    { key: 'code',         title: 'Mã gói',           width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
-    { key: 'name',         title: 'Tên gói',           width: '160px', render: (v, r) => <div><div className="font-medium">{v}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1">{r.description}</div>}</div> },
-    { key: 'priceMonthly', title: 'Giá tháng',         width: '110px', render: (v) => formatPrice(v) },
-    { key: 'priceYearly',  title: 'Giá năm',           width: '110px', render: (v) => formatPrice(v) },
-    { key: 'jobPostLimit', title: 'Tin tuyển dụng',    width: '110px', render: (v) => formatQuota(v) },
-    { key: 'durationDays', title: 'Hiệu lực',          width: '90px',  render: (v) => `${v} ngày` },
-    { key: 'active',       title: 'Trạng thái',        width: '100px', render: (v) => <StatusBadge status={v ? 'active' : 'inactive'} label={v ? 'Kích hoạt' : 'Vô hiệu'} size="sm" /> },
+    { key: 'code',         title: 'Mã gói',        width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
+    { key: 'name',         title: 'Tên gói',        width: '160px', render: (v, r) => <div><div className="font-medium">{v}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1">{r.description}</div>}</div> },
+    { key: 'priceMonthly', title: 'Giá tháng',      width: '110px', render: (v) => formatPrice(v) },
+    { key: 'priceYearly',  title: 'Giá năm',        width: '110px', render: (v) => formatPrice(v) },
+    { key: 'jobPostLimit', title: 'Tin tuyển dụng', width: '110px', render: (v) => formatQuota(v) },
+    { key: 'durationDays', title: 'Hiệu lực',       width: '90px',  render: (v) => `${v} ngày` },
+    { key: 'active',       title: 'Trạng thái',     width: '100px', render: (v) => <StatusBadge status={v ? 'active' : 'inactive'} label={v ? 'Kích hoạt' : 'Vô hiệu'} size="sm" /> },
     {
       key: 'actions', title: '', width: '80px', align: 'center',
       render: (_, r) => (
         <div className="flex items-center gap-1">
-          <button onClick={() => { setEditingCompanyPlan(r); setCompanyPlanModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => setConfirmModal({ isOpen: true, title: r.active ? 'Vô hiệu hóa gói' : 'Kích hoạt gói', message: `${r.active ? 'Vô hiệu hóa' : 'Kích hoạt'} gói "${r.name}"?`, type: 'warning', onConfirm: () => handleCompanyToggle(r) })} className="p-1.5 rounded-md hover:bg-muted">
+          <button onClick={() => { setEditingCompanyPlan(r); setCompanyPlanModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted">
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setConfirmModal({ isOpen: true, title: r.active ? 'Vô hiệu hóa gói' : 'Kích hoạt gói', message: `${r.active ? 'Vô hiệu hóa' : 'Kích hoạt'} gói "${r.name}"?`, type: 'warning', onConfirm: () => handleCompanyToggle(r) })}
+            className="p-1.5 rounded-md hover:bg-muted">
             {r.active ? <ToggleRight className="w-4 h-4 text-green-500" /> : <ToggleLeft className="w-4 h-4 text-gray-400" />}
           </button>
         </div>
@@ -296,20 +321,24 @@ const handleExportCandidatePdf = useCallback(async () => {
   ];
 
   const candidatePlanColumns: Column<CandidateSubscriptionPlan>[] = [
-    { key: 'code',             title: 'Mã gói',          width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
-    { key: 'name',             title: 'Tên gói',          width: '160px', render: (v, r) => <div><div className="font-medium">{v}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1">{r.description}</div>}</div> },
-    { key: 'priceMonthly',     title: 'Giá tháng',        width: '110px', render: (v) => formatPrice(v) },
-    { key: 'priceYearly',      title: 'Giá năm',          width: '110px', render: (v) => formatPrice(v) },
-    { key: 'applicationLimit', title: 'Đơn ứng tuyển',   width: '140px', render: (v) => formatQuota(v) },
-    { key: 'durationDays',     title: 'Hiệu lực',         width: '90px',  render: (v) => `${v} ngày` },
-    { key: 'active',           title: 'Trạng thái',       width: '100px', render: (v) => <StatusBadge status={v ? 'active' : 'inactive'} label={v ? 'Kích hoạt' : 'Vô hiệu'} size="sm" /> },
-    { key: 'free',             title: 'Loại',             width: '70px',  render: (v) => v ? <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">FREE</span> : null },
+    { key: 'code',             title: 'Mã gói',        width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
+    { key: 'name',             title: 'Tên gói',        width: '160px', render: (v, r) => <div><div className="font-medium">{v}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1">{r.description}</div>}</div> },
+    { key: 'priceMonthly',     title: 'Giá tháng',      width: '110px', render: (v) => formatPrice(v) },
+    { key: 'priceYearly',      title: 'Giá năm',        width: '110px', render: (v) => formatPrice(v) },
+    { key: 'applicationLimit', title: 'Đơn ứng tuyển', width: '140px', render: (v) => formatQuota(v) },
+    { key: 'durationDays',     title: 'Hiệu lực',       width: '90px',  render: (v) => `${v} ngày` },
+    { key: 'active',           title: 'Trạng thái',     width: '100px', render: (v) => <StatusBadge status={v ? 'active' : 'inactive'} label={v ? 'Kích hoạt' : 'Vô hiệu'} size="sm" /> },
+    { key: 'free',             title: 'Loại',           width: '70px',  render: (v) => v ? <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">FREE</span> : null },
     {
       key: 'actions', title: '', width: '80px', align: 'center',
       render: (_, r) => (
         <div className="flex items-center gap-1">
-          <button onClick={() => { setEditingCandidatePlan(r); setCandidatePlanModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => setConfirmModal({ isOpen: true, title: r.active ? 'Vô hiệu hóa gói' : 'Kích hoạt gói', message: `${r.active ? 'Vô hiệu hóa' : 'Kích hoạt'} gói "${r.name}"?`, type: 'warning', onConfirm: () => handleCandidateToggle(r) })} className="p-1.5 rounded-md hover:bg-muted">
+          <button onClick={() => { setEditingCandidatePlan(r); setCandidatePlanModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted">
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setConfirmModal({ isOpen: true, title: r.active ? 'Vô hiệu hóa gói' : 'Kích hoạt gói', message: `${r.active ? 'Vô hiệu hóa' : 'Kích hoạt'} gói "${r.name}"?`, type: 'warning', onConfirm: () => handleCandidateToggle(r) })}
+            className="p-1.5 rounded-md hover:bg-muted">
             {r.active ? <ToggleRight className="w-4 h-4 text-green-500" /> : <ToggleLeft className="w-4 h-4 text-gray-400" />}
           </button>
         </div>
@@ -327,23 +356,65 @@ const handleExportCandidatePdf = useCallback(async () => {
   };
 
   const companySubColumns: Column<AdminSubscriptionRow>[] = [
-    { key: 'companyName', title: 'Công ty',       width: '180px', render: (v) => <div className="font-medium">{v}</div> },
-    { key: 'planCode',    title: 'Gói',            width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
-    { key: 'status',      title: 'Trạng thái',    width: '130px', render: statusBadge },
-    { key: 'amount',      title: 'Số tiền',        width: '110px', render: (v) => formatPrice(v) },
-    { key: 'startedAt',   title: 'Bắt đầu',       width: '110px', render: (v) => new Date(v).toLocaleDateString('vi-VN') },
-    { key: 'expiresAt',   title: 'Hết hạn',       width: '110px', render: (v) => { const d = new Date(v); return <span className={d < new Date() ? 'text-red-500' : ''}>{d.toLocaleDateString('vi-VN')}</span>; } },
-    { key: 'actions', title: '', width: '60px', align: 'center', render: (_, r) => <button onClick={() => { setSelectedCompanySub(r); setSelectedCandidateSub(null); setDetailModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted"><Eye className="w-4 h-4" /></button> },
+    { key: 'companyName', title: 'Công ty',    width: '180px', render: (v) => <div className="font-medium">{v}</div> },
+    { key: 'planName',    title: 'Gói',         width: '120px', render: (v) => <span className="font-mono text-xs">{v}</span> },
+    { key: 'status',      title: 'Trạng thái', width: '130px', render: statusBadge },
+    { key: 'amount',      title: 'Số tiền',     width: '110px', render: (v) => formatPrice(v) },
+    { key: 'startedAt',   title: 'Bắt đầu',    width: '110px', render: (v) => new Date(v).toLocaleDateString('vi-VN') },
+    { key: 'expiresAt',   title: 'Hết hạn',    width: '110px',render: (v) => {
+    if (!v) return "Vô thời hạn";
+
+    const d = new Date(v);
+
+    if (isNaN(d.getTime())) {
+      return "Vô thời hạn";
+    }
+
+    return (
+      <span className={d < new Date() ? 'text-red-500' : ''}>
+        {d.toLocaleDateString('vi-VN')}
+      </span>
+    );
+  }},
+    {
+      key: 'actions', title: '', width: '60px', align: 'center',
+      render: (_, r) => (
+        <button onClick={() => { setSelectedCompanySub(r); setSelectedCandidateSub(null); setDetailModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted">
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
   ];
 
   const candidateSubColumns: Column<AdminCandidateSubscriptionRow>[] = [
-    { key: 'candidateName', title: 'Ứng viên',    width: '180px', render: (v) => <div className="font-medium">{v}</div> },
-    { key: 'planCode',      title: 'Gói',          width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
-    { key: 'status',        title: 'Trạng thái',  width: '130px', render: statusBadge },
-    { key: 'amount',        title: 'Số tiền',      width: '110px', render: (v) => formatPrice(v) },
-    { key: 'startedAt',     title: 'Bắt đầu',     width: '110px', render: (v) => new Date(v).toLocaleDateString('vi-VN') },
-    { key: 'expiresAt',     title: 'Hết hạn',     width: '110px', render: (v) => { const d = new Date(v); return <span className={d < new Date() ? 'text-red-500' : ''}>{d.toLocaleDateString('vi-VN')}</span>; } },
-    { key: 'actions', title: '', width: '60px', align: 'center', render: (_, r) => <button onClick={() => { setSelectedCandidateSub(r); setSelectedCompanySub(null); setDetailModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted"><Eye className="w-4 h-4" /></button> },
+    { key: 'candidateName', title: 'Ứng viên',  width: '180px', render: (v) => <div className="font-medium">{v}</div> },
+    { key: 'planName',      title: 'Gói',        width: '120px', render: (v) => <span className="font-mono text-xs">{v}</span> },
+    { key: 'status',        title: 'Trạng thái', width: '130px', render: statusBadge },
+    { key: 'amount',        title: 'Số tiền',    width: '110px', render: (v) => formatPrice(v) },
+    { key: 'startedAt',     title: 'Bắt đầu',   width: '110px', render: (v) => new Date(v).toLocaleDateString('vi-VN') },
+    { key: 'expiresAt',     title: 'Hết hạn',   width: '110px', render: (v) => {
+    if (!v) return "Vô thời hạn";
+
+    const d = new Date(v);
+
+    if (isNaN(d.getTime())) {
+      return "Vô thời hạn";
+    }
+
+    return (
+      <span className={d < new Date() ? 'text-red-500' : ''}>
+        {d.toLocaleDateString('vi-VN')}
+      </span>
+    );
+  } },
+    {
+      key: 'actions', title: '', width: '60px', align: 'center',
+      render: (_, r) => (
+        <button onClick={() => { setSelectedCandidateSub(r); setSelectedCompanySub(null); setDetailModalOpen(true); }} className="p-1.5 rounded-md hover:bg-muted">
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
   ];
 
   // ── Detail fields ──────────────────────────────────────────────────────────
@@ -351,23 +422,23 @@ const handleExportCandidatePdf = useCallback(async () => {
     if (selectedCompanySub) {
       const s = selectedCompanySub;
       return [
-        { key: 'companyName', label: 'Công ty',      value: s.companyName, copyable: true },
-        { key: 'planCode',    label: 'Mã gói',        value: s.planCode,    copyable: true },
-        { key: 'status',      label: 'Trạng thái',   value: statusBadge(s.status), type: 'badge' },
-        { key: 'amount',      label: 'Số tiền',       value: formatPrice(s.amount) },
-        { key: 'startedAt',   label: 'Bắt đầu',      value: new Date(s.startedAt).toLocaleString('vi-VN'), type: 'date' },
-        { key: 'expiresAt',   label: 'Hết hạn',      value: new Date(s.expiresAt).toLocaleString('vi-VN'), type: 'date' },
+        { key: 'companyName', label: 'Công ty',    value: s.companyName,                                        copyable: true },
+        { key: 'planName',    label: 'Mã gói',      value: s.planName,                                           copyable: true },
+        { key: 'status',      label: 'Trạng thái', value: statusBadge(s.status),                                type: 'badge' },
+        { key: 'amount',      label: 'Số tiền',     value: formatPrice(s.amount) },
+        { key: 'startedAt',   label: 'Bắt đầu',    value: new Date(s.startedAt).toLocaleString('vi-VN'),        type: 'date' },
+        { key: 'expiresAt',   label: 'Hết hạn',    value: s.expiresAt ? new Date(s.expiresAt).toLocaleString('vi-VN') : '—', type: 'date' },
       ];
     }
     if (selectedCandidateSub) {
       const s = selectedCandidateSub;
       return [
-        { key: 'candidateName', label: 'Ứng viên',   value: s.candidateName, copyable: true },
-        { key: 'planCode',      label: 'Mã gói',      value: s.planCode,      copyable: true },
-        { key: 'status',        label: 'Trạng thái', value: statusBadge(s.status), type: 'badge' },
-        { key: 'amount',        label: 'Số tiền',     value: formatPrice(s.amount) },
-        { key: 'startedAt',     label: 'Bắt đầu',    value: new Date(s.startedAt).toLocaleString('vi-VN'), type: 'date' },
-        { key: 'expiresAt',     label: 'Hết hạn',    value: new Date(s.expiresAt).toLocaleString('vi-VN'), type: 'date' },
+        { key: 'candidateName', label: 'Ứng viên',  value: s.candidateName,                                      copyable: true },
+        { key: 'planName',      label: 'Mã gói',     value: s.planName,                                           copyable: true },
+        { key: 'status',        label: 'Trạng thái', value: statusBadge(s.status),                                type: 'badge' },
+        { key: 'amount',        label: 'Số tiền',    value: formatPrice(s.amount) },
+        { key: 'startedAt',     label: 'Bắt đầu',   value: new Date(s.startedAt).toLocaleString('vi-VN'),        type: 'date' },
+        { key: 'expiresAt',     label: 'Hết hạn',   value: s.expiresAt ? new Date(s.expiresAt).toLocaleString('vi-VN') : '—', type: 'date' },
       ];
     }
     return [];
@@ -375,6 +446,16 @@ const handleExportCandidatePdf = useCallback(async () => {
 
   const isPlansTab   = activeTab === 'company-plans' || activeTab === 'candidate-plans';
   const isCompanyTab = activeTab === 'company-plans' || activeTab === 'company-subs';
+
+  // ── Pagination helpers ─────────────────────────────────────────────────────
+  const companyTotalPages   = Math.ceil(companySubsTotal / companyPageSize) || 1;
+  const candidateTotalPages = Math.ceil(candidateSubsTotal / candidatePageSize) || 1;
+
+  const companyStartIndex   = companySubsTotal === 0 ? 0 : companyPage * companyPageSize + 1;
+  const companyEndIndex     = Math.min((companyPage + 1) * companyPageSize, companySubsTotal);
+
+  const candidateStartIndex = candidateSubsTotal === 0 ? 0 : candidatePage * candidatePageSize + 1;
+  const candidateEndIndex   = Math.min((candidatePage + 1) * candidatePageSize, candidateSubsTotal);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -387,7 +468,6 @@ const handleExportCandidatePdf = useCallback(async () => {
           <p className="text-[16px] text-muted-foreground mt-1">Quản lý gói đăng ký cho cả Employer và Candidate</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Export buttons cho subscription tabs */}
           {activeTab === 'company-subs' && (
             <>
               <button onClick={handleExportCompanyExcel} disabled={exportingCompany !== null}
@@ -412,10 +492,12 @@ const handleExportCandidatePdf = useCallback(async () => {
               </button>
             </>
           )}
-          {/* Add plan button cho plans tabs */}
           {isPlansTab && (
             <button
-              onClick={() => { if (isCompanyTab) { setEditingCompanyPlan(undefined); setCompanyPlanModalOpen(true); } else { setEditingCandidatePlan(undefined); setCandidatePlanModalOpen(true); } }}
+              onClick={() => {
+                if (isCompanyTab) { setEditingCompanyPlan(undefined); setCompanyPlanModalOpen(true); }
+                else              { setEditingCandidatePlan(undefined); setCandidatePlanModalOpen(true); }
+              }}
               className="px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2 text-[16px] font-medium">
               <Plus className="w-4 h-4" />
               {isCompanyTab ? 'Thêm gói Employer' : 'Thêm gói Candidate'}
@@ -429,81 +511,181 @@ const handleExportCandidatePdf = useCallback(async () => {
         {TABS.map((tab) => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-[16px] font-medium rounded-t-lg transition-colors border-b-2 -mb-[2px]
-              ${activeTab === tab.key ? 'text-primary border-primary bg-primary/5' : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50'}`}>
+              ${activeTab === tab.key
+                ? 'text-primary border-primary bg-primary/5'
+                : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50'}`}>
             {tab.icon}{tab.label}
           </button>
         ))}
       </div>
 
-      {/* Company Plans */}
+      {/* ── Company Plans ── */}
       {activeTab === 'company-plans' && (
         <div className="bg-background rounded-lg border border-border overflow-hidden">
-          <DataTable data={companyPlans} columns={companyPlanColumns} loading={companyPlansLoading}
-            showPagination={false} emptyMessage="Chưa có gói Employer nào" emptyDescription="Hãy thêm gói đăng ký đầu tiên" />
+          <DataTable
+            data={companyPlans}
+            columns={companyPlanColumns}
+            loading={companyPlansLoading}
+            showPagination={false}
+            emptyMessage="Chưa có gói Employer nào"
+            emptyDescription="Hãy thêm gói đăng ký đầu tiên"
+          />
         </div>
       )}
 
-      {/* Candidate Plans */}
+      {/* ── Candidate Plans ── */}
       {activeTab === 'candidate-plans' && (
         <div className="bg-background rounded-lg border border-border overflow-hidden">
-          <DataTable data={candidatePlans} columns={candidatePlanColumns} loading={candidatePlansLoading}
-            showPagination={false} emptyMessage="Chưa có gói Candidate nào" emptyDescription="Hãy thêm gói đăng ký đầu tiên" />
+          <DataTable
+            data={candidatePlans}
+            columns={candidatePlanColumns}
+            loading={candidatePlansLoading}
+            showPagination={false}
+            emptyMessage="Chưa có gói Candidate nào"
+            emptyDescription="Hãy thêm gói đăng ký đầu tiên"
+          />
         </div>
       )}
 
-      {/* Company Subscriptions */}
+      {/* ── Company Subscriptions ── */}
       {activeTab === 'company-subs' && (
         <>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Tổng số: <span className="font-semibold text-foreground">{companySubsTotal}</span> đăng ký</span>
+            <span className="text-sm text-muted-foreground">
+              Tổng số: <span className="font-semibold text-foreground">{companySubsTotal}</span> đăng ký
+            </span>
           </div>
-          <AdminFilter config={{ searchKey: undefined, statusKey: 'status', customFilters: [] }}
-            filters={{ status: getFilterValue('status') }} onFilterChange={handleFilterChange}
-            onReset={handleResetFilters} statusOptions={subscriptionStatusOptions}
-            searchPlaceholder="" statusPlaceholder="Tất cả trạng thái" showDateFilter={false} loading={companySubsLoading} />
+
+          <AdminFilter
+            config={{ searchKey: undefined, statusKey: 'status', customFilters: [] }}
+            filters={{ status: getFilterValue('status') }}
+            onFilterChange={handleFilterChange}
+            onReset={handleResetFilters}
+            statusOptions={subscriptionStatusOptions}
+            searchPlaceholder=""
+            statusPlaceholder="Tất cả trạng thái"
+            showDateFilter={false}
+            loading={companySubsLoading}
+          />
+
           <div className="bg-background rounded-lg border border-border overflow-hidden">
-            <DataTable data={companySubs} columns={companySubColumns} loading={companySubsLoading}
-              selectable showPagination defaultPageSize={20}
-              emptyMessage="Không có đăng ký nào" emptyDescription="Chưa có công ty nào đăng ký" />
+            <DataTable
+              data={companySubs}
+              columns={companySubColumns}
+              loading={companySubsLoading}
+              selectable
+              showPagination={false}
+              emptyMessage="Không có đăng ký nào"
+              emptyDescription="Chưa có công ty nào đăng ký"
+            />
+            <TablePagination
+              currentPage={companyPage + 1}
+              totalPages={companyTotalPages}
+              totalItems={companySubsTotal}
+              startIndex={companyStartIndex}
+              endIndex={companyEndIndex}
+              pageSize={companyPageSize}
+              pageSizeOptions={[10, 20, 50, 100]}
+              onPageChange={(p) =>
+                fetchCompanySubs(filters.status || undefined, p - 1, companyPageSize)
+              }
+              onPageSizeChange={(s) => {
+                setCompanyPageSize(s);
+                fetchCompanySubs(filters.status || undefined, 0, s);
+              }}
+            />
           </div>
         </>
       )}
 
-      {/* Candidate Subscriptions */}
+      {/* ── Candidate Subscriptions ── */}
       {activeTab === 'candidate-subs' && (
         <>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Tổng số: <span className="font-semibold text-foreground">{candidateSubsTotal}</span> đăng ký</span>
+            <span className="text-sm text-muted-foreground">
+              Tổng số: <span className="font-semibold text-foreground">{candidateSubsTotal}</span> đăng ký
+            </span>
           </div>
-          <AdminFilter config={{ searchKey: undefined, statusKey: 'status', customFilters: [] }}
-            filters={{ status: getFilterValue('status') }} onFilterChange={handleFilterChange}
-            onReset={handleResetFilters} statusOptions={subscriptionStatusOptions}
-            searchPlaceholder="" statusPlaceholder="Tất cả trạng thái" showDateFilter={false} loading={candidateSubsLoading} />
+
+          <AdminFilter
+            config={{ searchKey: undefined, statusKey: 'status', customFilters: [] }}
+            filters={{ status: getFilterValue('status') }}
+            onFilterChange={handleFilterChange}
+            onReset={handleResetFilters}
+            statusOptions={subscriptionStatusOptions}
+            searchPlaceholder=""
+            statusPlaceholder="Tất cả trạng thái"
+            showDateFilter={false}
+            loading={candidateSubsLoading}
+          />
+
           <div className="bg-background rounded-lg border border-border overflow-hidden">
-            <DataTable data={candidateSubs} columns={candidateSubColumns} loading={candidateSubsLoading}
-              selectable showPagination defaultPageSize={20}
-              emptyMessage="Không có đăng ký nào" emptyDescription="Chưa có ứng viên nào đăng ký" />
+            <DataTable
+              data={candidateSubs}
+              columns={candidateSubColumns}
+              loading={candidateSubsLoading}
+              selectable
+              showPagination={false}
+              emptyMessage="Không có đăng ký nào"
+              emptyDescription="Chưa có ứng viên nào đăng ký"
+            />
+            <TablePagination
+              currentPage={candidatePage + 1}
+              totalPages={candidateTotalPages}
+              totalItems={candidateSubsTotal}
+              startIndex={candidateStartIndex}
+              endIndex={candidateEndIndex}
+              pageSize={candidatePageSize}
+              pageSizeOptions={[10, 20, 50, 100]}
+              onPageChange={(p) =>
+                fetchCandidateSubs(filters.status || undefined, p - 1, candidatePageSize)
+              }
+              onPageSizeChange={(s) => {
+                setCandidatePageSize(s);
+                fetchCandidateSubs(filters.status || undefined, 0, s);
+              }}
+            />
           </div>
         </>
       )}
 
-      {/* Modals */}
+      {/* ── Modals ── */}
       {companyPlanModalOpen && (
-        <PlanFormModal plan={editingCompanyPlan} onSave={handleSaveCompanyPlan}
-          onCancel={() => { setCompanyPlanModalOpen(false); setEditingCompanyPlan(undefined); }} />
+        <PlanFormModal
+          plan={editingCompanyPlan}
+          onSave={handleSaveCompanyPlan}
+          onCancel={() => { setCompanyPlanModalOpen(false); setEditingCompanyPlan(undefined); }}
+        />
       )}
       {candidatePlanModalOpen && (
-        <CandidatePlanFormModal plan={editingCandidatePlan} onSave={handleSaveCandidatePlan}
-          onCancel={() => { setCandidatePlanModalOpen(false); setEditingCandidatePlan(undefined); }} />
+        <CandidatePlanFormModal
+          plan={editingCandidatePlan}
+          onSave={handleSaveCandidatePlan}
+          onCancel={() => { setCandidatePlanModalOpen(false); setEditingCandidatePlan(undefined); }}
+        />
       )}
 
-      <DetailModel isOpen={detailModalOpen} onClose={() => { setDetailModalOpen(false); setSelectedCompanySub(null); setSelectedCandidateSub(null); }}
-        title={selectedCompanySub ? `Chi tiết - ${selectedCompanySub.companyName}` : `Chi tiết - ${selectedCandidateSub?.candidateName ?? ''}`}
-        fields={getDetailFields()} />
+      <DetailModel
+        isOpen={detailModalOpen}
+        onClose={() => { setDetailModalOpen(false); setSelectedCompanySub(null); setSelectedCandidateSub(null); }}
+        title={
+          selectedCompanySub
+            ? `Chi tiết - ${selectedCompanySub.companyName}`
+            : `Chi tiết - ${selectedCandidateSub?.candidateName ?? ''}`
+        }
+        fields={getDetailFields()}
+      />
 
-      <ConfirmModel isOpen={confirmModal.isOpen} onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmModal.onConfirm} title={confirmModal.title} message={confirmModal.message}
-        type={confirmModal.type} confirmText="Xác nhận" cancelText="Hủy" />
+      <ConfirmModel
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

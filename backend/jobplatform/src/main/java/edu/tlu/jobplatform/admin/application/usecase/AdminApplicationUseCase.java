@@ -6,9 +6,14 @@ import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationStatusLogRepository;
 import edu.tlu.jobplatform.application.domain.service.ApplicationDomainService;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse;
+import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
+import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,7 +40,9 @@ public class AdminApplicationUseCase {
     private final ApplicationRepository applicationRepo;
     private final ApplicationStatusLogRepository logRepo;
     private final ApplicationDomainService domainService;
-
+    private final UserRepository userRepo;
+    private final JobPostRepository jobPostRepo;
+    private final CompanyRepository companyRepo;
     // ── Queries
 
     /**
@@ -47,6 +54,66 @@ public class AdminApplicationUseCase {
     @Transactional(readOnly = true)
     public Page<Application> listAll(ApplicationStatus status, String keyword, Pageable pageable) {
         return applicationRepo.searchAll(status, keyword, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationResponse buildFullResponse(Application app) {
+        ApplicationDetailResponse.CandidateInfo candidateInfo = userRepo.findById(app.getCandidateId())
+                .map(u -> ApplicationDetailResponse.CandidateInfo.of(
+                        u.getId(), u.getFullName(), u.getEmail(), null, null, false))
+                .orElse(null);
+
+        ApplicationResponse.JobInfo jobInfo = jobPostRepo.findById(app.getJobPostId())
+                .map(j -> ApplicationResponse.JobInfo.of(
+                        j.getId(),
+                        j.getTitle(),
+                        j.getSlug(),
+                        j.getJobType(), // ← String trực tiếp, không cần .name()
+                        j.getLevel(), // ← String trực tiếp
+                        j.getWorkLocation() != null ? j.getWorkLocation().getCity() : null))
+                .orElse(null);
+
+        ApplicationResponse.CompanyInfo companyInfo = companyRepo.findById(app.getCompanyId())
+                .map(c -> ApplicationResponse.CompanyInfo.of(
+                        c.getId(), c.getName(), c.getLogoUrl(),
+                        c.getIndustry(), c.getWebsite(),
+                        c.getSize() != null ? c.getSize().name() : null,
+                        c.getCity()))
+                .orElse(null);
+
+        return ApplicationResponse.from(app, candidateInfo, jobInfo, companyInfo);
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationDetailResponse.CandidateInfo buildCandidateInfo(UUID candidateId) {
+        return userRepo.findById(candidateId)
+                .map(u -> ApplicationDetailResponse.CandidateInfo.of(
+                        u.getId(), u.getFullName(), u.getEmail(), null, null, false))
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationResponse.JobInfo buildJobInfo(UUID jobPostId) {
+        return jobPostRepo.findById(jobPostId)
+                .map(j -> ApplicationResponse.JobInfo.of(
+                        j.getId(),
+                        j.getTitle(),
+                        j.getSlug(),
+                        j.getJobType(),
+                        j.getLevel(),
+                        j.getWorkLocation() != null ? j.getWorkLocation().getCity() : null))
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationResponse.CompanyInfo buildCompanyInfo(UUID companyId) {
+        return companyRepo.findById(companyId)
+                .map(c -> ApplicationResponse.CompanyInfo.of(
+                        c.getId(), c.getName(), c.getLogoUrl(),
+                        c.getIndustry(), c.getWebsite(),
+                        c.getSize() != null ? c.getSize().name() : null,
+                        c.getCity()))
+                .orElse(null);
     }
 
     /**
