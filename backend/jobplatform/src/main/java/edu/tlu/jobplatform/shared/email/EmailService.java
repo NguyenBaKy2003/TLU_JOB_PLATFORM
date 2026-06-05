@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -284,6 +285,42 @@ public class EmailService {
                 } catch (MessagingException e) {
                         log.error("[Email] Failed: template={} to={} error={}",
                                         template, to, e.getMessage());
+                }
+        }
+
+        @Async("aiTaskExecutor")
+        public void sendInvoiceEmail(String toEmail, String fullName,
+                        String planName, String amount,
+                        String gateway, String transactionId,
+                        String paidAt, String dashboardLink,
+                        byte[] pdfBytes, String pdfFilename) {
+                try {
+                        MimeMessage message = mailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                        Context ctx = new Context();
+                        ctx.setVariables(Map.of(
+                                        "fullName", fullName,
+                                        "planCode", planName,
+                                        "amount", amount,
+                                        "gateway", gateway != null ? gateway : "VNPAY",
+                                        "transactionId", transactionId != null ? transactionId : "-",
+                                        "paidAt", paidAt,
+                                        "dashboardLink", dashboardLink,
+                                        "supportEmail", "support@jobplatform.vn"));
+                        String html = templateEngine.process("payment-success", ctx);
+
+                        helper.setFrom(fromAddress);
+                        helper.setTo(toEmail);
+                        helper.setSubject("[CareerUp] Hóa đơn thanh toán – " + planName);
+                        helper.setText(html, true);
+                        helper.addAttachment(pdfFilename, new ByteArrayResource(pdfBytes));
+
+                        mailSender.send(message);
+                        log.info("[Email] Invoice sent: to={} file={}", toEmail, pdfFilename);
+
+                } catch (MessagingException e) {
+                        log.error("[Email] Invoice failed: to={} error={}", toEmail, e.getMessage());
                 }
         }
 }

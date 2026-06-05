@@ -381,14 +381,21 @@ payment:
     locale: vn
     curr-code: VND
 
-  # momo:
-  #   enabled: false # Bật khi cần dùng MOMO song song
-  #   partner-code: YOUR_PARTNER_CODE
-  #   access-key: YOUR_ACCESS_KEY
-  #   secret-key: YOUR_SECRET_KEY
-  #   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
-  #   notify-url: https://yourdomain.com/api/v1/payments/callback/momo
-  #   request-type: captureWallet
+  momo:
+    enabled: true
+    partner-code: MOMO
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+    ipn-url: ${app.base-url}/api/v1/payments/callback/momo/ipn
+  zalopay:
+    enabled: true
+    app-id: "2553"
+    key1: PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL
+    key2: kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz
+    endpoint: https://sb-openapi.zalopay.vn/v2/create
+    ipn-url: ${app.base-url}/api/v1/payments/callback/zalopay/callback
+    redirect-url: ${app.base-url}/api/v1/payments/callback/zalopay/return
 spring.ai:
   openai:
     api-key: ${GROQ_API_KEY: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}

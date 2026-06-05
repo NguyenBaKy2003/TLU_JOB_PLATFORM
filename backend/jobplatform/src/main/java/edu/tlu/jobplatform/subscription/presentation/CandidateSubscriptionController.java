@@ -45,7 +45,7 @@ public class CandidateSubscriptionController {
     private final CheckCandidateQuotaUseCase checkQuotaUseCase;
     private final CandidateSubscriptionRepository subscriptionRepository;
 
-    // ── GET /plans ───
+    // ── GET /plans ──────────────────────────────────────────────────────────
 
     @Operation(summary = "Danh sách gói dịch vụ Candidate (pricing page)")
     @GetMapping("/plans")
@@ -54,7 +54,7 @@ public class CandidateSubscriptionController {
         return ResponseEntity.ok(ApiResponse.success(getPlansUseCase.execute()));
     }
 
-    // ── GET /my ──────
+    // ── GET /my ─────────────────────────────────────────────────────────────
 
     @Operation(summary = "Subscription hiện tại của Candidate")
     @SecurityRequirement(name = "bearerAuth")
@@ -71,7 +71,7 @@ public class CandidateSubscriptionController {
         return ResponseEntity.ok(ApiResponse.success("Bạn chưa có gói dịch vụ nào."));
     }
 
-    // ── GET /my/quota
+    // ── GET /my/quota ───────────────────────────────────────────────────────
 
     @Operation(summary = "Quota còn lại của Candidate")
     @SecurityRequirement(name = "bearerAuth")
@@ -83,13 +83,13 @@ public class CandidateSubscriptionController {
         return ResponseEntity.ok(ApiResponse.success(checkQuotaUseCase.execute(candidateId)));
     }
 
-    // ── POST /purchase ────────────────────────────────────────────────
+    // ── POST /purchase ──────────────────────────────────────────────────────
 
     @Operation(summary = "Mua gói dịch vụ Candidate → nhận payment URL")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('CANDIDATE')")
-    @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
+    // @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "CANDIDATE_PURCHASE_PLAN", resourceType = "CandidateSubscription")
     public ResponseEntity<ApiResponse<PurchaseCandidatePlanUseCase.Result>> purchase(
             @Valid @RequestBody CandidatePurchaseRequest req) {
@@ -98,7 +98,7 @@ public class CandidateSubscriptionController {
 
         PurchaseCandidatePlanUseCase.Result result = purchaseUseCase.execute(
                 new PurchaseCandidatePlanUseCase.Command(
-                        candidateId, req.planId(), req.yearly()));
+                        candidateId, req.planId(), req.yearly(), req.gateway()));
 
         return ResponseEntity.ok(ApiResponse.success(result,
                 "Đơn hàng đã được tạo. Vui lòng thanh toán tại URL được cung cấp."));
