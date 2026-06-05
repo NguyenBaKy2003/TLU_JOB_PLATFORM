@@ -57,10 +57,11 @@ export interface PurchaseRequest {
   planId: string;
   yearly: boolean;
 }
-
+export type PaymentGateway = "VNPAY" | "MOMO" | "ZALOPAY";
 export interface PurchaseResult {
   paymentUrl: string;
   orderId: string;
+    gateway: PaymentGateway;
 }
 
 /** Payload cho POST /api/v1/admin/candidate-plans */

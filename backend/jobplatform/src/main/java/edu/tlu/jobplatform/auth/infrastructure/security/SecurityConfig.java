@@ -98,7 +98,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()
                                                 .requestMatchers("/api/v1/applications/**").permitAll()
                                                 .requestMatchers("/api/v1/ai/**").permitAll()
-
+                                                .requestMatchers(
+                                                                "/api/v1/payments/callback/**")
+                                                .permitAll()
                                                 // Settings bắt buộc đăng nhập
                                                 .requestMatchers("/api/v1/settings/**").authenticated()
 

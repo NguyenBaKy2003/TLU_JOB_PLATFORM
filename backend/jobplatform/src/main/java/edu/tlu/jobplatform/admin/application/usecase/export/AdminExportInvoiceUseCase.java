@@ -12,11 +12,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Propagation;
 
 @Slf4j
 @Service
@@ -32,7 +32,7 @@ public class AdminExportInvoiceUseCase {
     private static final Color COLOR_HEADER = new Color(0x1E, 0x40, 0xAF);
     private static final Color COLOR_LINE = new Color(0xD1, 0xD5, 0xDB);
 
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public ExportResult execute(UUID paymentId) {
         Payment payment = adminPaymentUseCase.getById(paymentId);
         log.info("Export invoice: paymentId={}", paymentId);
@@ -62,7 +62,7 @@ public class AdminExportInvoiceUseCase {
             title.setSpacingAfter(4f);
             doc.add(title);
 
-            Paragraph platform = new Paragraph("TLU Job Platform", new Font(bfRegular, 10, Font.NORMAL, Color.GRAY));
+            Paragraph platform = new Paragraph("TLU CareerUp", new Font(bfRegular, 10, Font.NORMAL, Color.GRAY));
             platform.setAlignment(Element.ALIGN_CENTER);
             platform.setSpacingAfter(20f);
             doc.add(platform);
@@ -173,7 +173,7 @@ public class AdminExportInvoiceUseCase {
             // ── Footer ────────────────────────────────────────────────────
             addLine(doc, COLOR_LINE);
             Paragraph footer = new Paragraph(
-                    "Cảm ơn bạn đã sử dụng dịch vụ TLU Job Platform!\n"
+                    "Cảm ơn bạn đã sử dụng dịch vụ TLU CareerUp!\n"
                             + "Hóa đơn được tạo tự động — không cần chữ ký.",
                     fontSmall);
             footer.setAlignment(Element.ALIGN_CENTER);

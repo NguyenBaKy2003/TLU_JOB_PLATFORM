@@ -11,132 +11,138 @@ import edu.tlu.jobplatform.subscription.domain.model.CandidateSubscriptionPlan;
 import edu.tlu.jobplatform.subscription.domain.repository.CandidateSubscriptionPlanRepository;
 import edu.tlu.jobplatform.subscription.domain.repository.CandidateSubscriptionRepository;
 import edu.tlu.jobplatform.subscription.domain.service.CandidateSubscriptionDomainService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
-/**
- * UseCase: Xử lý callback thanh toán từ VNPay cho Candidate.
- *
- * Tái sử dụng toàn bộ PaymentGatewayPort, PaymentRepository từ Company.
- * Phân biệt với HandlePaymentCallbackUseCase (Company) bằng orderCode prefix:
- * - Company → "JP-XXXXXXXX"
- * - Candidate → "CP-XXXXXXXX"
- *
- * Routing được thực hiện ở PaymentController dựa trên prefix này.
- *
- * Flow:
- * 1. Verify chữ ký callback
- * 2. Resolve orderCode → Payment → CandidateSubscription
- * 3. Idempotency check (đã xử lý rồi thì skip)
- * 4. handleSuccess / handleFailure
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class HandleCandidatePaymentCallbackUseCase {
+public class HandleCandidatePaymentCallbackUseCase extends AbstractPaymentCallbackUseCase {
 
-    private final PaymentGatewayPort paymentGateway;
-    private final PaymentRepository paymentRepository;
-    private final CandidateSubscriptionRepository subscriptionRepository;
-    private final CandidateSubscriptionPlanRepository planRepository;
-    private final CandidateSubscriptionDomainService domainService;
-    private final ApplicationEventPublisher eventPublisher;
+        @Getter
+        private final List<PaymentGatewayPort> gateways;
 
-    @Transactional
-    public void execute(Map<String, String> callbackParams) {
+        private final PaymentRepository paymentRepository;
+        private final CandidateSubscriptionRepository subscriptionRepository;
+        private final CandidateSubscriptionPlanRepository planRepository;
+        private final CandidateSubscriptionDomainService domainService;
+        private final ApplicationEventPublisher eventPublisher;
 
-        log.info("[CandidateCallback] Received params: {}", callbackParams);
+        // ── IPN / callback có signature ───────────────────────────────────────────
 
-        // 1. Verify chữ ký — bước đầu tiên, bắt buộc
-        if (!paymentGateway.verifyCallback(callbackParams))
-            throw new BusinessRuleException(
-                    "Chữ ký callback không hợp lệ.", "INVALID_CALLBACK_SIGNATURE");
+        @Transactional
+        public void execute(Map<String, String> callbackParams) {
+                log.info("[CandidateCallback] Received params: {}", callbackParams);
 
-        // 2. Resolve orderCode → Payment
-        String orderCode = resolveOrderCode(callbackParams);
+                PaymentGatewayPort gateway = detectGateway(callbackParams);
+                log.info("[CandidateCallback] Gateway detected: {}", gateway.getGatewayName());
 
-        Payment payment = paymentRepository.findByGatewayOrderCode(orderCode)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Không tìm thấy đơn hàng: " + orderCode, "ORDER_NOT_FOUND"));
+                if (!gateway.verifyCallback(callbackParams))
+                        throw new BusinessRuleException("Chữ ký callback không hợp lệ.", "INVALID_CALLBACK_SIGNATURE");
 
-        // 3. Idempotency — đã xử lý rồi thì bỏ qua
-        if (payment.getStatus() == PaymentStatus.SUCCESS) {
-            log.info("[CandidateCallback] Already processed: order={}", orderCode);
-            return;
+                String orderCode = resolveOrderCode(callbackParams);
+                Payment payment = findPayment(orderCode);
+
+                if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                        log.info("[CandidateCallback] Already processed: order={}", orderCode);
+                        return;
+                }
+
+                CandidateSubscription subscription = findSubscription(payment);
+
+                if (gateway.isSuccess(callbackParams))
+                        handleSuccess(gateway.extractTransactionId(callbackParams), payment, subscription,
+                                        gateway.getGatewayName());
+                else
+                        handleFailure(payment, subscription, callbackParams);
         }
 
-        // 4. Resolve CandidateSubscription
-        CandidateSubscription subscription = subscriptionRepository
-                .findById(payment.getSubscriptionId())
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Không tìm thấy subscription.", "SUB_NOT_FOUND"));
+        // ── ZaloPay return URL — không có signature, dùng status=1 làm xác nhận ──
 
-        if (paymentGateway.isSuccess(callbackParams))
-            handleSuccess(payment, subscription, callbackParams);
-        else
-            handleFailure(payment, subscription, callbackParams);
-    }
+        @Transactional
+        public void markSuccessByOrderCode(String orderCode, String zpTransId) {
+                log.info("[ZALOPAY-RETURN] markSuccess: orderCode={} zpTransId={}", orderCode, zpTransId);
 
-    private void handleSuccess(Payment payment, CandidateSubscription subscription,
-            Map<String, String> params) {
+                Payment payment = findPayment(orderCode);
 
-        String transactionId = paymentGateway.extractTransactionId(params);
-        payment.markSuccess(transactionId);
+                if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                        log.info("[ZALOPAY-RETURN] Already processed: order={}", orderCode);
+                        return;
+                }
 
-        CandidateSubscriptionPlan plan = planRepository.findByCode(subscription.getPlanCode())
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Không tìm thấy gói: " + subscription.getPlanCode(), "PLAN_NOT_FOUND"));
+                CandidateSubscription subscription = findSubscription(payment);
+                String transactionId = zpTransId != null ? zpTransId : "ZLP-" + orderCode;
 
-        // Tìm subscription ACTIVE hiện tại (nếu có) để carry-over days
-        CandidateSubscription existingActive = subscriptionRepository
-                .findActiveByCandidate(subscription.getCandidateId())
-                .filter(s -> !s.getId().equals(subscription.getId()))
-                .orElse(null);
+                handleSuccess(transactionId, payment, subscription, "ZALOPAY");
+        }
 
-        domainService.activate(subscription, plan, payment, existingActive);
+        // ── Shared logic ──────────────────────────────────────────────────────────
 
-        paymentRepository.save(payment);
-        subscriptionRepository.save(subscription);
-        if (existingActive != null)
-            subscriptionRepository.save(existingActive);
+        private void handleSuccess(String transactionId,
+                        Payment payment,
+                        CandidateSubscription subscription,
+                        String gatewayName) {
+                payment.markSuccess(transactionId);
 
-        eventPublisher.publishEvent(new CandidateSubscriptionActivatedEvent(
-                subscription.getCandidateId(),
-                plan.getName(),
-                subscription.getExpiresAt(),
-                payment.getId(),
-                payment.getAmount(),
-                paymentGateway.getGatewayName()));
+                CandidateSubscriptionPlan plan = planRepository.findByCode(subscription.getPlanCode())
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Không tìm thấy gói: " + subscription.getPlanCode(), "PLAN_NOT_FOUND"));
 
-        log.info("[CandidateCallback] Activated: candidateId={} plan={} expires={}",
-                subscription.getCandidateId(), subscription.getPlanCode(),
-                subscription.getExpiresAt());
-    }
+                CandidateSubscription existingActive = subscriptionRepository
+                                .findActiveByCandidate(subscription.getCandidateId())
+                                .filter(s -> !s.getId().equals(subscription.getId()))
+                                .orElse(null);
 
-    private void handleFailure(Payment payment, CandidateSubscription subscription,
-            Map<String, String> params) {
-        String reason = params.getOrDefault("vnp_ResponseCode",
-                params.getOrDefault("resultCode", "UNKNOWN"));
-        payment.markFailed(reason);
-        subscription.markFailed();
-        paymentRepository.save(payment);
-        subscriptionRepository.save(subscription);
-        log.warn("[CandidateCallback] Failed: order={} reason={}",
-                payment.getGatewayOrderCode(), reason);
-    }
+                domainService.activate(subscription, plan, payment, existingActive);
 
-    private String resolveOrderCode(Map<String, String> params) {
-        String code = params.get("vnp_TxnRef");
-        if (code == null || code.isBlank())
-            code = params.get("orderId");
-        if (code == null || code.isBlank())
-            throw new BusinessRuleException(
-                    "Không tìm thấy orderCode trong callback.", "MISSING_ORDER_CODE");
-        return code;
-    }
+                paymentRepository.save(payment);
+                subscriptionRepository.save(subscription);
+                if (existingActive != null)
+                        subscriptionRepository.save(existingActive);
+
+                eventPublisher.publishEvent(new CandidateSubscriptionActivatedEvent(
+                                subscription.getCandidateId(),
+                                plan.getName(),
+                                subscription.getExpiresAt(),
+                                payment.getId(),
+                                payment.getAmount(),
+                                gatewayName));
+
+                log.info("[CandidateCallback] Activated: candidateId={} plan={} expires={} gateway={}",
+                                subscription.getCandidateId(), subscription.getPlanCode(),
+                                subscription.getExpiresAt(), gatewayName);
+        }
+
+        private void handleFailure(Payment payment,
+                        CandidateSubscription subscription,
+                        Map<String, String> params) {
+                String reason = params.getOrDefault("vnp_ResponseCode",
+                                params.getOrDefault("resultCode",
+                                                params.getOrDefault("return_code", "UNKNOWN")));
+                payment.markFailed(reason);
+                subscription.markFailed();
+                paymentRepository.save(payment);
+                subscriptionRepository.save(subscription);
+                log.warn("[CandidateCallback] Failed: order={} reason={}",
+                                payment.getGatewayOrderCode(), reason);
+        }
+
+        private Payment findPayment(String orderCode) {
+                return paymentRepository.findByGatewayOrderCode(orderCode)
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Không tìm thấy đơn hàng: " + orderCode, "ORDER_NOT_FOUND"));
+        }
+
+        private CandidateSubscription findSubscription(Payment payment) {
+                return subscriptionRepository.findById(payment.getSubscriptionId())
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Không tìm thấy subscription.", "SUB_NOT_FOUND"));
+        }
 }
