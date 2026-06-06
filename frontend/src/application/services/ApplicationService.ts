@@ -10,6 +10,8 @@ import type {
   ApplicationStatus,
   MyApplicationsParams,
   MyApplicationsResponse,
+  InterviewScheduleParams,
+  InterviewScheduleItem,
 } from "@/domain/models/Application";
 
 export class ApplicationService {
@@ -166,4 +168,10 @@ export class ApplicationService {
   canDeclineOffer(app: Application): boolean {
     return app.status === "OFFERED";
   }
+
+  async getInterviewSchedule(
+  params: InterviewScheduleParams = {},
+): Promise<PageResponse<InterviewScheduleItem>> {
+  return this.repo.getInterviewSchedule(params);
+}
 }

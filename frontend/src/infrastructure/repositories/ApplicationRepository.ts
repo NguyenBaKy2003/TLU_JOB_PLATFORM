@@ -11,6 +11,8 @@ import type {
   ApplicationStatus,
   MyApplicationsParams,
   MyApplicationsResponse,
+  InterviewScheduleParams,
+  InterviewScheduleItem,
 } from "@/domain/models/Application";
 import api from "@/lib/axios";
 
@@ -177,4 +179,15 @@ export class ApplicationRepository implements IApplicationRepository {
     const res = await api.get(url, { responseType: "blob" });
     return URL.createObjectURL(res.data as Blob);
   }
+async getInterviewSchedule(
+  params: InterviewScheduleParams = {},
+): Promise<PageResponse<InterviewScheduleItem>> {
+  const { from, to, page = 0, size = 50 } = params;
+  return this.get(`/employer/interview-schedule`, {  
+    ...(from ? { from } : {}),
+    ...(to   ? { to   } : {}),
+    page,
+    size,
+  });
+}
 }
