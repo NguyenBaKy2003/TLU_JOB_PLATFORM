@@ -79,8 +79,6 @@ export default function AdminCompaniesPage() {
   const filterConfigs = [
     { key: 'keyword',  type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tên, mô tả, ngành...' },
     { key: 'status',   type: 'select' as const, label: 'Trạng thái', options: statusOptions },
-    { key: 'city',     type: 'input'  as const, label: 'Thành phố',  placeholder: 'Hà Nội, HCM...' },
-    { key: 'planCode', type: 'input'  as const, label: 'Plan',       placeholder: 'STARTER, BUSINESS...' },
   ];
 
   const { filters, setFilter, resetAllFilters, getFilterValue } = useFilter({
@@ -355,16 +353,10 @@ export default function AdminCompaniesPage() {
         config={{
           searchKey: 'keyword',
           statusKey: 'status',
-          customFilters: [
-            { key: 'city',     label: 'Thành phố', options: [] },
-            { key: 'planCode', label: 'Plan',       options: [] },
-          ],
         }}
         filters={{
           keyword:  getFilterValue('keyword'),
           status:   getFilterValue('status'),
-          city:     getFilterValue('city'),
-          planCode: getFilterValue('planCode'),
         }}
         onFilterChange={handleFilterChange}
         onReset={handleResetFilters}

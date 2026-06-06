@@ -82,6 +82,33 @@ function StatCard({ icon, label, value, color }: {
   );
 }
 
+// ── Interview Schedule CTA Card ───────────────────────────────────────────────
+
+function InterviewScheduleCard({ scheduled, onClick }: { scheduled: number; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="group bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl
+        border border-purple-100 shadow-sm px-5 py-4 flex items-center gap-3
+        hover:border-purple-300 hover:shadow-md transition-all duration-200 text-left w-full"
+    >
+      <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center
+        group-hover:bg-purple-200 transition-colors flex-shrink-0">
+        <Calendar size={18} className="text-purple-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-purple-400">Có lịch phỏng vấn</p>
+        <p className="text-xl font-bold text-purple-900">{scheduled}</p>
+      </div>
+      <div className="flex items-center gap-1 text-xs font-medium text-purple-500
+        group-hover:text-purple-700 transition-colors flex-shrink-0">
+        Xem lịch
+        <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+      </div>
+    </button>
+  );
+}
+
 // ── Card Skeleton — chỉ dùng lần đầu ─────────────────────────────────────────
 
 function CardSkeleton({ count }: { count: number }) {
@@ -350,8 +377,6 @@ export default function EmployerApplicationsPage() {
   const [apps,           setApps]           = useState<ApplicationWithCandidate[]>([]);
   const [totalElements,  setTotalElements]  = useState(0);
   const [totalPages,     setTotalPages]     = useState(1);
-  // initialLoad: true = chưa có data lần nào → dùng skeleton
-  // loading:     true = đang fetch (kể cả refetch) → dùng overlay mờ
   const [initialLoad,    setInitialLoad]    = useState(true);
   const [loading,        setLoading]        = useState(true);
   const [filters,        setFilters]        = useState<AppliedFilters>(DEFAULT_FILTERS);
@@ -411,12 +436,30 @@ export default function EmployerApplicationsPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Stats */}
+      {/* Stats — 4 cols, card thứ 3 là CTA navigate sang /schedule */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={<Users       size={18} className="text-blue-600"   />} label="Tổng đơn"      value={totalElements} color="bg-blue-50"   />
-        <StatCard icon={<Clock       size={18} className="text-amber-500"  />} label="Chờ xét duyệt" value={pending}       color="bg-amber-50"  />
-        <StatCard icon={<Calendar    size={18} className="text-purple-600" />} label="Có lịch PV"    value={scheduled}     color="bg-purple-50" />
-        <StatCard icon={<CheckCircle size={18} className="text-green-600"  />} label="Đã tuyển"      value={hired}         color="bg-green-50"  />
+        <StatCard
+          icon={<Users size={18} className="text-blue-600" />}
+          label="Tổng đơn"
+          value={totalElements}
+          color="bg-blue-50"
+        />
+        <StatCard
+          icon={<Clock size={18} className="text-amber-500" />}
+          label="Chờ xét duyệt"
+          value={pending}
+          color="bg-amber-50"
+        />
+        <InterviewScheduleCard
+          scheduled={scheduled}
+          onClick={() => router.push("/employer/applications/schedule")}
+        />
+        <StatCard
+          icon={<CheckCircle size={18} className="text-green-600" />}
+          label="Đã tuyển"
+          value={hired}
+          color="bg-green-50"
+        />
       </div>
 
       {/* Filter bar */}
@@ -434,7 +477,7 @@ export default function EmployerApplicationsPage() {
         loading={loading}
       />
 
-      {/* Result count — giữ chỗ bằng min-height */}
+      {/* Result count */}
       <div className="min-h-[20px] -mt-2">
         {!loading && (
           <p className="text-xs text-gray-500">
@@ -447,9 +490,7 @@ export default function EmployerApplicationsPage() {
       {initialLoad ? (
         <CardSkeleton count={DEFAULT_PAGE_SIZE} />
       ) : (
-        /* Wrapper giữ layout ổn định, chỉ mờ khi refetch */
         <div className={`relative transition-opacity duration-150 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-          {/* Overlay spinner nhỏ góc trên phải khi refetch */}
           {loading && (
             <div className="absolute -top-8 right-0 z-10 flex items-center gap-1.5 text-xs text-gray-400">
               <LoadingSpinner size="sm" variant="secondary" />
@@ -478,7 +519,7 @@ export default function EmployerApplicationsPage() {
         </div>
       )}
 
-      {/* Pagination — giữ chỗ để không nhảy layout */}
+      {/* Pagination */}
       <div className="min-h-[40px] flex justify-center">
         {!initialLoad && totalPages > 1 && (
           <Pagination currentPage={filters.page + 1} totalPages={totalPages} onPageChange={handlePageChange} />

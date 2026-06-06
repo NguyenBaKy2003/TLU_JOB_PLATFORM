@@ -12,7 +12,9 @@ import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDeta
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse.CandidateInfo;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse;
 import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationResponse.JobInfo;
+import edu.tlu.jobplatform.application.presentation.dto.response.InterviewScheduleResponse;
 import edu.tlu.jobplatform.application.usecase.employer.GetApplicationsForJobUseCase;
+import edu.tlu.jobplatform.application.usecase.employer.GetInterviewScheduleUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.ScheduleInterviewUseCase;
 import edu.tlu.jobplatform.application.usecase.employer.UpdateApplicationStatusUseCase;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
@@ -27,11 +29,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,6 +56,7 @@ public class EmployerApplicationController {
         private final CandidateInfoResolver candidateInfoResolver;
         private final JobPostInfoResolver jobPostInfoResolver;
         private final CompanyRepository companyRepository;
+        private final GetInterviewScheduleUseCase interviewScheduleUseCase;
 
         @Operation(summary = "Danh sách đơn ứng tuyển của bài đăng")
         @GetMapping("/api/v1/jobs/{jobPostId}/applications")
@@ -120,6 +127,27 @@ public class EmployerApplicationController {
 
                 return ResponseEntity.ok(ApiResponse.success(ApplicationResponse.from(app),
                                 "Đã lên lịch phỏng vấn. Email thông báo đã được gửi cho ứng viên."));
+        }
+
+        @Operation(summary = "Lịch phỏng vấn của công ty")
+        @GetMapping("/api/v1/employer/interview-schedule")
+        @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+        @RateLimit(policy = "employer-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<InterviewScheduleResponse>>> getInterviewSchedule(
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
+
+                UUID companyId = resolveCompanyId();
+                var pageable = PageRequest.of(page, size);
+
+                Page<InterviewScheduleResponse> result = interviewScheduleUseCase.execute(companyId, from, to,
+                                pageable);
+
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
         }
 
         @Operation(summary = "Lấy ra toàn bộ đơn ứng tuyển của công ty")

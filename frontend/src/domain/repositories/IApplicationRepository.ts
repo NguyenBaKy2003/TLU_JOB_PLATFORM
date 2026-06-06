@@ -9,6 +9,8 @@ import type {
   ApplicationStatus,
   MyApplicationsParams,
   MyApplicationsResponse,
+  InterviewScheduleParams,
+  InterviewScheduleItem,
 } from "@/domain/models/Application";
 
 export interface IApplicationRepository {
@@ -57,4 +59,9 @@ export interface IApplicationRepository {
     mode: "view" | "download",
     cvId?: string | null,
   ): Promise<string>;
+
+
+getInterviewSchedule(
+  params?: InterviewScheduleParams,
+): Promise<PageResponse<InterviewScheduleItem>>;
 }
