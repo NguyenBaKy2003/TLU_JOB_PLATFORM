@@ -74,7 +74,7 @@ public class ViewOwnApplicationCVUseCase {
                 file.contentLength());
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────
+    // ── Helpers ───────────
 
     private static String getExtension(String url) {
         if (url == null)

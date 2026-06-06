@@ -22,7 +22,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     private final PaymentJpaRepo jpaRepo;
     private final SubscriptionMapper mapper;
 
-    // ── Common ────────────────────────────────────────────────────────
+    // ── Common ───────
 
     @Override
     public Optional<Payment> findById(UUID id) {
@@ -49,7 +49,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
         return mapper.toPaymentDomain(jpaRepo.save(mapper.toPaymentNewEntity(payment)));
     }
 
-    // ── Company ───────────────────────────────────────────────────────
+    // ── Company ──────
 
     @Override
     public Optional<Payment> findPendingByCompanyId(UUID companyId) {
@@ -69,7 +69,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
-    // ── Candidate ─────────────────────────────────────────────────────
+    // ── Candidate ────
 
     @Override
     public Optional<Payment> findPendingByCandidateId(UUID candidateId) {
@@ -89,7 +89,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
-    // ── Admin ─────────────────────────────────────────────────────────
+    // ── Admin search ─
 
     @Override
     public Page<Payment> search(UUID companyId, UUID candidateId, PaymentStatus status,
@@ -100,14 +100,13 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     }
 
     @Override
-    public BigDecimal sumSuccessAmount(LocalDateTime from, LocalDateTime to) {
-        BigDecimal result = jpaRepo.sumSuccessAmount(from, to);
-        return result != null ? result : BigDecimal.ZERO;
-    }
-
-    @Override
-    public long countByStatus(PaymentStatus status) {
-        return jpaRepo.countByStatus(status);
+    public Page<Payment> searchByCompanyId(
+            UUID companyId, PaymentStatus status, String gateway,
+            String keyword, LocalDateTime fromDate, LocalDateTime toDate,
+            Pageable pageable) {
+        return jpaRepo.searchByCompanyId(
+                companyId, status, gateway, keyword, fromDate, toDate, pageable)
+                .map(mapper::toPaymentDomain);
     }
 
     @Override
@@ -120,13 +119,26 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(mapper::toPaymentDomain);
     }
 
+    // ── Stats ────────
+
     @Override
-    public Page<Payment> searchByCompanyId(
-            UUID companyId, PaymentStatus status, String gateway,
-            String keyword, LocalDateTime fromDate, LocalDateTime toDate,
-            Pageable pageable) {
-        return jpaRepo.searchByCompanyId(
-                companyId, status, gateway, keyword, fromDate, toDate, pageable)
-                .map(mapper::toPaymentDomain);
+    public BigDecimal sumSuccessAmount(LocalDateTime from, LocalDateTime to) {
+        BigDecimal result = jpaRepo.sumSuccessAmount(from, to);
+        return result != null ? result : BigDecimal.ZERO;
+    }
+
+    @Override
+    public long countByPeriod(LocalDateTime from, LocalDateTime to) {
+        return jpaRepo.countByPeriod(from, to);
+    }
+
+    @Override
+    public long countByStatusAndPeriod(PaymentStatus status, LocalDateTime from, LocalDateTime to) {
+        return jpaRepo.countByStatusAndPeriod(status, from, to);
+    }
+
+    @Override
+    public long countByStatus(PaymentStatus status) {
+        return jpaRepo.countByStatus(status);
     }
 }

@@ -52,7 +52,7 @@ public class CandidateProfileQueryAdapter implements CandidateProfileQueryPort {
                 mapSocialLinks(dedup(profile.getSocialLinks())));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────
 
     /** Loại bỏ trùng lặp, giữ thứ tự insertion. */
     private static <T> List<T> dedup(Collection<T> col) {
@@ -61,7 +61,7 @@ public class CandidateProfileQueryAdapter implements CandidateProfileQueryPort {
         return List.copyOf(new LinkedHashSet<>(col));
     }
 
-    // ── Mappers ───────────────────────────────────────────────────────────────
+    // ── Mappers ──────────────
 
     private String buildFullName(CandidateProfile p) {
         String first = p.getFirstName() != null ? p.getFirstName() : "";

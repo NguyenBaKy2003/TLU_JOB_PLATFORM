@@ -1,11 +1,11 @@
 package edu.tlu.jobplatform.payment.application.usecase.admin;
 
+import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.payment.domain.model.Payment;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.domain.repository.PaymentRepository;
-import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
-import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
-import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import edu.tlu.jobplatform.payment.presentation.dto.response.AdminPaymentResponse;
+import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,86 +23,147 @@ import java.util.UUID;
 public class AdminPaymentUseCase {
 
         private final PaymentRepository paymentRepo;
+        private final CompanyRepository companyRepo;
+        private final UserRepository userRepo;
 
-        // ── Search / List ─────────────────────────────────────────────────
-
-        @Transactional(readOnly = true)
-        public Page<Payment> search(UUID companyId, UUID candidateId, PaymentStatus status,
-                        String gateway, LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
-                return paymentRepo.search(companyId, candidateId, status, gateway,
-                                fromDate, toDate, pageable);
-        }
-
-        @Transactional(readOnly = true)
-        public Payment getById(UUID paymentId) {
-                return paymentRepo.findById(paymentId)
-                                .orElseThrow(() -> ResourceNotFoundException.of("Payment", paymentId));
-        }
-
-        @Transactional(readOnly = true)
-        public Page<Payment> getByCompany(UUID companyId, PaymentStatus status, Pageable pageable) {
-                return status != null
-                                ? paymentRepo.findByCompanyIdAndStatus(companyId, status, pageable)
-                                : paymentRepo.findByCompanyId(companyId, pageable);
-        }
-
-        @Transactional(readOnly = true)
-        public Page<Payment> getByCandidate(UUID candidateId, PaymentStatus status, Pageable pageable) {
-                return status != null
-                                ? paymentRepo.findByCandidateIdAndStatus(candidateId, status, pageable)
-                                : paymentRepo.findByCandidateId(candidateId, pageable);
-        }
-
-        // ── Stats ─────────────────────────────────────────────────────────
-
-        @Transactional(readOnly = true)
-        public Stats getStats(LocalDateTime from, LocalDateTime to) {
-                BigDecimal revenue = paymentRepo.sumSuccessAmount(from, to);
-                return new Stats(
-                                revenue != null ? revenue : BigDecimal.ZERO,
-                                paymentRepo.countByStatus(PaymentStatus.PENDING),
-                                paymentRepo.countByStatus(PaymentStatus.SUCCESS),
-                                paymentRepo.countByStatus(PaymentStatus.FAILED),
-                                paymentRepo.countByStatus(PaymentStatus.REFUNDED),
-                                from, to);
-        }
-
-        // ── Refund (ADMIN only) ──────────────────────────────────────
-
-        @Transactional
-        public Payment refund(UUID paymentId, String reason) {
-                if (reason == null || reason.isBlank())
-                        throw new BusinessRuleException(
-                                        "Vui lòng nhập lý do hoàn tiền.", "REASON_REQUIRED");
-
-                Payment payment = getById(paymentId);
-
-                if (!payment.isSuccess())
-                        throw new BusinessRuleException(
-                                        "Chỉ có thể hoàn tiền giao dịch SUCCESS.", "NOT_REFUNDABLE");
-
-                if (payment.getStatus() == PaymentStatus.REFUNDED)
-                        throw new BusinessRuleException(
-                                        "Giao dịch đã được hoàn tiền trước đó.", "ALREADY_REFUNDED");
-
-                payment.markFailed("[ADMIN REFUND] " + reason);
-
-                UUID adminId = SecurityUtils.getCurrentUserIdOrThrow();
-                log.warn("Admin refunded: paymentId={} amount={} companyId={} candidateId={} reason='{}' by={}",
-                                paymentId, payment.getAmount(),
-                                payment.getCompanyId(), payment.getCandidateId(),
-                                reason, adminId);
-
-                return paymentRepo.save(payment);
-        }
+        // ── Stats record ──────────────────────────────────────────────────────────
 
         public record Stats(
                         BigDecimal totalRevenue,
+                        long totalCount,
                         long pendingCount,
                         long successCount,
                         long failedCount,
                         long refundedCount,
                         LocalDateTime from,
                         LocalDateTime to) {
+        }
+
+        // ── Search ────────────────────────────────────────────────────────────────
+
+        @Transactional(readOnly = true)
+        public Page<AdminPaymentResponse> search(
+                        UUID companyId,
+                        UUID candidateId,
+                        PaymentStatus status,
+                        String gateway,
+                        LocalDateTime fromDate,
+                        LocalDateTime toDate,
+                        Pageable pageable) {
+
+                return paymentRepo
+                                .search(companyId, candidateId, status, gateway, fromDate, toDate, pageable)
+                                .map(this::enrich);
+        }
+
+        // ── Get by Company ────────────────────────────────────────────────────────
+
+        @Transactional(readOnly = true)
+        public Page<AdminPaymentResponse> getByCompany(
+                        UUID companyId,
+                        PaymentStatus status,
+                        Pageable pageable) {
+
+                if (status != null) {
+                        return paymentRepo
+                                        .findByCompanyIdAndStatus(companyId, status, pageable)
+                                        .map(this::enrich);
+                }
+                return paymentRepo
+                                .findByCompanyId(companyId, pageable)
+                                .map(this::enrich);
+        }
+
+        // ── Get by Candidate ──────────────────────────────────────────────────────
+
+        @Transactional(readOnly = true)
+        public Page<AdminPaymentResponse> getByCandidate(
+                        UUID candidateId,
+                        PaymentStatus status,
+                        Pageable pageable) {
+
+                if (status != null) {
+                        return paymentRepo
+                                        .findByCandidateIdAndStatus(candidateId, status, pageable)
+                                        .map(this::enrich);
+                }
+                return paymentRepo
+                                .findByCandidateId(candidateId, pageable)
+                                .map(this::enrich);
+        }
+
+        // ── Stats ─────────────────────────────────────────────────────────────────
+
+        @Transactional(readOnly = true)
+        public Stats getStats(LocalDateTime from, LocalDateTime to) {
+                BigDecimal totalRevenue = paymentRepo.sumSuccessAmount(from, to);
+                long totalCount = paymentRepo.countByPeriod(from, to);
+                long pendingCount = paymentRepo.countByStatusAndPeriod(PaymentStatus.PENDING, from, to);
+                long successCount = paymentRepo.countByStatusAndPeriod(PaymentStatus.SUCCESS, from, to);
+                long failedCount = paymentRepo.countByStatusAndPeriod(PaymentStatus.FAILED, from, to);
+                long refundedCount = paymentRepo.countByStatusAndPeriod(PaymentStatus.REFUNDED, from, to);
+
+                return new Stats(
+                                totalRevenue != null ? totalRevenue : BigDecimal.ZERO,
+                                totalCount,
+                                pendingCount,
+                                successCount,
+                                failedCount,
+                                refundedCount,
+                                from,
+                                to);
+        }
+
+        // ── Get by ID ─────────────────────────────────────────────────────────────
+
+        @Transactional(readOnly = true)
+        public Payment getById(UUID id) {
+                return paymentRepo.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Payment not found: " + id));
+        }
+
+        @Transactional(readOnly = true)
+        public AdminPaymentResponse getEnrichedById(UUID id) {
+                return enrich(getById(id));
+        }
+
+        // ── Refund ────────────────────────────────────────────────────────────────
+
+        @Transactional
+        public AdminPaymentResponse refund(UUID id, String reason) {
+                Payment payment = getById(id);
+                if (payment.getStatus() != PaymentStatus.SUCCESS) {
+                        throw new IllegalStateException("Chỉ có thể hoàn tiền giao dịch thành công");
+                }
+                payment.markRefunded(reason);
+                paymentRepo.save(payment);
+                log.info("Payment refunded: id={}, reason={}", id, reason);
+                return enrich(payment);
+        }
+
+        // ── Enrich ────────────────────────────────────────────────────────────────
+
+        public AdminPaymentResponse enrich(Payment payment) {
+                return AdminPaymentResponse.from(payment,
+                                resolveCompanyName(payment),
+                                resolveCandidateName(payment));
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
+        private String resolveCompanyName(Payment payment) {
+                if (payment.getCompanyId() == null)
+                        return null;
+                return companyRepo.findById(payment.getCompanyId())
+                                .map(c -> c.getName())
+                                .orElse("Công ty không xác định");
+        }
+
+        private String resolveCandidateName(Payment payment) {
+                if (payment.getCandidateId() == null)
+                        return null;
+                return userRepo.findById(payment.getCandidateId())
+                                .map(u -> u.getFullName() + " (" + u.getEmail() + ")")
+                                .orElse("Ứng viên không xác định");
         }
 }

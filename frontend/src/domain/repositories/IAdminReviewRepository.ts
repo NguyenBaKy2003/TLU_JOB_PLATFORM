@@ -1,4 +1,3 @@
-// D:\TLU_JOB_PLATFORM\frontend\src\domain\repositories\IAdminReviewRepository.ts
 
 import type { CompanyReview, PageResponse, ReviewStatus } from "../models/CompanyReview";
 
@@ -11,4 +10,6 @@ export interface IAdminReviewRepository {
   adminHideReview(reviewId: string): Promise<void>;
   adminShowReview(reviewId: string): Promise<void>;
   adminDeleteReview(reviewId: string): Promise<void>;
+  exportExcel(status?: ReviewStatus): Promise<Blob>;
+  exportPdf(status?: ReviewStatus): Promise<Blob>;
 }

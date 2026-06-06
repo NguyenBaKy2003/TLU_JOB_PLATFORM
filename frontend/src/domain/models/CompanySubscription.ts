@@ -12,7 +12,7 @@ export interface Quota {
 }
 
 // ── Domain models ─────────
-
+export type PaymentGateway = "VNPAY" | "MOMO" | "ZALOPAY";
 export interface SubscriptionPlan {
   id:               string;
   code:             string;        // "FREE" | "BASIC" | "PRO" | "ENTERPRISE"
@@ -78,9 +78,10 @@ export interface Payment {
 }
 
 export interface PurchaseResult {
-  payment:    Payment;
-  paymentUrl: string;  // VNPay redirect URL
-  orderCode:  string;
+  paymentId:   string;
+  subscriptionId: string;
+  paymentUrl:  string;
+  orderCode:   string;
 }
 
 // ── Payloads ──────────────
@@ -88,6 +89,7 @@ export interface PurchaseResult {
 export interface PurchasePayload {
   planId:  string;
   yearly:  boolean;
+  gateway: PaymentGateway;  
 }
 
 // ── UI helpers ────────────

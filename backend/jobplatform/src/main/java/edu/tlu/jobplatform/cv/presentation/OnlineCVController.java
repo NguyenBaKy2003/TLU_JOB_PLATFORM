@@ -354,7 +354,7 @@ public class OnlineCVController {
                                 .body(new InputStreamResource(result.inputStream()));
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────
+        // ── Helpers ──────
 
         private PersonalInfo buildPersonalInfo(PersonalInfoRequest req) {
                 if (req == null)

@@ -109,7 +109,7 @@ public class SubscriptionMapper {
         return entity;
     }
 
-    // ── Payment ───────────────────────────────────────────────────────
+    // ── Payment ──────
 
     public Payment toPaymentDomain(PaymentJpaEntity e) {
         return Payment.builder()

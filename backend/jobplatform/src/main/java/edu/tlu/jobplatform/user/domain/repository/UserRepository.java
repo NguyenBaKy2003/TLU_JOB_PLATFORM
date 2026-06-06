@@ -30,6 +30,5 @@ public interface UserRepository {
 
     Page<User> searchByKeyword(String keyword, Pageable pageable);
 
-    // giữ lại method cũ nếu có chỗ khác dùng
     Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable);
 }

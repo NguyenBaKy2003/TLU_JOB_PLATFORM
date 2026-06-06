@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -21,7 +22,7 @@ import java.util.Map;
  * Core email service — render Thymeleaf template rồi gửi qua JavaMail.
  *
  * Template reuse strategy:
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  * Candidate email TÁI SỬ DỤNG 2 template của Company:
  *
  * subscription-activated.html → dùng cho cả Employer và Candidate
@@ -42,7 +43,7 @@ import java.util.Map;
  * ├── subscription-activated.html (Company + Candidate — đã cập nhật)
  * ├── subscription-expired.html (Company + Candidate — đã cập nhật)
  * └── ... (các template khác giữ nguyên)
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  */
 @Slf4j
 @Service
@@ -66,7 +67,7 @@ public class EmailService {
                 this.templateEngine = templateEngine;
         }
 
-        // ── Auth emails ───────────────────────────────────────────────────
+        // ── Auth emails ──
 
         @Async("aiTaskExecutor")
         public void sendPasswordResetEmail(String toEmail, String fullName, String resetLink) {
@@ -115,7 +116,7 @@ public class EmailService {
                                                 "deletedAt", LocalDateTime.now().format(DATETIME_FMT)));
         }
 
-        // ── Other emails ──────────────────────────────────────────────────
+        // ── Other emails ─
 
         @Async("aiTaskExecutor")
         public void sendInterviewScheduledEmail(String toEmail, String candidateName,
@@ -259,7 +260,7 @@ public class EmailService {
                                                 "supportEmail", "support@jobplatform.vn"));
         }
 
-        // ── Core send ─────────────────────────────────────────────────────
+        // ── Core send ────
 
         /**
          * Render Thymeleaf template → HTML → gửi MimeMessage.
@@ -284,6 +285,42 @@ public class EmailService {
                 } catch (MessagingException e) {
                         log.error("[Email] Failed: template={} to={} error={}",
                                         template, to, e.getMessage());
+                }
+        }
+
+        @Async("aiTaskExecutor")
+        public void sendInvoiceEmail(String toEmail, String fullName,
+                        String planName, String amount,
+                        String gateway, String transactionId,
+                        String paidAt, String dashboardLink,
+                        byte[] pdfBytes, String pdfFilename) {
+                try {
+                        MimeMessage message = mailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                        Context ctx = new Context();
+                        ctx.setVariables(Map.of(
+                                        "fullName", fullName,
+                                        "planCode", planName,
+                                        "amount", amount,
+                                        "gateway", gateway != null ? gateway : "VNPAY",
+                                        "transactionId", transactionId != null ? transactionId : "-",
+                                        "paidAt", paidAt,
+                                        "dashboardLink", dashboardLink,
+                                        "supportEmail", "support@jobplatform.vn"));
+                        String html = templateEngine.process("payment-success", ctx);
+
+                        helper.setFrom(fromAddress);
+                        helper.setTo(toEmail);
+                        helper.setSubject("[CareerUp] Hóa đơn thanh toán – " + planName);
+                        helper.setText(html, true);
+                        helper.addAttachment(pdfFilename, new ByteArrayResource(pdfBytes));
+
+                        mailSender.send(message);
+                        log.info("[Email] Invoice sent: to={} file={}", toEmail, pdfFilename);
+
+                } catch (MessagingException e) {
+                        log.error("[Email] Invoice failed: to={} error={}", toEmail, e.getMessage());
                 }
         }
 }

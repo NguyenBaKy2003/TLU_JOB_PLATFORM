@@ -1,13 +1,17 @@
 package edu.tlu.jobplatform.admin.presentation;
 
 import edu.tlu.jobplatform.admin.application.usecase.AdminJobUseCase;
+import edu.tlu.jobplatform.admin.application.usecase.export.AdminExportJobsUseCase;
 import edu.tlu.jobplatform.auditlog.domain.annotation.Loggable;
+import edu.tlu.jobplatform.job.application.usecase.candidate.GetJobDetailUseCase;
 import edu.tlu.jobplatform.job.domain.model.vo.JobStatus;
+import edu.tlu.jobplatform.job.presentation.dto.response.JobPostDetailResponse;
 import edu.tlu.jobplatform.job.presentation.dto.response.JobPostResponse;
 import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,44 +38,101 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('ADMIN')")
 public class AdminJobController {
 
-    private final AdminJobUseCase adminJobUseCase;
+        private final AdminJobUseCase adminJobUseCase;
+        private final AdminExportJobsUseCase adminExportJobsUseCase;
+        private final GetJobDetailUseCase getJobDetailUseCase;
 
-    @Operation(summary = "Danh sách bài đăng theo status")
-    @GetMapping
-    @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> listJobs(
-            @RequestParam(required = false) JobStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+        @Operation(summary = "Danh sách bài đăng theo status")
+        @GetMapping
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> listJobs(
+                        @RequestParam(required = false) JobStatus status,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        var result = adminJobUseCase.listByStatus(status, pageable)
-                .map(JobPostResponse::from);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
-    }
+                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+                var result = adminJobUseCase.listByStatus(status, pageable)
+                                .map(JobPostResponse::from);
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+        }
 
-    @Operation(summary = "Force-close bài vi phạm")
-    @PostMapping("/{id}/close")
-    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
-    @Loggable(action = "ADMIN_FORCE_CLOSE_JOB", resourceType = "JobPost")
-    public ResponseEntity<ApiResponse<JobPostResponse>> forceClose(
-            @PathVariable UUID id,
-            @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {
+        @Operation(summary = "Chi tiết bài đăng theo ID")
+        @GetMapping("/{id}")
+        @RateLimit(policy = "public-read", scope = RateLimitPolicy.Scope.IP)
+        public ResponseEntity<ApiResponse<JobPostDetailResponse>> getById(@PathVariable UUID id) {
 
-        var job = adminJobUseCase.forceClose(id, reason);
-        return ResponseEntity.ok(
-                ApiResponse.success(JobPostResponse.from(job), "Bài đăng đã bị đóng."));
-    }
+                return ResponseEntity.ok(ApiResponse.success(
+                                JobPostDetailResponse.from(getJobDetailUseCase.executeById(id))));
+        }
 
-    @Operation(summary = "Force-delete bài vi phạm")
-    @DeleteMapping("/{id}")
-    @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
-    @Loggable(action = "ADMIN_FORCE_DELETE_JOB", resourceType = "JobPost")
-    public ResponseEntity<ApiResponse<Void>> forceDelete(
-            @PathVariable UUID id,
-            @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {
+        @Operation(summary = "Tìm kiếm đa điều kiện tin tuyển dụng")
+        @GetMapping("/search")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<JobPostResponse>>> search(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) JobStatus status,
+                        @RequestParam(required = false) String city,
+                        @RequestParam(required = false) String category,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        adminJobUseCase.forceDelete(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã bị xóa."));
-    }
+                var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+                var result = adminJobUseCase
+                                .adminSearch(keyword, status, city, category, pageable)
+                                .map(JobPostResponse::from);
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(result)));
+        }
+
+        @Operation(summary = "Xuất danh sách tin tuyển dụng ra Excel")
+        @GetMapping("/export/excel")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportExcel(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) JobStatus status,
+                        @RequestParam(required = false) String city,
+                        @RequestParam(required = false) String category) {
+
+                var cmd = new AdminExportJobsUseCase.Command(keyword, status, city, category);
+                return adminExportJobsUseCase.execute(cmd, AdminExportJobsUseCase.Format.EXCEL)
+                                .toResponseEntity();
+        }
+
+        @Operation(summary = "Xuất danh sách tin tuyển dụng ra PDF")
+        @GetMapping("/export/pdf")
+        @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<byte[]> exportPdf(
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) JobStatus status,
+                        @RequestParam(required = false) String city,
+                        @RequestParam(required = false) String category) {
+
+                var cmd = new AdminExportJobsUseCase.Command(keyword, status, city, category);
+                return adminExportJobsUseCase.execute(cmd, AdminExportJobsUseCase.Format.PDF)
+                                .toResponseEntity();
+        }
+
+        @Operation(summary = "Force-close bài vi phạm")
+        @PostMapping("/{id}/close")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_FORCE_CLOSE_JOB", resourceType = "JobPost")
+        public ResponseEntity<ApiResponse<JobPostResponse>> forceClose(
+                        @PathVariable UUID id,
+                        @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {
+
+                var job = adminJobUseCase.forceClose(id, reason);
+                return ResponseEntity.ok(
+                                ApiResponse.success(JobPostResponse.from(job), "Bài đăng đã bị đóng."));
+        }
+
+        @Operation(summary = "Force-delete bài vi phạm")
+        @DeleteMapping("/{id}/delete")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_FORCE_DELETE_JOB", resourceType = "JobPost")
+        public ResponseEntity<ApiResponse<Void>> forceDelete(
+                        @PathVariable UUID id,
+                        @RequestParam(defaultValue = "Vi phạm chính sách") String reason) {
+
+                adminJobUseCase.forceDelete(id);
+                return ResponseEntity.ok(ApiResponse.success(null, "Bài đăng đã bị xóa."));
+        }
 }

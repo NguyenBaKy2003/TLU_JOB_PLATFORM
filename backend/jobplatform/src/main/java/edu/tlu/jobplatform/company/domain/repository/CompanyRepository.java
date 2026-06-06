@@ -77,4 +77,14 @@ public interface CompanyRepository {
             String planCode,
             Double minRating,
             Pageable pageable);
+
+    Page<CompanyProfile> adminSearch(
+            String status,
+            String keyword,
+            String city,
+            String size,
+            String planCode,
+            Double minRating,
+            Pageable pageable);
+
 }

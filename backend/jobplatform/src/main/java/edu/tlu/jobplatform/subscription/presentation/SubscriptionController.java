@@ -76,20 +76,20 @@ public class SubscriptionController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('EMPLOYER')")
-    @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
+    // @RateLimit(policy = "purchase", scope = RateLimitPolicy.Scope.USER)
     @Loggable(action = "EMPLOYER_PURCHASE_PLAN", resourceType = "CompanySubscription")
     public ResponseEntity<ApiResponse<PurchasePlanUseCase.Result>> purchase(
             @Valid @RequestBody PurchaseRequest req) {
 
         UUID companyId = resolveCompanyId();
         PurchasePlanUseCase.Result result = purchaseUseCase.execute(
-                new PurchasePlanUseCase.Command(companyId, req.planId(), req.yearly()));
+                new PurchasePlanUseCase.Command(companyId, req.planId(), req.yearly(), req.gateway()));
 
         return ResponseEntity.ok(ApiResponse.success(result,
                 "Đơn hàng đã được tạo. Vui lòng thanh toán tại URL được cung cấp."));
     }
 
-    // ── Helper ─
+    // ── Helper ──────────────────────────────────────────────────────────────
 
     private UUID resolveCompanyId() {
         UUID ownerId = SecurityUtils.getCurrentUserIdOrThrow();
@@ -102,6 +102,8 @@ public class SubscriptionController {
 
     public record PurchaseRequest(
             @NotNull(message = "Vui lòng chọn gói dịch vụ") UUID planId,
-            boolean yearly) {
+            boolean yearly,
+            String gateway // "VNPAY" | "MOMO" | "ZALOPAY" — null → default VNPAY
+    ) {
     }
 }

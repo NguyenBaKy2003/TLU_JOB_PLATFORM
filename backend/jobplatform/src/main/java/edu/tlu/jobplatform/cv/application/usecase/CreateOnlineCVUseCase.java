@@ -21,7 +21,7 @@ import java.util.UUID;
  * Tạo CV mới từ template.
  *
  * Logic check subscription (2 tầng):
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  * 1. Giới hạn số CV (cvCreateLimit từ subscription):
  * FREE_CANDIDATE = 1, PRO = 5, PREMIUM = -1 (unlimited)
  * Không có subscription → áp dụng limit = 1 (FREE behavior)
@@ -34,7 +34,7 @@ import java.util.UUID;
  * CandidateSubscriptionRepository trực tiếp:
  * → Tránh cross-domain dependency (cv domain → subscription domain)
  * → CheckCandidateQuotaUseCase encapsulate toàn bộ subscription logic
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  */
 @Slf4j
 @Service

@@ -171,4 +171,16 @@ public class JobPostRepositoryAdapter implements JobPostRepository, JobSearchPor
                 pageable)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Page<JobPost> findAllExceptDeleted(Pageable pageable) {
+        return jpaRepo.findAllExceptDeleted(pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<JobPost> adminSearch(String keyword, JobStatus status,
+            String city, String category, Pageable pageable) {
+        return jpaRepo.adminSearch(keyword, status, city, category, pageable)
+                .map(mapper::toDomain);
+    }
 }

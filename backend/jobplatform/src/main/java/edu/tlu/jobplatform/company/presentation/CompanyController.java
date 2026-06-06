@@ -43,7 +43,7 @@ import java.util.UUID;
 @Tag(name = "Company", description = "Quản lý hồ sơ công ty")
 public class CompanyController {
 
-        // ── Use cases ─────────────────────────────────────────────────────────────
+        // ── Use cases ────────────
         private final CreateCompanyUseCase createUseCase;
         private final UpdateCompanyUseCase updateUseCase;
         private final UpdateCompanyLogoUseCase updateLogoUseCase;
@@ -57,7 +57,7 @@ public class CompanyController {
         private final GetCompanyJobsUseCase getCompanyJobsUseCase;
         private final SearchCompaniesUseCase searchCompaniesUseCase;
 
-        // ── Repositories ──────────────────────────────────────────────────────────
+        // ── Repositories ─────────
         private final CompanyRepository companyRepository;
         private final CompanyTeamMemberRepository teamMemberRepository;
         private final CompanyDocumentRepository documentRepository;

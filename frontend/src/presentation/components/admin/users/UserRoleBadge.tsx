@@ -4,7 +4,6 @@ const ROLE_CONFIG: Record<AdminUserRole, { label: string; className: string }> =
   CANDIDATE:   { label: "Ứng viên",    className: "bg-blue-50   text-blue-700   border-blue-200"   },
   EMPLOYER:    { label: "Nhà tuyển",   className: "bg-purple-50 text-purple-700 border-purple-200" },
   ADMIN:       { label: "Admin",       className: "bg-red-50    text-red-700    border-red-200"     },
-  SUPER_ADMIN: { label: "Super Admin", className: "bg-amber-50  text-amber-700  border-amber-200"   },
 };
 
 export function UserRoleBadge({ role }: { role: AdminUserRole }) {

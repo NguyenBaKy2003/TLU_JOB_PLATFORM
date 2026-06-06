@@ -122,7 +122,7 @@ public class UserController {
                 return ResponseEntity.ok(ApiResponse.success("Tài khoản đã được vô hiệu hoá."));
         }
 
-        // ── Helper ────────────────────────────────────────────────────────
+        // ── Helper ───────
 
         private UpdateUserUseCase.Command toCommand(UpdateUserRequest req) {
                 return new UpdateUserUseCase.Command(

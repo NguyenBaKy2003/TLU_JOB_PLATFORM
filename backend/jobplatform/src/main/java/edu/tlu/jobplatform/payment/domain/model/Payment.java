@@ -56,4 +56,10 @@ public class Payment {
     public boolean isCandidatePayment() {
         return candidateId != null;
     }
+
+    public void markRefunded(String reason) {
+        this.status = PaymentStatus.REFUNDED;
+        this.failureReason = reason;
+        this.completedAt = LocalDateTime.now();
+    }
 }

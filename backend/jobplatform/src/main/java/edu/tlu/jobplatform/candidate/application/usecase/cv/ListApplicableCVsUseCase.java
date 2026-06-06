@@ -26,61 +26,61 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ListApplicableCVsUseCase {
 
-    private final CandidateCVRepository uploadedCVRepo;
-    private final OnlineCVRepository onlineCVRepo;
+        private final CandidateCVRepository uploadedCVRepo;
+        private final OnlineCVRepository onlineCVRepo;
 
-    public List<ApplicableCV> execute(UUID candidateId) {
+        public List<ApplicableCV> execute(UUID candidateId) {
 
-        List<ApplicableCV> fromUploaded = uploadedCVRepo.findAllByCandidateId(candidateId)
-                .stream()
-                .map(ApplicableCV::fromUploaded)
-                .toList();
-        List<ApplicableCV> fromOnline = onlineCVRepo.findPublishedByCandidateId(candidateId)
-                .stream()
-                .map(ApplicableCV::fromOnline)
-                .toList();
+                List<ApplicableCV> fromUploaded = uploadedCVRepo.findAllByCandidateId(candidateId)
+                                .stream()
+                                .map(ApplicableCV::fromUploaded)
+                                .toList();
+                List<ApplicableCV> fromOnline = onlineCVRepo.findPublishedByCandidateId(candidateId)
+                                .stream()
+                                .map(ApplicableCV::fromOnline)
+                                .toList();
 
-        return Stream.concat(fromUploaded.stream(), fromOnline.stream())
-                .sorted(Comparator
-                        .comparing(ApplicableCV::isPrimary).reversed()
-                        .thenComparing(ApplicableCV::getCreatedAt,
-                                Comparator.nullsLast(Comparator.reverseOrder())))
-                .toList();
-    }
-
-    // ── Result DTO ────────────────────────────────────────────────────────
-
-    @Getter
-    @Builder
-    public static class ApplicableCV {
-        private UUID id;
-        private String title;
-        private String type; // "UPLOADED" | "ONLINE"
-        private String fileUrl; // null nếu ONLINE
-        private String slug; // null nếu UPLOADED
-        private boolean primary;
-        private LocalDateTime createdAt;
-
-        static ApplicableCV fromUploaded(CandidateCV cv) {
-            return ApplicableCV.builder()
-                    .id(cv.getId())
-                    .title(cv.getTitle())
-                    .type("UPLOADED")
-                    .fileUrl(cv.getFileUrl())
-                    .primary(cv.isPrimary())
-                    .createdAt(cv.getCreatedAt())
-                    .build();
+                return Stream.concat(fromUploaded.stream(), fromOnline.stream())
+                                .sorted(Comparator
+                                                .comparing(ApplicableCV::isPrimary).reversed()
+                                                .thenComparing(ApplicableCV::getCreatedAt,
+                                                                Comparator.nullsLast(Comparator.reverseOrder())))
+                                .toList();
         }
 
-        static ApplicableCV fromOnline(OnlineCV cv) {
-            return ApplicableCV.builder()
-                    .id(cv.getId())
-                    .title(cv.getTitle())
-                    .type("ONLINE")
-                    .slug(cv.getSlug())
-                    .primary(false) // online CV không có khái niệm primary
-                    .createdAt(cv.getCreatedAt())
-                    .build();
+        // ── Result DTO ───────
+
+        @Getter
+        @Builder
+        public static class ApplicableCV {
+                private UUID id;
+                private String title;
+                private String type; // "UPLOADED" | "ONLINE"
+                private String fileUrl; // null nếu ONLINE
+                private String slug; // null nếu UPLOADED
+                private boolean primary;
+                private LocalDateTime createdAt;
+
+                static ApplicableCV fromUploaded(CandidateCV cv) {
+                        return ApplicableCV.builder()
+                                        .id(cv.getId())
+                                        .title(cv.getTitle())
+                                        .type("UPLOADED")
+                                        .fileUrl(cv.getFileUrl())
+                                        .primary(cv.isPrimary())
+                                        .createdAt(cv.getCreatedAt())
+                                        .build();
+                }
+
+                static ApplicableCV fromOnline(OnlineCV cv) {
+                        return ApplicableCV.builder()
+                                        .id(cv.getId())
+                                        .title(cv.getTitle())
+                                        .type("ONLINE")
+                                        .slug(cv.getSlug())
+                                        .primary(false) // online CV không có khái niệm primary
+                                        .createdAt(cv.getCreatedAt())
+                                        .build();
+                }
         }
-    }
 }

@@ -2,7 +2,7 @@
  * JPA Entity cho bảng candidate_subscription_plans.
  *
  * Migration SQL:
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  * -- Nếu tạo mới:
  * CREATE TABLE candidate_subscription_plans (
  * id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,5 +48,5 @@
  * ADD COLUMN IF NOT EXISTS cv_create_limit INT NOT NULL DEFAULT 1,
  * ADD COLUMN IF NOT EXISTS premium_template_access BOOLEAN NOT NULL DEFAULT
  * FALSE;
- * ─────────────────────────────────────────────────────────────────
+ * ────────────────
  */

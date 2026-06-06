@@ -61,7 +61,7 @@ public class AuditAspect {
         }
     }
 
-    // ── Resolvers ─────────────────────────────────────────────────────
+    // ── Resolvers ────
 
     private String resolveActorId() {
         try {

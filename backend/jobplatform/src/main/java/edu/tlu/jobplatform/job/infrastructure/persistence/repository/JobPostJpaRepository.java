@@ -44,7 +44,7 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
                @Param("status") JobStatus status,
                @Param("date") LocalDate date);
 
-     // ── Candidate search ──────────────────────────────────────────────────────
+     // ── Candidate search ─────
 
      @Query(value = """
                SELECT DISTINCT j.* FROM job_posts j
@@ -115,6 +115,28 @@ public interface JobPostJpaRepository extends JpaRepository<JobPostJpaEntity, UU
                Pageable pageable);
 
      // ── Employer: lightweight status counts ───────────────────────────────────
+     @Query("""
+               SELECT j FROM JobPostJpaEntity j
+               WHERE j.status <> edu.tlu.jobplatform.job.domain.model.vo.JobStatus.DELETED
+               """)
+     Page<JobPostJpaEntity> findAllExceptDeleted(Pageable pageable);
+
+     @Query("""
+               SELECT j FROM JobPostJpaEntity j
+               WHERE j.status <> edu.tlu.jobplatform.job.domain.model.vo.JobStatus.DELETED
+                 AND (:status IS NULL OR j.status = :status)
+                 AND (:keyword IS NULL
+                      OR LOWER(j.title)       LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
+                      OR LOWER(j.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
+                 AND (:city IS NULL OR j.workLocationCity = :city)
+                 AND (:category IS NULL OR j.category = :category)
+               """)
+     Page<JobPostJpaEntity> adminSearch(
+               @Param("keyword") String keyword,
+               @Param("status") JobStatus status,
+               @Param("city") String city,
+               @Param("category") String category,
+               Pageable pageable);
 
      /**
       * Trả về số lượng bài đăng theo từng trạng thái cho một employer.

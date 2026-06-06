@@ -37,4 +37,7 @@ public interface CandidateSubscriptionRepository {
             CandidateSubscriptionStatus status, LocalDateTime threshold);
 
     CandidateSubscription save(CandidateSubscription subscription);
+
+    Page<CandidateSubscription> findByKeywordAndStatus(String keyword, CandidateSubscriptionStatus status,
+            Pageable pageable);
 }

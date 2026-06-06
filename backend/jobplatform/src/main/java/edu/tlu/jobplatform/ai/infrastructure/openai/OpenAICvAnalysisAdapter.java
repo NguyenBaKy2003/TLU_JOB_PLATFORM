@@ -45,7 +45,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         this.userTemplate = userResource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
+    // ── Public API ──────────
 
     @Override
     public CvAnalysisResult analyze(CvAnalysisRequest request) {
@@ -94,7 +94,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         }
     }
 
-    // ── Prompt builders ──────────────────────────────────────────────────────
+    // ── Prompt builders ─────
 
     /**
      * System message: chứa toàn bộ instruction + thông tin JD.
@@ -115,7 +115,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         return userTemplate.replace("$cvText$", truncate(cvText, 6000));
     }
 
-    // ── Response handling ────────────────────────────────────────────────────
+    // ── Response handling ───
 
     private CvAnalysisResult parseResponse(String raw) throws JsonProcessingException {
         String clean = raw.trim()
@@ -140,7 +140,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .build();
     }
 
-    // ── Guard helpers ────────────────────────────────────────────────────────
+    // ── Guard helpers ───────
 
     /**
      * CV có nghĩa khi: đủ dài VÀ có ít nhất N dòng nội dung thực
@@ -158,7 +158,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         return meaningfulLines >= MIN_MEANINGFUL_LINES;
     }
 
-    // ── Result factories ─────────────────────────────────────────────────────
+    // ── Result factories ────
 
     private CvAnalysisResult emptyCvResult(String reason) {
         return CvAnalysisResult.builder()
@@ -180,7 +180,7 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .build();
     }
 
-    // ── Utilities ────────────────────────────────────────────────────────────
+    // ── Utilities ───────────
 
     private int clamp(Integer value) {
         if (value == null)

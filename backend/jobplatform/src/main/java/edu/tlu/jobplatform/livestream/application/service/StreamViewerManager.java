@@ -29,7 +29,7 @@ public class StreamViewerManager {
     /** "sessionId:viewerId" → joinTimeMillis */
     private final Map<String, Long> viewerJoinTimes = new ConcurrentHashMap<>(); // ← THÊM
 
-    // ── Public API ──────────────────────────────────────────────────────────────
+    // ── Public API ─────────────
 
     public int viewerJoined(UUID sessionId, UUID viewerId) {
         UUID previousSession = activeViewers.get(viewerId);
@@ -142,7 +142,7 @@ public class StreamViewerManager {
         log.info("Cleaned up viewer tracking for session {}", sessionId);
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────────────
+    // ── Private helpers ────────
 
     private void persistWatchTime(UUID sessionId, UUID viewerId) {
         Long joinTime = viewerJoinTimes.remove(joinKey(sessionId, viewerId));

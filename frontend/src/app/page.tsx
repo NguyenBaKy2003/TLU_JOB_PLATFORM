@@ -16,7 +16,6 @@ export default function HomePage() {
     <main className="overflow-hidden">
       <Header></Header>
       <HeroSection />
-
       <section className="max-w-[1232px] mx-auto px-4 py-10">
         <RecommendationPanel />
       </section>

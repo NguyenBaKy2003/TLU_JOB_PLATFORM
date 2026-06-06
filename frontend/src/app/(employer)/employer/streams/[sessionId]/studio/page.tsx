@@ -16,6 +16,8 @@ import { ChatPanel, type ChatMessageData } from "@/presentation/components/strea
 import { LiveIndicator } from "@/presentation/components/stream/common/LiveIndicator";
 import { LoadingScreen } from "@/presentation/components/stream/common/LoadingScreen";
 import { ConfirmEndModal, SpotlightPanel, StartScreen } from "@/presentation/components/stream/employer";
+import { useToast } from "@/presentation/components/ui/toast";
+import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
 const service = new LiveStreamService(new LiveStreamRepository());
 
@@ -30,23 +32,24 @@ interface WsQAQuestionPayload {
 type WsPayload<T> = { type: string; data: T; timestamp: string };
 
 export default function EmployerStudioPage() {
-  const params = useParams<{ sessionId: string }>();
-  const router = useRouter();
+  const params    = useParams<{ sessionId: string }>();
+  const router    = useRouter();
   const sessionId = params.sessionId;
   const { subscribeTopic, publishMessage } = useWebSocket();
+  const { error: toastError, success: toastSuccess, warning: toastWarning } = useToast();
 
-  const [session, setSession] = useState<LiveStreamSession | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [livekitUrl, setLivekitUrl] = useState("");
-  const [starting, setStarting] = useState(false);
-  const [ending, setEnding] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [spotlighting, setSpotlighting] = useState(false);
-  const [showEndConfirm, setShowEndConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "spotlight">("chat");
-  const [messages, setMessages] = useState<ChatMessageData[]>([]);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
+  const [session,         setSession]         = useState<LiveStreamSession | null>(null);
+  const [token,           setToken]           = useState<string | null>(null);
+  const [livekitUrl,      setLivekitUrl]      = useState("");
+  const [starting,        setStarting]        = useState(false);
+  const [ending,          setEnding]          = useState(false);
+  const [sending,         setSending]         = useState(false);
+  const [spotlighting,    setSpotlighting]    = useState(false);
+  const [showEndConfirm,  setShowEndConfirm]  = useState(false);
+  const [activeTab,       setActiveTab]       = useState<"chat" | "spotlight">("chat");
+  const [messages,        setMessages]        = useState<ChatMessageData[]>([]);
+  const [viewerCount,     setViewerCount]     = useState(0);
+  const [elapsed,         setElapsed]         = useState(0);
   const [spotlightedJobs, setSpotlightedJobs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -55,20 +58,16 @@ export default function EmployerStudioPage() {
         const s = await service.getSession(sessionId);
         setSession(s);
         setViewerCount(s.viewerCount || 0);
-        // FIX: Nếu session đã LIVE, KHÔNG gọi startStream lại ở đây.
-        // Employer phải bấm "Bắt đầu" thủ công qua handleStart.
-        // Gọi startStream khi đang LIVE sẽ tạo thêm kết nối LiveKit thừa, ngốn RAM.
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        toastError("Không thể tải phiên", extractErrorMessage(e));
+      }
     };
     loadSession();
   }, [sessionId]);
 
-  // Dùng ref để biết stream đã thực sự start chưa (không dùng state vì cleanup chạy sau unmount)
   const sessionIdRef = useRef(sessionId);
-  const isLiveRef = useRef(false);
+  const isLiveRef    = useRef(false);
 
-  // FIX: LiveKit chỉ mount khi token có giá trị (tức là sau khi handleStart được gọi).
-  // Trước đó không có bất kỳ kết nối WebRTC hay media nào được khởi tạo.
   const handleStart = async () => {
     setStarting(true);
     try {
@@ -76,11 +75,14 @@ export default function EmployerStudioPage() {
       setToken(res.hostToken);
       setLivekitUrl(res.livekitUrl);
       isLiveRef.current = true;
-    } finally { setStarting(false); }
+      toastSuccess("Đã bắt đầu stream", "Phiên tuyển dụng trực tiếp đang phát sóng");
+    } catch (e) {
+      toastError("Không thể bắt đầu", extractErrorMessage(e));
+    } finally {
+      setStarting(false);
+    }
   };
 
-  // Lưới an toàn: nếu employer đóng tab / bấm Back mà chưa end stream,
-  // tự động gọi endStream để server không treo session ở trạng thái LIVE mãi.
   useEffect(() => {
     return () => {
       if (isLiveRef.current) {
@@ -126,7 +128,7 @@ export default function EmployerStudioPage() {
       const d = wsPayload.data;
       setMessages(prev => {
         if (prev.some(m => m.id === d.id)) return prev;
-        return [...prev, { id: d.id, senderName: d.senderName, content: d.question, type: "Q_AND_A", time: new Date(d.askedAt) }];
+        return [...prev, { id: d.id, senderName: d.candidateName, content: d.question, type: "Q_AND_A", time: new Date(d.askedAt) }];
       });
     });
     return () => unsub();
@@ -134,29 +136,45 @@ export default function EmployerStudioPage() {
 
   const handleSendMessage = useCallback((content: string) => {
     setSending(true);
-    try { publishMessage(`/app/streams/${sessionId}/chat`, { content }); }
-    finally { setSending(false); }
+    try {
+      publishMessage(`/app/streams/${sessionId}/chat`, { content });
+    } catch (e) {
+      toastError("Gửi tin thất bại", extractErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
   }, [sessionId, publishMessage]);
 
   const handleSpotlight = useCallback(async (jobId: string) => {
     setSpotlighting(true);
-    try { await service.spotlightJob(sessionId, { jobPostId: jobId }); setSpotlightedJobs(prev => [jobId, ...prev]); }
-    finally { setSpotlighting(false); }
+    try {
+      await service.spotlightJob(sessionId, { jobPostId: jobId });
+      setSpotlightedJobs(prev => [jobId, ...prev]);
+      toastSuccess("Đã spotlight", "Tin tuyển dụng đã được ghim lên màn hình khán giả");
+    } catch (e) {
+      toastError("Spotlight thất bại", extractErrorMessage(e));
+    } finally {
+      setSpotlighting(false);
+    }
   }, [sessionId]);
 
   const handleEnd = async () => {
     setEnding(true);
     try {
       await service.endStream(sessionId);
-      isLiveRef.current = false; // đã end thành công, cleanup không cần gọi lại
+      isLiveRef.current = false;
+      toastSuccess("Đã kết thúc stream", "Phiên tuyển dụng đã kết thúc thành công");
       router.push(`/employer/streams/${sessionId}`);
-    } finally { setEnding(false); setShowEndConfirm(false); }
+    } catch (e) {
+      toastError("Kết thúc thất bại", extractErrorMessage(e));
+    } finally {
+      setEnding(false);
+      setShowEndConfirm(false);
+    }
   };
 
   if (!session) return <LoadingScreen />;
-
-  // FIX: Khi chưa có token => chưa mount LiveKitRoom => không tốn RAM media/WebRTC
-  if (!token) return <StartScreen session={session} onStart={handleStart} starting={starting} />;
+  if (!token)   return <StartScreen session={session} onStart={handleStart} starting={starting} />;
 
   const messageCount = messages.length;
 
@@ -166,7 +184,7 @@ export default function EmployerStudioPage() {
       <div className="flex items-center gap-3 px-5 py-2.5 bg-white border-b border-slate-200 shrink-0">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <LiveIndicator className="bg-red-500" />
-          
+
           <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span className="font-mono text-[13px] font-semibold text-slate-700">
@@ -181,11 +199,11 @@ export default function EmployerStudioPage() {
 
         <div className="flex items-center gap-2.5">
           <ViewerCount count={viewerCount} variant="dark" />
-          
           <button
             onClick={() => setShowEndConfirm(true)}
             disabled={ending}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-red-500 text-[13px] font-semibold hover:bg-red-100 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 border border-red-200
+              rounded-lg text-red-500 text-[13px] font-semibold hover:bg-red-100 disabled:opacity-50"
           >
             <Square className="w-3.5 h-3.5 fill-current" />
             Kết thúc
@@ -197,8 +215,6 @@ export default function EmployerStudioPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Video side */}
         <div className="flex-1 p-5 flex flex-col min-w-0 gap-4">
-          {/* FIX: LiveKitRoom chỉ render khi token tồn tại (đã check ở trên).
-              Không bao giờ render LiveKitRoom với token rỗng/null. */}
           <LiveKitRoom
             serverUrl={livekitUrl}
             token={token}
@@ -210,13 +226,7 @@ export default function EmployerStudioPage() {
             </div>
             <div className="shrink-0">
               <ControlBar
-                controls={{
-                  microphone: true,
-                  camera: true,
-                  screenShare: true,
-                  chat: false,
-                  leave: false,
-                }}
+                controls={{ microphone: true, camera: true, screenShare: true, chat: false, leave: false }}
                 className="!bg-white !rounded-xl !border !border-slate-200 !px-5 !py-2.5"
               />
             </div>
@@ -232,8 +242,8 @@ export default function EmployerStudioPage() {
                 key={t}
                 onClick={() => setActiveTab(t)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
-                  ${activeTab === t 
-                    ? "bg-slate-100 text-slate-800" 
+                  ${activeTab === t
+                    ? "bg-slate-100 text-slate-800"
                     : "bg-transparent text-slate-400 hover:text-slate-600"
                   }`}
               >
@@ -263,7 +273,7 @@ export default function EmployerStudioPage() {
           </div>
 
           {/* Panel content */}
-          <div className="flex-1 overflow-hidden relative ">
+          <div className="flex-1 overflow-hidden relative">
             {activeTab === "chat" ? (
               <ChatPanel
                 messages={messages}

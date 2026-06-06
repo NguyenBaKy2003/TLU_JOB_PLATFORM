@@ -17,17 +17,30 @@ function adminConfig(params?: Record<string, unknown>) {
   };
 }
 
+function adminBlobConfig(params?: Record<string, unknown>) {
+  const token = getAdminAccessToken();
+  return {
+    responseType: "blob" as const,
+    ...(params ? { params } : {}),
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}
+
 export class AdminUserRepository implements IAdminUserRepository {
 
   private readonly BASE = "/admin/users";
 
   async listUsers(filters: AdminUserFilters): Promise<AdminUserPage> {
-    const res = await api.get<ApiResponse<AdminUserPage>>(this.BASE, adminConfig({
-      page:    filters.page,
-      size:    filters.size,
-      ...(filters.keyword ? { keyword: filters.keyword } : {}),
-      ...(filters.role    ? { role:    filters.role    } : {}),
-    }));
+    const params: Record<string, unknown> = {
+      page: filters.page,
+      size: filters.size,
+    };
+    if (filters.keyword && filters.keyword.trim()) params.keyword = filters.keyword.trim();
+    if (filters.role)                               params.role    = filters.role;
+    if (filters.active !== "" && filters.active !== undefined)
+                                                    params.active  = filters.active;
+
+    const res = await api.get<ApiResponse<AdminUserPage>>(this.BASE, adminConfig(params));
     return res.data.data;
   }
 
@@ -38,7 +51,6 @@ export class AdminUserRepository implements IAdminUserRepository {
     return res.data.data;
   }
 
-  /** PATCH /api/v1/admin/users/{id}/toggle — toggle active/inactive */
   async toggleActive(id: string): Promise<AdminUser> {
     const res = await api.patch<ApiResponse<AdminUser>>(
       `${this.BASE}/${id}/toggle`, null, adminConfig(),
@@ -46,12 +58,47 @@ export class AdminUserRepository implements IAdminUserRepository {
     return res.data.data;
   }
 
-  /** PATCH /api/v1/admin/users/{id}/role?role=EMPLOYER */
   async changeRole(id: string, role: AdminUserRole): Promise<AdminUser> {
     const res = await api.patch<ApiResponse<AdminUser>>(
       `${this.BASE}/${id}/role`, null,
       adminConfig({ role }),
     );
     return res.data.data;
+  }
+
+  /**
+   * Xuất Excel (.xlsx) — trả về Blob để trigger download phía client.
+   * Backend cần cung cấp GET /admin/users/export/excel?keyword=...
+   */
+  async exportExcel(filters: Omit<AdminUserFilters, "page" | "size">): Promise<Blob> {
+    const params: Record<string, unknown> = {};
+    if (filters.keyword && filters.keyword.trim()) params.keyword = filters.keyword.trim();
+    if (filters.role)                               params.role    = filters.role;
+    if (filters.active !== "" && filters.active !== undefined)
+                                                    params.active  = filters.active;
+
+    const res = await api.get<Blob>(
+      `${this.BASE}/export/excel`,
+      adminBlobConfig(params),
+    );
+    return res.data;
+  }
+
+  /**
+   * Xuất PDF — trả về Blob.
+   * Backend cần cung cấp GET /admin/users/export/pdf?keyword=...
+   */
+  async exportPdf(filters: Omit<AdminUserFilters, "page" | "size">): Promise<Blob> {
+    const params: Record<string, unknown> = {};
+    if (filters.keyword && filters.keyword.trim()) params.keyword = filters.keyword.trim();
+    if (filters.role)                               params.role    = filters.role;
+    if (filters.active !== "" && filters.active !== undefined)
+                                                    params.active  = filters.active;
+
+    const res = await api.get<Blob>(
+      `${this.BASE}/export/pdf`,
+      adminBlobConfig(params),
+    );
+    return res.data;
   }
 }

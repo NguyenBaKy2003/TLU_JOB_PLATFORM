@@ -14,7 +14,13 @@ function adminCfg(params?: Record<string, unknown>) {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   };
 }
-
+function adminBlobConfig() {
+  const token = getAdminAccessToken();
+  return {
+    responseType: "blob" as const,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}
 export class AdminReviewRepository implements IAdminReviewRepository {
   private readonly BASE = "/admin/reviews";
 
@@ -56,4 +62,40 @@ export class AdminReviewRepository implements IAdminReviewRepository {
   async adminDeleteReview(reviewId: string): Promise<void> {
     await api.delete(`${this.BASE}/${reviewId}`, adminCfg());
   }
+
+async exportExcel(status?: ReviewStatus): Promise<Blob> {
+  const params: Record<string, unknown> = {};
+
+  if (status) {
+    params.status = status;
+  }
+
+  const res = await api.get<Blob>(
+    `${this.BASE}/export/excel`,
+    {
+      ...adminBlobConfig(),
+      params,
+    }
+  );
+
+  return res.data;
+}
+
+async exportPdf(status?: ReviewStatus): Promise<Blob> {
+  const params: Record<string, unknown> = {};
+
+  if (status) {
+    params.status = status;
+  }
+
+  const res = await api.get<Blob>(
+    `${this.BASE}/export/pdf`,
+    {
+      ...adminBlobConfig(),
+      params,
+    }
+  );
+
+  return res.data;
+}
 }

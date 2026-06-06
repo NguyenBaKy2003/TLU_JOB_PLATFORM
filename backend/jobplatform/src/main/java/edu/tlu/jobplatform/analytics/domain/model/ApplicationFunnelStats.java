@@ -29,20 +29,20 @@ public class ApplicationFunnelStats {
     private final UUID companyId;
     private final UUID jobPostId;
 
-    // ── Funnel stages ─────────────────────────────────────────────────────────
+    // ── Funnel stages ────────
     private final long submitted;
     private final long reviewing; // REVIEWING + SHORTLISTED
     private final long interviewing; // INTERVIEW_SCHEDULED + INTERVIEWED
     private final long offered; // OFFERED + ACCEPTED
     private final long hired;
 
-    // ── Terminal / exit ───────────────────────────────────────────────────────
+    // ── Terminal / exit ──────
     private final long rejected;
     private final long withdrawn;
     private final long declined; // ứng viên từ chối offer
     private final long cancelled;
 
-    // ── Computed rates ────────────────────────────────────────────────────────
+    // ── Computed rates ───────
 
     /** % ứng viên được tuyển trên tổng đã nộp */
     public double getOverallConversionRate() {

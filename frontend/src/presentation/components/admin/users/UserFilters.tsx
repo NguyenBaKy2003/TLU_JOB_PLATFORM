@@ -7,7 +7,6 @@ const ROLES: { value: AdminUserRole | ""; label: string }[] = [
   { value: "CANDIDATE",  label: "Ứng viên"      },
   { value: "EMPLOYER",   label: "Nhà tuyển dụng"},
   { value: "ADMIN",      label: "Admin"          },
-  { value: "SUPER_ADMIN",label: "Super Admin"    },
 ];
 
 interface Props {

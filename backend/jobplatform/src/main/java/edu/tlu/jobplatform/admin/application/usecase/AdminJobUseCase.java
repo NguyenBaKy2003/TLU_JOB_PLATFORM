@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,6 +33,13 @@ public class AdminJobUseCase {
         if (status != null)
             return jobPostRepo.findByStatus(status, pageable);
         return jobPostRepo.findPublished(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<JobPost> findByJobPostId(UUID id) {
+        if (id != null)
+            return jobPostRepo.findById(id);
+        return Optional.empty();
     }
 
     /** Admin đóng bài đăng vi phạm */
@@ -58,6 +66,13 @@ public class AdminJobUseCase {
         job.delete();
         jobPostRepo.save(job);
         log.warn("Admin force-deleted job: {}", jobPostId);
+    }
+
+    /** Tìm kiếm đa điều kiện cho admin */
+    @Transactional(readOnly = true)
+    public Page<JobPost> adminSearch(String keyword, JobStatus status,
+            String city, String category, Pageable pageable) {
+        return jobPostRepo.adminSearch(keyword, status, city, category, pageable);
     }
 
 }
