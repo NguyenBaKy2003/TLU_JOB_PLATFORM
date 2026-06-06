@@ -422,9 +422,7 @@ export function Header() {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Thay đổi duy nhất — switch role link */}
-                {user.subscription?.planCode?.toUpperCase() !== "PREMIUM" &&
-                  user.subscription?.planCode?.toUpperCase() !==
-                    "PREMIUM_COMPANY" && (
+                {(user.subscription?.free ?? true)&& (
                     <Link
                       href={
                         isEmployer

@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
-  Search, MapPin, ChevronDown, SlidersHorizontal, X,
+  Search, MapPin, SlidersHorizontal, X,
   Briefcase, Sparkles,
 } from "lucide-react";
 import { JobCard }            from "@/presentation/components/jobs/JobCard";
@@ -16,6 +16,7 @@ import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import type { JobFilters }     from "@/presentation/components/jobs/JobFilterSidebar";
 import { Pagination }          from "@/presentation/components/common/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
+import { JobsAISearchBar }    from "@/presentation/components/jobs/JobsAISearchBar";
 
 const jobService = new JobService(new JobRepository());
 
@@ -80,7 +81,7 @@ function QuickChip({
   );
 }
 
-// ── Featured section header ───────────────────────────────────────────────────
+// ── Section headers ───────────────────────────────────────────────────────────
 
 function FeaturedSectionHeader({ count }: { count: number }) {
   return (
@@ -111,6 +112,18 @@ function RegularSectionHeader({ count, total }: { count: number; total: number }
   );
 }
 
+// ── Grid wrapper — dùng chung để tránh lặp className ─────────────────────────
+
+function JobGrid({ children }: { children: React.ReactNode }) {
+  return (
+    // items-stretch: các cell trong cùng hàng stretch đều nhau
+    // JobCard dùng h-full để lấp đầy cell → card ngang hàng luôn cùng chiều cao
+    <div className="grid grid-cols-1 md:grid-cols-2  gap-4 items-stretch">
+      {children}
+    </div>
+  );
+}
+
 // ── Inner ─────────────────────────────────────────────────────────────────────
 
 function JobsPageInner() {
@@ -130,17 +143,12 @@ function JobsPageInner() {
   const [keyword, setKeyword] = useState(initialKeyword);
   const [city,    setCity]    = useState(initialLocation);
 
-  const [draftKeyword, setDraftKeyword] = useState(initialKeyword);
-  const [draftCity,    setDraftCity]    = useState(initialLocation);
-
   const [appliedFilters, setAppliedFilters] = useState<JobFilters>(EMPTY_FILTERS);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [activeQuick,      setActiveQuick]      = useState<string | null>(null);
 
   const isFirst = useRef(true);
 
-  // ── Split featured / regular ──────────────────────────────────────────────
-  // Backend đã sort featured DESC — chỉ cần tách để render section riêng.
   const featuredJobs = jobs.filter(j => j.featured);
   const regularJobs  = jobs.filter(j => !j.featured);
 
@@ -192,8 +200,6 @@ function JobsPageInner() {
   useEffect(() => {
     const kw  = searchParams.get("keyword")  ?? "";
     const loc = searchParams.get("location") ?? "";
-    setDraftKeyword(kw);
-    setDraftCity(loc);
     setKeyword(kw);
     setCity(loc);
     setPage(0);
@@ -204,16 +210,16 @@ function JobsPageInner() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  const handleSearch = () => {
-    setKeyword(draftKeyword);
-    setCity(draftCity);
+  const handleSearch = useCallback((newKeyword: string, newCity: string) => {
+    setKeyword(newKeyword);
+    setCity(newCity);
     setPage(0);
     const p = new URLSearchParams();
-    if (draftKeyword) p.set("keyword",  draftKeyword);
-    if (draftCity)    p.set("location", draftCity);
+    if (newKeyword) p.set("keyword",  newKeyword);
+    if (newCity)    p.set("location", newCity);
     router.replace(`/jobs?${p.toString()}`, { scroll: false });
-    fetchJobs(draftKeyword, draftCity, appliedFilters, 0);
-  };
+    fetchJobs(newKeyword, newCity, appliedFilters, 0);
+  }, [appliedFilters, fetchJobs, router]);
 
   const handleApplyFilters = (newFilters: JobFilters) => {
     setAppliedFilters(newFilters);
@@ -234,9 +240,7 @@ function JobsPageInner() {
   const handleClearAll = () => {
     setAppliedFilters(EMPTY_FILTERS);
     setActiveQuick(null);
-    setDraftKeyword("");
     setKeyword("");
-    setDraftCity("");
     setCity("");
     setPage(0);
     router.replace("/jobs", { scroll: false });
@@ -273,7 +277,8 @@ function JobsPageInner() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700">
+        {/* overflow-hidden tách riêng để không clip dropdown */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
           <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl" />
@@ -295,55 +300,12 @@ function JobsPageInner() {
             Hàng nghìn công việc từ các công ty hàng đầu đang chờ bạn
           </p>
 
-          {/* Search bar */}
-          <div className="flex flex-col sm:flex-row rounded-2xl border border-white/20
-            bg-white shadow-2xl overflow-hidden max-w-3xl mx-auto">
-            <div className="flex items-center gap-2 flex-1 px-4 py-3.5
-              border-b sm:border-b-0 sm:border-r border-gray-100">
-              <Search size={16} className="text-gray-400 shrink-0" />
-              <input
-                value={draftKeyword}
-                onChange={e => setDraftKeyword(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSearch()}
-                placeholder="Tên công việc, kỹ năng, công ty..."
-                className="flex-1 text-sm text-gray-800 placeholder:text-gray-400
-                  focus:outline-none bg-transparent"
-              />
-              {draftKeyword && (
-                <button onClick={() => setDraftKeyword("")}
-                  className="text-gray-300 hover:text-gray-500 transition-colors">
-                  <X size={14} />
-                </button>
-              )}
-            </div>
+          <JobsAISearchBar
+            keyword={keyword}
+            city={city}
+            onSearch={handleSearch}
+          />
 
-            <div className="flex items-center gap-2 px-4 py-3.5
-              border-b sm:border-b-0 sm:border-r border-gray-100 sm:w-44">
-              <MapPin size={16} className="text-gray-400 shrink-0" />
-              <select
-                value={draftCity}
-                onChange={e => setDraftCity(e.target.value)}
-                className="flex-1 text-sm text-gray-800 focus:outline-none bg-transparent cursor-pointer"
-              >
-                <option value="">Tất cả địa điểm</option>
-                {["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Bắc Ninh", "Hải Phòng", "Huế"].map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              <ChevronDown size={13} className="text-gray-400 shrink-0" />
-            </div>
-
-            <button
-              onClick={handleSearch}
-              className="flex items-center justify-center gap-2 px-7 py-3.5
-                bg-blue-600 text-white text-sm font-semibold
-                hover:bg-blue-700 active:bg-blue-800 transition-colors"
-            >
-              <Search size={15} /> Tìm kiếm
-            </button>
-          </div>
-
-          {/* Quick filters */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             <span className="text-blue-200 text-xs">Phổ biến:</span>
             {QUICK_FILTERS.map(qf => (
@@ -376,7 +338,7 @@ function JobsPageInner() {
                   bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
                   {keyword}
                   <button onClick={() => {
-                    setDraftKeyword(""); setKeyword(""); setPage(0);
+                    setKeyword(""); setPage(0);
                     router.replace("/jobs", { scroll: false });
                     fetchJobs("", city, appliedFilters, 0);
                   }} className="text-blue-400 hover:text-blue-600">
@@ -389,7 +351,7 @@ function JobsPageInner() {
                   bg-gray-50 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
                   <MapPin size={10} /> {city}
                   <button onClick={() => {
-                    setDraftCity(""); setCity(""); setPage(0);
+                    setCity(""); setPage(0);
                     fetchJobs(keyword, "", appliedFilters, 0);
                   }} className="text-gray-400 hover:text-gray-600">
                     <X size={10} />
@@ -513,13 +475,11 @@ function JobsPageInner() {
             {/* ── Loading skeleton ──────────────────────────────────────────── */}
             {loading && (
               <>
-                {/* 2 skeleton featured */}
                 <div className="mb-3 h-5 w-32 bg-blue-100 rounded-full animate-pulse" />
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                   <SkeletonCard featured />
                   <SkeletonCard featured />
                 </div>
-                {/* regular skeletons */}
                 <div className="mb-3 h-5 w-28 bg-gray-100 rounded-full animate-pulse" />
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -551,7 +511,7 @@ function JobsPageInner() {
             {!loading && featuredJobs.length > 0 && (
               <div className="mb-2">
                 <FeaturedSectionHeader count={featuredJobs.length} />
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <JobGrid>
                   {featuredJobs.map(job => (
                     <JobCard
                       key={job.id}
@@ -560,7 +520,7 @@ function JobsPageInner() {
                       competitionLevel={job.competition?.level as CompetitionLevel}
                     />
                   ))}
-                </div>
+                </JobGrid>
               </div>
             )}
 
@@ -568,7 +528,7 @@ function JobsPageInner() {
             {!loading && regularJobs.length > 0 && (
               <>
                 <RegularSectionHeader count={regularJobs.length} total={total} />
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <JobGrid>
                   {regularJobs.map(job => (
                     <JobCard
                       key={job.id}
@@ -577,10 +537,10 @@ function JobsPageInner() {
                       competitionLevel={job.competition?.level as CompetitionLevel}
                     />
                   ))}
-                </div>
+                </JobGrid>
               </>
             )}
-              
+
             {/* ── Pagination ────────────────────────────────────────────────── */}
             {!loading && totalPages > 1 && (
               <Pagination

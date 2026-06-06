@@ -100,16 +100,7 @@ export function CompanyCard({ company, index = 0 }: Props) {
           {/* Plan stripe */}
           {hasPlan && <div className="absolute top-0 left-0 right-0 h-0.5 bg-violet-400" />}
 
-          {/* Save button */}
-          <button
-            onClick={e => { e.preventDefault(); setIsSaved(s => !s); }}
-            className="absolute top-3 right-3 z-10 p-2 bg-white/80 backdrop-blur-sm
-              rounded-full shadow-sm hover:shadow-md transition-all group/save"
-          >
-            <Heart className={`w-4 h-4 transition-all ${
-              isSaved ? "fill-red-500 text-red-500 scale-110" : "text-gray-400 group-hover/save:text-red-500"
-            }`} />
-          </button>
+
 
           <div className="p-4 sm:p-5">
             {/* Plan badge */}

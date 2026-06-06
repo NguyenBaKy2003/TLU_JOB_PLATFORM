@@ -41,6 +41,7 @@ const EMPLOYER_NAV = [
   { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/employer/payments",          badgeKey: null           },  
   { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },
   { label: "Bình luận",          icon: <MessageCircleMore size={18} />,         href: "/employer/reviews",          badgeKey: null           },
+  { label: "Hoạt động",          icon: <Activity size={18} />,         href: "/employer/activity",          badgeKey: null           },
   { label: "Cài đặt",           icon: <Settings size={18} />,        href: "/employer/settings",      badgeKey: null           },
 
 ];

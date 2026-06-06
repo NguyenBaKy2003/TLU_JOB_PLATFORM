@@ -1,8 +1,8 @@
-// src/app/(candidate)/candidate/activity/page.tsx
+// src/app/(employer)/employer/activity/page.tsx
 import ActivityPage from "@/presentation/components/activity/ActivityPage";
 
 export const metadata = { title: "Lịch sử hoạt động" };
 
-export default function CandidateActivityPage() {
+export default function EmployerActivityPage() {
   return <ActivityPage />;
 }

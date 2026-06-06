@@ -17,11 +17,14 @@ import { LoadingScreen } from "@/presentation/components/stream/common/LoadingSc
 import { ErrorScreen } from "@/presentation/components/stream/common/ErrorScreen";
 import { LiveStreamService } from "@/application/services/LiveStreamService";
 import { PollBanner, SpotlightBanner } from "@/presentation/components/stream/candidate";
-import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository"; // ← THÊM
-import type { SubmitApplicationRequest } from "@/domain/models/Application";                 // ← THÊM
-import { ApplyModal }              from "@/presentation/components/job-detail/ApplyModal";
+import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository";
+import type { SubmitApplicationRequest } from "@/domain/models/Application";
+import { ApplyModal } from "@/presentation/components/job-detail/ApplyModal";
+import { useToast } from "@/presentation/components/ui/toast";
+import { extractErrorMessage } from "@/lib/extractErrorMessage";
+
 const service         = new LiveStreamService(new LiveStreamRepository());
-const applicationRepo = new ApplicationRepository(); // ← THÊM
+const applicationRepo = new ApplicationRepository();
 
 type TabType = "chat" | "qa";
 
@@ -48,33 +51,32 @@ export default function CandidateViewerPage() {
 
   const { subscribeTopic, publishMessage, isConnected } = useWebSocket();
   const { user } = useAuth();
+  const { error: toastError, success: toastSuccess, info: toastInfo } = useToast();
 
-  const [session,         setSession]         = useState<LiveStreamSession | null>(null);
-  const [token,           setToken]           = useState<string | null>(null);
-  const [livekitUrl,      setLivekitUrl]      = useState("");
-
-  const [loadingSession,  setLoadingSession]  = useState(true);
-  const [joining,         setJoining]         = useState(false);
-  const [hasJoined,       setHasJoined]       = useState(false);
-
-  const [error,           setError]           = useState<string | null>(null);
-  const [viewerCount,     setViewerCount]     = useState(0);
-  const [messages,        setMessages]        = useState<ChatMessageData[]>([]);
-  const [tab,             setTab]             = useState<TabType>("chat");
-  const [sending,         setSending]         = useState(false);
-  const [activePoll,      setActivePoll]      = useState<PollData | null>(null);
-  const [spotlightJob,    setSpotlightJob]    = useState<SpotlightJob | null>(null);
-  const [canPublish,      setCanPublish]      = useState(false);
-  const [mobileDrawerOpen,setMobileDrawerOpen]= useState(false);
-  const [applyModalOpen,  setApplyModalOpen]  = useState(false); // ← THÊM
+  const [session,          setSession]          = useState<LiveStreamSession | null>(null);
+  const [token,            setToken]            = useState<string | null>(null);
+  const [livekitUrl,       setLivekitUrl]       = useState("");
+  const [loadingSession,   setLoadingSession]   = useState(true);
+  const [joining,          setJoining]          = useState(false);
+  const [hasJoined,        setHasJoined]        = useState(false);
+  const [error,            setError]            = useState<string | null>(null);
+  const [viewerCount,      setViewerCount]      = useState(0);
+  const [messages,         setMessages]         = useState<ChatMessageData[]>([]);
+  const [tab,              setTab]              = useState<TabType>("chat");
+  const [sending,          setSending]          = useState(false);
+  const [activePoll,       setActivePoll]       = useState<PollData | null>(null);
+  const [spotlightJob,     setSpotlightJob]     = useState<SpotlightJob | null>(null);
+  const [canPublish,       setCanPublish]       = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [applyModalOpen,   setApplyModalOpen]   = useState(false);
 
   const currentUserId = user?.id;
 
-  // ── Load session info ──────────────────────────────────────────
+  // ── Load session ───────────────────────────────────────────────
   useEffect(() => {
     service.getSession(sessionId)
       .then(s => { setSession(s); setViewerCount(s.viewerCount || 0); })
-      .catch(console.error)
+      .catch(e => setError(extractErrorMessage(e, "Không thể tải phiên stream")))
       .finally(() => setLoadingSession(false));
   }, [sessionId]);
 
@@ -88,8 +90,9 @@ export default function CandidateViewerPage() {
       setViewerCount(res.currentViewerCount);
       setCanPublish(res.canPublish);
       setHasJoined(true);
-    } catch {
-      setError("Không thể tham gia phiên stream này");
+    } catch (e) {
+      toastError("Không thể tham gia", extractErrorMessage(e));
+      setError(extractErrorMessage(e, "Không thể tham gia phiên stream này"));
     } finally {
       setJoining(false);
     }
@@ -129,17 +132,18 @@ export default function CandidateViewerPage() {
                 location:    d.location    ?? "",
                 salaryRange: d.salaryRange ?? "",
               });
+              toastInfo("Việc làm mới!", `${d.title ?? "Việc làm nổi bật"} vừa được giới thiệu`);
             }
             break;
           }
 
           case "POLL_STARTED":
             setActivePoll({
-              eventId: payload.eventId ?? payload.id,
-              question: payload.question,
-              options:  payload.options ?? [],
+              eventId:   payload.eventId ?? payload.id,
+              question:  payload.question,
+              options:   payload.options ?? [],
               responses: {},
-              myAnswer: null,
+              myAnswer:  null,
             });
             break;
 
@@ -205,20 +209,34 @@ export default function CandidateViewerPage() {
   // ── Send handlers ──────────────────────────────────────────────
   const handleSendChat = useCallback((msg: string) => {
     setSending(true);
-    try { publishMessage(`/app/streams/${sessionId}/chat`, { content: msg }); }
-    finally { setSending(false); }
+    try {
+      publishMessage(`/app/streams/${sessionId}/chat`, { content: msg });
+    } catch (e) {
+      toastError("Gửi tin thất bại", extractErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
   }, [sessionId, publishMessage]);
 
   const handleAskQuestion = useCallback((q: string) => {
     setSending(true);
-    try { publishMessage(`/app/streams/${sessionId}/qa`, { question: q }); }
-    finally { setSending(false); }
+    try {
+      publishMessage(`/app/streams/${sessionId}/qa`, { question: q });
+    } catch (e) {
+      toastError("Gửi câu hỏi thất bại", extractErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
   }, [sessionId, publishMessage]);
 
   const handlePollAnswer = useCallback(async (idx: number) => {
     if (!activePoll) return;
     setActivePoll(prev => prev ? { ...prev, myAnswer: idx } : prev);
-    try { await service.respondToPoll(sessionId, activePoll.eventId, idx); } catch {}
+    try {
+      await service.respondToPoll(sessionId, activePoll.eventId, idx);
+    } catch (e) {
+      toastError("Gửi câu trả lời thất bại", extractErrorMessage(e));
+    }
   }, [sessionId, activePoll]);
 
   const handleLeave = useCallback(async () => {
@@ -228,19 +246,24 @@ export default function CandidateViewerPage() {
     router.back();
   }, [sessionId, hasJoined, router]);
 
-  // ── Apply from stream ──────────────────────────────────────────  ← THÊM
+  // ── Apply from stream ──────────────────────────────────────────
   const handleApplyFromStream = useCallback(
     async (cvUrl: string, coverLetter: string, expectedSalary: string) => {
       if (!spotlightJob) return;
-      const req: SubmitApplicationRequest = {
-        jobPostId: spotlightJob.jobPostId,
-        cvUrl,
-        coverLetter:    coverLetter    || undefined,
-        expectedSalary: expectedSalary || undefined,
-      };
-      await applicationRepo.submit(req);
-      setApplyModalOpen(false);
-      setSpotlightJob(null); // dismiss banner sau khi nộp thành công
+      try {
+        const req: SubmitApplicationRequest = {
+          jobPostId:      spotlightJob.jobPostId,
+          cvUrl,
+          coverLetter:    coverLetter    || undefined,
+          expectedSalary: expectedSalary || undefined,
+        };
+        await applicationRepo.submit(req);
+        toastSuccess("Ứng tuyển thành công", `Đã nộp đơn cho "${spotlightJob.title ?? "việc làm này"}"`);
+        setApplyModalOpen(false);
+        setSpotlightJob(null);
+      } catch (e) {
+        toastError("Ứng tuyển thất bại", extractErrorMessage(e));
+      }
     },
     [spotlightJob],
   );
@@ -291,7 +314,9 @@ export default function CandidateViewerPage() {
             <button
               onClick={handleJoin}
               disabled={joining}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-red-500 text-white rounded-xl font-semibold text-[16px] hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-red-500 text-white
+                rounded-xl font-semibold text-[16px] hover:bg-red-600
+                disabled:opacity-60 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
             >
               {joining ? (
                 <>
@@ -428,16 +453,15 @@ export default function CandidateViewerPage() {
               )}
               {activePoll && <PollBanner poll={activePoll} onAnswer={handlePollAnswer} />}
 
-              {/* ── SpotlightBanner + ApplyModal ── */}
               {spotlightJob && (
                 <>
                   <SpotlightBanner
                     job={spotlightJob}
-                    onApply={() => setApplyModalOpen(true)}     
+                    onApply={() => setApplyModalOpen(true)}
                     onDismiss={() => setSpotlightJob(null)}
                   />
                   {applyModalOpen && (
-                    <ApplyModal 
+                    <ApplyModal
                       jobTitle={spotlightJob.title ?? "Việc làm nổi bật"}
                       onClose={() => setApplyModalOpen(false)}
                       onSubmit={handleApplyFromStream}
@@ -463,12 +487,11 @@ export default function CandidateViewerPage() {
         onClick={() => setMobileDrawerOpen(false)}
       />
 
-      {/* Mobile: bottom sheet drawer */}
+      {/* Mobile: bottom sheet */}
       <div
         className={`
           fixed bottom-0 left-0 right-0 z-50 md:hidden
-          bg-white rounded-t-2xl shadow-2xl
-          flex flex-col
+          bg-white rounded-t-2xl shadow-2xl flex flex-col
           transition-transform duration-300 ease-out
           ${mobileDrawerOpen ? "translate-y-0" : "translate-y-full"}
         `}
