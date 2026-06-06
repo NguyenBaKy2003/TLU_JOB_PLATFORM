@@ -216,3 +216,23 @@ export interface MyApplicationsResponse {
   statusCounts:      Partial<Record<ApplicationStatus, number>>;
   totalApplications: number;
 }
+
+export interface InterviewScheduleItem {
+  applicationId:    string;
+  scheduledAt:      string;           // ISO datetime
+  location:         string | null;
+  note:             string | null;
+  candidateId:      string;
+  candidateName:    string | null;
+  candidateEmail:   string | null;
+  candidateAvatarUrl: string | null;
+  jobPostId:        string;
+  jobTitle:         string | null;
+}
+
+export interface InterviewScheduleParams {
+  from?:  string;   // ISO datetime "2026-06-01T00:00:00"
+  to?:    string;
+  page?:  number;
+  size?:  number;
+}

@@ -2,6 +2,7 @@ export type JobStatus =
   | 'DRAFT'
   | 'PUBLISHED'
   | 'CLOSED'
+  | 'PENDING_REVIEW'
   | 'EXPIRED'
   | 'DELETED';
 
