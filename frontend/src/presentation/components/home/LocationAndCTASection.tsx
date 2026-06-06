@@ -5,16 +5,18 @@ import { ArrowRight } from "lucide-react";
 import { useInView } from "./useInView";
 
 // ── Location data ─────────────────────────────────────────────────────────────
-// Place images in: public/locations/hanoi.jpg, danang.jpg, hochiminh.jpg, bacninh.jpg
 const LOCATIONS = [
-  { name: "Hà Nội",          jobs: 140, img: "/locations/location1.png"     },
-  { name: "Đà Nẵng",         jobs: 50,  img: "/locations/location2.png"    },
+  { name: "Hà Nội",          jobs: 140, img: "/locations/location1.png" },
+  { name: "Đà Nẵng",         jobs: 50,  img: "/locations/location2.png" },
   { name: "TP. Hồ Chí Minh", jobs: 12,  img: "/locations/location3.png" },
-  { name: "Bắc Ninh",        jobs: 4,   img: "/locations/location4.png"   },
+  { name: "Bắc Ninh",        jobs: 4,   img: "/locations/location4.png" },
 ];
 
 // ── Location Card ─────────────────────────────────────────────────────────────
 function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index: number; inView: boolean }) {
+  // Nhấn → tìm việc theo địa điểm này
+  const href = `/jobs?location=${encodeURIComponent(loc.name)}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -24,6 +26,8 @@ function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index:
       className="relative rounded-2xl overflow-hidden cursor-pointer group"
       style={{ aspectRatio: "4/3" }}
     >
+      <Link href={href} className="absolute inset-0 z-10" aria-label={`Tìm việc tại ${loc.name}`} />
+
       {/* City photo */}
       <img
         src={loc.img}
@@ -32,10 +36,8 @@ function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index:
         draggable={false}
       />
 
-      {/* Persistent dark gradient bottom */}
+      {/* Gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-
-      {/* Hover overlay */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
 
       {/* Bottom info */}
@@ -43,7 +45,7 @@ function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index:
         <div className="flex items-end justify-between">
           <div>
             <p className="text-white font-bold text-base leading-tight drop-shadow">{loc.name}</p>
-            <p className="text-white/80 text-[16px]">{loc.jobs} jobs</p>
+            <p className="text-white/80 text-sm">{loc.jobs} việc làm</p>
           </div>
           <div className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/45 transition-colors">
             <ArrowRight className="w-4 h-4 text-white" />
@@ -68,14 +70,17 @@ function LocationSection() {
           transition={{ duration: 0.4 }}
           className="flex items-center justify-between mb-8"
         >
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
-            Địa điểm văn phòng
-          </h2>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+              Địa điểm văn phòng
+            </h2>
+            <p className="text-gray-400 text-sm mt-1">Nhấn vào thành phố để tìm việc tại đó</p>
+          </div>
           <Link
-            href="/locations"
-            className="inline-flex items-center gap-2 text-gray-800 font-semibold text-[16px] hover:text-blue-600 transition-colors"
+            href="/jobs"
+            className="inline-flex items-center gap-2 text-gray-800 font-semibold text-sm hover:text-blue-600 transition-colors whitespace-nowrap"
           >
-            Xem tất cả địa điểm <ArrowRight className="w-4 h-4" />
+            Xem tất cả <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
 
@@ -101,7 +106,6 @@ function CTASection() {
         <path d="M50 5 L53 45 L95 50 L53 55 L50 95 L47 55 L5 50 L47 45 Z" fill="currentColor"/>
         <path d="M80 15 L82 30 L97 32 L82 34 L80 49 L78 34 L63 32 L78 30 Z" fill="currentColor" opacity="0.6"/>
       </svg>
-      {/* Decorative X cross left */}
       <svg className="absolute left-16 bottom-12 w-14 h-14 text-white/25 pointer-events-none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
         <line x1="4" y1="4" x2="36" y2="36" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
         <line x1="36" y1="4" x2="4" y2="36" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
@@ -133,12 +137,19 @@ function CTASection() {
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex items-center justify-center gap-4 flex-wrap"
         >
           <Link
-            href="/auth/register"
+            href="/auth/signup"
             className="inline-block px-10 py-4 bg-white hover:bg-gray-100 text-gray-900 font-bold rounded-xl transition-colors text-[16px] shadow-lg"
           >
             Đăng ký ngay
+          </Link>
+          <Link
+            href="/jobs"
+            className="inline-flex items-center gap-2 px-8 py-4 border-2 border-white/40 hover:border-white text-white font-bold rounded-xl transition-colors text-[16px]"
+          >
+            Tìm việc ngay <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
       </div>

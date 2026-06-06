@@ -94,33 +94,12 @@ export function CompanyProfileCard({ company }: Props) {
 
               {/* Action buttons */}
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => setSaved(v => !v)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-colors
-                    ${saved
-                      ? "border-blue-300 bg-blue-50 text-blue-600"
-                      : hasPlan
-                        ? "border-violet-200 text-violet-400 hover:border-violet-400 hover:text-violet-600"
-                        : "border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-600"
-                    }`}
-                >
-                  <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
-                </button>
+               
                 <button className="w-9 h-9 flex items-center justify-center rounded-xl border
                   border-gray-200 text-gray-400 hover:border-gray-300 transition-colors">
                   <Share2 size={16} />
                 </button>
-                <button
-                  onClick={() => setFollowing(v => !v)}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[16px]
-                    font-semibold transition-all
-                    ${following
-                      ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                    }`}
-                >
-                  {following ? <><Bell size={14} /> Đang theo dõi</> : "Theo dõi"}
-                </button>
+               
               </div>
             </div>
 
