@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-//  StreamAnalytics Adapter ──
 @Component
 @RequiredArgsConstructor
 public class StreamAnalyticsRepositoryAdapter implements StreamAnalyticsRepository {
@@ -39,5 +38,16 @@ public class StreamAnalyticsRepositoryAdapter implements StreamAnalyticsReposito
     @Transactional
     public void incrementTotalViewers(UUID sessionId) {
         jpaRepository.incrementTotalViewers(sessionId);
+    }
+
+    @Override
+    @Transactional
+    public void upsert(StreamAnalytics analytics) {
+        jpaRepository.upsert(
+                analytics.getId(),
+                analytics.getSessionId(),
+                analytics.getPeakViewerCount(),
+                analytics.getTotalViewerCount(),
+                analytics.getTotalWatchSeconds());
     }
 }

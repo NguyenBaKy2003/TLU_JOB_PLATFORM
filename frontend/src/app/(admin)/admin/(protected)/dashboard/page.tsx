@@ -220,7 +220,8 @@ function PendingJobsCard({ jobs, total }: { jobs: AdminJob[]; total: number }) {
       total={total}
       icon={<Briefcase size={16} className="text-purple-500" />}
       badgeColor="bg-purple-100 text-purple-700"
-      viewAllHref="/admin/jobs?status=PENDING"
+      viewAllHref="/admin/jobs?status=PENDING_REVIEW"
+
       empty={jobs.length === 0}
       emptyLabel="Không có job nào chờ duyệt"
     >
@@ -259,7 +260,7 @@ function PendingCompaniesCard({ companies, total }: { companies: AdminCompany[];
       total={total}
       icon={<Building2 size={16} className="text-green-500" />}
       badgeColor="bg-green-100 text-green-700"
-      viewAllHref="/admin/companies?status=PENDING"
+      viewAllHref="/admin/companies?status=UNVERIFIED"
       empty={companies.length === 0}
       emptyLabel="Không có công ty nào chờ xác thực"
     >

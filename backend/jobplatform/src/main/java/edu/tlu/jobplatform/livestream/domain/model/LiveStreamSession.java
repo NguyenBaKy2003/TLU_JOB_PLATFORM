@@ -230,4 +230,8 @@ public class LiveStreamSession {
                     "STREAM_SCHEDULED_AT_INVALID");
         }
     }
+
+    public boolean isEnded() {
+        return SessionStatus.ENDED.equals(this.status); // hoặc field tương đương
+    }
 }
