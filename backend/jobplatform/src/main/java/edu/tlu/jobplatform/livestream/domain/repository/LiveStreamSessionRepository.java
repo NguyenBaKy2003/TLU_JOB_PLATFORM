@@ -14,6 +14,8 @@ public interface LiveStreamSessionRepository {
 
     Optional<LiveStreamSession> findById(UUID id);
 
+    Optional<LiveStreamSession> findByIdForUpdate(UUID id);
+
     List<LiveStreamSession> findByCompanyId(UUID companyId);
 
     List<LiveStreamSession> findUpcoming(LocalDateTime from, LocalDateTime to);
@@ -22,12 +24,6 @@ public interface LiveStreamSessionRepository {
 
     void deleteById(UUID id);
 
-    /**
-     * Lấy danh sách phiên cho Candidate:
-     * - Tất cả phiên đang LIVE
-     * - Phiên SCHEDULED trong khoảng thời gian
-     * Sắp xếp: LIVE trước, sau đó SCHEDULED theo thời gian gần nhất
-     */
     List<LiveStreamSession> findUpcomingAndLive(LocalDateTime from, LocalDateTime to);
 
     void updateViewerCount(UUID sessionId, int count);

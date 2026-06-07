@@ -26,7 +26,9 @@ public class EndLiveStreamUseCase {
 
     @Transactional
     public void execute(UUID sessionId, UUID requestingUserId) {
-        LiveStreamSession session = sessionRepository.findById(sessionId)
+
+        // Lớp 2: pessimistic lock — chỉ 1 request chạy vào tại một thời điểm
+        LiveStreamSession session = sessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Không tìm thấy phiên stream: " + sessionId));
 
@@ -34,33 +36,37 @@ public class EndLiveStreamUseCase {
             throw new IllegalStateException("Chỉ host mới có thể kết thúc stream");
         }
 
+        // Lớp 1: idempotent guard — request thứ 2 thoát sớm sau khi lock được release
+        if (session.isEnded()) {
+            log.warn("[End] Session {} already ended, skipping duplicate call", sessionId);
+            return;
+        }
+
         session.end();
         sessionRepository.save(session);
 
-        // ── Đọc stats TRƯỚC khi cleanup
+        // Đọc stats TRƯỚC khi cleanup
         int peakViewers = viewerManager.getPeakViewerCount(sessionId);
         int totalViewers = viewerManager.getTotalViewerCount(sessionId);
+        long extraWatchSec = viewerManager.drainTotalWatchSeconds(sessionId);
 
-        long extraWatchSeconds = viewerManager.drainTotalWatchSeconds(sessionId);
-
-        // ── Upsert analytics
         StreamAnalytics analytics = analyticsRepository
                 .findBySessionId(sessionId)
                 .orElseGet(() -> StreamAnalytics.createFor(sessionId));
 
         analytics.updatePeakViewers(peakViewers);
         analytics.restoreTotalViewerCount(totalViewers);
-
-        if (extraWatchSeconds > 0) {
-            analytics.addWatchTime(extraWatchSeconds);
+        if (extraWatchSec > 0) {
+            analytics.addWatchTime(extraWatchSec);
         }
 
-        analyticsRepository.save(analytics);
+        // Lớp 3: upsert thay vì save — safety net tránh duplicate key tuyệt đối
+        analyticsRepository.upsert(analytics);
 
-        log.info("[End] sessionId={} — peakViewers={}, totalViewers={}, extraWatchSeconds={}",
-                sessionId, peakViewers, totalViewers, extraWatchSeconds);
+        log.info("[End] sessionId={} — peakViewers={}, totalViewers={}, extraWatchSec={}",
+                sessionId, peakViewers, totalViewers, extraWatchSec);
 
-        // ── Cleanup SAU khi đã đọc stats
+        // Cleanup SAU khi đã lưu stats
         viewerManager.cleanupSession(sessionId);
         mediaServerPort.endRoom(sessionId);
 

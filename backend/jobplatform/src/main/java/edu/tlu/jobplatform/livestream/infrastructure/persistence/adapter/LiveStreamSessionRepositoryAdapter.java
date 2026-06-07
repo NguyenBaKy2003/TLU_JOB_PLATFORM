@@ -7,14 +7,13 @@ import edu.tlu.jobplatform.livestream.infrastructure.persistence.mapper.LiveStre
 import edu.tlu.jobplatform.livestream.infrastructure.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.transaction.annotation.Transactional;
 
-//  LiveStreamSession Adapter ─
 @Component
 @RequiredArgsConstructor
 public class LiveStreamSessionRepositoryAdapter implements LiveStreamSessionRepository {
@@ -31,6 +30,13 @@ public class LiveStreamSessionRepositoryAdapter implements LiveStreamSessionRepo
     @Override
     public Optional<LiveStreamSession> findById(UUID id) {
         return jpaRepository.findById(id).map(mapper::toDomain);
+    }
+
+    // ✅ Thêm: delegate xuống JPA với lock
+    @Override
+    @Transactional
+    public Optional<LiveStreamSession> findByIdForUpdate(UUID id) {
+        return jpaRepository.findByIdForUpdate(id).map(mapper::toDomain);
     }
 
     @Override
@@ -56,12 +62,6 @@ public class LiveStreamSessionRepositoryAdapter implements LiveStreamSessionRepo
         jpaRepository.deleteById(id);
     }
 
-    /**
-     * Lấy danh sách phiên cho Candidate:
-     * - Tất cả phiên đang LIVE
-     * - Phiên SCHEDULED trong khoảng thời gian
-     * Sắp xếp: LIVE trước, sau đó SCHEDULED theo thời gian gần nhất
-     */
     @Override
     public List<LiveStreamSession> findUpcomingAndLive(LocalDateTime from, LocalDateTime to) {
         return jpaRepository.findUpcomingAndLive(from, to)

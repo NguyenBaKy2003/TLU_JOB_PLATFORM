@@ -13,4 +13,6 @@ public interface StreamAnalyticsRepository {
     boolean existsBySessionId(UUID sessionId);
 
     void incrementTotalViewers(UUID sessionId);
+
+    void upsert(StreamAnalytics analytics);
 }

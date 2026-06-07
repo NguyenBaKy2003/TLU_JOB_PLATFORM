@@ -8,3 +8,6 @@ tunnels:
   livekit:
     addr: 7880
     proto: http
+  frontend:        
+    addr: 80
+    proto: http
