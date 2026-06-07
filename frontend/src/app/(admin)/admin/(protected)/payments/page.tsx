@@ -74,10 +74,9 @@ const paymentStatusConfig: Record<string, { label: string; color: string; icon: 
 };
 
 const gatewayOptions = [
-  { value: 'PAYOS',  label: 'PayOS' },
+  { value: 'ZALOPAY',  label: 'ZaloPay' },
   { value: 'VNPAY',  label: 'VNPay' },
   { value: 'MOMO',   label: 'MoMo' },
-  { value: 'STRIPE', label: 'Stripe' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

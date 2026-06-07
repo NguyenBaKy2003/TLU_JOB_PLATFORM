@@ -237,4 +237,11 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
                         ApplicationStatusCountProjection::getStatus,
                         ApplicationStatusCountProjection::getCount));
     }
+
+    @Override
+    public Page<Application> findInterviewScheduledByCompanyId(
+            UUID companyId, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        return jpaRepo.findInterviewScheduledByCompanyId(companyId, from, to, pageable)
+                .map(this::toDomain);
+    }
 }

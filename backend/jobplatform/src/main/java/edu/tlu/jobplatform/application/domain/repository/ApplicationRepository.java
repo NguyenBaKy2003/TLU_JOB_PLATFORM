@@ -98,4 +98,14 @@ public interface ApplicationRepository {
          * Key là các status có ít nhất 1 đơn.
          */
         Map<ApplicationStatus, Long> countByStatusForCandidate(UUID candidateId);
+
+        /**
+         * Lấy danh sách đơn đã lên lịch phỏng vấn của công ty,
+         * trong khoảng thời gian [from, to].
+         */
+        Page<Application> findInterviewScheduledByCompanyId(
+                        UUID companyId,
+                        LocalDateTime from,
+                        LocalDateTime to,
+                        Pageable pageable);
 }

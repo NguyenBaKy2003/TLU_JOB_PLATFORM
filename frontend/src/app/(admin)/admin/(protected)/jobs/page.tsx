@@ -75,8 +75,6 @@ export default function AdminJobsPage() {
   const filterConfigs = [
     { key: 'keyword',  type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tiêu đề, mô tả...' },
     { key: 'status',   type: 'select' as const, label: 'Trạng thái', options: statusOptions },
-    { key: 'city',     type: 'input'  as const, label: 'Thành phố',  placeholder: 'Hà Nội, HCM...' },
-    { key: 'category', type: 'input'  as const, label: 'Danh mục',   placeholder: 'IT, Marketing...' },
   ];
 
   const { filters, setFilter, resetAllFilters, getFilterValue } = useFilter({
@@ -477,10 +475,7 @@ export default function AdminJobsPage() {
         config={{
           searchKey: 'keyword',
           statusKey: 'status',
-          customFilters: [
-            { key: 'city',     label: 'Thành phố', options: [] },
-            { key: 'category', label: 'Danh mục',  options: [] },
-          ],
+          
         }}
         filters={{
           keyword:  getFilterValue('keyword'),

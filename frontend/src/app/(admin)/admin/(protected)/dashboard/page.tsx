@@ -1,28 +1,120 @@
 "use client";
-import { useEffect }       from "react";
-import { useRouter }       from "next/navigation";
-import { useAdminAuth }    from "@/application/contexts/AdminAuthContext";
-import { AdminDashboard }  from "@/presentation/components/admin-dashboard";
 
-export default function AdminDashboardPage() {
-  const { adminUser, adminLoading } = useAdminAuth();
-  const router                      = useRouter();
+import { useEffect, useRef, useState, useCallback } from "react";
+import { AdminAnalyticsService }    from "@/application/services/AdminAnalytics";
+import { AdminAnalyticsRepository } from "@/infrastructure/repositories/AdminAnalyticsRepository";
+import { AdminJobService }          from "@/application/services/AdminJobService";
+import { AdminJobRepository }       from "@/infrastructure/repositories/AdminJobRepository";
+import { AdminCompanyService }      from "@/application/services/AdminCompanyService";
+import { AdminCompanyRepository }   from "@/infrastructure/repositories/AdminCompanyRepository";
+import type {
+  AdminDashboardStats,
+  TimeSeriesResponse,
+  TopCompaniesResponse,
+} from "@/domain/models/Analytics";
+import type { AdminJob }        from "@/domain/models/AdminJob";
+import type { AdminCompany }    from "@/domain/models/AdminCompany";
+import {
+  Users, Building2, Briefcase, FileText, DollarSign,
+  Radio, ShieldAlert, TrendingUp, TrendingDown, Loader2,
+  Clock, ChevronRight, CheckCircle2, XCircle, RefreshCw,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Chart,
+  LineController, BarController, DoughnutController,
+  LineElement, BarElement, ArcElement, PointElement,
+  CategoryScale, LinearScale, Tooltip, Legend, Filler,
+  type ChartData, type ChartOptions,
+} from "chart.js";
+import Link from "next/link";
 
-  useEffect(() => {
-    if (adminLoading) return;
-    if (!adminUser || adminUser.role !== "ADMIN") {
-      router.replace("/admin/login");
+Chart.register(
+  LineController, BarController, DoughnutController,
+  LineElement, BarElement, ArcElement, PointElement,
+  CategoryScale, LinearScale, Tooltip, Legend, Filler,
+);
+
+// ─── Services ──────────────────────────────────────────────────────────────
+
+const analyticsService = new AdminAnalyticsService(new AdminAnalyticsRepository());
+const jobService       = new AdminJobService(new AdminJobRepository());
+const companyService   = new AdminCompanyService(new AdminCompanyRepository());
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function formatMonthLabel(label: string): string {
+  if (label.match(/^\d{4}-\d{2}$/)) {
+    const [year, month] = label.split("-");
+    return `T${parseInt(month)}/${year.slice(2)}`;
+  }
+  return label;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60_000);
+  if (m < 1)  return "Vừa xong";
+  if (m < 60) return `${m} phút trước`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} giờ trước`;
+  return `${Math.floor(h / 24)} ngày trước`;
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────
+
+export default function AdminAnalyticsPage() {
+  const [dashboard,        setDashboard]        = useState<AdminDashboardStats | null>(null);
+  const [pendingJobs,      setPendingJobs]       = useState<AdminJob[]>([]);
+  const [pendingCompanies, setPendingCompanies]  = useState<AdminCompany[]>([]);
+  const [loading,          setLoading]           = useState(true);
+  const [error,            setError]             = useState<string | null>(null);
+  const [refreshing,       setRefreshing]        = useState(false);
+
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    else         setRefreshing(true);
+    setError(null);
+
+    try {
+      const [dash, jobsPage, companiesPage] = await Promise.all([
+        analyticsService.getDashboard(),
+        jobService.listJobs({ status: "PENDING_REVIEW", page: 0, size: 5 }),
+        companyService.listCompanies({ status: "UNVERIFIED", page: 0, pageSize: 5 }),
+      ]);
+      setDashboard(dash);
+      setPendingJobs(jobsPage.content ?? jobsPage.jobs ?? []);
+      setPendingCompanies(companiesPage.content ?? companiesPage.companies ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi tải dữ liệu");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }, [adminUser, adminLoading, router]);
+  }, []);
 
-  if (adminLoading || !adminUser || adminUser.role !== "ADMIN") {
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-red-600
-            border-t-transparent animate-spin" />
-          <p className="text-[16px] text-gray-400">Đang tải...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-lg text-gray-500">Đang tải dữ liệu...</span>
+      </div>
+    );
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <AlertCircle className="h-10 w-10 text-red-400" />
+        <p className="text-red-600 text-base">{error || "Không có dữ liệu"}</p>
+        <button
+          onClick={() => load()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+        >
+          Thử lại
+        </button>
       </div>
     );
   }
@@ -129,6 +221,7 @@ function PendingJobsCard({ jobs, total }: { jobs: AdminJob[]; total: number }) {
       icon={<Briefcase size={16} className="text-purple-500" />}
       badgeColor="bg-purple-100 text-purple-700"
       viewAllHref="/admin/jobs?status=PENDING_REVIEW"
+
       empty={jobs.length === 0}
       emptyLabel="Không có job nào chờ duyệt"
     >
@@ -146,7 +239,7 @@ function PendingJobsCard({ jobs, total }: { jobs: AdminJob[]; total: number }) {
               <Clock size={10} /> {timeAgo(job.createdAt)}
             </span>
             <Link
-              href={`/admin/jobs/${job.id}`}
+              href={`/admin/jobs`}
               className="text-[11px] text-purple-600 hover:underline font-medium"
             >
               Xem →
@@ -194,7 +287,7 @@ function PendingCompaniesCard({ companies, total }: { companies: AdminCompany[];
               <Clock size={10} /> {timeAgo(company.createdAt)}
             </span>
             <Link
-              href={`/admin/companies/${company.id}`}
+              href={`/admin/companies`}
               className="text-[11px] text-green-600 hover:underline font-medium"
             >
               Xem →
