@@ -5,6 +5,8 @@ import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepositor
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ public class UpdateProfileUseCase {
     }
 
     @Transactional
+    @CacheEvict(value = "passProbability", allEntries = true)
     public CandidateProfile execute(Command cmd) {
         CandidateProfile profile = profileRepository.findByUserId(cmd.userId())
                 .orElseThrow(() -> new BusinessRuleException(

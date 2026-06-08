@@ -9,6 +9,8 @@ import edu.tlu.jobplatform.shared.event.candidate.CVUploadedEvent;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +59,7 @@ public class UploadCVUseCase {
         }
 
         @Transactional
+        @CacheEvict(value = "passProbability", allEntries = true)
         public CandidateCV execute(Command cmd) {
                 if (!ALLOWED_TYPES.contains(cmd.contentType())) {
                         throw new BusinessRuleException("Chỉ chấp nhận PDF, DOC, DOCX.", "INVALID_FILE_TYPE");

@@ -6,9 +6,12 @@ import edu.tlu.jobplatform.ai.domain.model.JobRecommendResult;
 import edu.tlu.jobplatform.ai.domain.port.CandidateTrendAnalysisPort;
 import edu.tlu.jobplatform.ai.domain.port.SearchEventRepository;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
-import edu.tlu.jobplatform.candidate.domain.model.Skill;
 import edu.tlu.jobplatform.candidate.domain.model.DesiredJob;
+import edu.tlu.jobplatform.candidate.domain.model.Skill;
 import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepository;
+import edu.tlu.jobplatform.job.application.port.out.CompanyQueryPort;
+import edu.tlu.jobplatform.job.application.port.out.JobSearchPort;
+import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,11 +19,11 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,12 +34,17 @@ public class GetRecommendationsUseCase {
         private final SearchEventRepository searchEventRepo;
         private final CandidateProfileRepository candidateRepo;
         private final CandidateTrendAnalysisPort trendPort;
+        private final JobSearchPort jobSearchPort;
+        private final CompanyQueryPort companyQueryPort;
 
         @Cacheable(value = "recommendations", key = "#candidateId")
         public RecommendationBundle execute(UUID candidateId) {
+
+                // ── 1. Candidate profile ──────────────────────────────────────────────
                 CandidateProfile candidate = candidateRepo.findById(candidateId)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Candidate", candidateId));
 
+                // ── 2. Lịch sử hành vi ───────────────────────────────────────────────
                 LocalDateTime since = LocalDateTime.now().minusDays(30);
 
                 List<String> keywords = searchEventRepo.findKeywordsByCandidate(candidateId, since, 20);
@@ -44,12 +52,10 @@ public class GetRecommendationsUseCase {
                 List<String> appliedTitles = searchEventRepo.findAppliedJobTitles(candidateId);
                 List<String> savedTitles = searchEventRepo.findSavedJobTitles(candidateId);
 
-                // Lấy tên skill từ List<Skill>
                 List<String> skillNames = candidate.getSkills().stream()
                                 .map(Skill::getName)
                                 .toList();
 
-                // Lấy level từ DesiredJob đầu tiên, fallback null
                 String level = candidate.getDesiredJobs().stream()
                                 .findFirst()
                                 .map(dj -> dj.getLevels().stream()
@@ -57,6 +63,28 @@ public class GetRecommendationsUseCase {
                                                 .collect(Collectors.joining(", ")))
                                 .orElse(null);
 
+                // ORDER BY featured DESC, published_at DESC (hardcode trong SQL)
+                List<JobPost> publishedJobs = jobSearchPort.search(
+                                null, null, null, null, null, null,
+                                null, null, null, null, null,
+                                PageRequest.of(0, 6)).getContent();
+
+                // ── 4. Company name map — query một lần, truyền xuống adapter ─────────
+                Set<UUID> companyIds = publishedJobs.stream()
+                                .map(JobPost::getCompanyId)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
+
+                Map<UUID, String> companyNameMap = companyIds.isEmpty()
+                                ? Map.of()
+                                : companyQueryPort.findByIds(companyIds).entrySet().stream()
+                                                .collect(Collectors.toMap(
+                                                                Map.Entry::getKey,
+                                                                e -> e.getValue() != null && e.getValue().name() != null
+                                                                                ? e.getValue().name()
+                                                                                : ""));
+
+                // ── 5. Build request — adapter chỉ đọc, không query DB ───────────────
                 CandidateTrendRequest request = CandidateTrendRequest.builder()
                                 .candidateId(candidateId)
                                 .recentKeywords(keywords)
@@ -66,13 +94,18 @@ public class GetRecommendationsUseCase {
                                 .candidateSkills(skillNames)
                                 .candidateLevel(level)
                                 .candidateLocation(candidate.getLocation())
+                                .publishedJobs(publishedJobs)
+                                .companyNameMap(companyNameMap)
                                 .build();
 
+                // ── 6. Gọi AI ─────────────────────────────────────────────────────────
                 JobRecommendResult jobs = trendPort.recommendJobs(request);
                 CompanyRecommendResult companies = trendPort.recommendCompanies(request);
 
                 return new RecommendationBundle(jobs, companies);
         }
+
+        // ── Bundle ────────────────────────────────────────────────────────────────
 
         @Getter
         @NoArgsConstructor

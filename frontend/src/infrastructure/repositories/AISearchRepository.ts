@@ -35,6 +35,7 @@ interface RawCompany {
   fitScore: number;
   fitReason: string;
   openPositions: string[];
+  openJobs?: number;         
 }
 
 interface RawRecommendationData {
@@ -80,7 +81,7 @@ export class AISearchRepository implements IAISearchRepository {
         companyName:   c.companyName,
         logoUrl:       c.logoUrl,
         industry:      c.industry,
-        openJobs:      c.openPositions?.length ?? 0,
+        openJobs:      c.openJobs ?? c.openPositions?.length ?? 0,  
         openPositions: c.openPositions ?? [],
         matchScore:    c.fitScore,
         reason:        c.fitReason,

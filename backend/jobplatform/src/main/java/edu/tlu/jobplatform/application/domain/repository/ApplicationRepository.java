@@ -108,4 +108,9 @@ public interface ApplicationRepository {
                         LocalDateTime from,
                         LocalDateTime to,
                         Pageable pageable);
+
+        ApplicationStats getStats(UUID candidateId, UUID jobPostId);
+
+        record ApplicationStats(int totalApply, int totalPass, int currentApplicantCount) {
+        }
 }

@@ -14,14 +14,13 @@ interface RecommendationPanelProps {
 }
 
 export function RecommendationPanel({ className = "" }: RecommendationPanelProps) {
-  const { isAuthenticated } = useAuth();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["ai", "recommendations"],
-    queryFn: () => aiSearchService.getRecommendations(isAuthenticated),
-    enabled: isAuthenticated,
-    staleTime: 10 * 60 * 1000,
-  });
+const { user, isAuthenticated } = useAuth();
+const { data, isLoading } = useQuery({
+  queryKey: ["ai", "recommendations", user?.id ?? "guest"],  
+  queryFn: () => aiSearchService.getRecommendations(true),  
+  enabled: isAuthenticated,                                   
+  staleTime: 10 * 60 * 1000,
+});
 
   if (!isAuthenticated) return null;
 
@@ -121,7 +120,7 @@ export function RecommendationPanel({ className = "" }: RecommendationPanelProps
               )}
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-gray-400">
-                  {company.openJobs} vị trí đang tuyển
+                  {company?.openJobs} vị trí đang tuyển
                 </span>
                 <span className="text-xs font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
                   {company.matchScore}%
