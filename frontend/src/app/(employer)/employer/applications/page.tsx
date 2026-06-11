@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Users, Clock, CheckCircle, Calendar,
   Briefcase, MapPin, Coins,
@@ -109,7 +109,7 @@ function InterviewScheduleCard({ scheduled, onClick }: { scheduled: number; onCl
   );
 }
 
-// ── Card Skeleton — chỉ dùng lần đầu ─────────────────────────────────────────
+// ── Card Skeleton ─────────────────────────────────────────────────────────────
 
 function CardSkeleton({ count }: { count: number }) {
   return (
@@ -154,10 +154,10 @@ function CardSkeleton({ count }: { count: number }) {
   );
 }
 
-// ── CV actions ────────────────────────────────────────────────────────────────
+// ── CV Actions ────────────────────────────────────────────────────────────────
 
-function useCvActions(appId: string, candidateName: string) {
-  const toast = useToast();
+function CvActions({ appId, candidateName }: { appId: string; candidateName: string }) {
+  const toast                         = useToast();
   const [viewing,     setViewing]     = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -175,24 +175,27 @@ function useCvActions(appId: string, candidateName: string) {
     finally { setDownloading(false); }
   };
 
-  return { viewing, downloading, handleView, handleDownload };
-}
-
-function CvActions({ appId, candidateName }: { appId: string; candidateName: string }) {
-  const { viewing, downloading, handleView, handleDownload } = useCvActions(appId, candidateName);
   return (
     <>
-      <button onClick={handleView} disabled={viewing || downloading} title="Xem CV"
+      <button
+        onClick={handleView}
+        disabled={viewing || downloading}
+        title="Xem CV"
         className="flex items-center gap-1 px-2.5 h-7 rounded-lg
           bg-blue-50 border border-blue-100 text-blue-600 text-xs font-medium
-          hover:bg-blue-100 transition-colors disabled:opacity-60">
+          hover:bg-blue-100 transition-colors disabled:opacity-60"
+      >
         {viewing ? <LoadingSpinner size="sm" variant="primary" /> : <Eye size={12} />}
         CV
       </button>
-      <button onClick={handleDownload} disabled={viewing || downloading} title="Tải CV"
+      <button
+        onClick={handleDownload}
+        disabled={viewing || downloading}
+        title="Tải CV"
         className="w-7 h-7 rounded-lg flex items-center justify-center border
           border-gray-200 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50
-          hover:border-emerald-200 transition-colors disabled:opacity-60">
+          hover:border-emerald-200 transition-colors disabled:opacity-60"
+      >
         {downloading ? <LoadingSpinner size="sm" variant="primary" /> : <Download size={13} />}
       </button>
     </>
@@ -226,8 +229,11 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
         <div className="flex items-start gap-3">
           <div className="relative flex-shrink-0">
             {app.candidate?.avatarUrl ? (
-              <img src={app.candidate.avatarUrl} alt={fullName}
-                className="w-11 h-11 rounded-xl object-cover border border-gray-100" />
+              <img
+                src={app.candidate.avatarUrl}
+                alt={fullName}
+                className="w-11 h-11 rounded-xl object-cover border border-gray-100"
+              />
             ) : (
               <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center
                 justify-center text-sm font-semibold text-blue-600">
@@ -235,8 +241,11 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
               </div>
             )}
             {app.candidate?.boosted && (
-              <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px]
-                bg-amber-400 rounded-full flex items-center justify-center" title="Ứng viên nổi bật">
+              <span
+                className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px]
+                  bg-amber-400 rounded-full flex items-center justify-center"
+                title="Ứng viên nổi bật"
+              >
                 <Bolt size={9} className="text-white fill-white" />
               </span>
             )}
@@ -303,7 +312,10 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${colors.bar}`} style={{ width: `${app.aiScore}%` }} />
+              <div
+                className={`h-full rounded-full transition-all ${colors.bar}`}
+                style={{ width: `${app.aiScore}%` }}
+              />
             </div>
           </div>
         ) : (
@@ -325,9 +337,12 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
         </span>
         <div className="flex items-center gap-1.5">
           {app.status === "SHORTLISTED" && (
-            <button onClick={() => onSchedule(app.id, fullName)} title="Lên lịch phỏng vấn"
+            <button
+              onClick={() => onSchedule(app.id, fullName)}
+              title="Lên lịch phỏng vấn"
               className="w-7 h-7 rounded-lg flex items-center justify-center border
-                border-purple-200 bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors">
+                border-purple-200 bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
+            >
               <Calendar size={13} />
             </button>
           )}
@@ -339,10 +354,13 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
             label=""
           />
           <CvActions appId={app.id} candidateName={fullName} />
-          <button onClick={() => onDetail(app.id)} title="Xem chi tiết"
+          <button
+            onClick={() => onDetail(app.id)}
+            title="Xem chi tiết"
             className="w-7 h-7 rounded-lg flex items-center justify-center border
               border-gray-200 text-gray-400 hover:text-blue-600 hover:bg-blue-50
-              hover:border-blue-100 transition-colors">
+              hover:border-blue-100 transition-colors"
+          >
             <ArrowRight size={13} />
           </button>
         </div>
@@ -374,15 +392,20 @@ export default function EmployerApplicationsPage() {
   const toast  = useToast();
   const router = useRouter();
 
-  const [apps,           setApps]           = useState<ApplicationWithCandidate[]>([]);
-  const [totalElements,  setTotalElements]  = useState(0);
-  const [totalPages,     setTotalPages]     = useState(1);
-  const [initialLoad,    setInitialLoad]    = useState(true);
-  const [loading,        setLoading]        = useState(true);
-  const [filters,        setFilters]        = useState<AppliedFilters>(DEFAULT_FILTERS);
-  const [selectedId,     setSelectedId]     = useState<string | null>(null);
+  // Giữ toast ổn định trong ref để không trigger re-render của useCallback
+  const toastRef = useRef(toast);
+  useEffect(() => { toastRef.current = toast; });
+
+  const [apps,          setApps]          = useState<ApplicationWithCandidate[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages,    setTotalPages]    = useState(1);
+  const [initialLoad,   setInitialLoad]   = useState(true);
+  const [loading,       setLoading]       = useState(true);
+  const [filters,       setFilters]       = useState<AppliedFilters>(DEFAULT_FILTERS);
+  const [selectedId,    setSelectedId]    = useState<string | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<ScheduleTarget | null>(null);
 
+  // deps rỗng — load không bao giờ bị recreate, phá vòng lặp vô tận khi có lỗi
   const load = useCallback(async (f: AppliedFilters) => {
     setLoading(true);
     try {
@@ -395,24 +418,24 @@ export default function EmployerApplicationsPage() {
       setTotalElements(res.totalElements);
       setTotalPages(res.totalPages);
     } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
+      toastRef.current.error("Lỗi", extractErrorMessage(e));
     } finally {
       setLoading(false);
       setInitialLoad(false);
     }
-  }, [toast]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(filters); }, [filters, load]);
 
-  const handleStatusChange   = useCallback((status: string) => {
+  const handleStatusChange = useCallback((status: string) => {
     setFilters(prev => ({ ...prev, status: status as ApplicationStatus | "ALL", page: 0 }));
   }, []);
 
-  const handleSearch         = useCallback((params: FilterSearchParams) => {
+  const handleSearch = useCallback((params: FilterSearchParams) => {
     setFilters(prev => ({ ...prev, ...params, page: 0 }));
   }, []);
 
-  const handlePageChange     = useCallback((p: number) => {
+  const handlePageChange = useCallback((p: number) => {
     setFilters(prev => ({ ...prev, page: p - 1 }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -422,12 +445,25 @@ export default function EmployerApplicationsPage() {
   }, []);
 
   const handleExportExcel = useCallback(() => {
-    toast.success("Đang xuất Excel", "File sẽ được tải về sau vài giây.");
-  }, [toast]);
+    toastRef.current.success("Đang xuất Excel", "File sẽ được tải về sau vài giây.");
+  }, []);
 
-  const handleUpdated = (updated: ApplicationDetail) => {
+  const handleUpdated = useCallback((updated: ApplicationDetail) => {
     setApps(prev => prev.map(a => a.id === updated.id ? { ...a, status: updated.status } : a));
-  };
+  }, []);
+
+  const handleOpenDetail = useCallback((id: string) => {
+    router.push(`/employer/applications/${id}`);
+  }, [router]);
+
+  const handleSchedule = useCallback((id: string, candidateName: string) => {
+    setScheduleTarget({ id, candidateName });
+  }, []);
+
+  const handleScheduleClose = useCallback(() => setScheduleTarget(null), []);
+  const handleDetailClose   = useCallback(() => setSelectedId(null),     []);
+
+  const handleScheduleSuccess = useCallback(() => load(filters), [load, filters]);
 
   const pending   = apps.filter(a => ["SUBMITTED", "PENDING"].includes(a.status)).length;
   const scheduled = apps.filter(a => a.status === "INTERVIEW_SCHEDULED").length;
@@ -436,7 +472,7 @@ export default function EmployerApplicationsPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Stats — 4 cols, card thứ 3 là CTA navigate sang /schedule */}
+      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           icon={<Users size={18} className="text-blue-600" />}
@@ -481,16 +517,24 @@ export default function EmployerApplicationsPage() {
       <div className="min-h-[20px] -mt-2">
         {!loading && (
           <p className="text-xs text-gray-500">
-            Hiển thị <strong className="text-gray-700">{apps.length}</strong> / <strong className="text-gray-700">{totalElements}</strong> đơn ứng tuyển
+            Hiển thị{" "}
+            <strong className="text-gray-700">{apps.length}</strong>
+            {" / "}
+            <strong className="text-gray-700">{totalElements}</strong>
+            {" "}đơn ứng tuyển
           </p>
         )}
       </div>
 
-      {/* Content area */}
+      {/* Content */}
       {initialLoad ? (
         <CardSkeleton count={DEFAULT_PAGE_SIZE} />
       ) : (
-        <div className={`relative transition-opacity duration-150 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+        <div
+          className={`relative transition-opacity duration-150 ${
+            loading ? "opacity-50 pointer-events-none" : "opacity-100"
+          }`}
+        >
           {loading && (
             <div className="absolute -top-8 right-0 z-10 flex items-center gap-1.5 text-xs text-gray-400">
               <LoadingSpinner size="sm" variant="secondary" />
@@ -510,8 +554,8 @@ export default function EmployerApplicationsPage() {
                 <ApplicationCard
                   key={app.id}
                   app={app}
-                  onSchedule={(id, name) => setScheduleTarget({ id, candidateName: name })}
-                  onDetail={id => router.push(`/employer/applications/${id}`)}
+                  onSchedule={handleSchedule}
+                  onDetail={handleOpenDetail}
                 />
               ))}
             </div>
@@ -522,15 +566,20 @@ export default function EmployerApplicationsPage() {
       {/* Pagination */}
       <div className="min-h-[40px] flex justify-center">
         {!initialLoad && totalPages > 1 && (
-          <Pagination currentPage={filters.page + 1} totalPages={totalPages} onPageChange={handlePageChange} />
+          <Pagination
+            currentPage={filters.page + 1}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         )}
       </div>
 
+      {/* Drawers / Modals */}
       {selectedId && (
         <ApplicationDetailDrawer
           applicationId={selectedId}
           role="employer"
-          onClose={() => setSelectedId(null)}
+          onClose={handleDetailClose}
           onUpdated={handleUpdated}
         />
       )}
@@ -539,8 +588,8 @@ export default function EmployerApplicationsPage() {
         <ScheduleInterviewModal
           applicationId={scheduleTarget.id}
           candidateName={scheduleTarget.candidateName}
-          onSuccess={() => load(filters)}
-          onClose={() => setScheduleTarget(null)}
+          onSuccess={handleScheduleSuccess}
+          onClose={handleScheduleClose}
         />
       )}
     </div>

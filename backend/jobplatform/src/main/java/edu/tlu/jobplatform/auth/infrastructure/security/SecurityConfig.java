@@ -62,11 +62,11 @@ public class SecurityConfig {
 
                                                 // Auth
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
-
                                                 // Swagger / Actuator / OAuth2 / WebSocket / Webhook
                                                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                                                 .requestMatchers("/login/oauth2/**").permitAll()
                                                 .requestMatchers("/actuator/health").permitAll()
+                                                .requestMatchers("/actuator/caches/**").permitAll()
                                                 .requestMatchers("/api/v1/ws/**").permitAll()
                                                 .requestMatchers("/api/webhooks/**").permitAll()
 

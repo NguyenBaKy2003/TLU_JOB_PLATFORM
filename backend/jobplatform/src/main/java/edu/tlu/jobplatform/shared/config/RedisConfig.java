@@ -54,7 +54,7 @@ public class RedisConfig {
 
                 RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                                 .entryTtl(Duration.ofMinutes(10))
-                                .prefixCacheNameWith("v7:")
+                                .prefixCacheNameWith("v8:")
                                 .serializeKeysWith(
                                                 RedisSerializationContext.SerializationPair.fromSerializer(
                                                                 new StringRedisSerializer()))

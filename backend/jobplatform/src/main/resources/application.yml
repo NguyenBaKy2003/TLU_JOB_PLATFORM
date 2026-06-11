@@ -155,15 +155,15 @@ springdoc:
   show-actuator: false
 aws:
   s3:
-    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXIRFVT4XY}
-    secret-key: ${AWS_SECRET_KEY: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}
+    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXE2QKZCNY}
+    secret-key: ${AWS_SECRET_KEY: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}
     region: ${AWS_REGION:ap-southeast-2}
     bucket: ${AWS_S3_BUCKET:jobplatform-storage}
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,caches
       base-path: /actuator
   endpoint:
     health:
@@ -171,7 +171,6 @@ management:
   health:
     elasticsearch:
       enabled: false
-    # Thêm dòng này để chỉ check những gì có thật
     defaults:
       enabled: true
 logging:
