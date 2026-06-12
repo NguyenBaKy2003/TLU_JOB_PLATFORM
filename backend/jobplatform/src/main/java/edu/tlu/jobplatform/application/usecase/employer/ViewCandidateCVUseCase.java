@@ -10,6 +10,9 @@ import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import edu.tlu.jobplatform.shared.security.SecurityUtils;
+import edu.tlu.jobplatform.subscription.domain.model.CompanySubscription;
+import edu.tlu.jobplatform.subscription.domain.repository.CompanySubscriptionRepository;
+import edu.tlu.jobplatform.subscription.domain.service.QuotaDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,8 +28,13 @@ import java.util.UUID;
  * 1. Employer phải sở hữu công ty (findByOwnerId)
  * 2. Phải có Application của ứng viên này vào 1 job của công ty đó
  * 3. cvUrl của Application phải khớp với CV được yêu cầu
+ * 4. Công ty phải còn quota "xem CV" trong gói subscription hiện tại
  *
- * Nếu thiếu 1 trong 3 điều kiện → FORBIDDEN.
+ * Nếu thiếu 1 trong các điều kiện trên → FORBIDDEN / QUOTA_EXCEEDED.
+ *
+ * Lưu ý: mỗi lần xem CV thành công của 1 application sẽ trừ 1 lượt quota,
+ * trừ khi application đó đã được xem trước đó (để tránh trừ trùng khi
+ * employer mở lại CV nhiều lần).
  */
 @Slf4j
 @Service
@@ -37,6 +45,8 @@ public class ViewCandidateCVUseCase {
     private final CompanyRepository companyRepo;
     private final CandidateCVRepository cvRepo;
     private final FileStoragePort fileStorage;
+    private final CompanySubscriptionRepository subscriptionRepo;
+    private final QuotaDomainService quotaService;
 
     public record Result(
             InputStream inputStream,
@@ -50,7 +60,7 @@ public class ViewCandidateCVUseCase {
      * @param cvId          ID CV muốn xem (optional — nếu null, dùng cvUrl từ
      *                      Application)
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Result execute(UUID applicationId, UUID cvId) {
 
         // 1. Lấy company của employer hiện tại
@@ -67,7 +77,21 @@ public class ViewCandidateCVUseCase {
             throw new BusinessRuleException(
                     "Bạn không có quyền xem CV của đơn này.", "FORBIDDEN");
 
-        // 3. Resolve CV URL
+        // 3. Kiểm tra & trừ quota xem CV (chỉ trừ lần đầu xem của application này)
+        CompanySubscription sub = subscriptionRepo.findActiveByCompanyId(company.getId())
+                .orElse(null);
+
+        if (!app.isCvViewed()) {
+            quotaService.consumeCvView(sub);
+            app.markCvViewed();
+            applicationRepo.save(app);
+            subscriptionRepo.save(sub);
+        } else {
+            // Đã xem trước đó → không trừ quota nữa, nhưng vẫn cần gói active
+            quotaService.checkCvViewQuota(sub);
+        }
+
+        // 4. Resolve CV URL
         String fileUrl;
         String displayName;
 
@@ -92,7 +116,7 @@ public class ViewCandidateCVUseCase {
         if (fileUrl == null || fileUrl.isBlank())
             throw new BusinessRuleException("CV này không có file đính kèm.", "CV_NO_FILE");
 
-        // 4. Download từ storage
+        // 5. Download từ storage
         FileStoragePort.FileResult file = fileStorage.download(fileUrl);
 
         log.info("Employer viewed CV: applicationId={} company={} employer={}",

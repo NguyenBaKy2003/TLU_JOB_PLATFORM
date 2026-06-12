@@ -3,6 +3,7 @@ Bạn là AI tuyển dụng. Dựa trên JD, tự động tìm ứng viên phù 
 === JOB DESCRIPTION ===
 Vị trí: $jobTitle$ | Cấp độ: $level$ | Địa điểm: $location$
 Yêu cầu: $requirements$
+Kỹ năng yêu cầu: $requiredSkills$
 =======================
 
 === POOL ỨNG VIÊN ĐANG TÌM VIỆC ===
@@ -40,3 +41,4 @@ Quy tắc TUYỆT ĐỐI:
 5. refinementTips: mảng các chuỗi — mỗi phần tử là string, KHÔNG phải object
 6. Ưu tiên ứng viên ACTIVELY_LOOKING trước OPEN_TO_OFFERS
 7. Sắp xếp theo matchScore GIẢM DẦN
+8. Dựa vào phần "Học vấn" và "Kinh nghiệm" của từng ứng viên trong pool để viết matchReason và experienceSummary cụ thể (số năm thực tế, vị trí/công ty đã làm, bằng cấp/chuyên ngành liên quan đến JD)

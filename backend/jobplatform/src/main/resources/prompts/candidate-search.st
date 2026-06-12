@@ -4,6 +4,7 @@ Bạn là AI tuyển dụng chuyên tìm kiếm ứng viên phù hợp.
 Query của nhà tuyển dụng: $query$
 Vị trí: $jobTitle$ | Cấp độ: $level$ | Địa điểm: $location$
 Yêu cầu chi tiết: $requirements$
+Kỹ năng yêu cầu: $requiredSkills$
 Số kết quả tối đa: $maxResults$
 ========================
 
@@ -11,8 +12,7 @@ Số kết quả tối đa: $maxResults$
 $candidatePool$
 =========================
 
-Phân tích query và xếp hạng ứng viên phù hợp nhất.
-Trả về JSON (KHÔNG thêm text ngoài JSON):
+Phân tích query và xếp hạng ứng viên phù hợp nhất. Trả về JSON (KHÔNG thêm text ngoài JSON):
 {
   "candidates": [
     {
@@ -38,3 +38,6 @@ Quy tắc:
 3. matchReason phải cụ thể, trích dẫn kỹ năng/kinh nghiệm thực tế
 4. Nếu không đủ ứng viên → trả ít hơn maxResults
 5. refinementTips: 2-3 gợi ý thực tế để cải thiện kết quả tìm kiếm
+6. searchSummary và matchReason là chuỗi văn bản THUẦN, KHÔNG phải object hay array
+7. refinementTips là mảng các chuỗi văn bản
+8. Dựa vào phần "Học vấn" và "Kinh nghiệm" trong danh sách ứng viên để viết matchReason và experienceSummary cụ thể (số năm thực tế, vị trí/công ty đã làm, bằng cấp/chuyên ngành liên quan đến yêu cầu công việc)

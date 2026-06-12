@@ -68,12 +68,22 @@ public class OpenAICandidateSearchAdapter
             List<CandidateProfileSummary> pool) {
         try {
             // ── Build candidate pool string ──────────────────────────────────
+            // Bao gồm cả học vấn (toàn bộ bằng cấp) và kinh nghiệm chi tiết
+            // (vị trí, công ty, thời gian, mô tả) cùng số năm thực tế
+            // để AI có đủ dữ liệu phân tích matchReason/experienceSummary.
             String candidatePool = pool.stream()
-                    .map(c -> "[%s] %s | %s | %s | Skills: %s | Exp: %s".formatted(
+                    .map(c -> """
+                            [%s] %s | %s | %s
+                            Skills: %s
+                            Học vấn: %s
+                            Kinh nghiệm (%d năm): %s
+                            """.formatted(
                             c.getId(), c.getFullName(), c.getHeadline(),
                             nullSafe(c.getLocation()),
                             String.join(", ", c.getSkills()),
-                            nullSafe(c.getLevelSummary())))
+                            nullSafe(c.getEducationSummary()),
+                            c.getTotalExperienceYears(),
+                            nullSafe(c.getExperienceDetails())))
                     .collect(Collectors.joining("\n"));
 
             // ── Build requiredSkills string cho prompt ───────────────────────

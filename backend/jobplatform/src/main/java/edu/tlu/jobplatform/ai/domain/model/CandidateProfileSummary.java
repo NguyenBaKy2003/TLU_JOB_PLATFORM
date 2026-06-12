@@ -14,7 +14,8 @@ public class CandidateProfileSummary {
     private final String location;
     private final String jobSearchStatus;
     private final List<String> skills;
-    private final String levelSummary; // "3 năm Java, 1 năm K8s"
-    private final String educationSummary; // "Đại học BKHN - CNTT"
-    private final int totalExperienceYears;
+    private final String levelSummary; // cấp độ mong muốn, VD "MID/SENIOR"
+    private final String educationSummary; // TẤT CẢ học vấn, VD "BACHELOR - CNTT (BKHN); MASTER - QTKD (FTU)"
+    private final String experienceDetails; // chi tiết từng công việc: vị trí, công ty, thời gian, mô tả
+    private final int totalExperienceYears; // tính từ ngày start/end thực tế của các kinh nghiệm
 }
