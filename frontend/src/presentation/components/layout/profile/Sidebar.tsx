@@ -36,7 +36,7 @@ const EMPLOYER_NAV = [
   { label: "Thông báo",         icon: <Bell size={18} />,            href: "/employer/notifications", badgeKey: "notification" },
   { label: "Tin nhắn",          icon: <MessageSquare size={18} />,   href: "/employer/messages",      badgeKey: null           },
   // { label: "Thống kê",          icon: <BarChart2 size={18} />,       href: "/employer/analytics",     badgeKey: null           },
-  { label: "Công ty",           icon: <Building2 size={18} />,       href: "/employer/profile",       badgeKey: null           },
+  { label: "Hồ sơ",           icon: <Building2 size={18} />,       href: "/employer/profile",       badgeKey: null           },
   { label: "Gói đăng ký",       icon: <Banknote size={18} />,        href: "/employer/subscription",  badgeKey: null           },
   { label: "Lịch sử thanh toán", icon: <Receipt size={18} />,         href: "/employer/payments",          badgeKey: null           },  
   { label: "Live Stream",        icon: <FaStream></FaStream>  ,    href: "/employer/streams",    },

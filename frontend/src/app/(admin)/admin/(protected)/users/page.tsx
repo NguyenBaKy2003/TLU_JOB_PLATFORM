@@ -20,7 +20,7 @@ import { Shield, User, Building2, Lock, Unlock, Edit, FileSpreadsheet, FileText 
 import { AdminUserService } from '@/application/services/AdminUserService';
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
-
+import { UserPlus } from 'lucide-react';
 // ─── Static config ────────────────────────────────────────────────────────────
 
 const roleOptions = [
@@ -85,7 +85,34 @@ export default function AdminUsersPage() {
   const [totalPages,    setTotalPages]    = useState(0);
   const [currentPage,   setCurrentPage]   = useState(0); // 0-based (Spring)
   const [pageSize,      setPageSize]      = useState(10);
+  const [createModal, setCreateModal] = useState<{
+    isOpen:  boolean;
+    loading: boolean;
+  }>({ isOpen: false, loading: false });
 
+
+  const handleCreateUser = async (data: Record<string, string>) => {
+  setCreateModal(prev => ({ ...prev, loading: true }));
+  try {
+    const created = await serviceRef.current.createUser({
+      email:    data.email.trim(),
+      fullName: data.fullName.trim(),
+      password: data.password,
+      role:     data.role as AdminUserRole,
+    });
+    await fetchUsers(
+      { keyword: getFilterValue('keyword'), role: getFilterValue('role'), status: getFilterValue('status') },
+      0,
+      pageSizeRef.current,
+    );
+    setCreateModal({ isOpen: false, loading: false });
+    toastRef.current.success('Tạo tài khoản thành công', `Đã tạo tài khoản "${created.fullName}"`);
+  } catch (error) {
+    toastRef.current.error('Lỗi tạo tài khoản',
+      extractErrorMessage(error, 'Không thể tạo tài khoản mới'));
+    setCreateModal(prev => ({ ...prev, loading: false }));
+  }
+};
   const [confirmModal, setConfirmModal] = useState<{
     isOpen:    boolean;
     title:     string;
@@ -372,7 +399,37 @@ export default function AdminUsersPage() {
       placeholder: 'Chọn vai trò mới',
     },
   ];
-
+const createUserFormFields: FormField[] = [
+  {
+    name:        'email',
+    label:       'Email',
+    type:        'text',
+    required:    true,
+    placeholder: 'example@email.com',
+  },
+  {
+    name:        'fullName',
+    label:       'Họ tên',
+    type:        'text',
+    required:    true,
+    placeholder: 'Nguyễn Văn A',
+  },
+  {
+    name:        'password',
+    label:       'Mật khẩu',
+    type:        'password',         // FormField cần hỗ trợ type='password'
+    required:    true,
+    placeholder: 'Tối thiểu 8 ký tự',
+  },
+  {
+    name:        'role',
+    label:       'Vai trò',
+    type:        'select',
+    required:    true,
+    options:     roleFormOptions,
+    placeholder: 'Chọn vai trò',
+  },
+];
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
@@ -408,6 +465,15 @@ export default function AdminUsersPage() {
             <FileText className="w-4 h-4" />
             {exporting === 'pdf' ? 'Đang xuất...' : 'Xuất PDF'}
           </button>
+
+          <button
+      onClick={() => setCreateModal({ isOpen: true, loading: false })}
+      disabled={loading}
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-medium"
+    >
+      <UserPlus className="w-4 h-4" />
+      Tạo người dùng
+    </button>
         </div>
       </div>
 
@@ -486,6 +552,18 @@ export default function AdminUsersPage() {
         submitText="Cập nhật"
         loading={roleFormModal.loading}
       />
+
+
+      <FormModel
+    isOpen={createModal.isOpen}
+    onClose={() => setCreateModal({ isOpen: false, loading: false })}
+    onSubmit={handleCreateUser}
+    title="Tạo tài khoản người dùng mới"
+    fields={createUserFormFields}
+    initialData={{ role: 'CANDIDATE' }}
+    submitText="Tạo tài khoản"
+    loading={createModal.loading}
+  />
     </div>
   );
 }

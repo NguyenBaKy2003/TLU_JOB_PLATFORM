@@ -45,6 +45,9 @@ public class Application {
     // ── Metadata ──
     private final LocalDateTime appliedAt;
     private LocalDateTime updatedAt;
+    // ── CV view tracking ──
+    @Builder.Default
+    private boolean cvViewed = false;
 
     // ── Business Rules ─
 
@@ -105,5 +108,12 @@ public class Application {
         this.status = ApplicationStatus.DECLINED;
         this.rejectionReason = reason;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void markCvViewed() {
+        if (!this.cvViewed) {
+            this.cvViewed = true;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 }

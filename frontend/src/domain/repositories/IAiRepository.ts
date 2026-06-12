@@ -9,6 +9,8 @@ import {
   OptimizeJdPayload,
   CheckGuidelinesPayload,
   CompareCandidatesPayload,
+  CandidateSearchResult,
+  SmartSearchCandidatesPayload,
   PageResponse,
   SendMessagePayload,
 } from "@/domain/models/Ai";
@@ -23,16 +25,20 @@ export interface IAiRepository {
   // ── AI Features ──
   rescoreApplication(applicationId: string): Promise<string>;
   optimizeJd(payload: OptimizeJdPayload): Promise<JdOptimizationResult>;
-  
-  // ── NEW: JD Guidelines ──
+
+  // ── JD Guidelines ──
   checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult>;
-  
-  // ── NEW: Candidate Comparison ──
+
+  // ── Candidate Comparison ──
   compareCandidates(jobId: string, payload: CompareCandidatesPayload): Promise<CandidateComparisonResult>;
-  
-  // ── NEW: Competition Rate ──
+
+  // ── Competition Rate ──
   getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult>;
-  
-  // ── NEW: Pass Probability ──
+
+  // ── Pass Probability ──
   getPassProbability(jobId: string): Promise<PassProbabilityResult>;
+
+  // ── Candidate Search ──
+  smartSearchCandidates(payload: SmartSearchCandidatesPayload): Promise<CandidateSearchResult>;
+  autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult>;
 }

@@ -41,7 +41,7 @@ public class CorsConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of(
                 "Authorization", "Content-Type",
-                "X-Trace-Id", "X-Requested-With", "Accept", "Origin"));
+                "X-Trace-Id", "X-Requested-With", "Accept", "Origin", "Setup-Secret"));
         config.setExposedHeaders(List.of("X-Trace-Id"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

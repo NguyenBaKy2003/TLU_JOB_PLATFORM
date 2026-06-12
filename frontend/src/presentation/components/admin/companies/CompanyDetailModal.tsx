@@ -31,6 +31,7 @@ import { AdminCompanyService } from "@/application/services/AdminCompanyService"
 import { AdminCompanyRepository } from "@/infrastructure/repositories/AdminCompanyRepository";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import { useToast } from "@/presentation/components/ui/toast";
+import { TfiEmail } from "react-icons/tfi";
 
 // Status config
 const statusConfig = {
@@ -462,8 +463,8 @@ export function CompanyDetailModal({
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1 mt-2 text-xs text-blue-600 hover:underline"
                                 >
-                                  <Linkedin className="w-3 h-3" />
-                                  LinkedIn
+                                  <TfiEmail className="w-3 h-3" />
+                                  Email
                                 </a>
                               )}
                             </div>

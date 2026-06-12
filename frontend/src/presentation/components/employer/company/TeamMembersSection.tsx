@@ -8,6 +8,8 @@ import { CompanyService } from "@/application/services/CompanyService";
 import { CompanyRepository } from "@/infrastructure/repositories/CompanyRepository";
 import { useToast } from "@/presentation/components/ui/toast";
 import Image from "next/image";
+import { MdEmail } from "react-icons/md";
+import { TfiEmail } from "react-icons/tfi";
 
 const service = new CompanyService(new CompanyRepository());
 
@@ -183,13 +185,13 @@ export function TeamMembersSection({ companyId, members, onUpdate }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">LinkedIn</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
               <input
                 type="url"
                 value={formData.linkedinUrl}
                 onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
                 className="w-full px-3 py-2 text-[16px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                placeholder="https://linkedin.com/in/..."
+                placeholder="https://email.com/in/..."
               />
             </div>
             <div>
@@ -282,7 +284,7 @@ export function TeamMembersSection({ companyId, members, onUpdate }: Props) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 mt-1.5"
                   >
-                    <Linkedin size={12} /> LinkedIn
+                    <TfiEmail size={12} /> Email
                   </a>
                 )}
               </div>

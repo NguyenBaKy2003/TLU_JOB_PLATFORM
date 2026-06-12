@@ -1,10 +1,13 @@
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile.JobSearchStatus;
 import edu.tlu.jobplatform.candidate.infrastructure.persistence.entity.CandidateProfileJpaEntity;
 
 import java.util.Collection;
@@ -16,6 +19,21 @@ public interface CandidateProfileJpaRepository
                 extends JpaRepository<CandidateProfileJpaEntity, UUID> {
 
         // ── Finders
+        @EntityGraph(attributePaths = {
+                        "skills",
+                        "experiences",
+                        "educations",
+                        "desiredJobs",
+                        "desiredJobs.levels"
+        })
+        @Query("""
+                        SELECT DISTINCT p FROM CandidateProfileJpaEntity p
+                        WHERE p.jobSearchStatus IN :statuses
+                          AND p.isActive = true
+                        """)
+        Page<CandidateProfileJpaEntity> findByJobSearchStatusIn(
+                        @Param("statuses") List<JobSearchStatus> statuses,
+                        Pageable pageable);
 
         /**
          * Fetch đầy đủ collections qua @EntityGraph — tránh Cartesian product

@@ -179,7 +179,6 @@ public class AdminCVTemplateController {
 
         @Operation(summary = "Upload thumbnail cho template")
         @PatchMapping("/{templateId}/thumbnail")
-        @RateLimit(policy = "cv-upload", scope = RateLimitPolicy.Scope.USER) // S3 upload
         @Loggable(action = "ADMIN_UPLOAD_CV_TEMPLATE_THUMBNAIL", resourceType = "CVTemplate")
         public ResponseEntity<ApiResponse<AdminCVTemplateResponse>> uploadThumbnail(
                         @PathVariable UUID templateId,
