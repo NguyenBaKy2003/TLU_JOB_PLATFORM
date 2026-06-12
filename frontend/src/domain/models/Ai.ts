@@ -43,7 +43,7 @@ export interface JdOptimizationResult {
 
 // ─── JD Guideline Check Models ──────
 
-export type Severity = "PASS" | "CLEAN" | "WARNING" | "VIOLATION"|"CRITICAL" |"ERROR";
+export type Severity = "PASS" | "CLEAN" | "WARNING" | "VIOLATION" | "CRITICAL" | "ERROR";
 
 export interface GuidelineIssue {
   category: string;
@@ -141,6 +141,43 @@ export interface PassFactor {
   score: number;
   impact: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
   description: string;
+}
+
+// ─── Candidate Search Models ──────────────────────────────────────────────────
+
+export type CandidateAvailability = "ACTIVELY_LOOKING" | "OPEN_TO_OFFERS";
+
+export interface MatchedCandidate {
+  candidateProfileId: string;
+  candidateName: string;
+  headline: string | null;
+  location: string | null;
+  matchScore: number;           // 0-100
+  matchReason: string;
+  matchedSkills: string[];      // skill ứng viên CÓ trong requiredSkills
+  missingSkills: string[];      // skill ứng viên THIẾU trong requiredSkills
+  experienceSummary: string | null;
+  availabilityStatus: CandidateAvailability;
+}
+
+export interface CandidateSearchResult {
+  candidates: MatchedCandidate[];
+  searchSummary: string;
+  refinementTips: string[];
+  totalScanned: number;
+}
+
+/** Payload cho POST /ai/candidates/search */
+export interface SmartSearchCandidatesPayload {
+  query?: string;
+  jobTitle?: string;
+  requirements?: string;
+  level?: string;
+  location?: string;
+  /** Danh sách skill có cấu trúc — nếu truyền, matched/missing sẽ chính xác 100% */
+  requiredSkills?: string[];
+  /** 1–20, mặc định 10 */
+  maxResults?: number;
 }
 
 // ─── Request Payloads ─────

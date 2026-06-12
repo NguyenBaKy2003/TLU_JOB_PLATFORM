@@ -1,6 +1,9 @@
 package edu.tlu.jobplatform.candidate.infrastructure.persistence.adapter;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
@@ -45,8 +48,6 @@ public class CandidateProfileRepositoryAdapter implements CandidateProfileReposi
 
         @Override
         public Optional<CandidateProfile> findByProfileUrl(String profileUrl) {
-                // Dùng query đơn giản (không cần fetch collections) vì
-                // chỉ cần check id để xác nhận có trùng không
                 return jpaRepo.findByProfileUrl(profileUrl).map(mapper::toDomain);
         }
 
@@ -75,5 +76,17 @@ public class CandidateProfileRepositoryAdapter implements CandidateProfileReposi
                                 .stream()
                                 .map(mapper::toDomain)
                                 .toList();
+        }
+
+        @Override
+        public Page<CandidateProfile> findByJobSearchStatusIn(
+                        List<String> statuses, Pageable pageable) {
+                var enumStatuses = statuses == null ? List.<CandidateProfile.JobSearchStatus>of()
+                                : statuses.stream()
+                                                .map(CandidateProfile.JobSearchStatus::valueOf)
+                                                .toList();
+
+                return jpaRepo.findByJobSearchStatusIn(enumStatuses, pageable)
+                                .map(mapper::toDomain);
         }
 }

@@ -17,30 +17,15 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 import java.util.Map;
 
-/**
- * Cấu hình Redis:
- * - StringRedisTemplate → lưu token, OTP (string đơn giản)
- * - RedisCacheManager → @Cacheable annotation (cache object phức tạp)
- *
- * Connection config (host, port, password) lấy từ application.yml.
- */
 @EnableCaching
 @Configuration
 public class RedisConfig {
 
-        /**
-         * Template để thao tác Redis với key/value kiểu String.
-         * Dùng trong: TokenStoreAdapter, OtpStoreAdapter.
-         */
         @Bean
         public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
                 return new StringRedisTemplate(factory);
         }
 
-        /**
-         * Cache manager cho @Cacheable.
-         * Default TTL: 10 phút — mỗi cache region có thể override.
-         */
         @Bean
         public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
                 ObjectMapper mapper = new ObjectMapper()
@@ -63,9 +48,11 @@ public class RedisConfig {
                                                                 new GenericJackson2JsonRedisSerializer(mapper)))
                                 .disableCachingNullValues();
 
-                // Per-cache TTL overrides
                 Map<String, RedisCacheConfiguration> cacheConfigs = Map.of(
-                                "recommendations", defaultConfig.entryTtl(Duration.ofMinutes(2)));
+                                "recommendations", defaultConfig.entryTtl(Duration.ofMinutes(30)),
+                                "passProbability", defaultConfig.entryTtl(Duration.ofMinutes(10)),
+                                "competitionRate", defaultConfig.entryTtl(Duration.ofMinutes(15)),
+                                "candidateSuggestions", defaultConfig.entryTtl(Duration.ofHours(1)));
 
                 return RedisCacheManager.builder(factory)
                                 .cacheDefaults(defaultConfig)

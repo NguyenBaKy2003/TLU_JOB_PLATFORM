@@ -1,5 +1,5 @@
 // src/application/services/AdminUserService.ts
-import type { IAdminUserRepository } from "@/domain/repositories/IAdminUserRepository";
+import type { AdminCreateUserPayload, IAdminUserRepository } from "@/domain/repositories/IAdminUserRepository";
 import type {
   AdminUser, AdminUserFilters,
   AdminUserPage, AdminUserRole,
@@ -46,5 +46,9 @@ export class AdminUserService {
     const blob = await this.repo.exportPdf(filters);
     const now  = new Date().toISOString().slice(0, 10);
     triggerDownload(blob, `users_${now}.pdf`);
+  }
+
+  createUser(data: AdminCreateUserPayload): Promise<AdminUser> {
+    return this.repo.createUser(data);
   }
 }

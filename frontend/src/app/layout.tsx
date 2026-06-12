@@ -5,7 +5,6 @@ import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
 import { WebSocketProvider } from "@/application/contexts/WebSocketContext";
 import { ReactQueryProvider } from "@/presentation/components/providers/ReactQueryProvider";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

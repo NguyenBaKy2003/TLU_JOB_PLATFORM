@@ -6,6 +6,8 @@ import SectionWrapper            from "./SectionWrapper";
 import { CandidateProfile,
          UpdateProfilePayload }  from "@/domain/models/Candidate";
 import { SectionKey }            from "./types/SectionKey";
+import { DatePicker }       from 'antd';
+import dayjs, { Dayjs }     from 'dayjs';
 
 const GENDER_LABEL: Record<string, string> = {
   MALE:   "Nam",
@@ -16,8 +18,6 @@ const GENDER_LABEL: Record<string, string> = {
 const MARITAL_LABEL: Record<string, string> = {
   SINGLE:   "Độc thân",
   MARRIED:  "Đã kết hôn",
-  DIVORCED: "Đã ly hôn",
-  WIDOWED:  "Góa",
 };
 
 // ─── Sub-components ───────
@@ -161,7 +161,25 @@ export default function PersonalInfoSection({ profile, saving, error, onSave }: 
             <InputField label="Họ"            value={draft.lastName}      onChange={set("lastName")} />
             <InputField label="Địa chỉ Email" value={draft.email}         onChange={set("email")} disabled />
             <InputField label="Số điện thoại" value={draft.phone}         onChange={set("phone")} />
-            <InputField label="Ngày sinh"     value={draft.dateOfBirth}   onChange={set("dateOfBirth")} placeholder="YYYY-MM-DD" />
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] text-gray-400 uppercase tracking-wide">Ngày sinh</label>
+              <DatePicker
+                value={draft.dateOfBirth ? dayjs(draft.dateOfBirth, 'YYYY-MM-DD') : null}
+                onChange={(date: Dayjs | null) =>
+                  set('dateOfBirth')(date ? date.format('YYYY-MM-DD') : '')
+                }
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày sinh"
+                disabledDate={(d) => d.isAfter(dayjs())}
+                className="w-full"
+                style={{
+                  height:       '38px',
+                  borderRadius: '8px',
+                  borderColor:  '#e5e7eb',
+                  fontSize:     '14px',
+                }}
+              />
+            </div>
             <InputField label="Thành phố"     value={draft.location}      onChange={set("location")} />
             <RadioGroup label="Tình trạng hôn nhân" value={draft.maritalStatus} onChange={set("maritalStatus")}
               options={[{ label: "Đã kết hôn", value: "MARRIED" }, { label: "Độc thân", value: "SINGLE" }]} />
@@ -192,7 +210,12 @@ export default function PersonalInfoSection({ profile, saving, error, onSave }: 
           <ReadField label="Số điện thoại"       value={profile.phone         ?? ""} />
           <ReadField label="Tình trạng hôn nhân" value={MARITAL_LABEL[profile.maritalStatus ?? ""] ?? profile.maritalStatus ?? ""} />
           <ReadField label="Thành phố"           value={profile.location      ?? ""} />
-          <ReadField label="Ngày sinh"           value={profile.dateOfBirth   ?? ""} />
+         <ReadField
+  label="Ngày sinh"
+  value={profile.dateOfBirth
+    ? dayjs(profile.dateOfBirth, 'YYYY-MM-DD').format('DD/MM/YYYY')
+    : ""}
+/>
           <ReadField label="Giới tính" value={GENDER_LABEL[profile.gender ?? ""] ?? profile.gender ?? ""} isLink={!profile.gender} />
         </div>
       )}

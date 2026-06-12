@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 
 public interface CandidateProfileRepository {
@@ -24,4 +27,6 @@ public interface CandidateProfileRepository {
     Optional<CandidateProfile> findByProfileUrl(String profileUrl);
 
     List<CandidateProfile> findAllByUserId(Collection<UUID> userIds);
+
+    Page<CandidateProfile> findByJobSearchStatusIn(List<String> statuses, Pageable pageable);
 }

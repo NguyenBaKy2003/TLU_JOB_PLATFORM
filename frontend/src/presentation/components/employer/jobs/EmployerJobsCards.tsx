@@ -1,10 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Clock, Users, Eye, Briefcase, XCircle, ChevronRight, Wifi, Building2, Globe } from "lucide-react";
+import {
+  MapPin, Clock, Users, Eye, Briefcase,
+  XCircle, ChevronRight, Wifi, Building2, Globe, Sparkles,
+} from "lucide-react";
 import type { JobPost, JobStatus } from "@/domain/models/Job";
 import { useState } from "react";
 import { JobActionMenu } from "./JobActionMenu";
+import { CandidateSuggestPanel } from "@/presentation/components/ai/CandidateSuggestPanel";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -19,7 +23,7 @@ function statusBadge(status: JobStatus) {
   };
   const { label, cls } = map[status] ?? map.DRAFT;
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls}`}>
+    <span className={`px-2 py-0.5 rounded-full text-base font-semibold ${cls}`}>
       {label}
     </span>
   );
@@ -34,7 +38,7 @@ function workTypeBadge(type: string) {
   const { label, icon } = map[type] ?? { label: type, icon: null };
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-      text-[11px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
+      text-base font-medium bg-blue-50 text-blue-600 border border-blue-100">
       {icon}{label}
     </span>
   );
@@ -83,7 +87,9 @@ function parseRejectionReason(raw: string) {
   return { violations, overall };
 }
 
-function RejectionReasonModal({ jobId, reason, onClose }: { jobId: string; reason: string; onClose: () => void }) {
+function RejectionReasonModal({ jobId, reason, onClose }: {
+  jobId: string; reason: string; onClose: () => void;
+}) {
   const { violations, overall } = parseRejectionReason(reason);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -91,7 +97,7 @@ function RejectionReasonModal({ jobId, reason, onClose }: { jobId: string; reaso
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <XCircle size={18} className="text-red-500" />
-            <h3 className="text-[15px] font-semibold text-gray-800">Lý do từ chối</h3>
+            <h3 className="text-base font-semibold text-gray-800">Lý do từ chối</h3>
           </div>
           <button onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg
@@ -99,46 +105,44 @@ function RejectionReasonModal({ jobId, reason, onClose }: { jobId: string; reaso
             ✕
           </button>
         </div>
-
         <div className="overflow-y-auto px-5 py-4 flex flex-col gap-3">
           {violations.length > 0 ? violations.map((v, i) => (
             <div key={i} className="rounded-xl border border-red-100 bg-red-50 p-3 flex flex-col gap-1.5">
-              <span className="inline-flex items-center text-[11px] font-semibold
+              <span className="inline-flex items-center text-base font-semibold
                 text-red-600 bg-red-100 px-2 py-0.5 rounded-full w-fit">
                 {VIOLATION_LABELS[v.type] ?? v.type}
               </span>
-              <p className="text-[12px] text-gray-700">
+              <p className="text-base text-gray-700">
                 <span className="font-medium text-gray-500">Vi phạm: </span>
                 <span className="italic">"{v.excerpt}"</span>
               </p>
-              <p className="text-[12px] text-gray-600">
+              <p className="text-base text-gray-600">
                 <span className="font-medium text-gray-500">Lý do: </span>{v.reason}
               </p>
-              <p className="text-[12px] text-emerald-700">
+              <p className="text-base text-emerald-700">
                 <span className="font-medium">💡 Gợi ý: </span>{v.suggestion}
               </p>
             </div>
           )) : (
-            <pre className="text-[13px] text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">
+            <pre className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">
               {reason}
             </pre>
           )}
           {overall && (
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-              <p className="text-[12px] font-semibold text-gray-600 mb-1">Nhận xét tổng thể</p>
-              <p className="text-[12px] text-gray-700 leading-relaxed">{overall}</p>
+              <p className="text-base font-semibold text-gray-600 mb-1">Nhận xét tổng thể</p>
+              <p className="text-base text-gray-700 leading-relaxed">{overall}</p>
             </div>
           )}
         </div>
-
         <div className="px-5 py-4 border-t border-gray-100 flex gap-2">
           <button onClick={onClose}
-            className="flex-1 py-2.5 text-[13px] font-semibold text-gray-600
+            className="flex-1 py-2.5 text-base font-semibold text-gray-600
               bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
             Đóng
           </button>
           <Link href={`/employer/jobs/${jobId}/edit`} onClick={onClose}
-            className="flex-1 text-center py-2.5 text-[13px] font-semibold
+            className="flex-1 text-center py-2.5 text-base font-semibold
               text-white bg-violet-600 rounded-xl hover:bg-violet-700 transition-colors">
             Chỉnh sửa bài đăng
           </Link>
@@ -162,101 +166,121 @@ function JobCard({
   const router   = useRouter();
   const deadline = daysUntilDeadline(job.deadline);
   const [showRejection, setShowRejection] = useState(false);
+  const [showSuggest,   setShowSuggest]   = useState(false);
+
+  // Chỉ hiện nút gợi ý khi bài đang PUBLISHED (có ứng viên để tìm)
+  const canSuggest = job.status === "PUBLISHED";
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm
-      hover:border-gray-200 hover:shadow-md transition-all duration-200 p-5">
+    <>
+      <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm
+        hover:border-gray-200 hover:shadow-md transition-all duration-200 p-5">
 
-      {/* Rejection banner */}
-      {job.status === "REJECTED" && job.rejectionReason && (
-        <button onClick={() => setShowRejection(true)}
-          className="w-full mb-3 flex items-center gap-2 px-3 py-2 rounded-xl
-            bg-red-50 border border-red-100 text-[12px] text-red-600
-            hover:bg-red-100 transition-colors text-left">
-          <XCircle size={13} className="shrink-0" />
-          <span className="flex-1 truncate">Bài đăng bị từ chối — Xem lý do</span>
-          <ChevronRight size={13} className="shrink-0" />
-        </button>
-      )}
-
-      {/* Top row */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <Link href={`/employer/jobs/${job.id}/edit`}
-            className="text-[15px] font-semibold text-gray-900 hover:text-violet-600
-              transition-colors line-clamp-2 leading-snug">
-            {job.title}
-          </Link>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {job.category} · {levelLabel(job.level)}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {statusBadge(job.status)}
-          {acting
-            ? <span className="w-8 h-8 flex items-center justify-center">
-                <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              </span>
-            : <JobActionMenu
-                jobId={job.id}
-                status={job.status}
-                onSubmit={() => onSubmit(job.id)}
-                onClose={() => onClose(job.id)}
-                onDelete={() => onDelete(job.id)}
-                onEdit={() => router.push(`/employer/jobs/${job.id}/edit`)}
-                onView={() => router.push(`/jobs/${job.id}`)}
-              />
-          }
-        </div>
-      </div>
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
-        {workTypeBadge(job.workLocationType)}
-        {job.workLocationCity && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-            text-[11px] font-medium bg-gray-100 text-gray-600">
-            <MapPin size={11} />{job.workLocationCity}
-          </span>
+        {/* Rejection banner */}
+        {job.status === "REJECTED" && job.rejectionReason && (
+          <button onClick={() => setShowRejection(true)}
+            className="w-full mb-3 flex items-center gap-2 px-3 py-2 rounded-xl
+              bg-red-50 border border-red-100 text-base text-red-600
+              hover:bg-red-100 transition-colors text-left">
+            <XCircle size={13} className="shrink-0" />
+            <span className="flex-1 truncate">Bài đăng bị từ chối — Xem lý do</span>
+            <ChevronRight size={13} className="shrink-0" />
+          </button>
         )}
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-          text-[11px] font-medium bg-gray-100 text-gray-600">
-          <Briefcase size={11} />
-          {job.jobType === "FULL_TIME" ? "Full-time"
-            : job.jobType === "PART_TIME" ? "Part-time"
-            : job.jobType}
-        </span>
-      </div>
 
-      {/* Salary */}
-      <p className="text-[13px] font-semibold text-gray-800 mb-4">{job.salaryDisplay}</p>
+        {/* Top row */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1 min-w-0">
+            <Link href={`/employer/jobs/${job.id}/edit`}
+              className="text-base font-semibold text-gray-900 hover:text-violet-600
+                transition-colors line-clamp-2 leading-snug">
+              {job.title}
+            </Link>
+            <p className="text-base text-gray-400 mt-0.5">
+              {job.category} · {levelLabel(job.level ?? "")}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {statusBadge(job.status)}
+            {acting
+              ? <span className="w-8 h-8 flex items-center justify-center">
+                  <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                </span>
+              : <JobActionMenu
+                  jobId={job.id}
+                  status={job.status}
+                  onSubmit={() => onSubmit(job.id)}
+                  onClose={() => onClose(job.id)}
+                  onDelete={() => onDelete(job.id)}
+                  onEdit={() => router.push(`/employer/jobs/${job.id}/edit`)}
+                  onView={() => router.push(`/jobs/${job.id}`)}
+                />
+            }
+          </div>
+        </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 pt-4 border-t border-gray-50">
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
-          <Eye size={13} className="text-gray-400" />
-          <span>{job.viewCount} lượt xem</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
-          <Users size={13} className="text-gray-400" />
-          <Link href={`/employer/jobs/${job.id}/applications`}
-            className="hover:text-violet-600 transition-colors">
-            {job.applicationCount} đơn
-          </Link>
-        </div>
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500">
-          <Users size={13} className="text-gray-400" />
-          <span>{job.vacancies} vị trí</span>
-        </div>
-        <div className="ml-auto flex items-center gap-1 text-[11px]">
-          <Clock size={12} className={deadline.urgent ? "text-red-400" : "text-gray-400"} />
-          <span className={deadline.urgent ? "text-red-500 font-medium" : "text-gray-400"}>
-            {deadline.text}
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {job.workLocationType && workTypeBadge(job.workLocationType)}
+          {job.workLocationCity && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+              text-base font-medium bg-gray-100 text-gray-600">
+              <MapPin size={11} />{job.workLocationCity}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+            text-base font-medium bg-gray-100 text-gray-600">
+            <Briefcase size={11} />
+            {job.jobType === "FULL_TIME" ? "Full-time"
+              : job.jobType === "PART_TIME" ? "Part-time"
+              : job.jobType}
           </span>
         </div>
+
+        {/* Salary */}
+        <p className="text-base font-semibold text-gray-800 mb-4">{job.salaryDisplay}</p>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 pt-4 border-t border-gray-50">
+          <div className="flex items-center gap-1.5 text-base text-gray-500">
+            <Eye size={13} className="text-gray-400" />
+            <span>{job.viewCount} lượt xem</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-base text-gray-500">
+            <Users size={13} className="text-gray-400" />
+            <Link href={`/employer/jobs/${job.id}/applications`}
+              className="hover:text-violet-600 transition-colors">
+              {job.applicationCount} đơn
+            </Link>
+          </div>
+          <div className="flex items-center gap-1.5 text-base text-gray-500">
+            <Users size={13} className="text-gray-400" />
+            <span>{job.vacancies} vị trí</span>
+          </div>
+          <div className="ml-auto flex items-center gap-1 text-base">
+            <Clock size={12} className={deadline.urgent ? "text-red-400" : "text-gray-400"} />
+            <span className={deadline.urgent ? "text-red-500 font-medium" : "text-gray-400"}>
+              {deadline.text}
+            </span>
+          </div>
+        </div>
+
+        {/* ── AI Suggest button — chỉ hiện khi PUBLISHED ── */}
+        {canSuggest && (
+          <button
+            onClick={() => setShowSuggest(true)}
+            className="mt-3 w-full flex items-center justify-center gap-1.5
+              py-2 rounded-xl text-base font-medium
+              text-violet-600 bg-violet-50 border border-violet-100
+              hover:bg-violet-100 transition-colors"
+          >
+            <Sparkles size={13} />
+            Gợi ý ứng viên phù hợp
+          </button>
+        )}
       </div>
 
-      {/* Rejection modal — outside stats row */}
+      {/* Rejection modal */}
       {showRejection && job.rejectionReason && (
         <RejectionReasonModal
           jobId={job.id}
@@ -264,7 +288,16 @@ function JobCard({
           onClose={() => setShowRejection(false)}
         />
       )}
-    </div>
+
+      {/* Suggest panel (slide-over) */}
+      {showSuggest && (
+        <CandidateSuggestPanel
+          jobPostId={job.id}
+          jobTitle={job.title}
+          onClose={() => setShowSuggest(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -280,7 +313,7 @@ export function EmployerJobsCards({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {jobs.map(job => (
         <JobCard
           key={job.id}

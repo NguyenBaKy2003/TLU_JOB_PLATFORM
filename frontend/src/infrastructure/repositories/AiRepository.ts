@@ -8,6 +8,8 @@ import {
   CandidateComparisonResult,
   CompetitionRateResult,
   PassProbabilityResult,
+  CandidateSearchResult,
+  SmartSearchCandidatesPayload,
   OptimizeJdPayload,
   CheckGuidelinesPayload,
   CompareCandidatesPayload,
@@ -24,7 +26,7 @@ interface ApiResponse<T> {
 
 export class AiRepository implements IAiRepository {
 
-  // ── Chatbot ──────
+  // ── Chatbot ──────────────────────────────────────────────────────────────
 
   async sendMessage(payload: SendMessagePayload): Promise<ChatMessage & { sessionId: string }> {
     const res = await api.post<ApiResponse<ChatMessage & { sessionId: string }>>(
@@ -51,7 +53,7 @@ export class AiRepository implements IAiRepository {
     await api.delete(`/chatbot/sessions/${sessionId}`);
   }
 
-  // ── AI Features ──
+  // ── AI Features ──────────────────────────────────────────────────────────
 
   async rescoreApplication(applicationId: string): Promise<string> {
     const res = await api.post<ApiResponse<string>>(
@@ -60,48 +62,51 @@ export class AiRepository implements IAiRepository {
     return res.data.message ?? "Đang tính điểm AI...";
   }
 
-async optimizeJd(payload: OptimizeJdPayload): Promise<JdOptimizationResult> {
-  const res = await api.post<ApiResponse<JdOptimizationResult>>(
-    "/ai/optimize-jd",
-    {
-      title: payload.title,
-      description: payload.description || "",
-      requirements: payload.requirements || "",
-      benefits: payload.benefits || "",      
-      level: payload.level || "",
-      category: payload.category || "",
-    }
-  );
-  return res.data.data;
-}
-
-  // ── NEW: JD Guidelines ──
-
-async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult> {
-  try {
-    const res = await api.post<ApiResponse<JdGuidelineCheckResult>>(
-      "/ai/check-jd-guidelines", payload
+  async optimizeJd(payload: OptimizeJdPayload): Promise<JdOptimizationResult> {
+    const res = await api.post<ApiResponse<JdOptimizationResult>>(
+      "/ai/optimize-jd",
+      {
+        title: payload.title,
+        description: payload.description ?? "",
+        requirements: payload.requirements ?? "",
+        benefits: payload.benefits ?? "",
+        level: payload.level ?? "",
+        category: payload.category ?? "",
+      }
     );
     return res.data.data;
-  } catch (error: any) {
-    // Nếu API trả về 422 với data (VIOLATION nhưng vẫn có data)
-    if (error?.response?.status === 422 && error?.response?.data?.data) {
-      return error.response.data.data; 
-    }
-    throw error;
   }
-}
 
-  // ── NEW: Candidate Comparison ──
+  // ── JD Guidelines ─────────────────────────────────────────────────────────
 
-  async compareCandidates(jobId: string, payload: CompareCandidatesPayload): Promise<CandidateComparisonResult> {
+  async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult> {
+    try {
+      const res = await api.post<ApiResponse<JdGuidelineCheckResult>>(
+        "/ai/check-jd-guidelines", payload
+      );
+      return res.data.data;
+    } catch (error: any) {
+      // API trả 422 khi có VIOLATION nhưng vẫn kèm data
+      if (error?.response?.status === 422 && error?.response?.data?.data) {
+        return error.response.data.data;
+      }
+      throw error;
+    }
+  }
+
+  // ── Candidate Comparison ──────────────────────────────────────────────────
+
+  async compareCandidates(
+    jobId: string,
+    payload: CompareCandidatesPayload
+  ): Promise<CandidateComparisonResult> {
     const res = await api.post<ApiResponse<CandidateComparisonResult>>(
       `/ai/jobs/${jobId}/compare-candidates`, payload
     );
     return res.data.data;
   }
 
-  // ── NEW: Competition Rate ──
+  // ── Competition Rate ──────────────────────────────────────────────────────
 
   async getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult> {
     const res = await api.get<ApiResponse<CompetitionRateResult>>(
@@ -110,11 +115,46 @@ async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineChe
     return res.data.data;
   }
 
-  // ── NEW: Pass Probability ──
+  // ── Pass Probability ──────────────────────────────────────────────────────
 
   async getPassProbability(jobId: string): Promise<PassProbabilityResult> {
     const res = await api.get<ApiResponse<PassProbabilityResult>>(
       `/job-posts/${jobId}/pass-probability`
+    );
+    return res.data.data;
+  }
+
+  // ── Candidate Search ──────────────────────────────────────────────────────
+
+  /**
+   * POST /api/v1/ai/candidates/search
+   * Tìm kiếm ứng viên bằng ngôn ngữ tự nhiên hoặc tiêu chí có cấu trúc.
+   */
+  async smartSearchCandidates(
+    payload: SmartSearchCandidatesPayload
+  ): Promise<CandidateSearchResult> {
+    const res = await api.post<ApiResponse<CandidateSearchResult>>(
+      "/ai/candidates/search",
+      {
+        query: payload.query ?? "",
+        jobTitle: payload.jobTitle ?? "",
+        requirements: payload.requirements ?? "",
+        level: payload.level ?? "",
+        location: payload.location ?? "",
+        requiredSkills: payload.requiredSkills ?? [],
+        maxResults: payload.maxResults ?? 10,
+      }
+    );
+    return res.data.data;
+  }
+
+  /**
+   * GET /api/v1/ai/jobs/{jobPostId}/candidate-suggestions
+   * Gợi ý ứng viên tự động dựa trên JD (kết quả cache 1 giờ phía server).
+   */
+  async autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult> {
+    const res = await api.get<ApiResponse<CandidateSearchResult>>(
+      `/ai/jobs/${jobPostId}/candidate-suggestions`
     );
     return res.data.data;
   }
