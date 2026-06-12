@@ -7,10 +7,8 @@ import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
-import edu.tlu.jobplatform.notification.domain.model.Notification;
+import edu.tlu.jobplatform.notification.application.usecase.CreateNotificationUseCase;
 import edu.tlu.jobplatform.notification.domain.model.NotificationType;
-import edu.tlu.jobplatform.notification.domain.repository.NotificationRepository;
-import edu.tlu.jobplatform.notification.domain.service.NotificationDomainService;
 import edu.tlu.jobplatform.shared.email.EmailService;
 import edu.tlu.jobplatform.shared.exception.BusinessRuleException;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
@@ -29,7 +27,7 @@ import java.util.UUID;
  * Luồng:
  * 1. Verify employer sở hữu jobPost.
  * 2. Lookup CandidateProfile bằng profile id (từ AI search result).
- * 3. Lưu in-app Notification cho ứng viên.
+ * 3. Tạo notification cho ứng viên (DB + realtime qua event/WS).
  * 4. Dispatch email async (không block response).
  */
 @Slf4j
@@ -40,8 +38,7 @@ public class InviteCandidateUseCase {
     private final JobPostRepository jobPostRepo;
     private final CandidateProfileRepository candidateProfileRepo;
     private final CompanyRepository companyRepo;
-    private final NotificationRepository notificationRepo;
-    private final NotificationDomainService notificationDomainService;
+    private final CreateNotificationUseCase createNotificationUseCase;
     private final EmailService emailService;
 
     @Transactional
@@ -77,16 +74,15 @@ public class InviteCandidateUseCase {
         // Link ứng viên click để xem JD và apply
         String applyLink = buildApplyLink(job.getSlug(), jobPostId);
 
-        // ── 3. Lưu in-app notification ────────────────────────────────────
+        // ── 3. Tạo notification (DB + realtime qua event) ─────────────────
         boolean notificationSaved = false;
         try {
-            Notification notification = notificationDomainService.create(
+            createNotificationUseCase.execute(new CreateNotificationUseCase.Command(
                     candidate.getUserId(),
                     NotificationType.JOB_INVITATION,
                     "Lời mời ứng tuyển từ " + companyName,
                     buildNotificationBody(candidateName, jobTitle, companyName, cmd.personalMessage()),
-                    applyLink);
-            notificationRepo.save(notification);
+                    applyLink));
             notificationSaved = true;
             log.info("Invite notification saved: candidateUserId={} jobPostId={}",
                     candidate.getUserId(), jobPostId);

@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { X, Send, Sparkles, Mail, Bell, CheckCircle2, AlertCircle } from "lucide-react";
-import { AiService } from "@/application/services/AiService";
-import { AiRepository } from "@/infrastructure/repositories/AiRepository";
-import { LoadingSpinner } from "@/presentation/components/common";
-import { useToast } from "@/presentation/components/ui/toast";
+import { AiService }           from "@/application/services/AiService";
+import { AiRepository }        from "@/infrastructure/repositories/AiRepository";
+import { LoadingSpinner }      from "@/presentation/components/common";
+import { useToast }            from "@/presentation/components/ui/toast";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import type { InviteCandidateResponse } from "@/domain/models/Ai";
 
@@ -12,18 +12,13 @@ const aiService = new AiService(new AiRepository());
 
 const MAX_MESSAGE_LENGTH = 1000;
 
-// ── Result view (sau khi gửi thành công) ─────────────────────────────────────
+// ── Result view ───────────────────────────────────────────────────────────────
 
-function InviteSuccessView({
-  result,
-  onClose,
-}: {
-  result: InviteCandidateResponse;
-  onClose: () => void;
+function InviteSuccessView({ result, onClose }: {
+  result: InviteCandidateResponse; onClose: () => void;
 }) {
   return (
     <div className="flex flex-col items-center gap-4 py-4 text-center">
-      {/* Icon */}
       <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
         <CheckCircle2 size={28} className="text-emerald-500" />
       </div>
@@ -35,8 +30,8 @@ function InviteSuccessView({
         <p className="text-sm text-gray-400 mt-1">cho vị trí "{result.jobTitle}"</p>
       </div>
 
-      {/* Delivery status */}
       <div className="w-full flex flex-col gap-2 bg-gray-50 rounded-xl p-4">
+        {/* Notification status */}
         <div className="flex items-center gap-2.5">
           {result.notificationSaved
             ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
@@ -53,6 +48,7 @@ function InviteSuccessView({
           </div>
         </div>
 
+        {/* Email status */}
         <div className="flex items-center gap-2.5">
           {result.emailDispatched
             ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
@@ -89,17 +85,11 @@ interface Props {
   candidateProfileId: string;
   candidateName:      string;
   onClose:            () => void;
-  /** Gọi sau khi invite thành công — để caller update UI (vd: disable nút mời) */
   onSuccess?:         (result: InviteCandidateResponse) => void;
 }
 
 export function InviteCandidateModal({
-  jobPostId,
-  jobTitle,
-  candidateProfileId,
-  candidateName,
-  onClose,
-  onSuccess,
+  jobPostId, jobTitle, candidateProfileId, candidateName, onClose, onSuccess,
 }: Props) {
   const toast = useToast();
 
@@ -107,7 +97,7 @@ export function InviteCandidateModal({
   const [loading,  setLoading]  = useState(false);
   const [result,   setResult]   = useState<InviteCandidateResponse | null>(null);
 
-  const remaining = MAX_MESSAGE_LENGTH - message.length;
+  const remaining   = MAX_MESSAGE_LENGTH - message.length;
   const isOverLimit = remaining < 0;
 
   const handleSend = async () => {
@@ -117,12 +107,24 @@ export function InviteCandidateModal({
       const res = await aiService.inviteCandidate(
         jobPostId,
         candidateProfileId,
-        message.trim() || undefined
+        message.trim() || undefined,
       );
+
+      // ── Toast thành công ──────────────────────────────────────────────
+      toast.success(
+        "Đã gửi lời mời",
+        res.emailDispatched
+          ? `Lời mời đến ${res.candidateName} đã được gửi qua thông báo và email.`
+          : `Lời mời đến ${res.candidateName} đã được gửi qua thông báo trong app.`,
+      );
+
       setResult(res);
       onSuccess?.(res);
+
     } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e, "Không thể gửi lời mời"));
+      // extractErrorMessage là async — phải await để lấy đúng string từ backend
+      const msg = await extractErrorMessage(e, "Không thể gửi lời mời");
+      toast.error("Lỗi", msg);
     } finally {
       setLoading(false);
     }
@@ -146,11 +148,9 @@ export function InviteCandidateModal({
               <p className="text-sm text-gray-400 truncate max-w-[260px]">{candidateName}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
+          <button onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center
-              text-gray-400 transition-colors"
-          >
+              text-gray-400 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -168,7 +168,7 @@ export function InviteCandidateModal({
                 <p className="text-base font-semibold text-violet-800 truncate">{jobTitle}</p>
               </div>
 
-              {/* Delivery info */}
+              {/* Delivery channels */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5 text-sm text-gray-500">
                   <Bell size={14} className="text-gray-400" /> Thông báo trong app

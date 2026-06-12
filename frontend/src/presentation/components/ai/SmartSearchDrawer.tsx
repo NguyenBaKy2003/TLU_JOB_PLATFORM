@@ -3,14 +3,14 @@ import { useState } from "react";
 import {
   X, Search, SlidersHorizontal, Sparkles, ChevronDown, ChevronUp,
 } from "lucide-react";
-import { AiService } from "@/application/services/AiService";
-import { AiRepository } from "@/infrastructure/repositories/AiRepository";
-import { LoadingSpinner } from "@/presentation/components/common";
+import { AiService }       from "@/application/services/AiService";
+import { AiRepository }    from "@/infrastructure/repositories/AiRepository";
+import { LoadingSpinner }  from "@/presentation/components/common";
 import { MatchedCandidateCard } from "@/presentation/components/ai/MatchedCandidateCard";
-import { useToast } from "@/presentation/components/ui/toast";
+import { useToast }        from "@/presentation/components/ui/toast";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 import type { CandidateSearchResult, SmartSearchCandidatesPayload } from "@/domain/models/Ai";
-import type { JobSkill } from "@/domain/models/Job";
+import type { JobSkill }   from "@/domain/models/Job";
 
 const aiService = new AiService(new AiRepository());
 
@@ -25,14 +25,7 @@ const LEVEL_OPTIONS = [
   { value: "MANAGER", label: "Manager"        },
 ];
 
-// ── Drawer ────────────────────────────────────────────────────────────────────
-
 interface Props {
-  /**
-   * jobPostId — bắt buộc khi drawer mở từ ngữ cảnh job cụ thể
-   * (EmployerApplicationsPage). Dùng để gọi invite API.
-   * Nếu không có (tìm kiếm tổng quát), truyền "" và nút mời sẽ bị ẩn.
-   */
   jobPostId?:             string;
   defaultJobTitle?:       string;
   defaultLevel?:          string;
@@ -51,7 +44,6 @@ export function SmartSearchDrawer({
 }: Props) {
   const toast = useToast();
 
-  // ── Form ──
   const [query,        setQuery]        = useState("");
   const [jobTitle,     setJobTitle]     = useState(defaultJobTitle);
   const [level,        setLevel]        = useState(defaultLevel);
@@ -62,13 +54,10 @@ export function SmartSearchDrawer({
   const [skillList,    setSkillList]    = useState<string[]>(
     defaultRequiredSkills.filter(s => s.required).map(s => s.skillName)
   );
-
-  // ── Result ──
   const [result,   setResult]   = useState<CandidateSearchResult | null>(null);
   const [loading,  setLoading]  = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // ── Effective jobTitle: dùng input hoặc fallback về defaultJobTitle ──
   const effectiveJobTitle = jobTitle.trim() || defaultJobTitle;
 
   const addSkill = () => {
@@ -93,7 +82,8 @@ export function SmartSearchDrawer({
       const res = await aiService.smartSearchCandidates(payload);
       setResult(res);
     } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e, "Không thể tìm kiếm ứng viên"));
+      const msg = await extractErrorMessage(e, "Không thể tìm kiếm ứng viên");
+      toast.error("Lỗi", msg);
     } finally {
       setLoading(false);
     }
@@ -116,11 +106,9 @@ export function SmartSearchDrawer({
             </div>
             <p className="text-base font-semibold text-gray-900">Tìm kiếm ứng viên AI</p>
           </div>
-          <button
-            onClick={onClose}
+          <button onClick={onClose}
             className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center
-              text-gray-400 transition-colors"
-          >
+              text-gray-400 transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -162,8 +150,6 @@ export function SmartSearchDrawer({
 
             {showAdvanced && (
               <div className="flex flex-col gap-4">
-
-                {/* Job title */}
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1.5">Vị trí</label>
                   <input
@@ -176,7 +162,6 @@ export function SmartSearchDrawer({
                   />
                 </div>
 
-                {/* Level + Location */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1.5">Cấp độ</label>
@@ -205,13 +190,10 @@ export function SmartSearchDrawer({
                   </div>
                 </div>
 
-                {/* Required skills */}
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1.5">
                     Skill yêu cầu
-                    <span className="ml-1 font-normal text-gray-400">
-                      (để tính matched/missing chính xác)
-                    </span>
+                    <span className="ml-1 font-normal text-gray-400">(để tính matched/missing chính xác)</span>
                   </label>
                   {skillList.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-2">
@@ -251,11 +233,9 @@ export function SmartSearchDrawer({
                   </div>
                 </div>
 
-                {/* Max results */}
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1.5">
-                    Số kết quả tối đa:{" "}
-                    <strong className="text-gray-700">{maxResults}</strong>
+                    Số kết quả tối đa: <strong className="text-gray-700">{maxResults}</strong>
                   </label>
                   <input
                     type="range" min={1} max={20} step={1}
@@ -289,23 +269,15 @@ export function SmartSearchDrawer({
           {searched && !loading && (
             result && result.candidates.length > 0 ? (
               <div className="flex flex-col gap-3">
-                {/* Summary */}
                 {result.searchSummary && (
                   <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
                     <p className="text-sm text-blue-700 leading-relaxed">{result.searchSummary}</p>
                   </div>
                 )}
-
-                {/* Count */}
                 <p className="text-sm text-gray-400 text-center">
-                  Đã quét{" "}
-                  <strong className="text-gray-600">{result.totalScanned}</strong>{" "}
-                  hồ sơ · Tìm thấy{" "}
-                  <strong className="text-gray-600">{result.candidates.length}</strong>{" "}
-                  ứng viên phù hợp
+                  Đã quét <strong className="text-gray-600">{result.totalScanned}</strong> hồ sơ
+                  · Tìm thấy <strong className="text-gray-600">{result.candidates.length}</strong> ứng viên phù hợp
                 </p>
-
-                {/* ── Candidate cards — nút Mời chỉ hiện khi có jobPostId ── */}
                 {result.candidates.map(c => (
                   <MatchedCandidateCard
                     key={c.candidateProfileId}
@@ -314,8 +286,6 @@ export function SmartSearchDrawer({
                     jobTitle={effectiveJobTitle}
                   />
                 ))}
-
-                {/* Refinement tips */}
                 {result.refinementTips?.length > 0 && (
                   <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
                     <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -335,9 +305,7 @@ export function SmartSearchDrawer({
               <div className="py-10 text-center">
                 <Search size={36} className="text-gray-200 mx-auto mb-3" />
                 <p className="text-base text-gray-500">Không tìm thấy ứng viên phù hợp</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Thử mở rộng tiêu chí hoặc thay đổi từ khóa
-                </p>
+                <p className="text-sm text-gray-400 mt-1">Thử mở rộng tiêu chí hoặc thay đổi từ khóa</p>
               </div>
             )
           )}

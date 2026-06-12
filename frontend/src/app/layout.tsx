@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/presentation/components/ui/toast";
 import { AuthProvider } from "@/application/contexts/AuthContext";
 import { WebSocketProvider } from "@/application/contexts/WebSocketContext";
 import { ReactQueryProvider } from "@/presentation/components/providers/ReactQueryProvider";
+import { NotificationToastListener } from "@/presentation/components/notifications/NotificationToastListener";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
           <AuthProvider>
             <WebSocketProvider>
               <ToastProvider defaultPosition="top-right" maxToasts={5}>
+                <NotificationToastListener />
                 {children}
               </ToastProvider>
             </WebSocketProvider>
