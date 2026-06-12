@@ -10,10 +10,6 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "CareerUp - Nền tảng tuyển dụng Thông Minh",
@@ -26,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}  bg-#DFEAFE`}>
+    <html lang="vi" className={`${geistSans.variable}  bg-[#DFEAFE]`}>
       <body>
         <ReactQueryProvider>
           <AuthProvider>

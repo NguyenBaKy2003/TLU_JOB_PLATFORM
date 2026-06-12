@@ -132,7 +132,7 @@ const DEGREE_LABELS: Record<string, string> = {
   OTHER: "Khác",
 };
 const LANGUAGE_LEVELS  = ["", "A1", "A2", "B1", "B2", "C1", "C2", "Native"];
-const SOCIAL_PLATFORMS = ["", "LINKEDIN", "GITHUB", "FACEBOOK", "TWITTER", "INSTAGRAM", "YOUTUBE", "WEBSITE", "OTHER"];
+const SOCIAL_PLATFORMS = ["", "LINKEDIN", "GITHUB", "FACEBOOK", "TWITTER", "INSTAGRAM", "YOUTUBE", "WEBSITE", "OTHER","PORTFOLIO"];
 
 // ── Experience ────────────────────────────────────────────────────────────
 

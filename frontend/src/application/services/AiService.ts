@@ -12,6 +12,7 @@ import {
   OptimizeJdPayload,
   CheckGuidelinesPayload,
   PageResponse,
+  InviteCandidateResponse,
 } from "@/domain/models/Ai";
 
 export class AiService {
@@ -128,5 +129,21 @@ export class AiService {
   async autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult> {
     if (!jobPostId) throw new Error("Job Post ID không hợp lệ");
     return this.repo.autoSuggestCandidates(jobPostId);
+  }
+
+  async inviteCandidate(
+    jobPostId: string,
+    candidateProfileId: string,
+    personalMessage?: string
+  ): Promise<InviteCandidateResponse> {
+    if (!jobPostId)          throw new Error("Job Post ID không hợp lệ");
+    if (!candidateProfileId) throw new Error("Candidate Profile ID không hợp lệ");
+    if (personalMessage && personalMessage.length > 1000)
+      throw new Error("Lời nhắn không được vượt quá 1000 ký tự");
+ 
+    return this.repo.inviteCandidate(jobPostId, {
+      candidateProfileId,
+      personalMessage: personalMessage?.trim() || undefined,
+    });
   }
 }

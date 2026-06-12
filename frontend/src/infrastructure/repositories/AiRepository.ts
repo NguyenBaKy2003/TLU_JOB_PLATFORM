@@ -15,6 +15,8 @@ import {
   CompareCandidatesPayload,
   PageResponse,
   SendMessagePayload,
+  InviteCandidatePayload,
+  InviteCandidateResponse,
 } from "@/domain/models/Ai";
 
 interface ApiResponse<T> {
@@ -155,6 +157,18 @@ export class AiRepository implements IAiRepository {
   async autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult> {
     const res = await api.get<ApiResponse<CandidateSearchResult>>(
       `/ai/jobs/${jobPostId}/candidate-suggestions`
+    );
+    return res.data.data;
+  }
+
+
+  async inviteCandidate(
+    jobPostId: string,
+    payload: InviteCandidatePayload
+  ): Promise<InviteCandidateResponse> {
+    const res = await api.post<ApiResponse<InviteCandidateResponse>>(
+      `/jobs/${jobPostId}/invite-candidate`,
+      payload
     );
     return res.data.data;
   }

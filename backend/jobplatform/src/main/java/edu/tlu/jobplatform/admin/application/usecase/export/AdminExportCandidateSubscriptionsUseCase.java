@@ -21,7 +21,7 @@ public class AdminExportCandidateSubscriptionsUseCase {
         private final AdminCandidateSubscriptionUseCase adminCandidateSubscriptionUseCase;
         private final ExcelExportService excelExportService;
         private final PdfExportService pdfExportService;
-        private final CandidateProfileRepository candidateProfileRepository; // ← thêm
+        private final CandidateProfileRepository candidateProfileRepository;
 
         public record SubWithCandidate(CandidateSubscription sub, String candidateName) {
         }

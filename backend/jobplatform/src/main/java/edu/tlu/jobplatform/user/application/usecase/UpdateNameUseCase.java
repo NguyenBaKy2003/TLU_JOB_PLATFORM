@@ -26,7 +26,7 @@ public class UpdateNameUseCase {
     private static final int MAX_NAME_LENGTH = 100;
 
     private final UserRepository userRepository;
-    private final UserCacheService userCacheService; // ← thêm
+    private final UserCacheService userCacheService;
 
     @Transactional
     public void execute(Command cmd) {

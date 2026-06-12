@@ -4,6 +4,7 @@ import {
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
   BoostResult, BoostStatus,
+  ApplicableCV,
 } from "@/domain/models/Candidate";
 import api from "@/lib/axios";
 

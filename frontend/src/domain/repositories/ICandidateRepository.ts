@@ -3,6 +3,7 @@ import {
   UpdateProfilePayload, ExperiencePayload, EducationPayload,
   UploadCVPayload, CreateOnlineCVPayload,
   BoostResult, BoostStatus,
+  ApplicableCV,
 } from "@/domain/models/Candidate";
 
 export interface ICandidateRepository {

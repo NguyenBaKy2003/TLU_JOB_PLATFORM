@@ -12,17 +12,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Aggregate Root của domain CV.
- *
- * Mọi thay đổi với CVSection đều phải đi qua OnlineCV,
- * không bao giờ modify CVSection trực tiếp từ bên ngoài.
- *
- * Invariants:
- * - Phải có ít nhất 1 section VISIBLE để publish
- * - PersonalInfo phải đủ fullName + email mới publish được
- * - ARCHIVED CV không thể chỉnh sửa (phải restore trước)
- */
 @Getter
 @Builder
 public class OnlineCV {
@@ -38,14 +27,34 @@ public class OnlineCV {
 
     private CVStatus status;
     private CVVisibility visibility;
-    private String slug; // unique URL-friendly identifier
+    private String slug;
     private long viewCount;
-    private String exportedPdfUrl; // URL PDF đã render gần nhất
+    private String exportedPdfUrl;
+
+    /** CV chính dùng để apply — đồng bộ với CandidateCV.primary */
+    @Builder.Default
+    private boolean primary = false;
 
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── Metadata update
+    // ── Primary ───────────────────────────────────────────────────────────────
+
+    /**
+     * Đánh dấu đây là CV chính.
+     * Chỉ gọi từ SetPrimaryCVUseCase sau khi đã unmark tất cả CV khác.
+     */
+    public void markAsPrimary() {
+        this.primary = true;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void unmarkPrimary() {
+        this.primary = false;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // ── Metadata update ───────────────────────────────────────────────────────
 
     public void updateMetadata(String title, PersonalInfo personalInfo,
             UUID templateId, CVVisibility visibility) {
@@ -54,13 +63,12 @@ public class OnlineCV {
         this.personalInfo = personalInfo;
         this.templateId = templateId;
         this.visibility = visibility;
-        this.exportedPdfUrl = null; // ← invalidate cache
+        this.exportedPdfUrl = null;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Section management
+    // ── Section management ────────────────────────────────────────────────────
 
-    /** Thêm section mới vào cuối */
     public CVSection addSection(SectionType type, String title, String content) {
         guardNotArchived();
         int order = sections.size();
@@ -74,22 +82,20 @@ public class OnlineCV {
                 .visible(true)
                 .build();
         sections.add(section);
-        this.exportedPdfUrl = null; // ← invalidate cache
+        this.exportedPdfUrl = null;
         this.updatedAt = LocalDateTime.now();
         return section;
     }
 
-    /** Cập nhật nội dung section đã có */
     public void updateSection(UUID sectionId, String title, String content, boolean visible) {
         guardNotArchived();
         CVSection section = findSectionOrThrow(sectionId);
         section.updateContent(title, content);
         section.setVisible(visible);
-        this.exportedPdfUrl = null; // ← invalidate cache
+        this.exportedPdfUrl = null;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Xóa section */
     public void removeSection(UUID sectionId) {
         guardNotArchived();
         boolean removed = sections.removeIf(s -> s.getId().equals(sectionId));
@@ -98,14 +104,10 @@ public class OnlineCV {
                     "Section không tồn tại: " + sectionId, "SECTION_NOT_FOUND");
         }
         reindexSections();
-        this.exportedPdfUrl = null; // ← invalidate cache
+        this.exportedPdfUrl = null;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * Sắp xếp lại sections theo thứ tự sectionIds truyền vào.
-     * sectionIds phải chứa đủ tất cả section IDs hiện có.
-     */
     public void reorderSections(List<UUID> sectionIds) {
         guardNotArchived();
         if (sectionIds.size() != sections.size()) {
@@ -123,13 +125,12 @@ public class OnlineCV {
             s.reorder(i);
         }
         sections.sort(Comparator.comparingInt(CVSection::getDisplayOrder));
-        this.exportedPdfUrl = null; // ← invalidate cache
+        this.exportedPdfUrl = null;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Status transitions
+    // ── Status transitions ────────────────────────────────────────────────────
 
-    /** DRAFT → PUBLISHED. Validate trước khi publish. */
     public void publish(String slug) {
         if (status == CVStatus.ARCHIVED) {
             throw new BusinessRuleException(
@@ -147,19 +148,16 @@ public class OnlineCV {
         this.status = CVStatus.PUBLISHED;
         this.slug = slug;
         this.updatedAt = LocalDateTime.now();
-
         if (this.visibility == null || this.visibility == CVVisibility.PRIVATE) {
             this.visibility = CVVisibility.PUBLIC;
         }
     }
 
-    /** → ARCHIVED */
     public void archive() {
         this.status = CVStatus.ARCHIVED;
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** ARCHIVED → DRAFT */
     public void restore() {
         if (status != CVStatus.ARCHIVED) {
             throw new BusinessRuleException(
@@ -169,7 +167,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Stats & PDF ─
+    // ── Stats & PDF ───────────────────────────────────────────────────────────
 
     public void incrementViewCount() {
         this.viewCount++;
@@ -180,7 +178,7 @@ public class OnlineCV {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ── Read-only view ─
+    // ── Read-only view ────────────────────────────────────────────────────────
 
     public List<CVSection> getSections() {
         return Collections.unmodifiableList(sections);
@@ -202,7 +200,7 @@ public class OnlineCV {
         return candidateId.equals(userId);
     }
 
-    // ── Helpers
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void guardNotArchived() {
         if (status == CVStatus.ARCHIVED) {

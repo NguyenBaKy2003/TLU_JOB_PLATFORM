@@ -32,9 +32,37 @@ public class OnlineCVRepositoryAdapter implements OnlineCVRepository {
         return mapper.toDomain(jpaRepo.save(mapper.toNewEntity(cv)));
     }
 
+    /**
+     * Batch-update chỉ field `primary` — dùng khi SetPrimaryCVUseCase unmark/mark
+     * primary.
+     *
+     * KHÔNG dùng updateEntity (full mapper) vì:
+     * - findAllByCandidateId không fetch sections (lazy)
+     * - updateEntity gọi getSections().clear() → xóa sections trong DB
+     * - Chỉ cần update đúng 1 field is_primary, không cần động đến phần còn lại
+     */
+    @Override
+    public void saveAll(List<OnlineCV> cvs) {
+        if (cvs.isEmpty())
+            return;
+
+        List<UUID> ids = cvs.stream()
+                .filter(cv -> cv.getId() != null)
+                .map(OnlineCV::getId)
+                .toList();
+
+        List<OnlineCVJpaEntity> entities = jpaRepo.findAllById(ids);
+
+        entities.forEach(entity -> cvs.stream()
+                .filter(cv -> cv.getId().equals(entity.getId()))
+                .findFirst()
+                .ifPresent(cv -> entity.setPrimary(cv.isPrimary())));
+
+        jpaRepo.saveAll(entities);
+    }
+
     @Override
     public Optional<OnlineCV> findById(UUID id) {
-        // Dùng fetch với sections để tránh LazyInitializationException
         return jpaRepo.findByIdWithSections(id).map(mapper::toDomain);
     }
 
@@ -45,8 +73,13 @@ public class OnlineCVRepositoryAdapter implements OnlineCVRepository {
 
     @Override
     public List<OnlineCV> findAllByCandidateId(UUID candidateId) {
-        // Danh sách không cần sections → dùng query thường (nhẹ hơn)
         return jpaRepo.findAllByCandidateId(candidateId)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<OnlineCV> findPublishedByCandidateId(UUID candidateId) {
+        return jpaRepo.findPublishedByCandidateId(candidateId)
                 .stream().map(mapper::toDomain).toList();
     }
 
@@ -63,11 +96,5 @@ public class OnlineCVRepositoryAdapter implements OnlineCVRepository {
     @Override
     public long countByCandidateId(UUID candidateId) {
         return jpaRepo.countByCandidateId(candidateId);
-    }
-
-    @Override
-    public List<OnlineCV> findPublishedByCandidateId(UUID candidateId) {
-        return jpaRepo.findPublishedByCandidateId(candidateId)
-                .stream().map(mapper::toDomain).toList();
     }
 }

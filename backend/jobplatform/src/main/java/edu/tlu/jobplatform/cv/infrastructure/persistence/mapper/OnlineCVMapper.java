@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 public class OnlineCVMapper {
 
-    // ── OnlineCV ──
+    // ── OnlineCV ──────────────────────────────────────────────────────────────
 
     /** JPA Entity → Domain Model (bao gồm sections) */
     public OnlineCV toDomain(OnlineCVJpaEntity e) {
@@ -24,8 +24,9 @@ public class OnlineCVMapper {
 
         List<CVSection> sections = e.getSections() == null
                 ? new ArrayList<>()
-                : e.getSections().stream().map(this::sectionToDomain).collect(
-                        java.util.stream.Collectors.toCollection(ArrayList::new));
+                : e.getSections().stream()
+                        .map(this::sectionToDomain)
+                        .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 
         return OnlineCV.builder()
                 .id(e.getId())
@@ -39,6 +40,7 @@ public class OnlineCVMapper {
                 .slug(e.getSlug())
                 .viewCount(e.getViewCount())
                 .exportedPdfUrl(e.getExportedPdfUrl())
+                .primary(e.isPrimary())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
@@ -66,6 +68,7 @@ public class OnlineCVMapper {
         e.setSlug(cv.getSlug());
         e.setViewCount(cv.getViewCount());
         e.setExportedPdfUrl(cv.getExportedPdfUrl());
+        e.setPrimary(cv.isPrimary());
 
         // PersonalInfo embedded
         PersonalInfo pi = cv.getPersonalInfo();
@@ -91,7 +94,7 @@ public class OnlineCVMapper {
         }
     }
 
-    // ── CVSection ─
+    // ── CVSection ─────────────────────────────────────────────────────────────
 
     public CVSection sectionToDomain(CVSectionJpaEntity e) {
         if (e == null)
@@ -119,7 +122,7 @@ public class OnlineCVMapper {
         return e;
     }
 
-    // ── CVTemplate
+    // ── CVTemplate ────────────────────────────────────────────────────────────
 
     public CVTemplate templateToDomain(CVTemplateJpaEntity e) {
         if (e == null)
@@ -157,7 +160,7 @@ public class OnlineCVMapper {
         e.setIsActive(t.isActive());
     }
 
-    // ── Helpers
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private PersonalInfo toPersonalInfo(OnlineCVJpaEntity e) {
         if (e.getPiFullName() == null && e.getPiEmail() == null)

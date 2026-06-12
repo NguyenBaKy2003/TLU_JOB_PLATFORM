@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.Normalizer;
 import java.time.Duration;
 
 @Slf4j
@@ -84,17 +85,52 @@ public class PdfTextExtractor {
             log.info("PDF bytes downloaded: {}", bytes.length); // thêm
 
             PDDocument doc = Loader.loadPDF(bytes);
-            if (doc.isEncrypted()) {
-                log.warn("PDF is encrypted");
-                return "";
+            try {
+                if (doc.isEncrypted()) {
+                    log.warn("PDF is encrypted");
+                    return "";
+                }
+                PDFTextStripper stripper = new PDFTextStripper();
+                stripper.setSortByPosition(true);
+                String text = stripper.getText(doc).trim();
+
+                // Làm sạch text trước khi dùng tiếp:
+                // - loại bỏ null byte (0x00) và control char không hợp lệ
+                // (nguyên nhân lỗi PostgreSQL "invalid byte sequence for encoding UTF8: 0x00")
+                // - normalize NFC để ghép dấu tiếng Việt đúng cách
+                text = sanitizeExtractedText(text);
+
+                log.info("PDF text extracted: {} chars", text.length()); // thêm
+                return text.length() > MAX_CHARS
+                        ? text.substring(0, MAX_CHARS) + "...[truncated]"
+                        : text;
+            } finally {
+                doc.close();
             }
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(true);
-            String text = stripper.getText(doc).trim();
-            log.info("PDF text extracted: {} chars", text.length()); // thêm
-            return text.length() > MAX_CHARS
-                    ? text.substring(0, MAX_CHARS) + "...[truncated]"
-                    : text;
         }
+    }
+
+    /**
+     * Làm sạch text trích xuất từ PDF:
+     * 1. Loại bỏ null byte (0x00) và các control char khác mà PostgreSQL
+     * không thể lưu trong cột text UTF8.
+     * 2. Loại bỏ ký tự Unicode replacement (U+FFFD, "�") — dấu hiệu PDF dùng
+     * font với CMap/ToUnicode không chuẩn, PDFBox không map được glyph.
+     * 3. Normalize Unicode về dạng NFC (ghép dấu) — phổ biến với font tiếng Việt
+     * extract ra dạng tổ hợp (chữ cái + dấu rời).
+     */
+    private String sanitizeExtractedText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        String cleaned = text
+                .replace("\u0000", "")
+                .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "")
+                .replace("\uFFFD", "");
+
+        cleaned = Normalizer.normalize(cleaned, Normalizer.Form.NFC);
+
+        return cleaned.trim();
     }
 }

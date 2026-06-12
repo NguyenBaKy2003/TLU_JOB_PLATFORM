@@ -667,6 +667,7 @@ export default function EmployerApplicationsPage() {
       {/* ── Smart Search Drawer ── */}
       {showSmartSearch && (
         <SmartSearchDrawer
+          jobPostId={id ?? ""}
           onClose={() => setShowSmartSearch(false)}
         />
       )}

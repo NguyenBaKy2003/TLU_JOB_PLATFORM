@@ -25,6 +25,7 @@ public enum NotificationType {
     SYSTEM_ANNOUNCEMENT, // không gửi email
     INTERVIEW_INVITE,
     JOB_SPOTLIGHT,
+    JOB_INVITATION,
 
     // Review types — thêm mới
     REVIEW_CREATED,
