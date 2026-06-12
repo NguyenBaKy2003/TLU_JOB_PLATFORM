@@ -25,6 +25,12 @@ public interface OnlineCVJpaRepository extends JpaRepository<OnlineCVJpaEntity, 
         long countByCandidateId(UUID candidateId);
 
         /**
+         * Tìm CV online đang là primary của candidate.
+         * Dùng trong listApplicableCVs để biết CV nào được đánh dấu chính.
+         */
+        Optional<OnlineCVJpaEntity> findByCandidateIdAndPrimaryTrue(UUID candidateId);
+
+        /**
          * Fetch CV + sections trong 1 query (tránh N+1).
          * Dùng khi cần render CV đầy đủ (export, view detail).
          */

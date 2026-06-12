@@ -60,7 +60,7 @@ public class AdminUserUseCase {
             user.activate();
 
         User saved = userRepo.save(user);
-        userCacheService.evict(userId); // ← thêm
+        userCacheService.evict(userId);
         log.info("User {} → active={}", userId, saved.isActive());
         return saved;
     }

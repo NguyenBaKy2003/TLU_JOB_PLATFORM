@@ -13,6 +13,8 @@ import {
   SmartSearchCandidatesPayload,
   PageResponse,
   SendMessagePayload,
+  InviteCandidatePayload,
+  InviteCandidateResponse,
 } from "@/domain/models/Ai";
 
 export interface IAiRepository {
@@ -41,4 +43,6 @@ export interface IAiRepository {
   // ── Candidate Search ──
   smartSearchCandidates(payload: SmartSearchCandidatesPayload): Promise<CandidateSearchResult>;
   autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult>;
+
+  inviteCandidate(jobPostId: string, payload: InviteCandidatePayload): Promise<InviteCandidateResponse>;
 }
