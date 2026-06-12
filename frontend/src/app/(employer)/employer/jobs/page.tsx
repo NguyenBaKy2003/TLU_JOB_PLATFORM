@@ -29,8 +29,8 @@ const STATUS_TABS: { value: JobStatus | "ALL"; label: string }[] = [
   { value: "EXPIRED",        label: "Hết hạn"    },
 ];
 
-const PAGE_SIZE_OPTIONS = [9, 18, 36];
-const DEFAULT_PAGE_SIZE = 9;
+const PAGE_SIZE_OPTIONS = [8, 18, 36];
+const DEFAULT_PAGE_SIZE = 8;
 
 type StatusCounts = Partial<Record<JobStatus, number>> & { total: number };
 

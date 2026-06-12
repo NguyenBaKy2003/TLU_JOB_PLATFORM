@@ -195,6 +195,7 @@ public class OnlineCVController {
         @Operation(summary = "Publish CV")
         @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
         @Loggable(action = "CANDIDATE_PUBLISH_CV", resourceType = "OnlineCV")
+        @PostMapping("/{cvId}/publish")
         public ResponseEntity<ApiResponse<OnlineCVDetailResponse>> publishCV(
                         @CurrentUser UUID candidateId,
                         @PathVariable UUID cvId) {

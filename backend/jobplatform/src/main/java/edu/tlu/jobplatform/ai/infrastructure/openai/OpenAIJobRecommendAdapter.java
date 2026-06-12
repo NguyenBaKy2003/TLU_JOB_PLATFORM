@@ -9,7 +9,6 @@ import edu.tlu.jobplatform.ai.domain.port.CandidateTrendAnalysisPort;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.job.domain.model.JobPost;
-import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,8 +29,7 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
 
         private final ChatClient chatClient;
         private final ObjectMapper objectMapper;
-        private final JobPostRepository jobPostRepo;
-        private final CompanyRepository companyRepo;
+        private final CompanyRepository companyRepo; // chỉ dùng cho recommendCompanies
 
         @Value("classpath:prompts/job-recommend.st")
         private Resource promptTemplate;
@@ -42,43 +40,45 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
         public OpenAIJobRecommendAdapter(
                         @Qualifier("jsonChatClient") ChatClient chatClient,
                         ObjectMapper objectMapper,
-                        JobPostRepository jobPostRepo,
                         CompanyRepository companyRepo) {
                 this.chatClient = chatClient;
                 this.objectMapper = objectMapper;
-                this.jobPostRepo = jobPostRepo;
                 this.companyRepo = companyRepo;
+                // JobPostRepository đã bị xóa — job pool được inject qua CandidateTrendRequest
         }
-        // ── recommendJobs ────
+
+        // ── recommendJobs ─────────────────────────────────────────────────────────
 
         @Override
         public JobRecommendResult recommendJobs(CandidateTrendRequest req) {
                 log.info("Job recommendation: candidateId={}", req.getCandidateId());
                 try {
-                        List<JobPost> openJobs = jobPostRepo
-                                        .findPublished(Pageable.ofSize(50))
-                                        .getContent();
+                        // Lấy job pool và company map từ request — không query DB ở đây
+                        List<JobPost> openJobs = req.getPublishedJobs();
+                        Map<UUID, String> companyNameMap = req.getCompanyNameMap();
 
                         if (openJobs.isEmpty()) {
                                 log.info("No published jobs found, skipping AI recommendation");
                                 return emptyJobResult();
                         }
 
+                        boolean hasNoHistory = req.getRecentKeywords().isEmpty()
+                                        && req.getViewedJobTitles().isEmpty()
+                                        && req.getAppliedJobTitles().isEmpty()
+                                        && req.getSavedJobTitles().isEmpty()
+                                        && req.getCandidateSkills().isEmpty();
+
+                        if (hasNoHistory) {
+                                log.info("No candidate history, returning top new jobs");
+                                return buildTopJobsResult(openJobs, companyNameMap);
+                        }
+
+                        // ── Gọi AI ───────────────────────────────────────────────────────
                         String jobPool = openJobs.stream()
                                         .map(j -> "[%s] %s — %s — %s".formatted(
                                                         j.getId(), j.getTitle(),
                                                         nullSafe(j.getLevel()), nullSafe(j.getCategory())))
                                         .collect(Collectors.joining("\n"));
-
-                        boolean hasNoHistory = req.getRecentKeywords().isEmpty()
-                                        && req.getViewedJobTitles().isEmpty()
-                                        && req.getAppliedJobTitles().isEmpty()
-                                        && req.getSavedJobTitles().isEmpty();
-
-                        if (hasNoHistory && req.getCandidateSkills().isEmpty()) {
-                                log.info("No candidate history, returning top jobs");
-                                return buildTopJobsResult(openJobs);
-                        }
 
                         String prompt = promptTemplate
                                         .getContentAsString(StandardCharsets.UTF_8)
@@ -97,11 +97,25 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                         JobRecommendResult result = objectMapper.readValue(clean, JobRecommendResult.class);
 
                         Set<UUID> validIds = openJobs.stream()
-                                        .map(JobPost::getId)
-                                        .collect(Collectors.toSet());
+                                        .map(JobPost::getId).collect(Collectors.toSet());
+                        Map<UUID, JobPost> jobMap = openJobs.stream()
+                                        .collect(Collectors.toMap(JobPost::getId, j -> j));
 
                         List<JobRecommendResult.RecommendedJob> validJobs = result.getJobs().stream()
                                         .filter(j -> j.getJobPostId() != null && validIds.contains(j.getJobPostId()))
+                                        .map(j -> {
+                                                JobPost db = jobMap.get(j.getJobPostId());
+                                                return JobRecommendResult.RecommendedJob.builder()
+                                                                .jobPostId(j.getJobPostId())
+                                                                .jobTitle(db.getTitle())
+                                                                .companyName(companyNameMap
+                                                                                .getOrDefault(db.getCompanyId(), ""))
+                                                                .matchScore(j.getMatchScore())
+                                                                .matchReason(j.getMatchReason())
+                                                                .urgencySignal(j.getUrgencySignal())
+                                                                .isNew(j.isNew())
+                                                                .build();
+                                        })
                                         .limit(6)
                                         .toList();
 
@@ -118,23 +132,12 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                 }
         }
 
-        // ── recommendCompanies ────────────────────────────────────────────────
+        // ── recommendCompanies ────────────────────────────────────────────────────
 
         @Override
         public CompanyRecommendResult recommendCompanies(CandidateTrendRequest req) {
                 log.info("Company recommendation: candidateId={}", req.getCandidateId());
                 try {
-                        boolean hasNoHistory = req.getRecentKeywords().isEmpty()
-                                        && req.getAppliedJobTitles().isEmpty()
-                                        && req.getCandidateSkills().isEmpty();
-
-                        if (hasNoHistory) {
-                                return CompanyRecommendResult.builder()
-                                                .companies(List.of())
-                                                .personalitySummary("Chưa đủ dữ liệu phân tích.")
-                                                .build();
-                        }
-
                         List<CompanyProfile> activeCompanies = companyRepo
                                         .findVerifiedCompaniesWithOpenJobs(Pageable.ofSize(50))
                                         .getContent();
@@ -146,17 +149,47 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                                                 .build();
                         }
 
-                        // Đếm open jobs để đưa vào pool
                         Set<UUID> companyIds = activeCompanies.stream()
                                         .map(CompanyProfile::getId)
                                         .collect(Collectors.toSet());
                         Map<UUID, Long> openJobCounts = companyRepo.countOpenJobsByCompanyIds(companyIds);
+                        Map<UUID, CompanyProfile> dbMap = activeCompanies.stream()
+                                        .collect(Collectors.toMap(CompanyProfile::getId, c -> c));
 
-                        // Format pool: [uuid] CompanyName — industry — N vị trí đang tuyển
+                        boolean hasNoHistory = req.getRecentKeywords().isEmpty()
+                                        && req.getAppliedJobTitles().isEmpty()
+                                        && req.getCandidateSkills().isEmpty();
+
+                        if (hasNoHistory) {
+                                log.info("No candidate history, returning top companies by open jobs");
+                                List<RecommendedCompany> top = activeCompanies.stream()
+                                                .sorted(Comparator.comparingLong(
+                                                                c -> -openJobCounts.getOrDefault(c.getId(), 0L)))
+                                                .limit(3)
+                                                .map(c -> RecommendedCompany.builder()
+                                                                .companyId(c.getId())
+                                                                .companyName(c.getName())
+                                                                .fitScore(50)
+                                                                .fitReason("Công ty đang tuyển dụng nhiều vị trí phù hợp")
+                                                                .openPositions(List.of())
+                                                                .logoUrl(c.getLogoUrl())
+                                                                .industry(c.getIndustry())
+                                                                .slug(c.getSlug())
+                                                                .openJobs(openJobCounts.getOrDefault(c.getId(), 0L)
+                                                                                .intValue())
+                                                                .build())
+                                                .toList();
+
+                                return CompanyRecommendResult.builder()
+                                                .companies(top)
+                                                .personalitySummary("Các công ty nổi bật đang tuyển dụng.")
+                                                .build();
+                        }
+
+                        // ── Gọi AI ───────────────────────────────────────────────────────
                         String companyPool = activeCompanies.stream()
                                         .map(c -> "[%s] %s — %s — %d vị trí đang tuyển".formatted(
-                                                        c.getId(),
-                                                        c.getName(),
+                                                        c.getId(), c.getName(),
                                                         nullSafe(c.getIndustry()),
                                                         openJobCounts.getOrDefault(c.getId(), 0L).intValue()))
                                         .collect(Collectors.joining("\n"));
@@ -170,16 +203,12 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                                         .replace("$skills$", joinOrNone(req.getCandidateSkills()))
                                         .replace("$level$", nullSafe(req.getCandidateLevel()))
                                         .replace("$location$", nullSafe(req.getCandidateLocation()))
-                                        .replace("$companyPool$", companyPool); // ← thêm
+                                        .replace("$companyPool$", companyPool);
 
                         String raw = chatClient.prompt().user(prompt).call().content();
                         String clean = stripMarkdown(raw);
 
                         CompanyRecommendResult aiResult = objectMapper.readValue(clean, CompanyRecommendResult.class);
-
-                        // ── Validate + enrich từ DB map (AI đã có UUID, chỉ cần lấy logoUrl, slug) ──
-                        Map<UUID, CompanyProfile> dbMap = activeCompanies.stream()
-                                        .collect(Collectors.toMap(CompanyProfile::getId, c -> c));
 
                         List<RecommendedCompany> validated = aiResult.getCompanies().stream()
                                         .filter(ai -> ai.getCompanyId() != null && dbMap.containsKey(ai.getCompanyId()))
@@ -215,17 +244,17 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                 }
         }
 
-        // ── Helpers ──────────
+        // ── Helpers ───────────────────────────────────────────────────────────────
 
-        private JobRecommendResult buildTopJobsResult(List<JobPost> jobs) {
+        private JobRecommendResult buildTopJobsResult(List<JobPost> jobs,
+                        Map<UUID, String> companyNameMap) {
                 List<JobRecommendResult.RecommendedJob> top = jobs.stream()
-                                .limit(6)
                                 .map(j -> JobRecommendResult.RecommendedJob.builder()
                                                 .jobPostId(j.getId())
                                                 .jobTitle(j.getTitle())
-                                                .companyName("")
+                                                .companyName(companyNameMap.getOrDefault(j.getCompanyId(), ""))
                                                 .matchScore(50)
-                                                .matchReason("Job mới đăng phù hợp với kỹ năng của bạn")
+                                                .matchReason("Việc làm mới đăng, có thể phù hợp với bạn")
                                                 .urgencySignal("Mới đăng")
                                                 .isNew(true)
                                                 .build())

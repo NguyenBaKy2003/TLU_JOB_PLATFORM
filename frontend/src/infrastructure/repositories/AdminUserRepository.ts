@@ -1,7 +1,7 @@
 // src/infrastructure/repositories/AdminUserRepository.ts
 import api from "@/lib/axios";
 import { getAdminAccessToken } from "@/lib/auth-helpers";
-import type { IAdminUserRepository } from "@/domain/repositories/IAdminUserRepository";
+import type { AdminCreateUserPayload, IAdminUserRepository } from "@/domain/repositories/IAdminUserRepository";
 import type {
   AdminUser, AdminUserFilters,
   AdminUserPage, AdminUserRole,
@@ -101,4 +101,13 @@ export class AdminUserRepository implements IAdminUserRepository {
     );
     return res.data;
   }
+
+  async createUser(data: AdminCreateUserPayload): Promise<AdminUser> {
+  const res = await api.post<ApiResponse<AdminUser>>(
+    this.BASE,
+    data,
+    adminConfig(),
+  );
+  return res.data.data;
+}
 }

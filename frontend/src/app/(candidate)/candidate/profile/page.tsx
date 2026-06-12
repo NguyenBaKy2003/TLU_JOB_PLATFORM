@@ -401,15 +401,18 @@ export default function ProfilePage() {
 
       {/* ── Left: profile sections ───── */}
       <div className="w-full lg:flex-1 lg:min-w-0 flex flex-col gap-4">
-        <ProfileHero
-          firstName={profile.firstName ?? undefined}
-          lastName={profile.lastName   ?? undefined}
-          title={profile.headline      ?? undefined}
-          avatar={profile.avatarUrl    ?? undefined}
-          onAvatarChange={updateAvatar}
-          onViewCV={cvList.length > 0 ? viewCV     : undefined}
-          onDownloadCV={cvList.length > 0 ? downloadCV : undefined}
-        />
+              <ProfileHero
+        firstName={profile.firstName ?? undefined}
+        lastName={profile.lastName   ?? undefined}
+        title={profile.headline      ?? undefined}
+        avatar={profile.avatarUrl    ?? undefined}
+        onAvatarChange={updateAvatar}
+        onViewCV={cvList.length > 0 ? viewCV      : undefined}
+        onDownloadCV={cvList.length > 0 ? downloadCV : undefined}
+        onTitleChange={async (newTitle) => {
+          await updateProfile("personal", { headline: newTitle });
+        }}
+      />
         <PersonalInfoSection   profile={profile} saving={!!saving.personal}      error={sectionErrors.personal}      onSave={updateProfile} />
         <BioSection            profile={profile} saving={!!saving.bio}            error={sectionErrors.bio}            onSave={updateProfile} />
         <SkillsSection         profile={profile} saving={!!saving.skills}         error={sectionErrors.skills}         onSave={updateProfile} />

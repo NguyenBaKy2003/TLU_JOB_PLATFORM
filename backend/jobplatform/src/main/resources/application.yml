@@ -155,15 +155,15 @@ springdoc:
   show-actuator: false
 aws:
   s3:
-    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXIRFVT4XY}
-    secret-key: ${AWS_SECRET_KEY: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}
+    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXE2QKZCNY}
+    secret-key: ${AWS_SECRET_KEY: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}
     region: ${AWS_REGION:ap-southeast-2}
     bucket: ${AWS_S3_BUCKET:jobplatform-storage}
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,caches
       base-path: /actuator
   endpoint:
     health:
@@ -171,7 +171,6 @@ management:
   health:
     elasticsearch:
       enabled: false
-    # Thêm dòng này để chỉ check những gì có thật
     defaults:
       enabled: true
 logging:
@@ -257,7 +256,7 @@ rate-limit:
       scope: USER
 
     cv-upload:
-      max: 10
+      max: 100
       window: 3600 # 10 lần/giờ/user — S3 upload (CV, avatar, logo, cover)
       scope: USER
 
@@ -398,7 +397,7 @@ payment:
     redirect-url: ${app.base-url}/api/v1/payments/callback/zalopay/return
 spring.ai:
   openai:
-    api-key: ${GROQ_API_KEY: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}
+    api-key: ${GROQ_API_KEY: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}
     base-url: https://api.groq.com/openai
     chat:
       options:

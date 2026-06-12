@@ -142,47 +142,55 @@ export default function JobDetailPage() {
   const [passProbability, setPassProbability] = useState<PassProbabilityResult | null>(null);
   const [passLoading,     setPassLoading]     = useState(false);
 
-  const hasLoaded = useRef(false);
 
   useEffect(() => {
-    if (hasLoaded.current || !id) return;
-    hasLoaded.current = true;
+  if (!id) return;
+  let cancelled = false;
 
-    (async () => {
-      // ── Job + application status ──────────────────────────────────────────
-      setLoading(true);
-      try {
-        const [data, alreadyApplied, alreadySaved] = await Promise.all([
-          jobService.getById(id),
-          appService.checkApplied(id).catch(() => false),
-          jobService.checkSaved(id).catch(() => false),
-        ]);
-        setJob(data);
-        setApplied(!!alreadyApplied);
-        setSaved(!!alreadySaved);
-        // ✅ competition đã có trong data.competition — không cần gọi thêm
-      } catch (e) {
-        const msg = extractErrorMessage(e, "Không tìm thấy tin tuyển dụng");
-        setError(msg);
-        toast.error("Không thể tải tin tuyển dụng", msg);
-      } finally {
-        setLoading(false);
-      }
+  (async () => {
+    setLoading(true);
+    try {
+      const [data, alreadyApplied, alreadySaved] = await Promise.all([
+        jobService.getById(id),
+        appService.checkApplied(id).catch(() => false),
+        jobService.checkSaved(id).catch(() => false),
+      ]);
+      if (cancelled) return;
+      setJob(data);
+      setApplied(!!alreadyApplied);
+      setSaved(!!alreadySaved);
+    } catch (e) {
+      if (cancelled) return;
+      const msg = extractErrorMessage(e, "Không tìm thấy tin tuyển dụng");
+      setError(msg);
+      toast.error("Không thể tải tin tuyển dụng", msg);
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  })();
 
-      // ── Pass probability (chỉ CANDIDATE đã đăng nhập) ────────────────────
-      if (isCandidate) {
-        setPassLoading(true);
-        try {
-          const prob = await aiService.getPassProbability(id);
-          setPassProbability(prob);
-        } catch {
-          // silent
-        } finally {
-          setPassLoading(false);
-        }
-      }
-    })();
-  }, [id, isCandidate]);
+  return () => { cancelled = true; };
+}, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+// ── Effect 2: pass probability — chờ auth resolve ────────────────────────────
+useEffect(() => {
+  if (!id || !isCandidate) return;
+  let cancelled = false;
+
+  (async () => {
+    setPassLoading(true);
+    try {
+      const prob = await aiService.getPassProbability(id);
+      if (!cancelled) setPassProbability(prob);
+    } catch {
+      // silent
+    } finally {
+      if (!cancelled) setPassLoading(false);
+    }
+  })();
+
+  return () => { cancelled = true; };
+}, [id, isCandidate]);
 
   const handleSave = async () => {
     if (!job) return;

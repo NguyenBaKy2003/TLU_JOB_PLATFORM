@@ -5,6 +5,7 @@ import edu.tlu.jobplatform.application.domain.model.vo.AIScore;
 import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.infrastructure.persistence.entity.ApplicationJpaEntity;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatsProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatusCountProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.repository.ApplicationJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -243,5 +244,14 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
             UUID companyId, LocalDateTime from, LocalDateTime to, Pageable pageable) {
         return jpaRepo.findInterviewScheduledByCompanyId(companyId, from, to, pageable)
                 .map(this::toDomain);
+    }
+
+    @Override
+    public ApplicationStats getStats(UUID candidateId, UUID jobPostId) {
+        ApplicationStatsProjection p = jpaRepo.getStats(candidateId, jobPostId);
+        return new ApplicationStats(
+                p.getTotalApply() != null ? p.getTotalApply() : 0,
+                p.getTotalPass() != null ? p.getTotalPass() : 0,
+                p.getCurrentApplicantCount() != null ? p.getCurrentApplicantCount() : 0);
     }
 }

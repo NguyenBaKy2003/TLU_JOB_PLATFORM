@@ -37,6 +37,19 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
     public PassProbabilityResult calculate(PassProbabilityRequest req) {
         log.info("Pass probability: candidateId={} jobPostId={}",
                 req.getCandidateId(), req.getJobPostId());
+
+        if (req.getCvText() == null || req.getCvText().isBlank()) {
+            return PassProbabilityResult.builder()
+                    .probability(0.05)
+                    .confidenceLevel(PassProbabilityResult.ConfidenceLevel.LOW)
+                    .matchScore(0)
+                    .strongPoints(List.of())
+                    .weakPoints(List.of("Chưa có CV — không thể phân tích"))
+                    .improvementTips(List.of())
+                    .summary("Vui lòng upload CV để được phân tích chính xác.")
+                    .build();
+        }
+
         try {
             String prompt = promptTemplate
                     .getContentAsString(StandardCharsets.UTF_8)
@@ -56,7 +69,6 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
 
             PassProbabilityResult aiResult = objectMapper.readValue(clean, PassProbabilityResult.class);
 
-            // Blend AI match score với pool stats để ra probability cuối
             double blended = blendWithPoolStats(
                     aiResult.getMatchScore(),
                     req.getCurrentApplicantCount(),
@@ -76,9 +88,9 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
         } catch (Exception e) {
             log.error("Pass probability failed: {}", e.getMessage());
             return PassProbabilityResult.builder()
-                    .probability(0.5)
+                    .probability(0.05)
                     .confidenceLevel(PassProbabilityResult.ConfidenceLevel.LOW)
-                    .matchScore(50)
+                    .matchScore(0)
                     .strongPoints(List.of())
                     .weakPoints(List.of())
                     .improvementTips(List.of())
@@ -87,25 +99,16 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
         }
     }
 
-    /**
-     * Blend AI content score với pool competition để ra xác suất thực tế.
-     * Ví dụ: AI score 85/100 nhưng có 50 người apply 1 vị trí → prob thực tế thấp
-     * hơn.
-     */
     private double blendWithPoolStats(int matchScore, int applicants,
             int quota, int profileCompleteness) {
-        // Xác suất thuần từ AI content (0.0-1.0)
         double contentProb = matchScore / 100.0;
 
-        // Xác suất thuần từ pool stats (giả định phân phối đều)
         double poolProb = quota > 0 && applicants > 0
                 ? Math.min(1.0, (double) quota / applicants)
-                : 0.5;
+                : 0.2;
 
-        // Profile completeness bonus/penalty
-        double profileFactor = 0.8 + (profileCompleteness / 100.0) * 0.4; // 0.8-1.2x
+        double profileFactor = 0.8 + (profileCompleteness / 100.0) * 0.4;
 
-        // Weighted blend: AI content 60%, pool stats 40%
         double blended = (contentProb * 0.6 + poolProb * 0.4) * profileFactor;
         return Math.min(0.97, Math.max(0.02, blended));
     }
