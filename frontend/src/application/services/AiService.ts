@@ -12,12 +12,13 @@ import {
   OptimizeJdPayload,
   CheckGuidelinesPayload,
   PageResponse,
+  InviteCandidateResponse,
 } from "@/domain/models/Ai";
 
 export class AiService {
   constructor(private readonly repo: IAiRepository) {}
 
-  // ── Chatbot ──────────────────────────────────────────────────────────────
+  // ── Chatbot ──────
 
   async sendMessage(
     content: string,
@@ -42,7 +43,7 @@ export class AiService {
     return this.repo.deleteSession(sessionId);
   }
 
-  // ── AI Features ──────────────────────────────────────────────────────────
+  // ── AI Features ──
 
   async rescoreApplication(applicationId: string): Promise<string> {
     if (!applicationId) throw new Error("Application ID không hợp lệ");
@@ -61,14 +62,14 @@ export class AiService {
     });
   }
 
-  // ── JD Guidelines ─────────────────────────────────────────────────────────
+  // ── JD Guidelines ─
 
   async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult> {
     if (!payload.title?.trim()) throw new Error("Tiêu đề JD không được để trống");
     return this.repo.checkJdGuidelines(payload);
   }
 
-  // ── Candidate Comparison ──────────────────────────────────────────────────
+  // ── Candidate Comparison ──────────────────────
 
   async compareCandidates(
     jobId: string,
@@ -82,21 +83,21 @@ export class AiService {
     return this.repo.compareCandidates(jobId, { applicationIds });
   }
 
-  // ── Competition Rate ──────────────────────────────────────────────────────
+  // ── Competition Rate ──────────────────────────
 
   async getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult> {
     if (!jobPostId) throw new Error("Job Post ID không hợp lệ");
     return this.repo.getCompetitionRate(jobPostId);
   }
 
-  // ── Pass Probability ──────────────────────────────────────────────────────
+  // ── Pass Probability ──────────────────────────
 
   async getPassProbability(jobId: string): Promise<PassProbabilityResult> {
     if (!jobId) throw new Error("Job ID không hợp lệ");
     return this.repo.getPassProbability(jobId);
   }
 
-  // ── Candidate Search ──────────────────────────────────────────────────────
+  // ── Candidate Search ──────────────────────────
 
   /**
    * Tìm kiếm ứng viên bằng ngôn ngữ tự nhiên hoặc tiêu chí có cấu trúc.
@@ -128,5 +129,21 @@ export class AiService {
   async autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult> {
     if (!jobPostId) throw new Error("Job Post ID không hợp lệ");
     return this.repo.autoSuggestCandidates(jobPostId);
+  }
+
+  async inviteCandidate(
+    jobPostId: string,
+    candidateProfileId: string,
+    personalMessage?: string
+  ): Promise<InviteCandidateResponse> {
+    if (!jobPostId)          throw new Error("Job Post ID không hợp lệ");
+    if (!candidateProfileId) throw new Error("Candidate Profile ID không hợp lệ");
+    if (personalMessage && personalMessage.length > 1000)
+      throw new Error("Lời nhắn không được vượt quá 1000 ký tự");
+ 
+    return this.repo.inviteCandidate(jobPostId, {
+      candidateProfileId,
+      personalMessage: personalMessage?.trim() || undefined,
+    });
   }
 }

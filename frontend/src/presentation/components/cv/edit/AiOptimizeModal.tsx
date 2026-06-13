@@ -17,7 +17,7 @@ interface Props {
   onClose:    () => void;
 }
 
-// ── Result section helper ──────────────────────────────────────────────────
+// ── Result section helper ──────────────────────
 
 const COLOR_MAP = {
   blue:   "bg-blue-50   border-blue-100   text-blue-800",
@@ -43,7 +43,7 @@ function ResultSection({
   );
 }
 
-// ── Main modal ─────────────────────────────────────────────────────────────
+// ── Main modal ─────
 
 export function AiOptimizeModal({ optimizing, result, error, onAnalyze, onClose }: Props) {
   const [jobs,        setJobs]        = useState<JobPost[]>([]);

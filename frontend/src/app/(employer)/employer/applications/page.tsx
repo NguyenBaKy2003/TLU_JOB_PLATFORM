@@ -42,7 +42,7 @@ const STATUS_TABS: { value: ApplicationStatus | "ALL"; label: string }[] = [
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 const DEFAULT_PAGE_SIZE = 20;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function scoreColor(score: number) {
   if (score >= 75) return { bar: "bg-emerald-500", label: "text-emerald-700" };
@@ -66,7 +66,7 @@ function levelLabel(level?: string) {
   return level ? (map[level] ?? level) : null;
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
+// ── Stat Card ─────────
 
 function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: number | string; color: string;
@@ -82,7 +82,7 @@ function StatCard({ icon, label, value, color }: {
   );
 }
 
-// ── Interview Schedule CTA Card ───────────────────────────────────────────────
+// ── Interview Schedule CTA Card ───────────────────
 
 function InterviewScheduleCard({ scheduled, onClick }: { scheduled: number; onClick: () => void }) {
   return (
@@ -109,7 +109,7 @@ function InterviewScheduleCard({ scheduled, onClick }: { scheduled: number; onCl
   );
 }
 
-// ── Card Skeleton ─────────────────────────────────────────────────────────────
+// ── Card Skeleton ─────
 
 function CardSkeleton({ count }: { count: number }) {
   return (
@@ -154,7 +154,7 @@ function CardSkeleton({ count }: { count: number }) {
   );
 }
 
-// ── CV Actions ────────────────────────────────────────────────────────────────
+// ── CV Actions ────────
 
 function CvActions({ appId, candidateName }: { appId: string; candidateName: string }) {
   const toast                         = useToast();
@@ -202,7 +202,7 @@ function CvActions({ appId, candidateName }: { appId: string; candidateName: str
   );
 }
 
-// ── Application Card ──────────────────────────────────────────────────────────
+// ── Application Card ──
 
 interface ApplicationCardProps {
   app: ApplicationWithCandidate;
@@ -369,7 +369,7 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
   );
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────
 
 interface ScheduleTarget { id: string; candidateName: string; }
 
@@ -386,7 +386,7 @@ const DEFAULT_FILTERS: AppliedFilters = {
   status: "ALL", search: "", dateFrom: "", dateTo: "", page: 0, pageSize: DEFAULT_PAGE_SIZE,
 };
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function EmployerApplicationsPage() {
   const toast  = useToast();

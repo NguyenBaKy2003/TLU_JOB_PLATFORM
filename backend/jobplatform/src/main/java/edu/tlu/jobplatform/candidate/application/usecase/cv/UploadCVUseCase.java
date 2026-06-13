@@ -86,6 +86,10 @@ public class UploadCVUseCase {
                 try {
                         parsedContent = cvParser.parse(
                                         new java.io.ByteArrayInputStream(fileBytes), cmd.contentType());
+                        // Loại bỏ null byte (0x00) và các ký tự điều khiển không hợp lệ
+                        // trước khi lưu vào PostgreSQL (cột text UTF8), tránh lỗi:
+                        // "invalid byte sequence for encoding UTF8: 0x00"
+                        parsedContent = sanitizeForDb(parsedContent);
                 } catch (Exception e) {
                         log.warn("CV parse failed for candidateId={}: {}", cmd.candidateId(), e.getMessage());
                 }
@@ -145,5 +149,23 @@ public class UploadCVUseCase {
                                 saved.getId(), saved.getCandidateId(), makePrimary);
 
                 return saved;
+        }
+
+        /**
+         * Loại bỏ null byte (0x00) và các ký tự điều khiển khác mà PostgreSQL
+         * không thể lưu trong cột text UTF8. Nếu không xử lý, insert sẽ bị lỗi:
+         * "ERROR: invalid byte sequence for encoding "UTF8": 0x00".
+         *
+         * Giữ lại tab (\t), newline (\n), carriage return (\r) vì chúng hợp lệ
+         * và cần thiết cho định dạng nội dung CV.
+         */
+        private String sanitizeForDb(String input) {
+                if (input == null) {
+                        return "";
+                }
+                return input
+                                .replace("\u0000", "")
+                                .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "")
+                                .trim();
         }
 }

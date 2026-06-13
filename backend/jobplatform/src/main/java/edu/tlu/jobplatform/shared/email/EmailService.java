@@ -323,4 +323,25 @@ public class EmailService {
                         log.error("[Email] Invoice failed: to={} error={}", toEmail, e.getMessage());
                 }
         }
+
+        @Async("aiTaskExecutor")
+        public void sendJobInvitationEmail(String toEmail, String candidateName,
+                        String jobTitle, String companyName,
+                        String applyLink, String personalMessage) {
+
+                Map<String, Object> vars = new java.util.HashMap<>();
+                vars.put("candidateName", candidateName);
+                vars.put("jobTitle", jobTitle);
+                vars.put("companyName", companyName);
+                vars.put("applyLink", frontendUrl + applyLink);
+                vars.put("personalMessage", personalMessage != null ? personalMessage : "");
+                vars.put("hasPersonalMessage", personalMessage != null && !personalMessage.isBlank());
+                vars.put("supportEmail", "support@jobplatform.vn");
+
+                send(toEmail,
+                                "[CareerUp] " + companyName + " mời bạn ứng tuyển vị trí \"" + jobTitle + "\"",
+                                "job-invitation",
+                                vars);
+        }
+
 }

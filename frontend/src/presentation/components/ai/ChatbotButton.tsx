@@ -87,7 +87,7 @@ export function ChatbotButton() {
 
   return (
     <>
-      {/* ── Floating button ───────────────────────────────────────────────── */}
+      {/* ── Floating button ───────────────────── */}
       <button
         onClick={() => setOpen(v => !v)}
         aria-label="Mở Career Advisor"
@@ -104,7 +104,7 @@ export function ChatbotButton() {
         )}
       </button>
 
-      {/* ── Chat popup ───────────────────────────────────────────────────── */}
+      {/* ── Chat popup ───────────────────────── */}
       {open && (
         <div
           className="fixed bottom-24 right-6 z-50 w-80 sm:w-96
@@ -133,7 +133,7 @@ export function ChatbotButton() {
             </button>
           </div>
 
-          {/* ── Chưa đăng nhập ───────────────────────────────────────────── */}
+          {/* ── Chưa đăng nhập ───────────────── */}
           {!isAuthenticated ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
               <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">

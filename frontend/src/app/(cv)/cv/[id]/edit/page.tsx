@@ -32,7 +32,7 @@ export default function CVEditPage() {
   const router = useRouter();
   const { success, error: toastError, info } = useToast();
 
-  // ── Data ─────────────────────────────────────────────────────────────────
+  // ── Data ─────────
   const [cv, setCv] = useState<OnlineCVDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,7 +52,7 @@ export default function CVEditPage() {
       });
   }, [id, router]);
 
-  // ── UI state ──────────────────────────────────────────────────────────────
+  // ── UI state ──────
   const [activeTab, setActiveTab] = useState<EditorTab>("personal");
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -60,13 +60,13 @@ export default function CVEditPage() {
   const [previewKey, setPreviewKey] = useState(0);
   const [mobileView, setMobileView] = useState<MobileView>("editor");
 
-  // ── AI modal ──────────────────────────────────────────────────────────────
+  // ── AI modal ──────
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiOptimizing, setAiOptimizing] = useState(false);
   const [aiResult, setAiResult] = useState<AiOptimizeResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  // ── Personal Info ─────────────────────────────────────────────────────────
+  // ── Personal Info ─
   const handleSavePersonalInfo = useCallback(
     async (form: Parameters<typeof cvService.updatePersonalInfo>[1]) => {
       if (!cv) return;
@@ -98,7 +98,7 @@ export default function CVEditPage() {
     [cv, toastError]
   );
 
-  // ── Sections ──────────────────────────────────────────────────────────────
+  // ── Sections ──────
   const handleAddSection = useCallback(
     async (
       type: Parameters<typeof cvService.addSection>[1],
@@ -204,7 +204,7 @@ export default function CVEditPage() {
     [handleUpdateSection]
   );
 
-  // ── Lifecycle actions ─────────────────────────────────────────────────────
+  // ── Lifecycle actions ─────────────────────────
   const handlePublish = useCallback(async () => {
     if (!cv) return;
     try {
@@ -274,7 +274,7 @@ export default function CVEditPage() {
     [cv, info, toastError]
   );
 
-  // ── AI Optimize ───────────────────────────────────────────────────────────
+  // ── AI Optimize ───
   const handleOpenAiModal = useCallback(() => {
     setAiResult(null);
     setAiError(null);
@@ -301,7 +301,7 @@ export default function CVEditPage() {
     [cv]
   );
 
-  // ── Realtime preview updates ──────────────────────────────────────────────
+  // ── Realtime preview updates ──────────────────
   const handleRealtimePersonalInfoUpdate = useCallback(
     (form: PersonalInfoForm) => {
       setCv((p) => (p ? { ...p, personalInfo: { ...p.personalInfo, ...form } } : p));
@@ -325,7 +325,7 @@ export default function CVEditPage() {
     []
   );
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
   if (loading) return <CVEditSkeleton />;
   if (!cv) return null;
 

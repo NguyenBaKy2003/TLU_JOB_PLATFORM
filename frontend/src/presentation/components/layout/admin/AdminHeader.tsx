@@ -12,7 +12,7 @@ import {
 import type { User }    from "@/domain/models/User";
 import { useWebSocket } from "@/application/contexts/WebSocketContext";
 
-// ─── Props ───────────────────────────────────────────────────────────────────
+// ─── Props ───────────
 
 interface Props {
   title?:        string;
@@ -22,7 +22,7 @@ interface Props {
   onLogout:      () => Promise<void>;
 }
 
-// ─── NotificationPanel ───────────────────────────────────────────────────────
+// ─── NotificationPanel ───────────────────────────
 
 function NotificationPanel({ onClose }: { onClose: () => void }) {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useWebSocket();
@@ -142,7 +142,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── AdminHeader ─────────────────────────────────────────────────────────────
+// ─── AdminHeader ─────
 
 export function AdminHeader({
   title = "Dashboard", subtitle, onMenuToggle, adminUser, onLogout,

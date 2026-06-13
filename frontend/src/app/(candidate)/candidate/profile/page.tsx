@@ -60,7 +60,7 @@ function formatDate(iso: string) {
   });
 }
 
-// ── Inline BoostCard ─────────────────────────────────────────────────────────
+// ── Inline BoostCard ─
 
 interface BoostCardProps {
   boosted:         boolean;
@@ -148,7 +148,7 @@ function BoostCard({ boosted, boostedUntil, boostsRemaining, boosting, onBoost }
   );
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+// ── Page ─────────────
 
 export default function ProfilePage() {
   const toast  = useToast();
@@ -217,7 +217,7 @@ export default function ProfilePage() {
     }
   }, [toast]);
 
-  // ── Boost ──────────────────────────────────────────────────────────────────
+  // ── Boost ──────────
 
   const handleBoost = useCallback(async () => {
     setBoosting(true);
@@ -245,7 +245,7 @@ export default function ProfilePage() {
     }
   }, [toast]);
 
-  // ── Profile handlers ───────────────────────────────────────────────────────
+  // ── Profile handlers ───────────────────────────
 
   const updateProfile = useCallback(async (section: SectionKey, data: UpdateProfilePayload) => {
     startSaving(section); clearSectionError(section);
@@ -358,7 +358,7 @@ export default function ProfilePage() {
   const isBoosted    = boostStatus?.currentlyBoosted ?? profile?.boosted ?? false;
   const boostedUntil = boostStatus?.boostedUntil     ?? profile?.boostedUntil ?? null;
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // ── Loading ───────
 
   if (loading) {
     return (
@@ -378,7 +378,7 @@ export default function ProfilePage() {
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
+  // ── Error ─────────
 
   if (error || !profile) {
     return (
@@ -394,7 +394,7 @@ export default function ProfilePage() {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
@@ -426,9 +426,9 @@ export default function ProfilePage() {
         <BenefitsSection       profile={profile} saving={!!saving.benefits}       error={sectionErrors.benefits}       onSave={updateProfile} />
       </div>
 
-      {/* ── Right: sidebar cards ─────────────────────────────────────────────
+      {/* ── Right: sidebar cards ─────────────────
 
-      ──────────────────────────────────────────────────────────────────────── */}
+      ──────────────── */}
       <div className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-4 flex flex-col gap-4">
         <ProfileCompletionCard percentage={percentage} steps={steps} />
         <BoostCard

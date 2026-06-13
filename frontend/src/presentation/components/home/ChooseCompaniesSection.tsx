@@ -10,7 +10,7 @@ import type { CompanyProfile } from "@/domain/models/Company";
 
 const companyService = new CompanyService(new CompanyRepository());
 
-// ── Company Logo ──────────────────────────────────────────────────────────────
+// ── Company Logo ──────
 
 function CompanyLogo({ name, src }: { name: string; src?: string | null }) {
   const [imgError, setImgError] = useState(false);
@@ -38,7 +38,7 @@ function CompanyLogo({ name, src }: { name: string; src?: string | null }) {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonCard() {
   return (
@@ -63,7 +63,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Company Card ──────────────────────────────────────────────────────────────
+// ── Company Card ──────
 
 function CompanyCard({
   company, index, inView,
@@ -118,7 +118,7 @@ function CompanyCard({
   );
 }
 
-// ── Section ───────────────────────────────────────────────────────────────────
+// ── Section ───────────
 
 export function ChooseCompaniesSection() {
   const { ref, inView } = useInView();

@@ -37,56 +37,56 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConfirmEmailChangeUseCase {
 
-    private final UserRepository userRepository;
-    private final EmailChangeTokenPort emailChangeTokenPort;
-    private final TokenStorePort tokenStore;
-    private final EmailPort emailPort;
-    private final UserCacheService userCacheService; // ← thêm
+        private final UserRepository userRepository;
+        private final EmailChangeTokenPort emailChangeTokenPort;
+        private final TokenStorePort tokenStore;
+        private final EmailPort emailPort;
+        private final UserCacheService userCacheService;
 
-    @Transactional
-    public void execute(Command cmd) {
-        var user = userRepository.findById(cmd.userId())
-                .orElseThrow(() -> ResourceNotFoundException.user(cmd.userId()));
+        @Transactional
+        public void execute(Command cmd) {
+                var user = userRepository.findById(cmd.userId())
+                                .orElseThrow(() -> ResourceNotFoundException.user(cmd.userId()));
 
-        // BR-01: Tìm pending request
-        var pending = emailChangeTokenPort.find(cmd.userId())
-                .orElseThrow(() -> new BusinessRuleException(
-                        "Liên kết xác nhận đã hết hạn (15 phút). Vui lòng gửi lại yêu cầu.",
-                        "TOKEN_EXPIRED"));
+                // BR-01: Tìm pending request
+                var pending = emailChangeTokenPort.find(cmd.userId())
+                                .orElseThrow(() -> new BusinessRuleException(
+                                                "Liên kết xác nhận đã hết hạn (15 phút). Vui lòng gửi lại yêu cầu.",
+                                                "TOKEN_EXPIRED"));
 
-        // BR-02: Kiểm tra token khớp
-        if (!pending.token().equals(cmd.token())) {
-            log.warn("Email change: token mismatch for userId={}", cmd.userId());
-            throw new BusinessRuleException(
-                    "Liên kết xác nhận không hợp lệ.", "TOKEN_INVALID");
+                // BR-02: Kiểm tra token khớp
+                if (!pending.token().equals(cmd.token())) {
+                        log.warn("Email change: token mismatch for userId={}", cmd.userId());
+                        throw new BusinessRuleException(
+                                        "Liên kết xác nhận không hợp lệ.", "TOKEN_INVALID");
+                }
+
+                // BR-03: Double-check email mới chưa bị đăng ký bởi người khác
+                if (userRepository.existsByEmail(pending.newEmail())) {
+                        emailChangeTokenPort.delete(cmd.userId());
+                        throw new BusinessRuleException(
+                                        "Email này đã được sử dụng bởi tài khoản khác.", "EMAIL_ALREADY_EXISTS");
+                }
+
+                String oldEmail = user.getEmail();
+                user.updateEmail(pending.newEmail());
+                userRepository.save(user);
+
+                // BR-04: Xóa token + revoke tất cả session
+                emailChangeTokenPort.delete(cmd.userId());
+                tokenStore.deleteAll(cmd.userId());
+
+                // Evict cache — email đã đổi, cache cũ không còn hợp lệ
+                // Session bị revoke → user phải login lại → cache được warm lại tự nhiên
+                userCacheService.evict(cmd.userId());
+
+                // Thông báo đến email cũ
+                emailPort.sendEmailChangedNotification(oldEmail, user.getFullName(), pending.newEmail());
+
+                log.info("Email changed: userId={}, oldEmail={}, newEmail={}",
+                                cmd.userId(), oldEmail, pending.newEmail());
         }
 
-        // BR-03: Double-check email mới chưa bị đăng ký bởi người khác
-        if (userRepository.existsByEmail(pending.newEmail())) {
-            emailChangeTokenPort.delete(cmd.userId());
-            throw new BusinessRuleException(
-                    "Email này đã được sử dụng bởi tài khoản khác.", "EMAIL_ALREADY_EXISTS");
+        public record Command(UUID userId, String token) {
         }
-
-        String oldEmail = user.getEmail();
-        user.updateEmail(pending.newEmail());
-        userRepository.save(user);
-
-        // BR-04: Xóa token + revoke tất cả session
-        emailChangeTokenPort.delete(cmd.userId());
-        tokenStore.deleteAll(cmd.userId());
-
-        // Evict cache — email đã đổi, cache cũ không còn hợp lệ
-        // Session bị revoke → user phải login lại → cache được warm lại tự nhiên
-        userCacheService.evict(cmd.userId());
-
-        // Thông báo đến email cũ
-        emailPort.sendEmailChangedNotification(oldEmail, user.getFullName(), pending.newEmail());
-
-        log.info("Email changed: userId={}, oldEmail={}, newEmail={}",
-                cmd.userId(), oldEmail, pending.newEmail());
-    }
-
-    public record Command(UUID userId, String token) {
-    }
 }

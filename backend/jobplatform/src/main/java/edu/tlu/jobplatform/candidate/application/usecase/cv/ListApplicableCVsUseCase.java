@@ -31,11 +31,14 @@ public class ListApplicableCVsUseCase {
 
         public List<ApplicableCV> execute(UUID candidateId) {
 
-                List<ApplicableCV> fromUploaded = uploadedCVRepo.findAllByCandidateId(candidateId)
+                List<ApplicableCV> fromUploaded = uploadedCVRepo
+                                .findAllByCandidateId(candidateId)
                                 .stream()
                                 .map(ApplicableCV::fromUploaded)
                                 .toList();
-                List<ApplicableCV> fromOnline = onlineCVRepo.findPublishedByCandidateId(candidateId)
+
+                List<ApplicableCV> fromOnline = onlineCVRepo
+                                .findPublishedByCandidateId(candidateId)
                                 .stream()
                                 .map(ApplicableCV::fromOnline)
                                 .toList();
@@ -48,11 +51,12 @@ public class ListApplicableCVsUseCase {
                                 .toList();
         }
 
-        // ── Result DTO ───────
+        // ── Result DTO ────────────────────────────────────────────────────────────
 
         @Getter
         @Builder
         public static class ApplicableCV {
+
                 private UUID id;
                 private String title;
                 private String type; // "UPLOADED" | "ONLINE"
@@ -78,7 +82,7 @@ public class ListApplicableCVsUseCase {
                                         .title(cv.getTitle())
                                         .type("ONLINE")
                                         .slug(cv.getSlug())
-                                        .primary(false) // online CV không có khái niệm primary
+                                        .primary(cv.isPrimary())
                                         .createdAt(cv.getCreatedAt())
                                         .build();
                 }

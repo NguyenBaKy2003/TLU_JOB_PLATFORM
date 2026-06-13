@@ -21,7 +21,7 @@ import { CompaniesAISearchBar } from "@/presentation/components/companies/Compan
 const PER_PAGE = 12;
 const companyService = new CompanyService(new CompanyRepository());
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonCard() {
   return (
@@ -42,7 +42,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Inner ─────────────────────────────────────────────────────────────────────
+// ── Inner ─────────────
 
 function CompaniesPageInner() {
   const searchParams = useSearchParams();
@@ -84,7 +84,7 @@ function CompaniesPageInner() {
     setPage(1);
   }, [searchParams]);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
 
   useEffect(() => {
     const currentFetchId = ++fetchIdRef.current;
@@ -115,7 +115,7 @@ function CompaniesPageInner() {
       });
   }, [appliedKeyword, appliedLocation, filters, page]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────
 
   // Handler cho CompaniesAISearchBar — nhận (keyword, location) đã commit
   const handleSearch = (kw: string, loc: string) => {
@@ -151,12 +151,12 @@ function CompaniesPageInner() {
     filters.minRating != null && filters.minRating > 0 ? 1 : 0,
   ].filter(Boolean).length;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
-      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      {/* ── Hero ───── */}
       {/* section không có overflow-hidden → dropdown AI không bị clip */}
       <section className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
         {/* blur balls tách riêng với overflow-hidden để không clip dropdown */}
@@ -218,7 +218,7 @@ function CompaniesPageInner() {
         </div>
       </section>
 
-      {/* ── Main ───────────────────────────────────────────────────────────── */}
+      {/* ── Main ───── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
@@ -397,7 +397,7 @@ function CompaniesPageInner() {
         </div>
       </div>
 
-      {/* ── Mobile filter drawer ────────────────────────────────────────────── */}
+      {/* ── Mobile filter drawer ────────────────── */}
       <AnimatePresence>
         {showMobileFilter && (
           <>

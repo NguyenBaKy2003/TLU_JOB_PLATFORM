@@ -21,7 +21,7 @@ export type JobStatusCounts = { total: number } & Partial<Record<JobStatus, numb
 
 export interface IJobRepository {
 
-  // ── Public / candidate ────────────────────────────────────────────────────
+  // ── Public / candidate ────────────────────────
 
   listPublished(page?: number, size?: number): Promise<PageResponse<JobPost>>;
 
@@ -31,14 +31,14 @@ export interface IJobRepository {
 
   getBySlug(slug: string): Promise<JobPostDetail>;
 
-  // ── Candidate — saved jobs ────────────────────────────────────────────────
+  // ── Candidate — saved jobs ────────────────────
 
   toggleSave(jobPostId: string): Promise<boolean>;
 
 listSaved(page?: number, size?: number, params?: SavedJobsParams): Promise<MySavedJobsResponse>;
   checkSaved(jobPostId: string): Promise<boolean>;
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  // ── Employer ──────
 
   create(payload: CreateJobPayload): Promise<JobPostDetail>;
 

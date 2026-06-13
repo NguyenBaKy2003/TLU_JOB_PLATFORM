@@ -20,7 +20,7 @@ const NOISE_ACTIONS = new Set([
   "EMPLOYER_GET_PROFILE",
 ]);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function formatTime(iso: string) {
   const d = new Date(iso);
@@ -47,7 +47,7 @@ function ResultBadge({ result }: { result: AuditLogResult }) {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonRow() {
   return (
@@ -62,7 +62,7 @@ function SkeletonRow() {
   );
 }
 
-// ── Log Row ───────────────────────────────────────────────────────────────────
+// ── Log Row ───────────
 
 function LogRow({ log }: { log: AuditLog }) {
   const label = AUDIT_ACTION_LABELS[log.action] ?? log.action;
@@ -112,7 +112,7 @@ interface ActivityPageProps {
   adminActorId?: string;
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 const EMPTY_FILTERS: Omit<MyAuditLogFilters, "page" | "size"> = {
   action:       "",

@@ -7,7 +7,7 @@ import { getAdminAccessToken } from "@/lib/auth-helpers"
 import { extractErrorMessage } from "@/lib/extractErrorMessage"
 import type { NotificationItem } from "@/domain/models/Notification"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────
 
 type AdminTab = "ALL" | "NEW_USER" | "NEW_JOB" | "REPORT" | "SYSTEM" | "VERIFICATION" | "PAYMENT"
 
@@ -33,7 +33,7 @@ function typeToTab(type: string): AdminTab {
   return map[type] ?? "SYSTEM"
 }
 
-// ─── API helper — dùng adminAccessToken trực tiếp ─────────────────────────────
+// ─── API helper — dùng adminAccessToken trực tiếp ─
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "")
 
@@ -72,7 +72,7 @@ async function fetchAdminNotifications(page = 0, size = 50): Promise<Notificatio
 async function patchAdminRead(id: string)    { await adminFetch(`/notifications/${id}/read`,  { method: "PATCH" }) }
 async function patchAdminReadAll()           { await adminFetch(`/notifications/read-all`,    { method: "PATCH" }) }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── Skeleton ─────────
 
 function NotifSkeleton() {
   return (
@@ -189,7 +189,7 @@ function AdminNotifRow({
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page ─────────────
 
 export default function AdminNotificationsPage() {
   const { adminUser } = useAdminAuth()
@@ -208,7 +208,7 @@ export default function AdminNotificationsPage() {
 
   const hasLoaded = useRef(false)
 
-  // ── Load ────────────────────────────────────────────────────────────────────
+  // ── Load ────────────
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -229,7 +229,7 @@ export default function AdminNotificationsPage() {
     load()
   }, [load])
 
-  // ── WS: thông báo mới ───────────────────────────────────────────────────────
+  // ── WS: thông báo mới ───────────────────────────
 
   useEffect(() => {
     return subscribeToNewNotification((n) => {
@@ -240,7 +240,7 @@ export default function AdminNotificationsPage() {
     })
   }, [subscribeToNewNotification])
 
-  // ── WS: all-read từ tab/thiết bị khác ──────────────────────────────────────
+  // ── WS: all-read từ tab/thiết bị khác ──────────
 
   useEffect(() => {
     return subscribeToAllRead(() => {
@@ -250,7 +250,7 @@ export default function AdminNotificationsPage() {
     })
   }, [subscribeToAllRead])
 
-  // ── WS: xóa notification ───────────────────────────────────────────────────
+  // ── WS: xóa notification ───────────────────────
 
   useEffect(() => {
     return subscribeToNotificationDeleted((deletedId) => {
@@ -264,7 +264,7 @@ export default function AdminNotificationsPage() {
     })
   }, [subscribeToNotificationDeleted])
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  // ── Actions ─────────
 
   const markOneRead = useCallback(async (id: string) => {
     // Optimistic update
@@ -296,7 +296,7 @@ export default function AdminNotificationsPage() {
     }
   }, [load])
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
+  // ── Derived ─────────
 
   const filtered = items.filter((n) =>
     tab === "ALL" ? true : typeToTab(n.type) === tab,
@@ -315,7 +315,7 @@ export default function AdminNotificationsPage() {
     )
   }).length
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ───────────
 
   return (
     <div className="mx-auto">

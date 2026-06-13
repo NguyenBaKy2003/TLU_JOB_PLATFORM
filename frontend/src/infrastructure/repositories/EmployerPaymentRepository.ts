@@ -1,6 +1,7 @@
 import api from "@/lib/axios";
 import type { IEmployerPaymentRepository, PaymentSearchParams } from "@/domain/repositories/IEmployerPaymentRepository";
 import type { EmployerPayment, PaymentListResponse } from "@/domain/models/EmployerPayment";
+import { RetryPaymentResult } from "@/domain/models/PaymentShared";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -29,6 +30,13 @@ export class EmployerPaymentRepository implements IEmployerPaymentRepository {
 
   async getMyPaymentDetail(id: string): Promise<EmployerPayment> {
     const res = await api.get<ApiResponse<EmployerPayment>>(`${this.BASE}/my/${id}`);
+    return res.data.data;
+  }
+
+   async retryPayment(id: string): Promise<RetryPaymentResult> {
+    const res = await api.post<ApiResponse<RetryPaymentResult>>(
+      `${this.BASE}/my/${id}/retry`
+    );
     return res.data.data;
   }
 }

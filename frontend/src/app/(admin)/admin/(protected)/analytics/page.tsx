@@ -35,13 +35,13 @@ Chart.register(
   CategoryScale, LinearScale, Tooltip, Legend, Filler,
 );
 
-// ─── Services ──────────────────────────────────────────────────────────────
+// ─── Services ──────
 
 const analyticsService = new AdminAnalyticsService(new AdminAnalyticsRepository());
 const jobService       = new AdminJobService(new AdminJobRepository());
 const companyService   = new AdminCompanyService(new AdminCompanyRepository());
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Helpers ───────
 
 function formatMonthLabel(label: string): string {
   if (label.match(/^\d{4}-\d{2}$/)) {
@@ -61,7 +61,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(h / 24)} ngày trước`;
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────
+// ─── Page ──────────
 
 export default function AdminAnalyticsPage() {
   const [dashboard,        setDashboard]        = useState<AdminDashboardStats | null>(null);
@@ -211,7 +211,7 @@ export default function AdminAnalyticsPage() {
   );
 }
 
-// ─── Pending Jobs Card ─────────────────────────────────────────────────────
+// ─── Pending Jobs Card ─────────────────────────
 
 function PendingJobsCard({ jobs, total }: { jobs: AdminJob[]; total: number }) {
   return (
@@ -250,7 +250,7 @@ function PendingJobsCard({ jobs, total }: { jobs: AdminJob[]; total: number }) {
   );
 }
 
-// ─── Pending Companies Card ────────────────────────────────────────────────
+// ─── Pending Companies Card ────────────────────
 
 function PendingCompaniesCard({ companies, total }: { companies: AdminCompany[]; total: number }) {
   return (
@@ -298,7 +298,7 @@ function PendingCompaniesCard({ companies, total }: { companies: AdminCompany[];
   );
 }
 
-// ─── ActionCard shell ──────────────────────────────────────────────────────
+// ─── ActionCard shell ──────────────────────────
 
 function ActionCard({
   title, total, icon, badgeColor,
@@ -342,7 +342,7 @@ function ActionCard({
   );
 }
 
-// ─── Stat sub-components ───────────────────────────────────────────────────
+// ─── Stat sub-components ───────────────────────
 
 type StatColor = "blue" | "green" | "purple" | "orange" | "yellow" | "red";
 
@@ -404,7 +404,7 @@ function ChartCard({ title, children, className }: { title: string; children: Re
   );
 }
 
-// ─── Chart Components ──────────────────────────────────────────────────────
+// ─── Chart Components ──────────────────────────
 
 function ChartLoader() {
   return (

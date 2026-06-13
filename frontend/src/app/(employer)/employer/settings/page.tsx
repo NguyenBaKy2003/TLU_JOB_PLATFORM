@@ -8,7 +8,7 @@ import { DeleteAccountSection } from "@/presentation/components/settings/DeleteA
 import { Building2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-// ── Employer-specific info panel ──────────────────────────────────────────────
+// ── Employer-specific info panel ──────────────────
 
 function EmployerInfoPanel() {
   return (
@@ -53,7 +53,7 @@ function EmployerInfoPanel() {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function EmployerSettingsPage() {
   const { user } = useAuth();

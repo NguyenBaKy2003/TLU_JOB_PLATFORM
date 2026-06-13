@@ -11,7 +11,8 @@ export type NotificationApiType =
   | "JOB_POST_APPROVED"
   | "JOB_POST_REJECTED"
   | "SYSTEM_ANNOUNCEMENT"
-  | "NEW_MESSAGE";
+  | "NEW_MESSAGE"
+  |"JOB_INVITATION";
 
 // ─── Frontend tab filter (UI only) ─────────────
 

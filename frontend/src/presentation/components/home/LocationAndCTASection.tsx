@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useInView } from "./useInView";
 
-// ── Location data ─────────────────────────────────────────────────────────────
+// ── Location data ─────
 const LOCATIONS = [
   { name: "Hà Nội",          jobs: 140, img: "/locations/location1.png" },
   { name: "Đà Nẵng",         jobs: 50,  img: "/locations/location2.png" },
@@ -12,7 +12,7 @@ const LOCATIONS = [
   { name: "Bắc Ninh",        jobs: 4,   img: "/locations/location4.png" },
 ];
 
-// ── Location Card ─────────────────────────────────────────────────────────────
+// ── Location Card ─────
 function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index: number; inView: boolean }) {
   // Nhấn → tìm việc theo địa điểm này
   const href = `/jobs?location=${encodeURIComponent(loc.name)}`;
@@ -56,7 +56,7 @@ function LocationCard({ loc, index, inView }: { loc: typeof LOCATIONS[0]; index:
   );
 }
 
-// ── Location Section ──────────────────────────────────────────────────────────
+// ── Location Section ──
 function LocationSection() {
   const { ref, inView } = useInView();
 
@@ -95,7 +95,7 @@ function LocationSection() {
   );
 }
 
-// ── CTA Section ───────────────────────────────────────────────────────────────
+// ── CTA Section ───────
 function CTASection() {
   const { ref, inView } = useInView();
 
@@ -157,7 +157,7 @@ function CTASection() {
   );
 }
 
-// ── Export ────────────────────────────────────────────────────────────────────
+// ── Export ────────────
 export function LocationAndCTASection() {
   return (
     <>

@@ -15,7 +15,7 @@ import { AUDIT_ACTION_LABELS } from "@/domain/models/AuditLog";
 
 const service = new AuditLogService(new AuditLogRepository());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString("vi-VN", {
@@ -41,7 +41,7 @@ function ResultBadge({ result }: { result: AuditLogResult }) {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonRow() {
   return (
@@ -55,7 +55,7 @@ function SkeletonRow() {
   );
 }
 
-// ── Stats Card ────────────────────────────────────────────────────────────────
+// ── Stats Card ────────
 
 function StatsCard({
   label, value, sub, color,
@@ -69,7 +69,7 @@ function StatsCard({
   );
 }
 
-// ── Filter state ──────────────────────────────────────────────────────────────
+// ── Filter state ──────
 
 const EMPTY: Omit<AdminAuditLogFilters, "page" | "size"> = {
   actorId:      "",
@@ -80,7 +80,7 @@ const EMPTY: Omit<AdminAuditLogFilters, "page" | "size"> = {
   to:           "",
 };
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Main Page ─────────
 
 export default function AdminAuditLogPage() {
   // table state
@@ -102,7 +102,7 @@ export default function AdminAuditLogPage() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [showStats,    setShowStats]    = useState(true);
 
-  // ── Load logs ──────────────────────────────────────────────────────────────
+  // ── Load logs ──────
 
   const loadLogs = useCallback(
     async (f: typeof EMPTY, p: number, size: number) => {
@@ -124,7 +124,7 @@ export default function AdminAuditLogPage() {
 
   useEffect(() => { loadLogs(filters, page, pageSize); }, [filters, page, pageSize, loadLogs]);
 
-  // ── Load stats ─────────────────────────────────────────────────────────────
+  // ── Load stats ─────
 
   const loadStats = useCallback(async () => {
     setLoadingStats(true);
@@ -140,14 +140,14 @@ export default function AdminAuditLogPage() {
 
   useEffect(() => { loadStats(); }, [loadStats]);
 
-  // ── Derived stats ──────────────────────────────────────────────────────────
+  // ── Derived stats ──
 
   const totalActions  = Object.values(stats).reduce((a, b) => a + b, 0);
   const topAction     = Object.entries(stats).sort((a, b) => b[1] - a[1])[0];
   const successCount  = logs.filter(l => l.result === "SUCCESS").length;
   const failureCount  = logs.filter(l => l.result === "FAILURE").length;
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // ── Handlers ───────
 
   const handleFilter = (key: keyof typeof EMPTY, val: string) => {
     setFilters(prev => ({ ...prev, [key]: val }));
@@ -183,7 +183,7 @@ export default function AdminAuditLogPage() {
       )
     : logs;
 
-  // ── Row actions ─────────────────────────────────────────────────────────────
+  // ── Row actions ─────
 
   const rowActions = [
     {
@@ -197,12 +197,12 @@ export default function AdminAuditLogPage() {
     },
   ];
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
 
   return (
     <div className="space-y-4">
 
-      {/* ── Stats bar ────────────────────────────────────────────────────── */}
+      {/* ── Stats bar ────────────────────────── */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => setShowStats(v => !v)}
@@ -252,7 +252,7 @@ export default function AdminAuditLogPage() {
         </div>
       )}
 
-      {/* ── Header + filters ─────────────────────────────────────────────── */}
+      {/* ── Header + filters ─────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
@@ -398,7 +398,7 @@ export default function AdminAuditLogPage() {
         )}
       </div>
 
-      {/* ── Table ────────────────────────────────────────────────────────── */}
+      {/* ── Table ── */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         {error && (
           <div className="px-6 py-4 text-sm text-red-500 bg-red-50 border-b border-red-100">

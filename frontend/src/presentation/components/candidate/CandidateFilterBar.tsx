@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/presentation/components/common";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types ──────────────
 
 export interface CandidateStatusTab {
   value:  string;
@@ -43,7 +43,7 @@ export interface CandidateFilterBarProps {
   loading?:           boolean;
 }
 
-// ── Page Size Select ───────────────────────────────────────────────────────────
+// ── Page Size Select ───
 
 function PageSizeSelect({
   options, value, onChange, disabled,
@@ -69,7 +69,7 @@ function PageSizeSelect({
   );
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Component ──────────
 
 export function CandidateFilterBar({
   statusTabs,
@@ -211,7 +211,7 @@ export function CandidateFilterBar({
         </div>
       )}
 
-      {/* ── Row 2: Date range + Search + Button ──────────────────────────── */}
+      {/* ── Row 2: Date range + Search + Button  */}
       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
 
         {showDateRange && (

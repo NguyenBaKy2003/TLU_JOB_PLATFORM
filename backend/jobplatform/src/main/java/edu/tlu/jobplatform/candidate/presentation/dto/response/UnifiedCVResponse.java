@@ -44,7 +44,7 @@ public class UnifiedCVResponse {
                 .id(cv.getId())
                 .title(cv.getTitle())
                 .source(Source.ONLINE)
-                .primary(false)
+                .primary(cv.isPrimary()) // ← fix: map đúng thay vì hardcode false
                 .fileUrl(cv.getExportedPdfUrl())
                 .slug(cv.getSlug())
                 .status(cv.getStatus().name())

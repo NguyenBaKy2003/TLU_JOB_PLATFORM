@@ -10,7 +10,7 @@ import { useState } from "react";
 import { JobActionMenu } from "./JobActionMenu";
 import { CandidateSuggestPanel } from "@/presentation/components/ai/CandidateSuggestPanel";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function statusBadge(status: JobStatus) {
   const map: Record<JobStatus, { label: string; cls: string }> = {
@@ -60,7 +60,7 @@ function daysUntilDeadline(deadline: string) {
   return           { text: `Còn ${diff} ngày`,        urgent: false };
 }
 
-// ── Rejection modal ───────────────────────────────────────────────────────────
+// ── Rejection modal ───
 
 const VIOLATION_LABELS: Record<string, string> = {
   DISCRIMINATION:      "Phân biệt đối xử",
@@ -152,7 +152,7 @@ function RejectionReasonModal({ jobId, reason, onClose }: {
   );
 }
 
-// ── Job card ──────────────────────────────────────────────────────────────────
+// ── Job card ──────────
 
 function JobCard({
   job, acting, onSubmit, onClose, onDelete,
@@ -301,7 +301,7 @@ function JobCard({
   );
 }
 
-// ── Grid ──────────────────────────────────────────────────────────────────────
+// ── Grid ──────────────
 
 export function EmployerJobsCards({
   jobs, actingId, onSubmit, onClose, onDelete,

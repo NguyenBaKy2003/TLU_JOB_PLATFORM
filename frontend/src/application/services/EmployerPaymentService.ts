@@ -1,5 +1,6 @@
 import type { IEmployerPaymentRepository, PaymentSearchParams } from "@/domain/repositories/IEmployerPaymentRepository";
 import type { EmployerPayment, PaymentListResponse, PaymentStatus } from "@/domain/models/EmployerPayment";
+import { RetryPaymentResult } from "@/domain/models/PaymentShared";
 
 export class EmployerPaymentService {
 
@@ -14,7 +15,7 @@ export class EmployerPaymentService {
     return this.repo.getMyPaymentDetail(id);
   }
 
-  // ─── Formatting Helpers ────────────────────────────────────────────
+  // ─── Formatting Helpers ────────────────
 
   formatDate(dateStr: string | null): string {
     if (!dateStr) return "—";
@@ -71,4 +72,14 @@ export class EmployerPaymentService {
     }
     return null;
   }
+async retryPayment(id: string): Promise<RetryPaymentResult> {
+  if (!id) throw new Error("ID giao dịch không được để trống");
+  return this.repo.retryPayment(id);
+}
+
+async retryAndRedirect(id: string): Promise<void> {
+  const result = await this.retryPayment(id);
+  window.location.href = result.paymentUrl;
+}
+
 }

@@ -8,7 +8,7 @@ import {
 } from "@/domain/models/EmployerAnalytics";
 import { EmployerAnalyticsRepository } from "@/infrastructure/repositories/EmployerAnalyticsRepository";
 
-// ─── View-model types ─────────────────────────────────────────────────────────
+// ─── View-model types ─
 
 export interface DashboardViewModel {
   dashboard: import("@/domain/models/EmployerAnalytics").EmployerDashboard;
@@ -49,7 +49,7 @@ export interface TrendChartPoint {
   views: number;
 }
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+// ─── Service ──────────
 
 export class EmployerAnalyticsService {
   constructor(
@@ -133,7 +133,7 @@ export class EmployerAnalyticsService {
     return { vm, funnel, jobs, trend };
   }
 
-  // ── Private helpers ───────────────────────────────────────────────────────
+  // ── Private helpers ───────────────────────────
 
   /** "2025-06" → "T6/25" */
   private _formatMonthLabel(raw: string): string {

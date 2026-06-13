@@ -1,7 +1,7 @@
 import { Target, CircleCheck, CircleX } from "lucide-react";
 import type { PassProbabilityResult } from "@/domain/models/Ai";
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Config ────────────
 
 type ProbTier = "VERY_LOW" | "LOW" | "MEDIUM" | "HIGH";
 
@@ -59,7 +59,7 @@ const CONFIDENCE_CONFIG: Record<PassProbabilityResult["confidenceLevel"], { labe
   HIGH:   { label: "Độ tin cậy cao",    className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function PassProbabilityCard({ data }: { data: PassProbabilityResult }) {
   const pct  = Math.round(data.probability * 100);
@@ -175,7 +175,7 @@ export function PassProbabilityCard({ data }: { data: PassProbabilityResult }) {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 export function PassProbabilitySkeleton() {
   return (

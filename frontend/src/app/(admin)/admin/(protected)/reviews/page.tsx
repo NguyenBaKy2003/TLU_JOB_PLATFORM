@@ -16,7 +16,7 @@ import {
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────
 
 const statusOptions = [
   { value: 'PENDING',  label: 'Chờ duyệt' },
@@ -32,7 +32,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   HIDDEN:   { label: 'Đã ẩn',       color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',          icon: <EyeOff className="w-3 h-3" /> },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminReviewsPage() {
   const toast    = useToast();
@@ -43,7 +43,7 @@ export default function AdminReviewsPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [reviews,       setReviews]       = useState<CompanyReview[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
@@ -60,7 +60,7 @@ export default function AdminReviewsPage() {
     isOpen: boolean; review: CompanyReview | null; loading: boolean;
   }>({ isOpen: false, review: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'status', type: 'select' as const, label: 'Trạng thái', options: statusOptions },
   ];
@@ -68,7 +68,7 @@ export default function AdminReviewsPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
   const fetchReviews = useCallback(async (
     filterValues: { status?: string },
     page = 0,
@@ -98,7 +98,7 @@ export default function AdminReviewsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.status]);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const currentFilters = useCallback(() => ({ status: getFilterValue('status') }), [getFilterValue]);
 
   const handlePageChange = useCallback((page: number) => {
@@ -111,7 +111,7 @@ export default function AdminReviewsPage() {
     fetchReviews(currentFilters(), 0, size);
   }, [fetchReviews, currentFilters]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const handleExportExcel = useCallback(async () => {
     setExporting('excel');
     try {
@@ -136,7 +136,7 @@ export default function AdminReviewsPage() {
     } finally { setExporting(null); }
   }, [getFilterValue]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ────────
   const handleApprove = async (reviewId: string) => {
     setProcessingId(reviewId);
     try {
@@ -202,7 +202,7 @@ export default function AdminReviewsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchReviews, currentFilters, currentPage]);
 
-  // ── Table ──────────────────────────────────────────────────────────────────
+  // ── Table ──────────
   const getActions = (record: CompanyReview): ActionItem<CompanyReview>[] => {
     const actions: ActionItem<CompanyReview>[] = [
       { key: 'view', label: 'Xem chi tiết', icon: <Eye className="w-4 h-4" />, onClick: (r) => { setSelectedReview(r); setDetailModalOpen(true); }, color: 'default' },
@@ -294,7 +294,7 @@ export default function AdminReviewsPage() {
   const startIndex = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex   = Math.min((currentPage + 1) * pageSize, totalElements);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

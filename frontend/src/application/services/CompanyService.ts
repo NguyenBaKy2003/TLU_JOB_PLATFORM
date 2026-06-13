@@ -14,7 +14,7 @@ export class CompanyService {
 
   constructor(private readonly repo: ICompanyRepository) {}
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public ────────
 
   /**
    * Danh sách / tìm kiếm công ty VERIFIED — sort plan tier (ENTERPRISE→FREE).
@@ -60,7 +60,7 @@ export class CompanyService {
     return this.repo.getJobsByCompany(companyId, page, size);
   }
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  // ── Employer ──────
 
   getMyCompany(): Promise<CompanyProfile> {
     return this.repo.getMyCompany();
@@ -82,7 +82,7 @@ export class CompanyService {
     return this.repo.uploadCover(file);
   }
 
-  // ── Reviews ───────────────────────────────────────────────────────────────
+  // ── Reviews ───────
 
   listReviews(companyId: string, page = 0, size = 10): Promise<PageResponse<CompanyReview>> {
     return this.repo.listReviews(companyId, page, size);
@@ -96,7 +96,7 @@ export class CompanyService {
     return this.repo.deleteReview(companyId, reviewId);
   }
 
-  // ── Admin ─────────────────────────────────────────────────────────────────
+  // ── Admin ─────────
 
   adminListPending(page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
     return this.repo.adminList("UNVERIFIED", page, size);
@@ -111,7 +111,7 @@ export class CompanyService {
   adminSuspend(id: string): Promise<CompanyProfile>                 { return this.repo.adminSuspend(id); }
   adminHideReview(reviewId: string): Promise<void>                  { return this.repo.adminHideReview(reviewId); }
 
-  // ── Team members ──────────────────────────────────────────────────────────
+  // ── Team members ──
 
   listTeamMembers(companyId: string): Promise<TeamMember[]>                                          { return this.repo.listTeamMembers(companyId); }
   addTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember>                               { return this.repo.addTeamMember(payload); }
@@ -119,13 +119,13 @@ export class CompanyService {
   uploadTeamMemberAvatar(memberId: string, file: File): Promise<TeamMember>                          { return this.repo.uploadTeamMemberAvatar(memberId, file); }
   deleteTeamMember(memberId: string): Promise<void>                                                  { return this.repo.deleteTeamMember(memberId); }
 
-  // ── Gallery ───────────────────────────────────────────────────────────────
+  // ── Gallery ───────
 
   listGallery(companyId: string): Promise<GalleryImage[]>                   { return this.repo.listGallery(companyId); }
   addGalleryImage(file: File, caption?: string): Promise<GalleryImage[]>    { return this.repo.addGalleryImage(file, caption); }
   deleteGalleryImage(imageId: string): Promise<void>                        { return this.repo.deleteGalleryImage(imageId); }
 
-  // ── Documents ─────────────────────────────────────────────────────────────
+  // ── Documents ─────
 
   listDocuments(): Promise<CompanyDocument[]>                                        { return this.repo.listDocuments(); }
   uploadDocument(type: CompanyDocumentType, file: File): Promise<CompanyDocument>    { return this.repo.uploadDocument(type, file); }

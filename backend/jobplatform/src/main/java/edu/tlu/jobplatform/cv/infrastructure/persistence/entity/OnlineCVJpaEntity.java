@@ -16,7 +16,8 @@ import java.util.UUID;
 @Table(name = "online_cvs", indexes = {
         @Index(name = "idx_online_cvs_candidate_id", columnList = "candidate_id"),
         @Index(name = "idx_online_cvs_slug", columnList = "slug", unique = true),
-        @Index(name = "idx_online_cvs_status", columnList = "status")
+        @Index(name = "idx_online_cvs_status", columnList = "status"),
+        @Index(name = "idx_online_cvs_primary", columnList = "candidate_id, is_primary")
 })
 @Getter
 @Setter
@@ -32,7 +33,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "template_id", nullable = false)
     private UUID templateId;
 
-    // ── PersonalInfo (embedded, không phải bảng riêng) ─
+    // ── PersonalInfo (embedded) ───────────────────────────────────────────────
 
     @Column(name = "pi_full_name", length = 150)
     private String piFullName;
@@ -61,7 +62,7 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "pi_website", length = 300)
     private String piWebsite;
 
-    // ── Status & visibility ─
+    // ── Status & visibility ───────────────────────────────────────────────────
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -80,7 +81,18 @@ public class OnlineCVJpaEntity extends BaseJpaEntity {
     @Column(name = "exported_pdf_url", length = 500)
     private String exportedPdfUrl;
 
-    // ── Sections (one-to-many, owned by this aggregate) ─
+    /**
+     * CV chính dùng để apply — đồng bộ với candidate_cvs.is_primary.
+     * Chỉ 1 CV (uploaded hoặc online) của mỗi candidate được là primary.
+     *
+     * Migration:
+     * ALTER TABLE online_cvs
+     * ADD COLUMN IF NOT EXISTS is_primary BOOLEAN NOT NULL DEFAULT FALSE;
+     */
+    @Column(name = "is_primary", nullable = false)
+    private boolean primary = false;
+
+    // ── Sections ──────────────────────────────────────────────────────────────
 
     @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("display_order ASC")

@@ -12,7 +12,7 @@ import type { CompanyProfile, CompanyPlanCode } from "@/domain/models/Company";
 import { isPaidPlan } from "@/domain/models/Company";
 import { PlanBadge } from "./PlanBadge";
 
-// ── CompanyAvatar ─────────────────────────────────────────────────────────────
+// ── CompanyAvatar ─────
 
 const LOGO_COLORS = [
   "from-blue-500 to-blue-700",
@@ -42,7 +42,7 @@ function CompanyAvatar({ name, logoUrl }: { name: string; logoUrl: string | null
   );
 }
 
-// ── StarRating ────────────────────────────────────────────────────────────────
+// ── StarRating ────────
 
 function StarRating({ value }: { value: number }) {
   return (
@@ -57,14 +57,14 @@ function StarRating({ value }: { value: number }) {
   );
 }
 
-// ── Props — nhận CompanyProfile trực tiếp ─────────────────────────────────────
+// ── Props — nhận CompanyProfile trực tiếp ─────────
 
 interface Props {
   company: CompanyProfile;
   index?:  number;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function CompanyCard({ company, index = 0 }: Props) {
   const [isHovered, setIsHovered] = useState(false);

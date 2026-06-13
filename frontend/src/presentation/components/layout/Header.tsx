@@ -30,7 +30,7 @@ import type {
   CompanySubscription,
 } from "@/domain/models/User";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────
 
 type ActivePage = "trang-chu" | "tim-viec" | "cong-ty" | "tao-cv";
 
@@ -45,7 +45,7 @@ type PlanBanner = {
   quotaHint: string | null;
 };
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────
 
 const NAV_ITEMS = [
   { label: "Trang chủ", href: "/", key: "trang-chu" },
@@ -72,7 +72,7 @@ const EMPLOYER_DROPDOWN = [
   { label: "Cài đặt", href: "/employer/settings", Icon: Settings },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────
 
 function resolveActivePage(pathname: string): ActivePage {
   if (pathname === "/") return "trang-chu";
@@ -131,7 +131,7 @@ function getPlanBanner(user: User): PlanBanner | null {
   return null;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-components ───
 
 function Avatar({
   user,
@@ -237,7 +237,7 @@ function DropdownUserInfo({
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main component ───
 
 export function Header() {
   const router = useRouter();

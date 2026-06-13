@@ -17,7 +17,7 @@ import type { AutocompleteSuggestion } from "@/domain/models/AISearch";
 
 const aiSearchService = new AISearchService(new AISearchRepository());
 
-// ── Banner Slider ─────────────────────────────────────────────────────────────
+// ── Banner Slider ─────
 // Replace src values with your actual banner image URLs
 export const BANNERS = [
   { id: 1, src: "/banners/banner-1.png", alt: "Banner nhà tuyển dụng 1", href: "#" },

@@ -19,7 +19,7 @@ interface ApiResponse<T> {
 export class SettingRepository implements ISettingRepository {
   private readonly BASE = "/settings";
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  // ── Helpers ──────
 
   private async patch(url: string, body?: unknown): Promise<void> {
     await api.patch<ApiResponse<void>>(url, body);
@@ -37,7 +37,7 @@ export class SettingRepository implements ISettingRepository {
     await api.delete(url);
   }
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public ────────
 
   /** PATCH /api/v1/settings/name */
   async updateName(payload: UpdateNamePayload): Promise<void> {

@@ -2,7 +2,7 @@ package edu.tlu.jobplatform.user.infrastructure.persistence.adapter;
 
 import edu.tlu.jobplatform.user.application.port.out.NotificationPreferencesPort; // ← fix
 import edu.tlu.jobplatform.user.domain.model.NotificationPreferences;
-import edu.tlu.jobplatform.user.infrastructure.persistence.entity.NotificationPreferencesJpaEntity; // ← thêm
+import edu.tlu.jobplatform.user.infrastructure.persistence.entity.NotificationPreferencesJpaEntity;
 import edu.tlu.jobplatform.user.infrastructure.persistence.repository.NotificationPreferencesJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

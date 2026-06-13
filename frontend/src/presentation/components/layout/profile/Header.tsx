@@ -111,7 +111,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           {isEmployer ? "Nhà tuyển dụng" : "Ứng viên"}
         </span>
 
-        {/* ── Notification bell ───────────────────────────────────────────── */}
+        {/* ── Notification bell ───────────────── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
@@ -148,7 +148,7 @@ export function Header({ title = "Trang chủ", subtitle, onMenuToggle }: Props)
           <MessageSquare size={18} />
         </Link>
 
-        {/* ── User menu ────────────────────────────────────────────────────── */}
+        {/* ── User menu ────────────────────────── */}
         {user && (
           <div className="relative" ref={userMenuRef}>
             <button

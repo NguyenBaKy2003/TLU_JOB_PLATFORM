@@ -266,7 +266,7 @@ public class AuthController {
         @GetMapping("/oauth2/url/{provider}")
         public ResponseEntity<ApiResponse<Map<String, String>>> getOAuth2Url(
                         @PathVariable String provider,
-                        @RequestParam(defaultValue = "CANDIDATE") String portal) { // ← thêm param portal
+                        @RequestParam(defaultValue = "CANDIDATE") String portal) {
 
                 List<String> supported = List.of("google", "facebook");
                 if (!supported.contains(provider.toLowerCase())) {

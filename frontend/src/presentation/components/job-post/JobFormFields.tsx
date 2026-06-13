@@ -8,14 +8,14 @@ import { RichTextArea } from "./RichTextArea";
 import { SkillsInput } from "./SkillsInput";
 import type { JobPostForm, JobType, JobLevel, WorkLocType, JobSkill } from "@/domain/models/Job";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 export const inputCls =
   "w-full px-3 py-2.5 text-[16px] border border-gray-200 rounded-xl bg-white " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 " +
   "placeholder:text-gray-300 text-gray-800 transition-all";
 
-// ── Field ─────────────────────────────────────────────────────────────────────
+// ── Field ─────────────
 
 export function Field({
   label, required, hint, error, children,
@@ -39,7 +39,7 @@ export function Field({
   );
 }
 
-// ── SegmentedControl ──────────────────────────────────────────────────────────
+// ── SegmentedControl ──
 
 export function SegmentedControl<T extends string>({
   options, value, onChange, cols = 3,
@@ -67,7 +67,7 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-// ── Featured Toggle ───────────────────────────────────────────────────────────
+// ── Featured Toggle ───
 
 export function FeaturedToggle({
   checked, onChange, disabled,
@@ -128,7 +128,7 @@ export function FeaturedToggle({
   );
 }
 
-// ── JobFormFields (Main Component) ────────────────────────────────────────────
+// ── JobFormFields (Main Component) ────────────────
 
 interface JobFormFieldsProps {
   form: JobPostForm;
@@ -156,7 +156,7 @@ export function JobFormFields({
   return (
     <div className="flex flex-col gap-5">
 
-      {/* ── 1. Giới thiệu ─────────────────────────────────── */}
+      {/* ── 1. Giới thiệu ─────── */}
       <PostSection icon={<Briefcase size={16} />} title="Giới thiệu công việc">
         <div className="flex flex-col gap-4">
           <Field label="Tiêu đề công việc" required error={errors.title}>
@@ -199,7 +199,7 @@ export function JobFormFields({
         </div>
       </PostSection>
 
-      {/* ── 2. Địa điểm ───────────────────────────────────── */}
+      {/* ── 2. Địa điểm ───────── */}
       <PostSection icon={<MapPin size={16} />} title="Địa điểm làm việc">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -232,7 +232,7 @@ export function JobFormFields({
         </div>
       </PostSection>
 
-      {/* ── 3. Mức lương ──────────────────────────────────── */}
+      {/* ── 3. Mức lương ──────── */}
       <PostSection icon={<DollarSign size={16} />} title="Mức lương">
         <div className="flex flex-col gap-4">
           <label className="flex items-center gap-2.5 cursor-pointer">
@@ -289,7 +289,7 @@ export function JobFormFields({
         </div>
       </PostSection>
 
-      {/* ── 4. Điều kiện ──────────────────────────────────── */}
+      {/* ── 4. Điều kiện ──────── */}
       <PostSection icon={<Users size={16} />} title="Điều kiện tuyển dụng">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="Kinh nghiệm (năm)" hint="0 = chưa có kinh nghiệm">
@@ -319,7 +319,7 @@ export function JobFormFields({
         </div>
       </PostSection>
 
-      {/* ── 5. Kỹ năng ────────────────────────────────────── */}
+      {/* ── 5. Kỹ năng ────────── */}
       <PostSection icon={<Wrench size={16} />} title="Kỹ năng yêu cầu">
         <SkillsInput
           skills={form.skills}
@@ -327,7 +327,7 @@ export function JobFormFields({
         />
       </PostSection>
 
-      {/* ── 6. Mô tả ──────────────────────────────────────── */}
+      {/* ── 6. Mô tả ──────────── */}
       <PostSection icon={<FileText size={16} />} title="Mô tả & Yêu cầu">
         <div className="flex flex-col gap-5">
           <RichTextArea

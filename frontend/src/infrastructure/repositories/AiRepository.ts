@@ -15,6 +15,8 @@ import {
   CompareCandidatesPayload,
   PageResponse,
   SendMessagePayload,
+  InviteCandidatePayload,
+  InviteCandidateResponse,
 } from "@/domain/models/Ai";
 
 interface ApiResponse<T> {
@@ -26,7 +28,7 @@ interface ApiResponse<T> {
 
 export class AiRepository implements IAiRepository {
 
-  // ── Chatbot ──────────────────────────────────────────────────────────────
+  // ── Chatbot ──────
 
   async sendMessage(payload: SendMessagePayload): Promise<ChatMessage & { sessionId: string }> {
     const res = await api.post<ApiResponse<ChatMessage & { sessionId: string }>>(
@@ -53,7 +55,7 @@ export class AiRepository implements IAiRepository {
     await api.delete(`/chatbot/sessions/${sessionId}`);
   }
 
-  // ── AI Features ──────────────────────────────────────────────────────────
+  // ── AI Features ──
 
   async rescoreApplication(applicationId: string): Promise<string> {
     const res = await api.post<ApiResponse<string>>(
@@ -77,7 +79,7 @@ export class AiRepository implements IAiRepository {
     return res.data.data;
   }
 
-  // ── JD Guidelines ─────────────────────────────────────────────────────────
+  // ── JD Guidelines ─
 
   async checkJdGuidelines(payload: CheckGuidelinesPayload): Promise<JdGuidelineCheckResult> {
     try {
@@ -94,7 +96,7 @@ export class AiRepository implements IAiRepository {
     }
   }
 
-  // ── Candidate Comparison ──────────────────────────────────────────────────
+  // ── Candidate Comparison ──────────────────────
 
   async compareCandidates(
     jobId: string,
@@ -106,7 +108,7 @@ export class AiRepository implements IAiRepository {
     return res.data.data;
   }
 
-  // ── Competition Rate ──────────────────────────────────────────────────────
+  // ── Competition Rate ──────────────────────────
 
   async getCompetitionRate(jobPostId: string): Promise<CompetitionRateResult> {
     const res = await api.get<ApiResponse<CompetitionRateResult>>(
@@ -115,7 +117,7 @@ export class AiRepository implements IAiRepository {
     return res.data.data;
   }
 
-  // ── Pass Probability ──────────────────────────────────────────────────────
+  // ── Pass Probability ──────────────────────────
 
   async getPassProbability(jobId: string): Promise<PassProbabilityResult> {
     const res = await api.get<ApiResponse<PassProbabilityResult>>(
@@ -124,7 +126,7 @@ export class AiRepository implements IAiRepository {
     return res.data.data;
   }
 
-  // ── Candidate Search ──────────────────────────────────────────────────────
+  // ── Candidate Search ──────────────────────────
 
   /**
    * POST /api/v1/ai/candidates/search
@@ -155,6 +157,18 @@ export class AiRepository implements IAiRepository {
   async autoSuggestCandidates(jobPostId: string): Promise<CandidateSearchResult> {
     const res = await api.get<ApiResponse<CandidateSearchResult>>(
       `/ai/jobs/${jobPostId}/candidate-suggestions`
+    );
+    return res.data.data;
+  }
+
+
+  async inviteCandidate(
+    jobPostId: string,
+    payload: InviteCandidatePayload
+  ): Promise<InviteCandidateResponse> {
+    const res = await api.post<ApiResponse<InviteCandidateResponse>>(
+      `/jobs/${jobPostId}/invite-candidate`,
+      payload
     );
     return res.data.data;
   }

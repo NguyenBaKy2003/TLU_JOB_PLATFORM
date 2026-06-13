@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { CompanySize, CompanyPlanCode } from "@/domain/models/Company";
 import { COMPANY_SIZE_LABELS, PLAN_BADGE_CONFIG } from "@/domain/models/Company";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────
 
 export interface CompanySearchFilters {
   keyword?:   string;
@@ -34,7 +34,7 @@ interface Props {
   onClearAll?: () => void;
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── Data ──────────────
 
 const SIZE_OPTIONS: { label: string; value: CompanySize }[] = [
   { label: COMPANY_SIZE_LABELS.STARTUP,     value: "STARTUP"     },
@@ -58,7 +58,7 @@ const RATING_OPTIONS = [
   { label: "3.0 sao trở lên", value: 3.0 },
 ];
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────
 
 function FilterSection({
   title, icon: Icon, children, defaultOpen = true,
@@ -126,7 +126,7 @@ function RadioRow({
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Main ──────────────
 
 export function FilterSidebar({ filters, onChange, onClearAll }: Props) {
   const hasActive =

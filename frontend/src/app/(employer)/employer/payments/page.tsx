@@ -18,7 +18,7 @@ import {
 
 const paymentService = new EmployerPaymentService(new EmployerPaymentRepository());
 
-// ─── Status Tabs ──────────────────────────────────────────────────────────────
+// ─── Status Tabs ──────
 
 const STATUS_TABS = [
   { value: "",         label: "Tất cả" },
@@ -56,30 +56,31 @@ function FeatureBadge({ label }: { label: string }) {
     </span>
   );
 }
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page ─────────────
 
 export default function EmployerPaymentsPage() {
   const toast = useToast();
 
-  // ── Data state ──────────────────────────────────────────────────────────────
+  // ── Data state ──────
   const [payments,      setPayments]      = useState<EmployerPayment[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages,    setTotalPages]    = useState(0);
 
-  // ── Filter state ────────────────────────────────────────────────────────────
+  // ── Filter state ────
   const [activeStatus, setActiveStatus] = useState("");
   const [currentPage,  setCurrentPage]  = useState(1);
   const [pageSize,     setPageSize]     = useState(10);
   const [searchParams, setSearchParams] = useState<FilterSearchParams>({
     search: "", dateFrom: "", dateTo: "",
   });
+const [retryingId, setRetryingId] = useState<string | null>(null);
 
-  // ── Detail modal ────────────────────────────────────────────────────────────
+  // ── Detail modal ────
   const [selectedPayment, setSelectedPayment] = useState<EmployerPayment | null>(null);
   const [detailLoading,   setDetailLoading]   = useState(false);
 
-  // ─── Fetch ──────────────────────────────────────────────────────────────────
+  // ─── Fetch ──────────
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -104,7 +105,7 @@ export default function EmployerPaymentsPage() {
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
 
-  // ─── Handlers ───────────────────────────────────────────────────────────────
+  // ─── Handlers ───────
 
   const handleStatusChange = (value: string) => {
     setActiveStatus(value);
@@ -132,14 +133,19 @@ export default function EmployerPaymentsPage() {
     }
   };
 
-  const handleRetryPayment = (payment: EmployerPayment) => {
-    const url = paymentService.getPaymentUrl(payment);
-    url ? window.open(url, "_blank")
-        : toast.info("Thông báo", "Không có URL thanh toán cho giao dịch này");
-  };
-
+const handleRetryPayment = async (payment: EmployerPayment) => {
+  if (retryingId) return;
+  setRetryingId(payment.id);
+  try {
+    await paymentService.retryAndRedirect(payment.id);
+  } catch (err) {
+    toast.error("Lỗi", extractErrorMessage(err, "Không thể tạo lại giao dịch thanh toán"));
+  } finally {
+    setRetryingId(null);
+  }
+};
   
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Render ──────────
 
   return (
     <div className="mx-auto">
@@ -256,16 +262,19 @@ export default function EmployerPaymentsPage() {
                     >
                       <Eye size={16} />
                     </button>
-                    {/* {paymentService.canRetryPayment(payment) && (
-                      <button
-                        onClick={() => handleRetryPayment(payment)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-green-600
-                          hover:bg-green-50 transition-colors"
-                        title="Thanh toán lại"
-                      >
-                        <ExternalLink size={16} />
-                      </button>
-                    )} */}
+                   {paymentService.canRetryPayment(payment) && (
+  <button
+    onClick={() => handleRetryPayment(payment)}
+    disabled={!!retryingId}
+    className="p-2 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    title="Thanh toán lại"
+  >
+    {retryingId === payment.id
+      ? <Loader2 size={16} className="animate-spin" />
+      : <ExternalLink size={16} />}
+  </button>
+)}
                   </div>
                 </div>
 
@@ -288,7 +297,7 @@ export default function EmployerPaymentsPage() {
         </div>
       )}
 
-      {/* ─── Detail Modal ─────────────────────────────────────────────────── */}
+      {/* ─── Detail Modal ─────────────────────── */}
       {selectedPayment && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
@@ -410,17 +419,20 @@ export default function EmployerPaymentsPage() {
                   >
                     Đóng
                   </button>
-                  {/* {paymentService.canRetryPayment(selectedPayment) && (
-                    <button
-                      onClick={() => handleRetryPayment(selectedPayment)}
-                      className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm
-                        font-medium hover:bg-blue-700 transition-colors
-                        flex items-center justify-center gap-2"
-                    >
-                      <ExternalLink size={16} />
-                      Thanh toán lại
-                    </button>
-                  )} */}
+                {paymentService.canRetryPayment(selectedPayment) && (
+  <button
+    onClick={() => handleRetryPayment(selectedPayment)}
+    disabled={!!retryingId}
+    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium
+      hover:bg-blue-700 transition-colors flex items-center justify-center gap-2
+      disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    {retryingId === selectedPayment.id
+      ? <Loader2 size={16} className="animate-spin" />
+      : <ExternalLink size={16} />}
+    Thanh toán lại
+  </button>
+)}
                 </div>
 
               </div>
@@ -432,7 +444,7 @@ export default function EmployerPaymentsPage() {
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-components ───
 
 function DetailRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (

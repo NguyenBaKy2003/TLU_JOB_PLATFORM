@@ -21,7 +21,7 @@ import type {
 export class JobService {
   constructor(private readonly repo: IJobRepository) {}
 
-  // ── Public / candidate ────────────────────────────────────────────────────
+  // ── Public / candidate ────────────────────────
 
   listPublished(page = 0, size = 12): Promise<PageResponse<JobPost>> {
     return this.repo.listPublished(page, size);
@@ -39,7 +39,7 @@ export class JobService {
     return this.repo.getBySlug(slug);
   }
 
-  // ── Saved jobs ────────────────────────────────────────────────────────────
+  // ── Saved jobs ────
 
   toggleSave(jobPostId: string): Promise<boolean> {
     return this.repo.toggleSave(jobPostId);
@@ -53,7 +53,7 @@ listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJobsRes
     return this.repo.checkSaved(jobPostId);
   }
 
-  // ── Employer — write ──────────────────────────────────────────────────────
+  // ── Employer — write ──────────────────────────
 
   /**
    * Tạo bài đăng từ form state.
@@ -106,7 +106,7 @@ listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJobsRes
     return this.repo.update(id, payload);
   }
 
-  // ── Employer — read ───────────────────────────────────────────────────────
+  // ── Employer — read ───────────────────────────
 
   /** Danh sách bài đăng của tôi — paginated + filtered */
   getMyJobs(
@@ -133,7 +133,7 @@ listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJobsRes
     return this.repo.delete(id);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────
 
   private _buildCreatePayload(form: JobPostForm): CreateJobPayload {
     return {

@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { XCircle, RefreshCw, MessageCircle, ArrowLeft, AlertTriangle } from "lucide-react";
 
-// ─── VNPay error codes ────────────────────────────────────────────────────────
+// ─── VNPay error codes 
 const VNPAY_REASON_MAP: Record<string, { title: string; desc: string }> = {
   "07": { title: "Giao dịch bị nghi ngờ gian lận",    desc: "Ngân hàng từ chối giao dịch do phát hiện dấu hiệu bất thường. Vui lòng liên hệ ngân hàng hoặc thử thẻ khác." },
   "09": { title: "Thẻ chưa đăng ký Internet Banking",  desc: "Thẻ của bạn chưa được đăng ký dịch vụ thanh toán trực tuyến. Vui lòng liên hệ ngân hàng để kích hoạt." },
@@ -24,7 +24,7 @@ const VNPAY_REASON_MAP: Record<string, { title: string; desc: string }> = {
   "99": { title: "Lỗi không xác định",                 desc: "Đã có lỗi xảy ra trong quá trình xử lý. Vui lòng thử lại hoặc liên hệ hỗ trợ." },
 };
 
-// ─── MoMo result codes ────────────────────────────────────────────────────────
+// ─── MoMo result codes 
 // resultCode=0 là thành công; các mã dưới đây là thất bại
 const MOMO_REASON_MAP: Record<string, { title: string; desc: string }> = {
   "1":    { title: "Giao dịch thất bại",               desc: "Giao dịch không thành công. Vui lòng thử lại." },
@@ -93,7 +93,7 @@ const MOMO_REASON_MAP: Record<string, { title: string; desc: string }> = {
   "4100": { title: "Khách hàng chưa đăng nhập",        desc: "Vui lòng đăng nhập tài khoản MoMo để tiếp tục." },
 };
 
-// ─── ZaloPay return codes ─────────────────────────────────────────────────────
+// ─── ZaloPay return codes ─────────────────────────
 // return_code=1 là thành công
 const ZALOPAY_REASON_MAP: Record<string, { title: string; desc: string }> = {
   "2":   { title: "Giao dịch thất bại",                desc: "ZaloPay không thể xử lý giao dịch. Vui lòng thử lại." },

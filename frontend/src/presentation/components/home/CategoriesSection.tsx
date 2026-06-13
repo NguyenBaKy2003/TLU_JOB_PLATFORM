@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useInView } from "./useInView";
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── Data ──────────────
 const CATEGORIES = [
   { label: "Thiết kế",            count: 235,  icon: PenTool,    active: false },
   { label: "Kinh doanh",          count: 756,  icon: TrendingUp, active: false },
@@ -53,7 +53,7 @@ const COMPANIES = [
   },
 ];
 
-// ── List Companies ────────────────────────────────────────────────────────────
+// ── List Companies ────
 function ListCompanies() {
   return (
     <div className="relative bg-blue-700 pb-14">
@@ -84,7 +84,7 @@ function ListCompanies() {
   );
 }
 
-// ── Categories Section ────────────────────────────────────────────────────────
+// ── Categories Section 
 export function CategoriesSection() {
   const { ref, inView } = useInView();
 

@@ -33,7 +33,7 @@ const STATUS_TABS: { value: ReviewStatus | "ALL"; label: string }[] = [
   { value: "REJECTED", label: "Bị từ chối" },
 ];
 
-// ─── Sub-components ────────────────────────────────────────────────────────
+// ─── Sub-components 
 
 function StarRow({ rating }: { rating: number }) {
   return (
@@ -218,7 +218,7 @@ function ReviewCardSkeleton() {
   );
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────
+// ─── Page ──────────
 
 export default function CandidateReviewsPage() {
   const toast = useToast();

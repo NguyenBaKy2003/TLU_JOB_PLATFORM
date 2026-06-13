@@ -41,7 +41,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────
 
 const paymentStatusOptions = [
   { value: 'PENDING',  label: 'Chờ thanh toán' },
@@ -79,7 +79,7 @@ const gatewayOptions = [
   { value: 'MOMO',   label: 'MoMo' },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────
 
 const formatPrice = (amount: number): string =>
   new Intl.NumberFormat('vi-VN', {
@@ -98,7 +98,7 @@ const toLocalDateTime = (dateStr: string, endOfDay = false): string => {
   return endOfDay ? `${dateStr}T23:59:59` : `${dateStr}T00:00:00`;
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-components ───
 
 interface StatCardProps {
   title: string;
@@ -130,7 +130,7 @@ const StatCard = ({ title, value, icon, color, trend }: StatCardProps) => (
   </div>
 );
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page ─────────────
 
 export default function AdminPaymentsPage() {
   const toast    = useToast();
@@ -141,7 +141,7 @@ export default function AdminPaymentsPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [payments,      setPayments]      = useState<AdminPayment[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
@@ -165,7 +165,7 @@ export default function AdminPaymentsPage() {
     loading: boolean;
   }>({ isOpen: false, payment: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'status',  type: 'select' as const, label: 'Trạng thái', options: paymentStatusOptions },
     { key: 'gateway', type: 'select' as const, label: 'Cổng TT',    options: gatewayOptions },
@@ -177,7 +177,7 @@ export default function AdminPaymentsPage() {
     debounceMs: 500,
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
   const fetchPayments = useCallback(async (
     filterValues: { status?: string; gateway?: string; planCode?: string },
     page = 0,
@@ -235,7 +235,7 @@ export default function AdminPaymentsPage() {
     fetchStats(dateRange.from, dateRange.to);
   }, [dateRange.from, dateRange.to, fetchStats]);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const handlePageChange = useCallback((page: number) => {
     fetchPayments(currentFilters(), Math.max(0, page - 1), pageSizeRef.current);
   }, [fetchPayments, currentFilters]);
@@ -246,7 +246,7 @@ export default function AdminPaymentsPage() {
     fetchPayments(currentFilters(), 0, size);
   }, [fetchPayments, currentFilters]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const buildExportFilters = () => ({
     status:   getFilterValue('status')   as PaymentStatus | undefined,
     gateway:  getFilterValue('gateway')  || undefined,
@@ -287,7 +287,7 @@ export default function AdminPaymentsPage() {
     } finally { setInvoiceId(null); }
   }, []);
 
-  // ── Refund ─────────────────────────────────────────────────────────────────
+  // ── Refund ─────────
   const handleRefund = async (paymentId: string, reason: string) => {
     setRefundModal(prev => ({ ...prev, loading: true }));
     try {
@@ -311,7 +311,7 @@ export default function AdminPaymentsPage() {
     setRefundModal({ isOpen: true, payment, loading: false });
   };
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // ── Handlers ───────
   const handleFilterChange = useCallback((key: string, value: unknown) => setFilter(key, value), [setFilter]);
 
   const handleResetFilters = useCallback(() => {
@@ -325,7 +325,7 @@ export default function AdminPaymentsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchPayments, fetchStats, currentFilters, currentPage, dateRange]);
 
-  // ── Table columns ──────────────────────────────────────────────────────────
+  // ── Table columns ──
   const getActions = (record: AdminPayment): ActionItem<AdminPayment>[] => {
     const actions: ActionItem<AdminPayment>[] = [
       {
@@ -434,7 +434,7 @@ export default function AdminPaymentsPage() {
     },
   ];
 
-  // ── Detail fields ──────────────────────────────────────────────────────────
+  // ── Detail fields ──
   const getPaymentDetailFields = (): DetailField[] => {
     if (!selectedPayment) return [];
     const cfg = paymentStatusConfig[selectedPayment.status];
@@ -474,7 +474,7 @@ export default function AdminPaymentsPage() {
     ];
   };
 
-  // ── Refund form ────────────────────────────────────────────────────────────
+  // ── Refund form ────
   const refundFormFields: FormField[] = [
     {
       name: 'reason',
@@ -486,12 +486,12 @@ export default function AdminPaymentsPage() {
     },
   ];
 
-  // ── Pagination helpers ─────────────────────────────────────────────────────
+  // ── Pagination helpers ─────────────────────────
   const page1Based  = currentPage + 1;
   const startIndex  = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex    = Math.min((currentPage + 1) * pageSize, totalElements);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

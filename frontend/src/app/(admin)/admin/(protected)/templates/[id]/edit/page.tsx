@@ -48,7 +48,7 @@ export default function EditTemplatePage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
 
-  // ── Load ─────────────────────────────────────────────────────────────
+  // ── Load ─────
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -73,7 +73,7 @@ export default function EditTemplatePage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────
+  // ── Handlers ──
 
   function handleChange(field: keyof TemplateFormData, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -138,7 +138,7 @@ export default function EditTemplatePage() {
   const isValid = form.name.trim().length > 0 && form.htmlContent.trim().length > 0;
   const isBusy = saving || thumbnailUploading;
 
-  // ── Render ────────────────────────────────────────────────────────────
+  // ── Render ────
 
   if (loadState === "loading") return <TemplateFormSkeleton />;
   if (loadState === "error") return <TemplateFormError message={loadError!} onRetry={load} />;

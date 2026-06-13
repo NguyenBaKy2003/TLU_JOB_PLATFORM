@@ -143,7 +143,7 @@ export interface PassFactor {
   description: string;
 }
 
-// ─── Candidate Search Models ──────────────────────────────────────────────────
+// ─── Candidate Search Models ──────────────────────
 
 export type CandidateAvailability = "ACTIVELY_LOOKING" | "OPEN_TO_OFFERS";
 
@@ -204,3 +204,20 @@ export interface PageResponse<T> {
   totalPages: number;
   last: boolean;
 }
+
+export interface InviteCandidateResponse {
+  jobPostId:           string;
+  candidateProfileId:  string;
+  candidateName:       string;
+  jobTitle:            string;
+  emailDispatched:     boolean;
+  notificationSaved:   boolean;
+  invitedAt:           string;
+}
+ 
+/** Payload cho POST /api/v1/jobs/{jobPostId}/invite-candidate */
+export interface InviteCandidatePayload {
+  candidateProfileId: string;
+  personalMessage?:   string;  // max 1000 ký tự, optional
+}
+ 

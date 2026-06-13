@@ -16,7 +16,7 @@ import {
   Eye, Shield, Unlock, FileSpreadsheet, FileText,
 } from 'lucide-react';
 
-// ─── Static config ────────────────────────────────────────────────────────────
+// ─── Static config ────
 
 const statusOptions = [
   { value: 'UNVERIFIED', label: 'Chưa xác thực' },
@@ -39,7 +39,7 @@ const actionButtonConfig = {
   REJECTED:   { primaryAction: null, primaryLabel: null, primaryIcon: null, primaryColor: null, secondaryAction: null, secondaryLabel: null, secondaryIcon: null, secondaryColor: null },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminCompaniesPage() {
   const toast    = useToast();
@@ -50,7 +50,7 @@ export default function AdminCompaniesPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [companies,     setCompanies]     = useState<AdminCompany[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
@@ -75,7 +75,7 @@ export default function AdminCompaniesPage() {
     isOpen: boolean; company: AdminCompany | null; loading: boolean;
   }>({ isOpen: false, company: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'keyword',  type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tên, mô tả, ngành...' },
     { key: 'status',   type: 'select' as const, label: 'Trạng thái', options: statusOptions },
@@ -85,7 +85,7 @@ export default function AdminCompaniesPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
   const fetchCompanies = useCallback(async (
     filterValues: { keyword?: string; status?: string; city?: string; planCode?: string },
     page = 0,
@@ -136,7 +136,7 @@ export default function AdminCompaniesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.keyword, filters.status, filters.city, filters.planCode]);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const currentFilters = useCallback(() => ({
     keyword:  getFilterValue('keyword'),
     status:   getFilterValue('status'),
@@ -154,7 +154,7 @@ export default function AdminCompaniesPage() {
     fetchCompanies(currentFilters(), 0, size);
   }, [fetchCompanies, currentFilters]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const currentFilterSnapshot = useCallback((): Omit<AdminCompanyFilters, "page" | "pageSize"> => ({
     status:   (getFilterValue('status') || '') as VerificationStatus | '',
     keyword:  getFilterValue('keyword')  || '',
@@ -186,7 +186,7 @@ export default function AdminCompaniesPage() {
     }
   }, [currentFilterSnapshot]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ────────
   const handleApprove = async (id: string) => {
     try {
       const company = companies.find(c => c.id === id);
@@ -249,7 +249,7 @@ export default function AdminCompaniesPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchCompanies, currentFilters, currentPage]);
 
-  // ── Table ──────────────────────────────────────────────────────────────────
+  // ── Table ──────────
   const getActions = (record: AdminCompany): ActionItem<AdminCompany>[] => {
     const actions: ActionItem<AdminCompany>[] = [{
       key: 'view', label: 'Xem chi tiết', icon: <Eye className="w-4 h-4" />,
@@ -321,7 +321,7 @@ export default function AdminCompaniesPage() {
   const rejectFormFields: FormField[] = [{ name: 'reason', label: 'Lý do từ chối', type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do từ chối...' }];
   const suspendFormFields: FormField[] = [{ name: 'reason', label: 'Lý do khóa',    type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do khóa công ty...' }];
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

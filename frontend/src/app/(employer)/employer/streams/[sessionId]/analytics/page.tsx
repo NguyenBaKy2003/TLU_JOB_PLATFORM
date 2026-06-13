@@ -12,7 +12,7 @@ import { LiveStreamService } from "@/application/services/LiveStreamService";
 
 const service = new LiveStreamService(new LiveStreamRepository());
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Helpers ────────────
 
 function formatDuration(seconds: number): string {
   if (seconds === 0)  return "0s";
@@ -23,7 +23,7 @@ function formatDuration(seconds: number): string {
   return `${h}h ${m}p`;
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
+// ── Sub-components ─────
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -118,7 +118,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+// ── Page ───────────────
 
 export default function StreamAnalyticsPage() {
   const params    = useParams<{ sessionId: string }>();
@@ -143,7 +143,7 @@ export default function StreamAnalyticsPage() {
       .finally(() => setLoading(false));
   }, [sessionId]);
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
+  // ── Loading ──────────
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -165,7 +165,7 @@ export default function StreamAnalyticsPage() {
     );
   }
 
-  // ── Error ────────────────────────────────────────────────────────────────────
+  // ── Error ────────────
   if (error || !analytics) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 px-6">
@@ -185,7 +185,7 @@ export default function StreamAnalyticsPage() {
     );
   }
 
-  // ── Derived values ────────────────────────────────────────────────────────────
+  // ── Derived values ────
   const avgWatchSeconds = analytics.totalViewerCount > 0
     ? Math.floor(analytics.totalWatchSeconds / analytics.totalViewerCount)
     : 0;
@@ -228,7 +228,7 @@ export default function StreamAnalyticsPage() {
 
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
 
-        {/* ── Viewer metrics ─────────────────────────────────────────────────── */}
+        {/* ── Viewer metrics ─────────────────────── */}
         <section>
           <SectionTitle>Người xem</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
@@ -263,7 +263,7 @@ export default function StreamAnalyticsPage() {
           </div>
         </section>
 
-        {/* ── Engagement ─────────────────────────────────────────────────────── */}
+        {/* ── Engagement ─────────────────────────── */}
         <section>
           <SectionTitle>Tương tác</SectionTitle>
           <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 space-y-4">
@@ -291,7 +291,7 @@ export default function StreamAnalyticsPage() {
           </div>
         </section>
 
-        {/* ── Summary ────────────────────────────────────────────────────────── */}
+        {/* ── Summary ── */}
         <section>
           <SectionTitle>Tóm tắt</SectionTitle>
           <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">

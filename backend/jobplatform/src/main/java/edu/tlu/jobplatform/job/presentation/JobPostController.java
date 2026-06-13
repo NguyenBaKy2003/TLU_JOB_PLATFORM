@@ -66,7 +66,7 @@ public class JobPostController {
         private final UpdateJobPostUseCase updateUseCase;
         private final SubmitForReviewUseCase submitForReviewUseCase;
         private final GetMyJobPostsUseCase getMyJobPostsUseCase;
-        private final GetMyJobCountsUseCase getMyJobCountsUseCase; // ← thêm
+        private final GetMyJobCountsUseCase getMyJobCountsUseCase;
 
         // ── Create ────────────────────────────────────────────────────────────────
 

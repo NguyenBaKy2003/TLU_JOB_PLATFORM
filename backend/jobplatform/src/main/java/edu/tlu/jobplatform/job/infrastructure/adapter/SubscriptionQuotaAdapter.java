@@ -55,7 +55,7 @@ public class SubscriptionQuotaAdapter implements QuotaServicePort {
     }
 
     @Override
-    public void refundFeaturedQuota(UUID companyId) { // ← thêm mới
+    public void refundFeaturedQuota(UUID companyId) {
         refundQuotaUseCase.execute(companyId, RefundQuotaUseCase.QuotaType.FEATURED_JOB);
     }
 }

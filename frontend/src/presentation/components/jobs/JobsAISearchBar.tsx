@@ -15,7 +15,7 @@ import type { AutocompleteSuggestion } from "@/domain/models/AISearch";
 
 const aiSearchService = new AISearchService(new AISearchRepository());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function getSuggestionIcon(type: AutocompleteSuggestion["type"]) {
   switch (type) {
@@ -33,7 +33,7 @@ function getSuggestionBadge(type: AutocompleteSuggestion["type"]) {
   }
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ─────────────
 
 interface JobsAISearchBarProps {
   keyword: string;
@@ -41,7 +41,7 @@ interface JobsAISearchBarProps {
   onSearch: (keyword: string, city: string) => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function JobsAISearchBar({ keyword, city, onSearch }: JobsAISearchBarProps) {
   const { isAuthenticated } = useAuth();
@@ -89,7 +89,7 @@ export function JobsAISearchBar({ keyword, city, onSearch }: JobsAISearchBarProp
 
   const suggestions: AutocompleteSuggestion[] = autocompleteData?.suggestions ?? [];
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
+  // ── Handlers ────────
 
   const handleSearch = useCallback((kw: string, ct?: string) => {
     if (kw.trim()) trackSearch(kw.trim());
@@ -130,7 +130,7 @@ export function JobsAISearchBar({ keyword, city, onSearch }: JobsAISearchBarProp
     }
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ───────────
 
   return (
     <div ref={wrapperRef} className="relative max-w-3xl mx-auto">
@@ -202,7 +202,7 @@ export function JobsAISearchBar({ keyword, city, onSearch }: JobsAISearchBarProp
         </button>
       </div>
 
-      {/* ── AI Autocomplete Dropdown ─────────────────────────────────────────── */}
+      {/* ── AI Autocomplete Dropdown ─────────────── */}
       <AnimatePresence>
         {isOpen && draftKeyword.length >= 1 && (
           <motion.div

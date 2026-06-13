@@ -10,7 +10,7 @@ import { useState } from "react";
 import type { JobPost } from "@/domain/models/Job";
 import { JOB_TYPE_LABELS, JOB_LEVEL_LABELS, WORK_LOC_LABELS } from "@/domain/models/Job";
 
-// ── Company Logo ──────────────────────────────────────────────────────────────
+// ── Company Logo ──────
 
 function CompanyLogo({ name, src }: { name: string; src?: string | null }) {
   const [imgError, setImgError] = useState(false);
@@ -38,7 +38,7 @@ function CompanyLogo({ name, src }: { name: string; src?: string | null }) {
   );
 }
 
-// ── Tag ───────────────────────────────────────────────────────────────────────
+// ── Tag ───────────────
 
 const TAG_STYLES: Record<string, { bg: string; text: string; border: string; icon: string }> = {
   FULL_TIME:  { bg: "bg-blue-50",   text: "text-blue-700",   border: "border-blue-200",   icon: "💼" },
@@ -70,7 +70,7 @@ function Tag({ value }: { value: string }) {
   );
 }
 
-// ── Competition Badge ─────────────────────────────────────────────────────────
+// ── Competition Badge ─
 
 export type CompetitionLevel = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 
@@ -91,7 +91,7 @@ function CompetitionBadge({ level }: { level: CompetitionLevel }) {
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function formatSalary(salary: any): string {
   if (!salary) return "Thương lượng";
@@ -114,7 +114,7 @@ function timeAgo(dateStr: string | null): string {
   return `${Math.floor(days / 7)} tuần trước`;
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ─────────────
 
 interface Props {
   job: JobPost;
@@ -123,7 +123,7 @@ interface Props {
   competitionLevel?: CompetitionLevel;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function JobCard({ job, onSave, saved = false, competitionLevel }: Props) {
   const [isSaved,   setIsSaved]   = useState(saved);

@@ -74,7 +74,7 @@ export function CandidateDetailPanel({
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto pb-4">
 
-      {/* ── Header card ──────────────────────────────────────────── */}
+      {/* ── Header card ──────────────── */}
       <div className={`relative overflow-hidden rounded-2xl border shadow-sm
         ${boosted
           ? "border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50"
@@ -147,7 +147,7 @@ export function CandidateDetailPanel({
         )}
       </div>
 
-      {/* ── Status + actions ─────────────────────────────────────── */}
+      {/* ── Status + actions ─────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <ApplicationStatusBadge status={current.status} />
@@ -200,7 +200,7 @@ export function CandidateDetailPanel({
         )}
       </div>
 
-      {/* ── Application info ─────────────────────────────────────── */}
+      {/* ── Application info ─────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
           Thông tin đơn
@@ -223,14 +223,14 @@ export function CandidateDetailPanel({
         </div>
       </div>
 
-      {/* ── AI Score ─────────────────────────────────────────────── */}
+      {/* ── AI Score ─────────────────── */}
       {detail?.aiScore && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <AIScorePanel score={detail.aiScore} />
         </div>
       )}
 
-      {/* ── Cover letter ─────────────────────────────────────────── */}
+      {/* ── Cover letter ─────────────── */}
       {current.coverLetter && (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
@@ -242,7 +242,7 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Interview info ────────────────────────────────────────── */}
+      {/* ── Interview info ────────────── */}
       {current.scheduledAt && (
         <div className="rounded-2xl bg-violet-50 border border-violet-100 p-4">
           <p className="text-[10px] font-semibold text-violet-600 uppercase tracking-widest
@@ -261,7 +261,7 @@ export function CandidateDetailPanel({
         </div>
       )}
 
-      {/* ── Status timeline ───────────────────────────────────────── */}
+      {/* ── Status timeline ───────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
           Lịch sử trạng thái

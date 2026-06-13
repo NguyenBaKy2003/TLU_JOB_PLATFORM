@@ -56,8 +56,8 @@ public class AdminSubscriptionController {
                         @RequestParam(defaultValue = "20") int size,
                         @RequestParam(defaultValue = "createdAt") String sortBy,
                         @RequestParam(defaultValue = "desc") String direction,
-                        @RequestParam(required = false) String keyword, // ← thêm
-                        @RequestParam(required = false) SubscriptionStatus status) { // ← thêm
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) SubscriptionStatus status) {
 
                 Sort sort = direction.equalsIgnoreCase("asc")
                                 ? Sort.by(sortBy).ascending()

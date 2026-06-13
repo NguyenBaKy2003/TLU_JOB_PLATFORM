@@ -14,6 +14,8 @@ public interface OnlineCVRepository {
 
     OnlineCV save(OnlineCV cv);
 
+    void saveAll(List<OnlineCV> cvs);
+
     Optional<OnlineCV> findById(UUID id);
 
     Optional<OnlineCV> findBySlug(String slug);
@@ -27,5 +29,4 @@ public interface OnlineCVRepository {
     boolean existsBySlug(String slug);
 
     long countByCandidateId(UUID candidateId);
-
 }

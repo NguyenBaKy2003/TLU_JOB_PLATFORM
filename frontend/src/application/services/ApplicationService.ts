@@ -18,7 +18,7 @@ export class ApplicationService {
 
   constructor(private readonly repo: IApplicationRepository) {}
 
-  // ── Candidate ────────────────────────────────────────────────────────────
+  // ── Candidate ────
 
   async submit(req: SubmitApplicationRequest): Promise<Application> {
     if (!req.jobPostId) throw new Error("Thiếu thông tin bài đăng.");
@@ -76,7 +76,7 @@ export class ApplicationService {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
   }
 
-  // ── Employer ─────────────────────────────────────────────────────────────
+  // ── Employer ─────
 
   async getByJobPost(
     jobPostId: string,
@@ -148,7 +148,7 @@ export class ApplicationService {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Helpers ───────
 
   canWithdraw(app: Application): boolean {
     const terminal: ApplicationStatus[] = [
