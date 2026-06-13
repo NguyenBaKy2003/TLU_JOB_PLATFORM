@@ -19,7 +19,7 @@ function formatDate(iso: string | null | undefined) {
   return new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────
 
 function AnimatedCheck() {
   return (
@@ -103,7 +103,7 @@ function ReceiptRow({ label, value, highlight }: { label: string; value: string;
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function CandidatePaymentSuccessPage() {
   const [sub, setSub] = useState<CandidateSubscription | null>(null);

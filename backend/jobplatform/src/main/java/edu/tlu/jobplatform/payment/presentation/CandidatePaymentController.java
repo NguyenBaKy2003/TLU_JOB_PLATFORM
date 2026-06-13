@@ -1,5 +1,6 @@
 package edu.tlu.jobplatform.payment.presentation;
 
+import edu.tlu.jobplatform.payment.application.usecase.RetryPaymentUseCase;
 import edu.tlu.jobplatform.payment.application.usecase.candidate.GetMyCandidatePaymentsUseCase;
 import edu.tlu.jobplatform.payment.domain.model.PaymentStatus;
 import edu.tlu.jobplatform.payment.presentation.dto.response.PaymentResponse;
@@ -7,6 +8,7 @@ import edu.tlu.jobplatform.ratelimit.domain.model.RateLimitPolicy;
 import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 import edu.tlu.jobplatform.shared.response.ApiResponse;
 import edu.tlu.jobplatform.shared.response.PageResponse;
+import edu.tlu.jobplatform.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +39,7 @@ import java.util.UUID;
 public class CandidatePaymentController {
 
     private final GetMyCandidatePaymentsUseCase getMyPaymentsUseCase;
+    private final RetryPaymentUseCase retryPaymentUseCase;
 
     @Operation(summary = "Danh sách giao dịch của tôi")
     @GetMapping("/my")
@@ -62,5 +65,15 @@ public class CandidatePaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> getMyPaymentDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(
                 getMyPaymentsUseCase.getMyPaymentDetail(id)));
+    }
+
+    @Operation(summary = "Thanh toán lại giao dịch thất bại hoặc hết hạn")
+    @PostMapping("/my/{id}/retry")
+    @RateLimit(policy = "candidate-write", scope = RateLimitPolicy.Scope.USER)
+    public ResponseEntity<ApiResponse<RetryPaymentUseCase.Result>> retry(
+            @PathVariable UUID id) {
+        UUID userId = SecurityUtils.getCurrentUserIdOrThrow();
+        RetryPaymentUseCase.Result result = retryPaymentUseCase.execute(id, userId, false);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

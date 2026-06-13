@@ -30,7 +30,7 @@ const jobService = new JobService(new JobRepository());
 const appService = new ApplicationService(new ApplicationRepository());
 const aiService  = new AiService(new AiRepository());
 
-// ── Competition Card ──────────────────────────────────────────────────────────
+// ── Competition Card ──
 
 type CompetitionLevel = CompetitionRateResult["level"];
 
@@ -121,7 +121,7 @@ function CompetitionRateSkeleton() {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function JobDetailPage() {
   const { id }  = useParams<{ id: string }>();
@@ -172,7 +172,7 @@ export default function JobDetailPage() {
   return () => { cancelled = true; };
 }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-// ── Effect 2: pass probability — chờ auth resolve ────────────────────────────
+// ── Effect 2: pass probability — chờ auth resolve 
 useEffect(() => {
   if (!id || !isCandidate) return;
   let cancelled = false;

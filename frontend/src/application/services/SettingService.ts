@@ -18,7 +18,7 @@ import type {
 export class SettingService {
   constructor(private readonly settingRepository: ISettingRepository) {}
 
-  // ── Name ──────────────────────────────────────────────────────────────────
+  // ── Name ──────────
 
   /**
    * Cập nhật họ và tên.
@@ -32,7 +32,7 @@ export class SettingService {
     await this.settingRepository.updateName({ fullName: name });
   }
 
-  // ── Email ─────────────────────────────────────────────────────────────────
+  // ── Email ─────────
 
   /**
    * Gửi yêu cầu đổi email — link xác nhận sẽ gửi đến email mới.
@@ -59,7 +59,7 @@ export class SettingService {
     await this.settingRepository.confirmEmailChange(params);
   }
 
-  // ── Password ──────────────────────────────────────────────────────────────
+  // ── Password ──────
 
   /**
    * Đổi mật khẩu khi đã đăng nhập.
@@ -88,7 +88,7 @@ export class SettingService {
     await this.settingRepository.changePassword(payload);
   }
 
-  // ── Notifications ─────────────────────────────────────────────────────────
+  // ── Notifications ─
 
   /**
    * Cập nhật cài đặt thông báo.
@@ -97,7 +97,7 @@ export class SettingService {
     await this.settingRepository.updateNotificationPreferences(payload);
   }
 
-  // ── Account ───────────────────────────────────────────────────────────────
+  // ── Account ───────
 
   /**
    * Xóa tài khoản (soft delete).

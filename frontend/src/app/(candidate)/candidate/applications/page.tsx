@@ -42,7 +42,7 @@ const STATUS_TABS: { value: ApplicationStatus | "ALL"; label: string }[] = [
   { value: "WITHDRAWN",           label: "Đã rút"       },
 ];
 
-// ── Stat Card ──────────────────────────────────────────────────────────────────
+// ── Stat Card ──────────
 
 function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: number | string; color: string;
@@ -58,7 +58,7 @@ function StatCard({ icon, label, value, color }: {
   );
 }
 
-// ── Job type label ──────────────────────────────────────────────────────────────
+// ── Job type label ──────
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   FULL_TIME:  "Toàn thời gian",
@@ -69,7 +69,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   FREELANCE:  "Freelance",
 };
 
-// ── Skeleton ────────────────────────────────────────────────────────────────────
+// ── Skeleton ────────────
 
 function AppSkeleton() {
   return (
@@ -95,7 +95,7 @@ function AppSkeleton() {
   );
 }
 
-// ── Application Card ────────────────────────────────────────────────────────────
+// ── Application Card ────
 
 function ApplicationCard({
   app,
@@ -251,7 +251,7 @@ function ApplicationCard({
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────────
+// ── Page ────────────────
 
 export default function CandidateApplicationsPage() {
   const toast  = useToast();
@@ -330,7 +330,7 @@ export default function CandidateApplicationsPage() {
   return (
     <div className="flex flex-col gap-5">
 
-      {/* ── Stats ─────────────────────────────────────────────────────────── */}
+      {/* ── Stats ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           icon={<Users      size={18} className="text-blue-600"    />}
@@ -350,7 +350,7 @@ export default function CandidateApplicationsPage() {
         />
       </div>
 
-      {/* ── Filter bar ────────────────────────────────────────────────────── */}
+      {/* ── Filter bar ────────────────────────── */}
       <CandidateFilterBar
         statusTabs={tabs}
         activeStatus={activeTab}
@@ -365,7 +365,7 @@ export default function CandidateApplicationsPage() {
         onExportExcel={handleExportExcel}
       />
 
-      {/* ── Result count ──────────────────────────────────────────────────── */}
+      {/* ── Result count ──────────────────────── */}
       <div className="min-h-[20px] -mt-1">
         {!loading && (
           <p className="text-xs text-gray-500">
@@ -374,7 +374,7 @@ export default function CandidateApplicationsPage() {
         )}
       </div>
 
-      {/* ── Content ───────────────────────────────────────────────────────── */}
+      {/* ── Content ─ */}
       {initialLoad ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => <AppSkeleton key={i} />)}
@@ -418,7 +418,7 @@ export default function CandidateApplicationsPage() {
         </div>
       )}
 
-      {/* ── Pagination ────────────────────────────────────────────────────── */}
+      {/* ── Pagination ────────────────────────── */}
       <div className="min-h-[40px] flex justify-center">
         {!initialLoad && totalPages > 1 && (
           <Pagination

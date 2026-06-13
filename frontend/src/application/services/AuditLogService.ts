@@ -14,7 +14,7 @@ export class AuditLogService {
     return this.repo.getMyLogs(filters);
   }
 
-  // ── Admin only ────────────────────────────────────────────────────────────
+  // ── Admin only ────
 
   adminListAll(filters: AdminAuditLogFilters): Promise<AuditLogPage> {
     return this.repo.adminListAll(filters);

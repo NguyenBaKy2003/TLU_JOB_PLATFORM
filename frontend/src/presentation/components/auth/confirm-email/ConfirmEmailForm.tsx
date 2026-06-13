@@ -7,7 +7,7 @@ import { SettingRepository } from "@/infrastructure/repositories/SettingReposito
 import { SettingService } from "@/application/services/SettingService";
 import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ────────────
 
 type Status = "loading" | "success" | "error";
 type Role   = "candidate" | "employer" | "admin";
@@ -18,7 +18,7 @@ interface Props {
   role: Role;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 const SETTINGS_PATH: Record<Role, string> = {
   candidate : "/candidate/settings",
@@ -32,11 +32,11 @@ const LOGIN_PATH: Record<Role, string> = {
   admin     : "/auth/login",
 };
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants ─────────
 
 const REDIRECT_DELAY_MS = 5_000;
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function ConfirmEmailForm({ userId, token, role }: Props) {
   const router = useRouter();
@@ -46,7 +46,7 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [countdown, setCountdown] = useState(REDIRECT_DELAY_MS / 1_000);
 
-  // ── Confirm email on mount ────────────────────────────────────────────────
+  // ── Confirm email on mount ────────────────────
 
   useEffect(() => {
     if (calledRef.current) return;
@@ -65,7 +65,7 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
       });
   }, [userId, token]);
 
-  // ── Countdown & redirect after success ───────────────────────────────────
+  // ── Countdown & redirect after success ───────
 
   useEffect(() => {
     if (status !== "success") return;
@@ -84,7 +84,7 @@ export function ConfirmEmailForm({ userId, token, role }: Props) {
     return () => clearInterval(interval);
   }, [status, router, role]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <div className="flex flex-col items-center gap-6 text-center max-w-sm w-full mx-auto py-8">

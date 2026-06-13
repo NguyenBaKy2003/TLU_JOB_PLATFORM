@@ -23,7 +23,7 @@ export default function CompanyDetailPage({
 }) {
   const { id } = use(params);
 
-  // ── Data fetching ────────────────────────────────────────────────────────────
+  // ── Data fetching ────
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export default function CompanyDetailPage({
     };
   }, [id]);
 
-  // ── Tab / scroll logic ───────────────────────────────────────────────────────
+  // ── Tab / scroll logic ───────────────────────────
   const [activeTab, setActiveTab] = useState<SectionId>("intro");
   const sectionRefs = useRef<Record<SectionId, HTMLElement | null>>({
     intro: null,
@@ -117,7 +117,7 @@ export default function CompanyDetailPage({
     sectionRefs.current[sid] = el;
   };
 
-  // ── Loading / error states ───────────────────────────────────────────────────
+  // ── Loading / error states ───────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -139,7 +139,7 @@ export default function CompanyDetailPage({
     );
   }
 
-  // ── Main render ──────────────────────────────────────────────────────────────
+  // ── Main render ──────
   return (
     <div className="min-h-screen bg-[#DFEAFE]">
       {/* Cover */}

@@ -9,7 +9,7 @@ export interface AutocompleteResult {
   suggestions: AutocompleteSuggestion[];
 }
 
-// ── Recommendations ──────────────────────────────────────────────
+// ── Recommendations ──────────────────
 
 export interface RecommendationJob {
   jobPostId: string;

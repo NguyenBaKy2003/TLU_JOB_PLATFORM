@@ -2,7 +2,7 @@
 import { Check, Sparkles, Lock } from "lucide-react";
 import type { CandidateSubscriptionPlan } from "@/domain/models/CandidateSubscription";
 
-// ── Plan metadata ─────────────────────────────────────────────────────────────
+// ── Plan metadata ─────
 
 export const CANDIDATE_PLAN_BADGE: Record<string, { label: string; cls: string }> = {
   PREMIUM: {
@@ -37,7 +37,7 @@ export const CANDIDATE_PLAN_HIGHLIGHTS: Record<string, string[]> = {
   ],
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 interface Props {
   plan:        CandidateSubscriptionPlan;

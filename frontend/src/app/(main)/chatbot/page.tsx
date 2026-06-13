@@ -110,7 +110,7 @@ export default function ChatbotPage() {
     }
   }, [activeSessionId, loadSessions]);
 
-  // ── Chưa đăng nhập ─────────────────────────────────────────────────────────
+  // ── Chưa đăng nhập ─
   if (!isAuthenticated) {
     return (
       <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-gray-50">
@@ -138,7 +138,7 @@ export default function ChatbotPage() {
     );
   }
 
-  // ── Đã đăng nhập ───────────────────────────────────────────────────────────
+  // ── Đã đăng nhập ───
   return (
     <div className="flex h-[calc(100vh-64px)] bg-gray-50 overflow-hidden">
 
@@ -150,7 +150,7 @@ export default function ChatbotPage() {
         />
       )}
 
-      {/* ── Sidebar ────────────────────────────────────────────────────────── */}
+      {/* ── Sidebar ── */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200
         flex flex-col transition-transform duration-200
@@ -178,7 +178,7 @@ export default function ChatbotPage() {
         />
       </aside>
 
-      {/* ── Main chat area ─────────────────────────────────────────────────── */}
+      {/* ── Main chat area ─────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Header */}

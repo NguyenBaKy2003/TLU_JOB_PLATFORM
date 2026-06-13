@@ -16,7 +16,7 @@ interface ApiResponse<T> {
 
 export class CandidateRepository implements ICandidateRepository {
 
-  // ── Profile ──────────────────────────────────────────────────────────────
+  // ── Profile ──────
 
   async getProfile(): Promise<CandidateProfile> {
     const res = await api.get<ApiResponse<CandidateProfile>>("/candidate/profile/me");
@@ -42,7 +42,7 @@ export class CandidateRepository implements ICandidateRepository {
     await api.patch("/candidate/profile/me/job-search-status", null, { params: { status } });
   }
 
-  // ── Boost ─────────────────────────────────────────────────────────────────
+  // ── Boost ─────────
 
   async boostCv(): Promise<BoostResult> {
     const res = await api.post<ApiResponse<BoostResult>>("/candidate/profile/boost");
@@ -54,7 +54,7 @@ export class CandidateRepository implements ICandidateRepository {
     return res.data.data;
   }
 
-  // ── Experience ────────────────────────────────────────────────────────────
+  // ── Experience ────
 
   async addExperience(data: ExperiencePayload): Promise<CandidateProfile> {
     const res = await api.post<ApiResponse<CandidateProfile>>(
@@ -72,7 +72,7 @@ export class CandidateRepository implements ICandidateRepository {
     await api.delete(`/candidate/profile/me/experiences/${id}`);
   }
 
-  // ── Education ─────────────────────────────────────────────────────────────
+  // ── Education ─────
 
   async addEducation(data: EducationPayload): Promise<CandidateProfile> {
     const res = await api.post<ApiResponse<CandidateProfile>>(
@@ -90,7 +90,7 @@ export class CandidateRepository implements ICandidateRepository {
     await api.delete(`/candidate/profile/me/educations/${id}`);
   }
 
-  // ── CV ────────────────────────────────────────────────────────────────────
+  // ── CV ────────────
 
   async listCVs(): Promise<CandidateCV[]> {
     const res = await api.get<ApiResponse<CandidateCV[]>>("/candidate/cv");

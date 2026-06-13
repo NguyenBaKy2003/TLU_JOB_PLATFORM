@@ -41,7 +41,7 @@ export default function NewTemplatePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Handlers ──────────────────────────────────────────────────────────
+  // ── Handlers ──
 
   function handleChange(field: keyof TemplateFormData, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -99,7 +99,7 @@ export default function NewTemplatePage() {
   const isValid = form.name.trim().length > 0 && form.htmlContent.trim().length > 0;
   const isBusy = saving || thumbnailUploading;
 
-  // ── Render ────────────────────────────────────────────────────────────
+  // ── Render ────
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">

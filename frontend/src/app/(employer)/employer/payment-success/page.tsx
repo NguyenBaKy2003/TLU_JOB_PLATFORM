@@ -24,7 +24,7 @@ function daysUntil(iso: string | null | undefined): number {
   return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000));
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────
 
 function AnimatedCheck() {
   return (
@@ -103,7 +103,7 @@ function ReceiptRow({ label, value, highlight }: {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function EmployerPaymentSuccessPage() {
   const [sub,     setSub]     = useState<CompanySubscription | null>(null);

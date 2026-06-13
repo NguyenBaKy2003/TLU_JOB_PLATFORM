@@ -16,7 +16,7 @@ export class JobRepository implements IJobRepository {
 
   private readonly BASE = "/jobs";
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -37,7 +37,7 @@ export class JobRepository implements IJobRepository {
     await api.delete(url);
   }
 
-  // ── Public ─────────────────────────────────────────────────────────────────
+  // ── Public ─────────
 
   async listPublished(page = 0, size = 12): Promise<PageResponse<JobPost>> {
     return this.get(this.BASE, { page, size });
@@ -60,7 +60,7 @@ async search(params: JobSearchParams): Promise<PageResponse<JobPost>> {
     return this.get(`${this.BASE}/slug/${slug}`);
   }
 
-  // ── Saved jobs ─────────────────────────────────────────────────────────────
+  // ── Saved jobs ─────
 
   async toggleSave(jobPostId: string): Promise<boolean> {
     return this.post(`${this.BASE}/${jobPostId}/save`);
@@ -89,7 +89,7 @@ async listSaved(page = 0, size = 10, params?: SavedJobsParams): Promise<MySavedJ
     }
   }
 
-  // ── Employer ───────────────────────────────────────────────────────────────
+  // ── Employer ───────
 
   async create(payload: CreateJobPayload): Promise<JobPostDetail> {
     return this.post(this.BASE, payload);

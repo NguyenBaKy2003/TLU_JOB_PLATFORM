@@ -1,7 +1,7 @@
 // src/presentation/components/cv/edit/sectionContentHelper.ts
 import type { SectionType } from "@/domain/models/Cv";
 
-// ── Types ─────────────────────────────────────────────────────────────────
+// ── Types ─────────
 
 type AnyObj = Record<string, unknown>;
 
@@ -32,7 +32,7 @@ export interface SocialLinkEntry {
   url:      string;
 }
 
-// ── Deserialize: JSON từ backend → typed data ─────────────────────────────
+// ── Deserialize: JSON từ backend → typed data ─
 
 export function deserializeContent(type: SectionType, raw: string): string {
   if (!raw?.trim()) return "";
@@ -135,7 +135,7 @@ export function deserializeSocialLinks(raw: string): SocialLinkEntry[] {
   } catch { return [emptySocialLink()]; }
 }
 
-// ── Empty factories ───────────────────────────────────────────────────────
+// ── Empty factories ───────────────────────────
 
 export const emptyExperience  = (): ExperienceEntry  =>
   ({ company: "", position: "", startDate: "", endDate: "", current: false, description: "" });
@@ -229,7 +229,7 @@ export function serializeContent(type: SectionType, text: string): string {
   }
 }
 
-// ── Typed serializers cho structured editors ──────────────────────────────
+// ── Typed serializers cho structured editors ──
 
 export function serializeExperiences(list: ExperienceEntry[]): string {
   const clean = list
@@ -280,7 +280,7 @@ export function serializeSocialLinks(list: SocialLinkEntry[]): string {
   return JSON.stringify(clean);
 }
 
-// ── Placeholder hints ─────────────────────────────────────────────────────
+// ── Placeholder hints ─────────────────────────
 
 export const SECTION_PLACEHOLDERS: Partial<Record<SectionType, string>> = {
   SUMMARY:

@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { Search, FileText, Sheet, CalendarDays, ChevronDown } from "lucide-react";
 import { LoadingSpinner } from "../../common";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────
 
 export interface StatusOption {
   value: string;
@@ -33,7 +33,7 @@ export interface EmployerFilterBarProps {
   loading?:           boolean;
 }
 
-// ── Page Size Select ──────────────────────────────────────────────────────────
+// ── Page Size Select ──
 
 function PageSizeSelect({
   options, value, onChange, disabled,
@@ -60,7 +60,7 @@ function PageSizeSelect({
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function EmployerFilterBar({
   statusTabs,

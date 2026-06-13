@@ -10,7 +10,7 @@ import { AdminSetupService }                        from '@/application/services
 import { AdminSetupRepository }                     from '@/infrastructure/repositories/AdminSetupRepository';
 import { extractErrorMessage }                      from '@/lib/extractErrorMessage';
 
-// ── FormInput ──────────────────────────────────────────────────────────────
+// ── FormInput ──────
 
 function FormInput({
   label, error, rightElement, ...props
@@ -47,7 +47,7 @@ function FormInput({
   );
 }
 
-// ── PasswordStrengthBar ────────────────────────────────────────────────────
+// ── PasswordStrengthBar ────────────────────────
 
 function PasswordStrengthBar({ password }: { password: string }) {
   const score = [
@@ -79,7 +79,7 @@ function PasswordStrengthBar({ password }: { password: string }) {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
+// ── Page ───────────
 
 // Module-scoped — không re-create mỗi render, giống pattern của AdminUsersPage
 const setupService = new AdminSetupService(new AdminSetupRepository());

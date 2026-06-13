@@ -12,7 +12,7 @@ import { JobRepository } from "@/infrastructure/repositories/JobRepository";
 
 const jobService = new JobService(new JobRepository());
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonCard() {
   return (
@@ -37,7 +37,7 @@ function SkeletonCard() {
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function FindJobsSection() {
   const { ref, inView } = useInView();

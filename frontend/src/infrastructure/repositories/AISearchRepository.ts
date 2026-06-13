@@ -12,7 +12,7 @@ interface ApiResponse<T> {
   timestamp?: string;
 }
 
-// ── Raw API shapes ───────────────────────────────────────────────
+// ── Raw API shapes ───────────────────
 
 interface RawJob {
   jobPostId: string;
@@ -51,7 +51,7 @@ interface RawRecommendationData {
   };
 }
 
-// ── Repository ───────────────────────────────────────────────────
+// ── Repository ───────────────────────
 
 export class AISearchRepository implements IAISearchRepository {
   private readonly BASE = "/ai";

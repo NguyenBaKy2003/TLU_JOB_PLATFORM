@@ -13,7 +13,7 @@ import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
 const aiService = new AiService(new AiRepository());
 
-// ── Constants (module-level) ──────────────────────────────────────────────────
+// ── Constants (module-level) ──────────────────────
 
 const VIOLATION_LABELS: Record<string, string> = {
   DISCRIMINATION:      "Phân biệt đối xử",
@@ -39,7 +39,7 @@ const SEVERITY_CONFIG: Record<string, { bg: string; text: string; label: string;
 
 const SEVERE_LEVELS = ["VIOLATION", "CRITICAL", "ERROR"];
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────
 
 interface Props {
   form: {
@@ -55,7 +55,7 @@ interface Props {
 
 type Tab = "optimize" | "check";
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ────
 
 export default function AiJobAssistant({ form, onApplyOptimized }: Props) {
   const toast = useToast();
@@ -186,7 +186,7 @@ export default function AiJobAssistant({ form, onApplyOptimized }: Props) {
   );
 }
 
-// ── Optimize Tab ──────────────────────────────────────────────────────────────
+// ── Optimize Tab ──────
 
 function OptimizeTab({ loading, result, onOptimize, onApply }: {
   loading: boolean;
@@ -279,7 +279,7 @@ function OptimizeTab({ loading, result, onOptimize, onApply }: {
   );
 }
 
-// ── Check Tab ─────────────────────────────────────────────────────────────────
+// ── Check Tab ─────────
 
 function CheckTab({ loading, result, onCheck, onCopyCleaned }: {
   loading: boolean;

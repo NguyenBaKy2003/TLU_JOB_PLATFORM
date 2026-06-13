@@ -38,7 +38,7 @@ const LEVEL_LABELS: Record<string, string> = {
   DIRECTOR:  "Director",
 };
 
-// ── Skeleton ─────────────────────────────────────────────────────────────────
+// ── Skeleton ─────────
 function PageSkeleton() {
   return (
     <div className="animate-pulse flex flex-col gap-5 max-w-2xl mx-auto px-4 py-6">
@@ -53,7 +53,7 @@ function PageSkeleton() {
   );
 }
 
-// ── AI Score ring ─────────────────────────────────────────────────────────────
+// ── AI Score ring ─────
 function ScoreRing({ score }: { score: number }) {
   const r      = 28;
   const circ   = 2 * Math.PI * r;
@@ -74,7 +74,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ── Score bar ─────────────────────────────────────────────────────────────────
+// ── Score bar ─────────
 function ScoreBar({ label, value, icon }: {
   label: string; value: number; icon: React.ReactNode;
 }) {
@@ -92,7 +92,7 @@ function ScoreBar({ label, value, icon }: {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 export default function ApplicationDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -120,7 +120,7 @@ export default function ApplicationDetailPage() {
     })();
   }, [params.id, toast]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
+  // ── Handlers ─────
 
   const handleWithdraw = async () => {
     if (!app) return;
@@ -178,7 +178,7 @@ export default function ApplicationDetailPage() {
     } finally { setCvDownloading(false); }
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Render ───────
 
   if (loading) return <PageSkeleton />;
 

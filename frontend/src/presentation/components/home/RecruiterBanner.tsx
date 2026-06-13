@@ -8,7 +8,7 @@ import {
   Plus, ChevronDown, ChevronRight,
 } from "lucide-react";
 
-// ── Mini Dashboard Mock ───────────────────────────────────────────────────────
+// ── Mini Dashboard Mock ───────────────────────────
 function MiniDashboard() {
   // Bar chart data: [jobView, jobApplied]
   const bars = [
@@ -209,7 +209,7 @@ function MiniDashboard() {
   );
 }
 
-// ── Recruiter Banner ──────────────────────────────────────────────────────────
+// ── Recruiter Banner ──
 export function RecruiterBanner() {
   const { ref, inView } = useInView();
 

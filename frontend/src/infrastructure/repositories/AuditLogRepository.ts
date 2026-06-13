@@ -27,7 +27,7 @@ export class AuditLogRepository implements IAuditLogRepository {
     return res.data.data;
   }
 
-  // ── /me/audit-logs ────────────────────────────────────────────────────────
+  // ── /me/audit-logs 
 
   async getMyLogs(f: MyAuditLogFilters): Promise<AuditLogPage> {
     return this.get("/me/audit-logs", {
@@ -41,7 +41,7 @@ export class AuditLogRepository implements IAuditLogRepository {
     });
   }
 
-  // ── /admin/audit-logs ─────────────────────────────────────────────────────
+  // ── /admin/audit-logs ─────────────────────────
 async adminListAll(f: AdminAuditLogFilters): Promise<AuditLogPage> {
     const res = await api.get<ApiResponse<AuditLogPage>>(
       "/admin/audit-logs",

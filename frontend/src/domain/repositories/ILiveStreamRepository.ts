@@ -10,7 +10,7 @@ import type {
 } from "@/domain/models/LiveStream";
 
 export interface ILiveStreamRepository {
-  // ─── Employer Endpoints ─────────────────────────────────────────
+  // ─── Employer Endpoints ─────────────
 
   createSession(req: CreateSessionRequest): Promise<LiveStreamSession>;
   getMySessions(): Promise<LiveStreamSession[]>;
@@ -23,7 +23,7 @@ export interface ILiveStreamRepository {
   /** GET /api/v1/streams/{id}/analytics — Thống kê sau stream */
   getAnalytics(sessionId: string): Promise<StreamAnalytics>; // ← THÊM
 
-  // ─── Candidate Endpoints ────────────────────────────────────────
+  // ─── Candidate Endpoints ────────────
 
   joinStream(sessionId: string): Promise<JoinSessionResponse>;
   getUpcomingStreams(): Promise<LiveStreamSession[]>;

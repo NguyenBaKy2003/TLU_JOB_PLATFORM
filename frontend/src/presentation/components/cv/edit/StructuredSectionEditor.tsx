@@ -13,7 +13,7 @@ import {
   serializeLanguages, serializeSocialLinks,
 } from "./sectionContentHelper";
 
-// ── Shared primitives ─────────────────────────────────────────────────────
+// ── Shared primitives ─────────────────────────
 
 function Field({
   label, value, onChange, type = "text", placeholder, hint,
@@ -121,7 +121,7 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────
+// ── Constants ─────
 
 const DEGREE_OPTIONS = ["", "HIGH_SCHOOL", "ASSOCIATE", "BACHELOR", "ENGINEER", "MASTER", "DOCTOR", "OTHER"];
 const DEGREE_LABELS: Record<string, string> = {
@@ -134,7 +134,7 @@ const DEGREE_LABELS: Record<string, string> = {
 const LANGUAGE_LEVELS  = ["", "A1", "A2", "B1", "B2", "C1", "C2", "Native"];
 const SOCIAL_PLATFORMS = ["", "LINKEDIN", "GITHUB", "FACEBOOK", "TWITTER", "INSTAGRAM", "YOUTUBE", "WEBSITE", "OTHER","PORTFOLIO"];
 
-// ── Experience ────────────────────────────────────────────────────────────
+// ── Experience ────
 
 function ExperienceEditor({
   rawContent, onChange,
@@ -198,7 +198,7 @@ function ExperienceEditor({
   );
 }
 
-// ── Education ─────────────────────────────────────────────────────────────
+// ── Education ─────
 
 function EducationEditor({
   rawContent, onChange,
@@ -250,7 +250,7 @@ function EducationEditor({
   );
 }
 
-// ── Language ──────────────────────────────────────────────────────────────
+// ── Language ──────
 
 function LanguageEditor({
   rawContent, onChange,
@@ -300,7 +300,7 @@ function LanguageEditor({
   );
 }
 
-// ── Social Link ───────────────────────────────────────────────────────────
+// ── Social Link ───
 
 function SocialLinkEditor({
   rawContent, onChange,
@@ -350,7 +350,7 @@ function SocialLinkEditor({
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────
+// ── Main export ───
 
 export function StructuredSectionEditor({
   type, rawContent, onChange,

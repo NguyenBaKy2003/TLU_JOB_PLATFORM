@@ -21,7 +21,7 @@ const ALLOWED_CV_TYPES = [
 const MAX_CV_SIZE_MB = 10;
 const MAX_CV_BYTES   = MAX_CV_SIZE_MB * 1024 * 1024;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function displayTitle(raw: string): string {
   const parts = raw.split("_");
@@ -37,7 +37,7 @@ function formatBytes(bytes: number): string {
     : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// ── Upload zone ───────────────────────────────────────────────────────────────
+// ── Upload zone ───────
 
 interface UploadZoneProps {
   onUploaded: (cv: ApplicableCV) => void;
@@ -171,7 +171,7 @@ function UploadZone({ onUploaded, onError }: UploadZoneProps) {
   );
 }
 
-// ── CV list item ───────────────────────────────────────────────────────────────
+// ── CV list item ───────
 
 function CvListItem({
   cv, selected, onSelect,
@@ -227,7 +227,7 @@ function CvListItem({
   );
 }
 
-// ── Main modal ────────────────────────────────────────────────────────────────
+// ── Main modal ────────
 
 interface ApplyModalProps {
   jobTitle: string;

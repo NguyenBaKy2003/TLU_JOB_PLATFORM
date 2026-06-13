@@ -16,7 +16,7 @@ interface Props {
 const companyService = new CompanyService(new CompanyRepository());
 const PAGE_SIZE = 10;
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants ─────────
 
 const JOB_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
   FULL_TIME:  { label: "Full Time",  className: "bg-blue-50   text-blue-800   border-blue-200" },
@@ -41,7 +41,7 @@ const LEVEL_CONFIG: Record<string, { label: string; className: string }> = {
   MANAGER: { label: "Manager", className: "bg-blue-50   text-blue-800   border-blue-200" },
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function postedAgoLabel(createdAt?: string): string | null {
   if (!createdAt) return null;
@@ -77,7 +77,7 @@ function getWorkLocationType(job: JobPost): string | null {
   return (job as any).workLocation?.type ?? null;
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function JobSkeleton() {
   return (
@@ -100,7 +100,7 @@ function JobSkeleton() {
   );
 }
 
-// ── Job Card ──────────────────────────────────────────────────────────────────
+// ── Job Card ──────────
 
 function JobCard({ job, company }: { job: JobPost; company: CompanyProfile }) {
   const ago         = postedAgoLabel(job.createdAt);
@@ -199,7 +199,7 @@ function JobCard({ job, company }: { job: JobPost; company: CompanyProfile }) {
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function JobsTab({ company }: Props) {
   const [jobs, setJobs]             = useState<JobPost[]>([]);

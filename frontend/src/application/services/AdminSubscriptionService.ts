@@ -7,7 +7,7 @@ import type {
 export class AdminSubscriptionService {
   constructor(private readonly repo: IAdminSubscriptionRepository) {}
 
-  // ── Plans ─────────────────────────────────────────────────────────────────
+  // ── Plans ─────────
 
   getAllPlans(): Promise<SubscriptionPlan[]> {
     return this.repo.adminGetAllPlans();
@@ -25,7 +25,7 @@ export class AdminSubscriptionService {
     return this.repo.adminTogglePlan(plan.id, plan.active);
   }
 
-  // ── Subscriptions ──────────────────────────────────────────────────────────
+  // ── Subscriptions ──
 
   listSubscriptions(page = 0, size = 20, status?: string): Promise<PageResult<AdminSubscriptionRow>> {
     return this.repo.adminListSubscriptions(page, size, status);

@@ -15,7 +15,7 @@ import {
   Eye, Trash2, XCircle, CheckCircle, FileSpreadsheet, FileText,
 } from 'lucide-react';
 
-// ─── Static config ────────────────────────────────────────────────────────────
+// ─── Static config ────
 
 const statusOptions = [
   { value: 'DRAFT',     label: 'Bản nháp' },
@@ -40,7 +40,7 @@ const competitionLevelConfig: Record<string, { label: string; color: string }> =
   EXTREME: { label: 'Rất cao', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminJobsPage() {
   const toast    = useToast();
@@ -51,7 +51,7 @@ export default function AdminJobsPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [jobs,            setJobs]            = useState<AdminJob[]>([]);
   const [loading,         setLoading]         = useState(true);
   const [exporting,       setExporting]       = useState<'excel' | 'pdf' | null>(null);
@@ -71,7 +71,7 @@ export default function AdminJobsPage() {
     isOpen: boolean; job: AdminJob | null; loading: boolean;
   }>({ isOpen: false, job: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'keyword',  type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tiêu đề, mô tả...' },
     { key: 'status',   type: 'select' as const, label: 'Trạng thái', options: statusOptions },
@@ -81,7 +81,7 @@ export default function AdminJobsPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch list ─────────────────────────────────────────────────────────────
+  // ── Fetch list ─────
   const fetchJobs = useCallback(async (
     filterValues: { keyword?: string; status?: string; city?: string; category?: string },
     page = 0,
@@ -123,7 +123,7 @@ export default function AdminJobsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.keyword, filters.status, filters.city, filters.category]);
 
-  // ── Fetch detail ───────────────────────────────────────────────────────────
+  // ── Fetch detail ───
   const handleViewDetail = useCallback(async (record: AdminJob) => {
     setDetailModalOpen(true);
     setSelectedDetail(null);   // clear → skeleton hiện ngay
@@ -144,7 +144,7 @@ export default function AdminJobsPage() {
     setSelectedDetail(null);
   }, []);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const currentFilters = useCallback(() => ({
     keyword:  getFilterValue('keyword'),
     status:   getFilterValue('status'),
@@ -162,7 +162,7 @@ export default function AdminJobsPage() {
     fetchJobs(currentFilters(), 0, size);
   }, [fetchJobs, currentFilters]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const exportFilters = useCallback((): Omit<AdminJobFilters, 'page' | 'size'> => ({
     status:   (getFilterValue('status')  || '') as JobStatus | '',
     keyword:  getFilterValue('keyword')  || '',
@@ -190,7 +190,7 @@ export default function AdminJobsPage() {
     } finally { setExporting(null); }
   }, [exportFilters]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ────────
   const handleForceClose = async (id: string, reason: string) => {
     setCloseFormModal(prev => ({ ...prev, loading: true }));
     try {
@@ -231,7 +231,7 @@ export default function AdminJobsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchJobs, currentFilters, currentPage]);
 
-  // ── Table columns ──────────────────────────────────────────────────────────
+  // ── Table columns ──
   const getActions = (record: AdminJob): ActionItem<AdminJob>[] => {
     const actions: ActionItem<AdminJob>[] = [{
       key: 'view', label: 'Xem chi tiết', icon: <Eye className="w-4 h-4" />,
@@ -317,7 +317,7 @@ export default function AdminJobsPage() {
     },
   ];
 
-  // ── Detail fields ──────────────────────────────────────────────────────────
+  // ── Detail fields ──
   const getDetailFields = (): DetailField[] => {
     if (!selectedDetail) return [];
     const d = selectedDetail;
@@ -435,7 +435,7 @@ export default function AdminJobsPage() {
     ];
   };
 
-  // ── Derived pagination values ───────────────────────────────────────────────
+  // ── Derived pagination values ───────────────────
   const page1Based = currentPage + 1;
   const startIndex = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex   = Math.min((currentPage + 1) * pageSize, totalElements);
@@ -443,7 +443,7 @@ export default function AdminJobsPage() {
   const closeFormFields:  FormField[] = [{ name: 'reason', label: 'Lý do đóng tin', type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do đóng tin tuyển dụng...' }];
   const deleteFormFields: FormField[] = [{ name: 'reason', label: 'Lý do xóa tin',  type: 'textarea', required: true, rows: 4, placeholder: 'Nhập lý do xóa tin tuyển dụng...' }];
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

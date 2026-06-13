@@ -47,7 +47,7 @@ const DEFAULT_FILTERS: AppliedFilters = {
   status: "ALL", search: "", dateFrom: "", dateTo: "", page: 0, pageSize: DEFAULT_PAGE_SIZE,
 };
 
-// ── Skeleton — chỉ dùng lần đầu ──────────────────────────────────────────────
+// ── Skeleton — chỉ dùng lần đầu ──────────────────
 
 function CardSkeleton({ count }: { count: number }) {
   return (
@@ -78,7 +78,7 @@ function CardSkeleton({ count }: { count: number }) {
   );
 }
 
-// ── Delete confirm modal ───────────────────────────────────────────────────────
+// ── Delete confirm modal ───────────────────────────
 
 function DeleteConfirmModal({
   onConfirm, onCancel, loading,
@@ -113,7 +113,7 @@ function DeleteConfirmModal({
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function EmployerJobsPage() {
   const toast = useToast();
@@ -136,7 +136,7 @@ export default function EmployerJobsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // ── Load counts ───────────────────────────────────────────────────────────
+  // ── Load counts ───
 
   const loadCounts = useCallback(async () => {
     try {
@@ -151,7 +151,7 @@ export default function EmployerJobsPage() {
     loadCounts();
   }, [loadCounts]);
 
-  // ── Load jobs ─────────────────────────────────────────────────────────────
+  // ── Load jobs ─────
 
   useEffect(() => {
     (async () => {
@@ -176,7 +176,7 @@ export default function EmployerJobsPage() {
     })();
   }, [filters]);
 
-  // ── Optimistic count helpers ──────────────────────────────────────────────
+  // ── Optimistic count helpers ──────────────────
 
   const decrementCount = useCallback((status: JobStatus) => {
     setStatusCounts(prev => {
@@ -192,7 +192,7 @@ export default function EmployerJobsPage() {
     });
   }, []);
 
-  // ── Filter handlers ───────────────────────────────────────────────────────
+  // ── Filter handlers ───────────────────────────
 
   const handleStatusChange   = useCallback((status: string) => {
     setFilters(prev => ({ ...prev, status: status as JobStatus | "ALL", page: 0 }));
@@ -211,7 +211,7 @@ export default function EmployerJobsPage() {
     setFilters(prev => ({ ...prev, pageSize: size, page: 0 }));
   }, []);
 
-  // ── Job actions ───────────────────────────────────────────────────────────
+  // ── Job actions ───
 
   const updateJobStatus = (id: string, status: JobStatus) =>
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
@@ -268,12 +268,12 @@ export default function EmployerJobsPage() {
     }
   }, [deleteId, jobs, decrementCount, toast]);
 
-  // ── Export ────────────────────────────────────────────────────────────────
+  // ── Export ────────
 
   const handleExportPdf   = useCallback(() => { toast.success("Đang xuất PDF",   "File sẽ được tải về sau vài giây."); }, [toast]);
   const handleExportExcel = useCallback(() => { toast.success("Đang xuất Excel", "File sẽ được tải về sau vài giây."); }, [toast]);
 
-  // ── Status tabs with count ────────────────────────────────────────────────
+  // ── Status tabs with count ────────────────────
 
   const statusTabsWithCount = STATUS_TABS.map(tab => ({
     ...tab,
@@ -282,7 +282,7 @@ export default function EmployerJobsPage() {
       : undefined,
   }));
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <div className="flex flex-col gap-5">

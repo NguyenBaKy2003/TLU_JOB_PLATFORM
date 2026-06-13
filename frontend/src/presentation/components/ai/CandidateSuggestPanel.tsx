@@ -8,7 +8,7 @@ import type { CandidateSearchResult } from "@/domain/models/Ai";
 
 const aiService = new AiService(new AiRepository());
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function PanelSkeleton() {
   return (
@@ -34,7 +34,7 @@ function PanelSkeleton() {
   );
 }
 
-// ── Panel ─────────────────────────────────────────────────────────────────────
+// ── Panel ─────────────
 
 interface Props {
   jobPostId: string;

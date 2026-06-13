@@ -42,7 +42,7 @@ const STATUS_FILTER_TABS: { value: ApplicationStatus | "ALL"; label: string }[] 
   { value: "REJECTED",            label: "Từ chối"       },
 ];
 
-// ─── Comparison Result Modal ─────────────────────────────────────────────────
+// ─── Comparison Result Modal ─────────────────────
 
 function ScoreBar({ value, max = 100, color = "bg-blue-500" }: {
   value: number; max?: number; color?: string;
@@ -257,7 +257,7 @@ function CompareResultModal({
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
+// ─── Main Page ───────
 
 export default function EmployerApplicationsPage() {
   const { id } = useParams<{ id: string }>();

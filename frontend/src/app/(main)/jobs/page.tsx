@@ -20,7 +20,7 @@ import { JobsAISearchBar }    from "@/presentation/components/jobs/JobsAISearchB
 
 const jobService = new JobService(new JobRepository());
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function SkeletonCard({ featured = false }: { featured?: boolean }) {
   return (
@@ -52,7 +52,7 @@ function SkeletonCard({ featured = false }: { featured?: boolean }) {
   );
 }
 
-// ── Quick filter chip ─────────────────────────────────────────────────────────
+// ── Quick filter chip ─
 
 const QUICK_FILTERS = [
   { label: "Toàn thời gian", value: "FULL_TIME", icon: "💼" },
@@ -81,7 +81,7 @@ function QuickChip({
   );
 }
 
-// ── Section headers ───────────────────────────────────────────────────────────
+// ── Section headers ───
 
 function FeaturedSectionHeader({ count }: { count: number }) {
   return (
@@ -124,7 +124,7 @@ function JobGrid({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Inner ─────────────────────────────────────────────────────────────────────
+// ── Inner ─────────────
 
 function JobsPageInner() {
   const searchParams = useSearchParams();
@@ -152,7 +152,7 @@ function JobsPageInner() {
   const featuredJobs = jobs.filter(j => j.featured);
   const regularJobs  = jobs.filter(j => !j.featured);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
 
   const fetchJobs = useCallback(async (
     kw: string, ct: string, f: JobFilters, pg: number,
@@ -208,7 +208,7 @@ function JobsPageInner() {
     fetchJobs(kw, loc, EMPTY_FILTERS, 0);
   }, [searchParams]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────
 
   const handleSearch = useCallback((newKeyword: string, newCity: string) => {
     setKeyword(newKeyword);
@@ -271,12 +271,12 @@ function JobsPageInner() {
     (appliedFilters.workLocType ? 1 : 0) +
     (appliedFilters.postedWithin ? 1 : 0);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
 
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      {/* ── Hero ───── */}
       <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700">
         {/* overflow-hidden tách riêng để không clip dropdown */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -321,7 +321,7 @@ function JobsPageInner() {
         </div>
       </section>
 
-      {/* ── Active keyword/city badges ──────────────────────────────────────── */}
+      {/* ── Active keyword/city badges ──────────── */}
       <AnimatePresence>
         {(keyword || city) && (
           <motion.div
@@ -367,7 +367,7 @@ function JobsPageInner() {
         )}
       </AnimatePresence>
 
-      {/* ── Main ───────────────────────────────────────────────────────────── */}
+      {/* ── Main ───── */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Mobile filter toggle */}
@@ -472,7 +472,7 @@ function JobsPageInner() {
               </div>
             )}
 
-            {/* ── Loading skeleton ──────────────────────────────────────────── */}
+            {/* ── Loading skeleton ──────────────── */}
             {loading && (
               <>
                 <div className="mb-3 h-5 w-32 bg-blue-100 rounded-full animate-pulse" />
@@ -487,7 +487,7 @@ function JobsPageInner() {
               </>
             )}
 
-            {/* ── Empty ────────────────────────────────────────────────────── */}
+            {/* ── Empty ────────────────────────── */}
             {!loading && jobs.length === 0 && (
               <div className="col-span-full py-24 flex flex-col items-center gap-4">
                 <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
@@ -507,7 +507,7 @@ function JobsPageInner() {
               </div>
             )}
 
-            {/* ── Featured section ──────────────────────────────────────────── */}
+            {/* ── Featured section ──────────────── */}
             {!loading && featuredJobs.length > 0 && (
               <div className="mb-2">
                 <FeaturedSectionHeader count={featuredJobs.length} />
@@ -524,7 +524,7 @@ function JobsPageInner() {
               </div>
             )}
 
-            {/* ── Regular section ───────────────────────────────────────────── */}
+            {/* ── Regular section ───────────────── */}
             {!loading && regularJobs.length > 0 && (
               <>
                 <RegularSectionHeader count={regularJobs.length} total={total} />
@@ -541,7 +541,7 @@ function JobsPageInner() {
               </>
             )}
 
-            {/* ── Pagination ────────────────────────────────────────────────── */}
+            {/* ── Pagination ────────────────────── */}
             {!loading && totalPages > 1 && (
               <Pagination
                 currentPage={page + 1}

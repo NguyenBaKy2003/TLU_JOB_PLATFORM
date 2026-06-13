@@ -1,6 +1,6 @@
 // src/presentation/components/company-detail/TeamTab.tsx
 "use client";
-import { Linkedin } from "lucide-react";
+import { Linkedin, Mail } from "lucide-react";
 import type { CompanyProfile, TeamMember } from "@/domain/models/Company";
 import Image from "next/image";
 
@@ -62,8 +62,8 @@ export function TeamTab({ company }: Props) {
             </div>
             {member.linkedinUrl && (
               <div className="flex items-center gap-2">
-                <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors">
-                  <Linkedin size={16} />
+                <a type="email"  href={`mailto:${member.linkedinUrl}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors">
+                  <Mail size={16} />
                 </a>
               </div>
             )}
