@@ -39,6 +39,17 @@ public class Payment {
         this.completedAt = LocalDateTime.now();
     }
 
+    public void markRetried() {
+        if (this.status != PaymentStatus.FAILED
+                && this.status != PaymentStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Chỉ có thể retry payment ở trạng thái FAILED hoặc PENDING");
+        }
+        this.status = PaymentStatus.FAILED;
+        this.failureReason = "RETRIED";
+        this.completedAt = LocalDateTime.now();
+    }
+
     public void markFailed(String reason) {
         this.status = PaymentStatus.FAILED;
         this.failureReason = reason;

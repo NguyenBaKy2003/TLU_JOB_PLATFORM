@@ -13,7 +13,7 @@ import type {
 export class LiveStreamService {
   constructor(private readonly repo: ILiveStreamRepository) {}
 
-  // ─── Employer Methods ────────────────────────────────────────────
+  // ─── Employer Methods ────────────────
 
   createSession(req: CreateSessionRequest): Promise<LiveStreamSession> {
     return this.repo.createSession(req);
@@ -47,7 +47,7 @@ export class LiveStreamService {
     return this.repo.inviteToSlot(sessionId, req);
   }
 
-  // ─── Candidate Methods ───────────────────────────────────────────
+  // ─── Candidate Methods ───────────────
 
   joinStream(sessionId: string): Promise<JoinSessionResponse> {
     return this.repo.joinStream(sessionId);
@@ -69,7 +69,7 @@ export class LiveStreamService {
     return this.repo.respondToPoll(sessionId, pollEventId, optionIndex);
   }
 
-  // ─── Common Methods ──────────────────────────────────────────────
+  // ─── Common Methods ──────────────────
 
   async getViewerCount(sessionId: string): Promise<number> {
     try {

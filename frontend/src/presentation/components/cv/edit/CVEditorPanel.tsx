@@ -21,7 +21,7 @@ import {
 } from "./StructuredSectionEditor";
 import type { EditorTab } from "@/app/(cv)/cv/[id]/edit/page";
 
-// ── Shared field ───────────────────────────────────────────────────────────
+// ── Shared field ───
 
 function FormField({
   label, value, onChange, type = "text", placeholder, hint, span2 = false,
@@ -56,7 +56,7 @@ function FormField({
   );
 }
 
-// ── Personal Info Editor ───────────────────────────────────────────────────
+// ── Personal Info Editor ───────────────────────
 
 function PersonalInfoEditor({
   cv, saving, onSave, onImportFromProfile, onRealtimeUpdate,
@@ -178,7 +178,7 @@ function PersonalInfoEditor({
   );
 }
 
-// ── Section Editor ─────────────────────────────────────────────────────────
+// ── Section Editor ─
 
 function SectionEditor({
   section, saving, onUpdate, onRealtimeUpdate,
@@ -366,7 +366,7 @@ function SectionEditor({
   );
 }
 
-// ── Main panel ─────────────────────────────────────────────────────────────
+// ── Main panel ─────
 
 interface Props {
   cv:                            OnlineCVDetail;

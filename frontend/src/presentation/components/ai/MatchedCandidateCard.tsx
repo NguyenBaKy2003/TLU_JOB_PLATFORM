@@ -4,7 +4,7 @@ import { MapPin, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Send } from 
 import { InviteCandidateModal } from "@/presentation/components/ai/InviteCandidateModal";
 import type { MatchedCandidate, InviteCandidateResponse } from "@/domain/models/Ai";
 
-// ── Score ring ────────────────────────────────────────────────────────────────
+// ── Score ring ────────
 
 function ScoreRing({ score }: { score: number }) {
   const color =
@@ -19,7 +19,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-// ── Skill chips ───────────────────────────────────────────────────────────────
+// ── Skill chips ───────
 
 function SkillChips({ matched, missing }: { matched: string[]; missing: string[] }) {
   if (!matched.length && !missing.length) return null;
@@ -43,7 +43,7 @@ function SkillChips({ matched, missing }: { matched: string[]; missing: string[]
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 interface Props {
   c:         MatchedCandidate;

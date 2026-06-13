@@ -14,7 +14,7 @@ import { useWebSocket } from "@/application/contexts/WebSocketContext";
 import { useToast }      from "@/presentation/components/ui/toast";
 import type { NotificationItem } from "@/domain/models/Notification";
 
-// ── Map NotificationType → toast config ───────────────────────────────────────
+// ── Map NotificationType → toast config ───────────
 
 interface ToastConfig {
   title:   (n: NotificationItem) => string;
@@ -24,7 +24,7 @@ interface ToastConfig {
 
 const NOTIFICATION_TOAST_MAP: Partial<Record<string, ToastConfig>> = {
 
-  // ── Candidate nhận ─────────────────────────────────────────────────────────
+  // ── Candidate nhận ─
 
   JOB_INVITATION: {
     type:    "info",
@@ -62,7 +62,7 @@ const NOTIFICATION_TOAST_MAP: Partial<Record<string, ToastConfig>> = {
     message: (n) => n.body || "Có vị trí nổi bật dành cho bạn.",
   },
 
-  // ── Employer nhận ──────────────────────────────────────────────────────────
+  // ── Employer nhận ──
 
   NEW_APPLICATION_RECEIVED: {
     type:    "success",
@@ -124,7 +124,7 @@ const NOTIFICATION_TOAST_MAP: Partial<Record<string, ToastConfig>> = {
     message: (n) => n.body || "Hồ sơ công ty của bạn bị từ chối.",
   },
 
-  // ── Chung ──────────────────────────────────────────────────────────────────
+  // ── Chung ──────────
 
   SYSTEM_ANNOUNCEMENT: {
     type:    "info",
@@ -148,7 +148,7 @@ const NOTIFICATION_TOAST_MAP: Partial<Record<string, ToastConfig>> = {
   // INTERVIEW_INVITE — handled via INTERVIEW_SCHEDULED
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function NotificationToastListener() {
   const { subscribeToNewNotification } = useWebSocket();

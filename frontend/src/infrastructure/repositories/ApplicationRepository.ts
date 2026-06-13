@@ -29,7 +29,7 @@ export class ApplicationRepository implements IApplicationRepository {
   private readonly CANDIDATE = "/candidate/applications";
   private readonly JOBS      = "/jobs";
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  // ─── Helpers ──────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -46,7 +46,7 @@ export class ApplicationRepository implements IApplicationRepository {
     return res.data.data;
   }
 
-  // ─── Candidate ────────────────────────────────────────────────────────────
+  // ─── Candidate ────
 
   async submit(req: SubmitApplicationRequest): Promise<Application> {
     const res = await api.post<{ data: Application }>(
@@ -116,7 +116,7 @@ export class ApplicationRepository implements IApplicationRepository {
     return URL.createObjectURL(res.data as Blob);
   }
 
-  // ─── Employer ─────────────────────────────────────────────────────────────
+  // ─── Employer ─────
 
   async getByJobPost(
     jobPostId: string,

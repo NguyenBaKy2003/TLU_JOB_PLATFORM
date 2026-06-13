@@ -1,5 +1,6 @@
 import type { ICandidatePaymentRepository, PaymentSearchParams } from "@/domain/repositories/ICandidatePaymentRepository";
 import type { CandidatePayment, PaymentListResponse, PaymentStatus } from "@/domain/models/CandidatePayment";
+import { RetryPaymentResult } from "@/domain/models/PaymentShared";
 
 export class CandidatePaymentService {
 
@@ -14,7 +15,7 @@ export class CandidatePaymentService {
     return this.repo.getMyPaymentDetail(id);
   }
 
-  // ─── Formatting Helpers (giữ nguyên) ──────────────────────────────
+  // ─── Formatting Helpers (giữ nguyên) ──
 
   formatDate(dateStr: string | null): string {
     if (!dateStr) return "—";
@@ -70,5 +71,17 @@ export class CandidatePaymentService {
       return `/api/v1/payment/vnpay/pay?orderCode=${payment.gatewayOrderCode}`;
     }
     return null;
+  }
+
+
+  async retryPayment(id: string): Promise<RetryPaymentResult> {
+    if (!id) throw new Error("ID giao dịch không được để trống");
+    return this.repo.retryPayment(id);
+  }
+
+  // Gọi retryPayment rồi redirect đến paymentUrl
+  async retryAndRedirect(id: string): Promise<void> {
+    const result = await this.retryPayment(id);
+    window.location.href = result.paymentUrl;
   }
 }

@@ -143,7 +143,7 @@ export interface PassFactor {
   description: string;
 }
 
-// ─── Candidate Search Models ──────────────────────────────────────────────────
+// ─── Candidate Search Models ──────────────────────
 
 export type CandidateAvailability = "ACTIVELY_LOOKING" | "OPEN_TO_OFFERS";
 

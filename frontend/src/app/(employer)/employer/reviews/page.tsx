@@ -21,7 +21,7 @@ import { Eye, CheckCircle, XCircle, Star, Clock } from 'lucide-react';
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants ───────
 
 const STATUS_OPTIONS = [
   { value: 'PENDING',  label: 'Chờ duyệt' },
@@ -55,7 +55,7 @@ const REJECT_FORM_FIELDS: FormField[] = [
 
 const reviewService = new CompanyReviewService(new CompanyReviewRepository());
 
-// ─── Page Component ──────────────────────────────────────────────────────────
+// ─── Page Component ──
 
 export default function EmployerReviewsPage() {
   const toast = useToast();
@@ -83,7 +83,7 @@ export default function EmployerReviewsPage() {
     debounceMs: 500,
   });
 
-  // ─── Fetch ───────────────────────────────────────────────────────────────
+  // ─── Fetch ───────
 
   const fetchReviews = useCallback(async (filterValues: { keyword?: string; status?: string }) => {
     if (isFetching.current) return;
@@ -120,7 +120,7 @@ export default function EmployerReviewsPage() {
     fetchReviews({ keyword: filters.keyword, status: filters.status });
   }, [filters.keyword, filters.status, fetchReviews]);
 
-  // ─── Actions ─────────────────────────────────────────────────────────────
+  // ─── Actions ─────
 
   const refreshCurrent = useCallback(() =>
     fetchReviews({ keyword: getFilterValue('keyword'), status: getFilterValue('status') }),
@@ -166,7 +166,7 @@ export default function EmployerReviewsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [refreshCurrent]);
 
-  // ─── Columns ─────────────────────────────────────────────────────────────
+  // ─── Columns ─────
 
   const getActions = useCallback((record: CompanyReview): ActionItem<CompanyReview>[] => {
     const actions: ActionItem<CompanyReview>[] = [
@@ -276,7 +276,7 @@ export default function EmployerReviewsPage() {
     },
   ], [getActions]);
 
-  // ─── Detail Fields ────────────────────────────────────────────────────────
+  // ─── Detail Fields 
 
   const detailFields: DetailField[] = useMemo(() => {
     if (!selectedReview) return [];
@@ -318,7 +318,7 @@ export default function EmployerReviewsPage() {
     ];
   }, [selectedReview]);
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ───────
 
   const pendingCount = useMemo(() =>
     reviews.filter(r => r.status === 'PENDING').length, [reviews]);

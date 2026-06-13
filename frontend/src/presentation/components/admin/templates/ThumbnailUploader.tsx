@@ -57,7 +57,7 @@ export function ThumbnailUploader({
   // Ưu tiên: preview file mới > URL server > trống
   const displayUrl = objectUrl ?? currentUrl ?? null;
 
-  // ── Validate & emit ───────────────────────────────────────────────────
+  // ── Validate & emit ───────────────────────
 
   const processFile = useCallback(
     (file: File) => {
@@ -75,7 +75,7 @@ export function ThumbnailUploader({
     [onFileSelect]
   );
 
-  // ── Event handlers ────────────────────────────────────────────────────
+  // ── Event handlers ────────────────────────
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -103,7 +103,7 @@ export function ThumbnailUploader({
     if (!uploading) inputRef.current?.click();
   }
 
-  // ── Render ────────────────────────────────────────────────────────────
+  // ── Render ────
 
   return (
     <div className="space-y-2">
@@ -197,7 +197,7 @@ export function ThumbnailUploader({
   );
 }
 
-// ── Inline SVG icons ──────────────────────────────────────────────────────
+// ── Inline SVG icons ──────────────────────────
 
 function UploadIcon({ className }: { className?: string }) {
   return (

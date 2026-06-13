@@ -22,7 +22,7 @@ interface ApiResponse<T> {
 
 export class CompanyReviewRepository implements ICompanyReviewRepository {
 
-  // ─── Public endpoints ────────────────────────────────────────────────────
+  // ─── Public endpoints ────────────────────────
 
   async getCompanyReviews(
     companyId: string,
@@ -43,7 +43,7 @@ export class CompanyReviewRepository implements ICompanyReviewRepository {
     return res.data.data;
   }
 
-  // ─── Candidate endpoints ─────────────────────────────────────────────────
+  // ─── Candidate endpoints ─────────────────────
 
   async createReview(
     companyId: string,
@@ -88,7 +88,7 @@ export class CompanyReviewRepository implements ICompanyReviewRepository {
     return res.data.data;
   }
 
-  // ─── Employer endpoints ──────────────────────────────────────────────────
+  // ─── Employer endpoints ──────────────────────
 
   async getEmployerReviews(
     page = 0,

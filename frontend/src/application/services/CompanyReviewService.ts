@@ -16,7 +16,7 @@ export class CompanyReviewService {
 
   constructor(private readonly repo: ICompanyReviewRepository) {}
 
-  // ─── Public ──────────────────────────────────────────────────────────────
+  // ─── Public ──────
 
   listReviews(
     companyId: string,
@@ -30,7 +30,7 @@ export class CompanyReviewService {
     return this.repo.getCompanyReviewStats(companyId);
   }
 
-  // ─── Candidate ───────────────────────────────────────────────────────────
+  // ─── Candidate ───
 
   getMyReviews(params: GetMyReviewsParams = {}): Promise<MyReviewsResponse> {
     return this.repo.getMyReviews(params);
@@ -56,7 +56,7 @@ export class CompanyReviewService {
     return this.repo.deleteReview(companyId, reviewId);
   }
 
-  // ─── Employer ────────────────────────────────────────────────────────────
+  // ─── Employer ────
 
   getEmployerReviews(
     page = 0,

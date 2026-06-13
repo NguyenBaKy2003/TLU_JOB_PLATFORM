@@ -18,7 +18,7 @@ interface ApiResponse<T> {
 
 export class CompanyRepository implements ICompanyRepository {
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Helpers ───────
 
   private async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const res = await api.get<ApiResponse<T>>(url, { params });
@@ -48,7 +48,7 @@ export class CompanyRepository implements ICompanyRepository {
     await api.delete(url);
   }
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public ────────
 
   /**
    * GET /api/v1/companies
@@ -80,7 +80,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.get(`/companies/${companyId}/jobs`, { page, size });
   }
 
-  // ── Employer ──────────────────────────────────────────────────────────────
+  // ── Employer ──────
 
   async getMyCompany(): Promise<CompanyProfile> {
     return this.get(`/companies/my`);
@@ -102,7 +102,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.patchMultipart(`/companies/cover`, file);
   }
 
-  // ── Reviews ───────────────────────────────────────────────────────────────
+  // ── Reviews ───────
 
   async listReviews(companyId: string, page = 0, size = 10): Promise<PageResponse<CompanyReview>> {
     return this.get(`/companies/${companyId}/reviews`, { page, size });
@@ -116,7 +116,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/${companyId}/reviews/${reviewId}`);
   }
 
-  // ── Admin ─────────────────────────────────────────────────────────────────
+  // ── Admin ─────────
 
   async adminList(status = "UNVERIFIED", page = 0, size = 20): Promise<PageResponse<CompanyProfile>> {
     return this.get(`/admin/companies`, { status, page, size });
@@ -138,7 +138,7 @@ export class CompanyRepository implements ICompanyRepository {
     await api.patch(`/admin/reviews/${reviewId}/hide`);
   }
 
-  // ── Team members ──────────────────────────────────────────────────────────
+  // ── Team members ──
 
   async listTeamMembers(companyId: string): Promise<TeamMember[]> {
     const company = await this.getById(companyId);
@@ -161,7 +161,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/team/${memberId}`);
   }
 
-  // ── Gallery ───────────────────────────────────────────────────────────────
+  // ── Gallery ───────
 
   async listGallery(companyId: string): Promise<GalleryImage[]> {
     return this.get(`/companies/${companyId}/gallery`);
@@ -181,7 +181,7 @@ export class CompanyRepository implements ICompanyRepository {
     return this.del(`/companies/gallery/${imageId}`);
   }
 
-  // ── Documents ─────────────────────────────────────────────────────────────
+  // ── Documents ─────
 
   async listDocuments(): Promise<CompanyDocument[]> {
     return this.get(`/companies/documents`);

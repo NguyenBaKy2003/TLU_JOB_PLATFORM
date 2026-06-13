@@ -117,14 +117,14 @@ export function TemplateFormFields({
 
   return (
     <div className="space-y-6">
-      {/* ── Global error ────────────────────────────────────────────── */}
+      {/* ── Global error ────────────────── */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[16px] text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       )}
 
-      {/* ── Thumbnail uploader ───────────────────────────────────────── */}
+      {/* ── Thumbnail uploader ───────────── */}
       <ThumbnailUploader
         currentUrl={data.thumbnailUrl || null}
         pendingFile={pendingThumbnail ?? null}
@@ -133,7 +133,7 @@ export function TemplateFormFields({
         error={thumbnailError}
       />
 
-      {/* ── Name ────────────────────────────────────────────────────── */}
+      {/* ── Name ────────────────────────── */}
       <div className="space-y-1.5">
         <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
           Tên template <span className="text-red-500">*</span>
@@ -149,7 +149,7 @@ export function TemplateFormFields({
         <p className="text-right text-xs text-gray-400">{data.name.length}/100</p>
       </div>
 
-      {/* ── Category + Premium ───────────────────────────────────────── */}
+      {/* ── Category + Premium ───────────── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
@@ -199,7 +199,7 @@ export function TemplateFormFields({
         </div>
       </div>
 
-      {/* ── Active toggle (edit only) ────────────────────────────────── */}
+      {/* ── Active toggle (edit only) ────── */}
       {isEdit && (
         <div className="space-y-1.5">
           <label className="block text-[16px] font-medium text-gray-700 dark:text-gray-300">
@@ -232,7 +232,7 @@ export function TemplateFormFields({
         </div>
       )}
 
-      {/* ── HTML Content ─────────────────────────────────────────────── */}
+      {/* ── HTML Content ─────────────────── */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

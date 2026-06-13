@@ -3,11 +3,11 @@ import { useState }        from "react";
 import { Shield, ChevronRight, X, CheckCircle2 } from "lucide-react";
 import type { SubscriptionPlan } from "@/domain/models/CompanySubscription";
 
-// ── Gateway types ─────────────────────────────────────────────────────────────
+// ── Gateway types ─────
 
 export type PaymentGateway = "VNPAY" | "MOMO" | "ZALOPAY";
 
-// ── Gateway logos ─────────────────────────────────────────────────────────────
+// ── Gateway logos ─────
 
 function VNPayLogo() {
   return (
@@ -34,7 +34,7 @@ function ZaloPayLogo() {
   );
 }
 
-// ── Gateway options config ────────────────────────────────────────────────────
+// ── Gateway options config ────────────────────────
 
 interface GatewayOption {
   id:          PaymentGateway;
@@ -72,7 +72,7 @@ const GATEWAYS: GatewayOption[] = [
   },
 ];
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ─────────────
 
 interface Props {
   plan:        SubscriptionPlan;
@@ -83,7 +83,7 @@ interface Props {
   onCancel:    () => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function PaymentModal({
   plan, yearly, formatPrice, discount, onConfirm, onCancel,

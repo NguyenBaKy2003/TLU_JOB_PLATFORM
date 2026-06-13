@@ -1,6 +1,6 @@
 // src/domain/models/Job.ts
 
-// ── Enums ─────────────────────────────────────────────────────────────────────
+// ── Enums ─────────────
 
 export type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN"  ;
 export type JobLevel =
@@ -51,7 +51,7 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   REJECTED: "Bị từ chối"
 };
 
-// ── Value objects ─────────────────────────────────────────────────────────────
+// ── Value objects ─────
 
 export interface Salary {
   min: number | null;
@@ -89,7 +89,7 @@ export interface JobSkill {
   required: boolean;
 }
 
-// ── Domain models ─────────────────────────────────────────────────────────────
+// ── Domain models ─────
 
 /** Dùng trong list (JobPostResponse từ backend) */
 export interface JobPost {
@@ -144,7 +144,7 @@ export interface PublishJobPayload {
   featured: boolean;
 }
 
-// ── Payloads ──────────────────────────────────────────────────────────────────
+// ── Payloads ──────────
 
 export interface CreateJobPayload {
   title: string;
@@ -189,7 +189,7 @@ export interface UpdateJobPayload {
   skills?: JobSkill[];
 }
 
-// ── Search params ─────────────────────────────────────────────────────────────
+// ── Search params ─────
 
 export interface JobSearchParams {
   keyword?:        string;
@@ -207,7 +207,7 @@ export interface JobSearchParams {
   size?:           number;
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// ── Pagination ────────
 
 export interface PageResponse<T> {
   content: T[];
@@ -218,7 +218,7 @@ export interface PageResponse<T> {
   last: boolean;
 }
 
-// ── Form state (chỉ dùng ở frontend) ─────────────────────────────────────────
+// ── Form state (chỉ dùng ở frontend) ─────────────
 
 export interface JobPostForm {
   title: string;

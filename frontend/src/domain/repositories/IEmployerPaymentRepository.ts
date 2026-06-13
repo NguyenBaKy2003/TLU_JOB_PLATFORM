@@ -1,4 +1,5 @@
 import type { EmployerPayment, PaymentListResponse, PaymentStatus } from '../models/EmployerPayment';
+import { RetryPaymentResult } from '../models/PaymentShared';
 
 export interface PaymentSearchParams {
   status?: PaymentStatus;
@@ -13,4 +14,5 @@ export interface PaymentSearchParams {
 export interface IEmployerPaymentRepository {
   getMyPayments(params: PaymentSearchParams): Promise<PaymentListResponse>;
   getMyPaymentDetail(id: string): Promise<EmployerPayment>;
+  retryPayment(id: string): Promise<RetryPaymentResult>;
 }

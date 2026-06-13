@@ -19,7 +19,7 @@ const ALLOWED_CV_TYPES     = [
 export class CandidateService {
   constructor(private readonly repo: ICandidateRepository) {}
 
-  // ── Profile ──────────────────────────────────────────────────────────────
+  // ── Profile ──────
 
   async getProfile(): Promise<CandidateProfile> {
     return this.repo.getProfile();
@@ -44,7 +44,7 @@ export class CandidateService {
     return this.repo.updateJobSearchStatus(status);
   }
 
-  // ── Boost ─────────────────────────────────────────────────────────────────
+  // ── Boost ─────────
 
   async boostCv(): Promise<BoostResult> {
     return this.repo.boostCv();
@@ -54,7 +54,7 @@ export class CandidateService {
     return this.repo.getBoostStatus();
   }
 
-  // ── Experience ────────────────────────────────────────────────────────────
+  // ── Experience ────
 
   async addExperience(data: ExperiencePayload): Promise<CandidateProfile> {
     this.validateExperience(data);
@@ -72,7 +72,7 @@ export class CandidateService {
     return this.repo.deleteExperience(id);
   }
 
-  // ── Education ─────────────────────────────────────────────────────────────
+  // ── Education ─────
 
   async addEducation(data: EducationPayload): Promise<CandidateProfile> {
     if (!data.school?.trim()) throw new Error("Tên trường không được để trống");
@@ -90,7 +90,7 @@ export class CandidateService {
     return this.repo.deleteEducation(id);
   }
 
-  // ── CV ────────────────────────────────────────────────────────────────────
+  // ── CV ────────────
 
   async listCVs(): Promise<CandidateCV[]> {
     return this.repo.listCVs();
@@ -140,7 +140,7 @@ export class CandidateService {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
   }
 
-  // ── Private validators ────────────────────────────────────────────────────
+  // ── Private validators ────────────────────────
 
   private validateExperience(data: ExperiencePayload): void {
     if (!data.companyName?.trim()) throw new Error("Tên công ty không được để trống");

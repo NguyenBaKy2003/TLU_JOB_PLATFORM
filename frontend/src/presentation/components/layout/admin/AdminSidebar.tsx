@@ -53,7 +53,7 @@ interface Props {
   onLogout:          () => Promise<void>;
 }
 
-// ── Bỏ prop activeHref — dùng usePathname nội bộ ──────────────────────────────
+// ── Bỏ prop activeHref — dùng usePathname nội bộ ──
 function isActive(pathname: string, href: string): boolean {
   if (href === "/admin/dashboard") return pathname === href; // exact cho dashboard
   return pathname === href || pathname.startsWith(href + "/");

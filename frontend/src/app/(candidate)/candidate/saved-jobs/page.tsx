@@ -21,7 +21,7 @@ import { Pagination } from "@/presentation/components/common/Pagination";
 const service = new JobService(new JobRepository());
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ──────────
 
 function PageSkeleton() {
   return (
@@ -37,7 +37,7 @@ function PageSkeleton() {
   );
 }
 
-// ── Empty ─────────────────────────────────────────────────────────────────────
+// ── Empty ─────────────
 
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
@@ -68,7 +68,7 @@ function EmptyState({ filtered }: { filtered: boolean }) {
   );
 }
 
-// ── Job card ──────────────────────────────────────────────────────────────────
+// ── Job card ──────────
 
 function JobCard({
   job, onRemove, isRemoving,
@@ -194,7 +194,7 @@ function JobCard({
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function SavedJobsPage() {
   const toast = useToast();
@@ -213,7 +213,7 @@ export default function SavedJobsPage() {
   const [page,     setPage]     = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // ── Fetch ─────────
 
   const fetchData = useCallback(async (
     p: number, ps: number,
@@ -240,7 +240,7 @@ export default function SavedJobsPage() {
     fetchData(0, pageSize, "", "", "", "ALL");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────
 
   const handleFilter = useCallback((params: CandidateFilterParams) => {
     setKeyword(params.keyword);
@@ -285,7 +285,7 @@ export default function SavedJobsPage() {
     }
   }, [data, page, pageSize, keyword, savedAtFrom, savedAtTo, activeStatus, fetchData, toast]);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // ── Derived ───────
 
   const jobs           = data?.jobs.content ?? [];
   const totalPages     = data?.jobs.totalPages ?? 0;
@@ -304,7 +304,7 @@ export default function SavedJobsPage() {
 
   if (loading && !data) return <PageSkeleton />;
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <>

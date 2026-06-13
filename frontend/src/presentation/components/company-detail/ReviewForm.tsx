@@ -16,7 +16,7 @@ import { extractErrorMessage } from "@/lib/extractErrorMessage";
 
 const reviewService = new CompanyReviewService(new CompanyReviewRepository());
 
-// ─── Rating config ──────────────────────────────────────────────────────────
+// ─── Rating config ──
 
 const RATING_LABELS = ["", "Rất kém", "Kém", "Bình thường", "Tốt", "Xuất sắc"];
 const RATING_COLORS = [
@@ -36,7 +36,7 @@ const RATING_FILL_COLORS = [
   "fill-green-500 text-green-500",
 ];
 
-// ─── Sub-components ─────────────────────────────────────────────────────────
+// ─── Sub-components ─
 
 function CharCount({ value, max }: { value: string; max: number }) {
   const ratio = value.length / max;
@@ -64,7 +64,7 @@ function FieldLabel({
   );
 }
 
-// ─── Props ──────────────────────────────────────────────────────────────────
+// ─── Props ──────────
 
 interface ReviewFormProps {
   companyId: string;
@@ -75,7 +75,7 @@ interface ReviewFormProps {
   onSuccess?: () => void;
 }
 
-// ─── Main component ──────────────────────────────────────────────────────────
+// ─── Main component ──
 
 export function ReviewForm({
   companyId,

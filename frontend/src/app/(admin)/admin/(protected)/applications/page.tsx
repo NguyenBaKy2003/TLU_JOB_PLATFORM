@@ -8,7 +8,7 @@ import {
 import { AdminApplicationRepository } from '@/infrastructure/repositories/AdminApplicationRepository';
 import type {
   AdminApplication, AdminApplicationDetail,
-  AdminApplicationFilters, ApplicationStatus, ApplicationStatusLog,
+   ApplicationStatus,
 } from '@/domain/models/AdminApplication';
 import { getCandidateName, getCandidateEmail } from '@/domain/models/AdminApplication';
 import { AdminApplicationService } from '@/application/services/AdminApplicationService';
@@ -19,7 +19,7 @@ import {
   CheckCircle, XCircle, Clock, Edit, FileSpreadsheet, Building2, MapPin,
 } from 'lucide-react';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────
 
 const statusOptions = [
   { value: 'SUBMITTED',           label: 'Đã nộp' },
@@ -45,7 +45,7 @@ const statusConfig: Record<ApplicationStatus, { label: string; color: string; ic
   PENDING:             { label: 'Chờ xử lý',         color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',        icon: <Clock className="w-3 h-3" /> },
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminApplicationsPage() {
   const toast    = useToast();
@@ -56,7 +56,7 @@ export default function AdminApplicationsPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [applications,  setApplications]  = useState<AdminApplication[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
@@ -73,7 +73,7 @@ export default function AdminApplicationsPage() {
     isOpen: boolean; application: AdminApplication | null; loading: boolean;
   }>({ isOpen: false, application: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'keyword', type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tên ứng viên, email, vị trí...' },
     { key: 'status',  type: 'select' as const, label: 'Trạng thái', options: statusOptions },
@@ -83,7 +83,7 @@ export default function AdminApplicationsPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch list ─────────────────────────────────────────────────────────────
+  // ── Fetch list ─────
   const fetchApplications = useCallback(async (
     filterValues: { keyword?: string; status?: string },
     page = 0,
@@ -118,7 +118,7 @@ export default function AdminApplicationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.keyword, filters.status]);
 
-  // ── Fetch detail ───────────────────────────────────────────────────────────
+  // ── Fetch detail ───
   const handleViewDetail = useCallback(async (record: AdminApplication) => {
     setDetailModalOpen(true);
     setSelectedDetail(null);   // clear → skeleton ngay
@@ -139,7 +139,7 @@ export default function AdminApplicationsPage() {
     setSelectedDetail(null);
   }, []);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const currentFilters = useCallback(() => ({
     keyword: getFilterValue('keyword'),
     status:  getFilterValue('status'),
@@ -155,7 +155,7 @@ export default function AdminApplicationsPage() {
     fetchApplications(currentFilters(), 0, size);
   }, [fetchApplications, currentFilters]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const handleExportExcel = useCallback(async () => {
     setExporting('excel');
     try {
@@ -182,7 +182,7 @@ export default function AdminApplicationsPage() {
     } finally { setExporting(null); }
   }, [getFilterValue]);
 
-  // ── Status change ──────────────────────────────────────────────────────────
+  // ── Status change ──
   const handleStatusChange = async (id: string, status: ApplicationStatus, reason: string) => {
     setStatusFormModal(prev => ({ ...prev, loading: true }));
     try {
@@ -210,7 +210,7 @@ export default function AdminApplicationsPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchApplications, currentFilters, currentPage]);
 
-  // ── Table columns ──────────────────────────────────────────────────────────
+  // ── Table columns ──
   const columns: Column<AdminApplication>[] = [
     {
       key: 'candidate', title: 'Ứng viên', sortable: false, width: '200px',
@@ -287,7 +287,7 @@ export default function AdminApplicationsPage() {
     },
   ];
 
-  // ── Detail fields ──────────────────────────────────────────────────────────
+  // ── Detail fields ──
   const getDetailFields = (): DetailField[] => {
     if (!selectedDetail) return [];
     const d = selectedDetail;
@@ -420,7 +420,7 @@ export default function AdminApplicationsPage() {
     ];
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────────
+  // ── Derived ────────
   const page1Based = currentPage + 1;
   const startIndex = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex   = Math.min((currentPage + 1) * pageSize, totalElements);
@@ -430,7 +430,7 @@ export default function AdminApplicationsPage() {
     { name: 'reason', label: 'Lý do thay đổi', type: 'textarea', required: true, rows: 3, placeholder: 'Nhập lý do...' },
   ];
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

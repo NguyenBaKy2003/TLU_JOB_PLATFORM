@@ -25,7 +25,7 @@ import {
   FileSpreadsheet, FileText,
 } from 'lucide-react';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ────────
 
 const subscriptionStatusOptions = [
   { value: 'ACTIVE',    label: 'Hoạt động' },
@@ -71,7 +71,7 @@ const formatDate = (value?: string | null) => {
 
   return date.toLocaleDateString("vi-VN");
 };
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminSubscriptionPage() {
   const toast    = useToast();
@@ -85,16 +85,16 @@ export default function AdminSubscriptionPage() {
   const isFetchingCompany   = useRef(false);
   const isFetchingCandidate = useRef(false);
 
-  // ── Tab ────────────────────────────────────────────────────────────────────
+  // ── Tab ────────────
   const [activeTab, setActiveTab] = useState<TabType>('company-plans');
 
-  // ── Plans ──────────────────────────────────────────────────────────────────
+  // ── Plans ──────────
   const [companyPlans,        setCompanyPlans]        = useState<SubscriptionPlan[]>([]);
   const [companyPlansLoading, setCompanyPlansLoading] = useState(true);
   const [candidatePlans,        setCandidatePlans]        = useState<CandidateSubscriptionPlan[]>([]);
   const [candidatePlansLoading, setCandidatePlansLoading] = useState(true);
 
-  // ── Company subs ───────────────────────────────────────────────────────────
+  // ── Company subs ───
   const [companySubs,        setCompanySubs]        = useState<AdminSubscriptionRow[]>([]);
   const [companySubsLoading, setCompanySubsLoading] = useState(true);
   const [companySubsTotal,   setCompanySubsTotal]   = useState(0);
@@ -102,7 +102,7 @@ export default function AdminSubscriptionPage() {
   const [companyPageSize,    setCompanyPageSize]    = useState(20);
   const [exportingCompany,   setExportingCompany]   = useState<'excel' | 'pdf' | null>(null);
 
-  // ── Candidate subs ─────────────────────────────────────────────────────────
+  // ── Candidate subs ─
   const [candidateSubs,        setCandidateSubs]        = useState<AdminCandidateSubscriptionRow[]>([]);
   const [candidateSubsLoading, setCandidateSubsLoading] = useState(true);
   const [candidateSubsTotal,   setCandidateSubsTotal]   = useState(0);
@@ -110,7 +110,7 @@ export default function AdminSubscriptionPage() {
   const [candidatePageSize,    setCandidatePageSize]    = useState(20);
   const [exportingCandidate,   setExportingCandidate]   = useState<'excel' | 'pdf' | null>(null);
 
-  // ── Modals ─────────────────────────────────────────────────────────────────
+  // ── Modals ─────────
   const [companyPlanModalOpen,   setCompanyPlanModalOpen]   = useState(false);
   const [editingCompanyPlan,     setEditingCompanyPlan]     = useState<SubscriptionPlan | undefined>();
   const [candidatePlanModalOpen, setCandidatePlanModalOpen] = useState(false);
@@ -125,7 +125,7 @@ export default function AdminSubscriptionPage() {
     type: 'danger' | 'warning' | 'success'; onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', type: 'warning', onConfirm: () => {} });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'status', type: 'select' as const, label: 'Trạng thái', options: subscriptionStatusOptions },
   ];
@@ -133,7 +133,7 @@ export default function AdminSubscriptionPage() {
     configs: filterConfigs, syncWithUrl: true, debounceMs: 500,
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch ──────────
   const fetchCompanyPlans = useCallback(async () => {
     setCompanyPlansLoading(true);
     try {
@@ -189,7 +189,7 @@ export default function AdminSubscriptionPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.status, activeTab]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const handleExportCompanyExcel = useCallback(async () => {
     setExportingCompany('excel');
     try {
@@ -230,7 +230,7 @@ export default function AdminSubscriptionPage() {
     } finally { setExportingCandidate(null); }
   }, []);
 
-  // ── Plan handlers ──────────────────────────────────────────────────────────
+  // ── Plan handlers ──
   const handleSaveCompanyPlan = useCallback(async (payload: PlanPayload) => {
     try {
       if (editingCompanyPlan) {
@@ -294,7 +294,7 @@ export default function AdminSubscriptionPage() {
   const handleFilterChange = useCallback((key: string, value: unknown) => setFilter(key, value), [setFilter]);
   const handleResetFilters = useCallback(() => { resetAllFilters(); }, [resetAllFilters]);
 
-  // ── Table columns ──────────────────────────────────────────────────────────
+  // ── Table columns ──
   const companyPlanColumns: Column<SubscriptionPlan>[] = [
     { key: 'code',         title: 'Mã gói',        width: '100px', render: (v) => <span className="font-mono text-xs">{v}</span> },
     { key: 'name',         title: 'Tên gói',        width: '160px', render: (v, r) => <div><div className="font-medium">{v}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1">{r.description}</div>}</div> },
@@ -417,7 +417,7 @@ export default function AdminSubscriptionPage() {
     },
   ];
 
-  // ── Detail fields ──────────────────────────────────────────────────────────
+  // ── Detail fields ──
   const getDetailFields = (): DetailField[] => {
     if (selectedCompanySub) {
       const s = selectedCompanySub;
@@ -447,7 +447,7 @@ export default function AdminSubscriptionPage() {
   const isPlansTab   = activeTab === 'company-plans' || activeTab === 'candidate-plans';
   const isCompanyTab = activeTab === 'company-plans' || activeTab === 'company-subs';
 
-  // ── Pagination helpers ─────────────────────────────────────────────────────
+  // ── Pagination helpers ─────────────────────────
   const companyTotalPages   = Math.ceil(companySubsTotal / companyPageSize) || 1;
   const candidateTotalPages = Math.ceil(candidateSubsTotal / candidatePageSize) || 1;
 
@@ -457,7 +457,7 @@ export default function AdminSubscriptionPage() {
   const candidateStartIndex = candidateSubsTotal === 0 ? 0 : candidatePage * candidatePageSize + 1;
   const candidateEndIndex   = Math.min((candidatePage + 1) * candidatePageSize, candidateSubsTotal);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6 p-6">
 

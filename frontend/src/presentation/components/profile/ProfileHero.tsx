@@ -25,7 +25,7 @@ export default function ProfileHero({
   const [preview,      setPreview]         = useState<string | undefined>(avatar);
   const [cvLoading,    setCvLoading]       = useState<"view" | "download" | null>(null);
 
-  // ── Headline state ─────────────────────────────────────────────────────────
+  // ── Headline state ─
   const [editingTitle, setEditingTitle]    = useState(false);
   const [titleDraft,   setTitleDraft]      = useState(title ?? "");
   const [savingTitle,  setSavingTitle]     = useState(false);
@@ -33,7 +33,7 @@ export default function ProfileHero({
   const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
   const initials    = (firstName?.charAt(0) ?? lastName?.charAt(0) ?? "?").toUpperCase();
 
-  // ── Avatar ─────────────────────────────────────────────────────────────────
+  // ── Avatar ─────────
   const handleAvatarFile = async (file: File) => {
     if (!onAvatarChange) return;
     const localUrl = URL.createObjectURL(file);
@@ -50,7 +50,7 @@ export default function ProfileHero({
     e.target.value = "";
   };
 
-  // ── Headline ───────────────────────────────────────────────────────────────
+  // ── Headline ───────
   const startEditTitle = () => {
     setTitleDraft(title ?? "");
     setEditingTitle(true);
@@ -78,7 +78,7 @@ export default function ProfileHero({
     if (e.key === "Escape") cancelEditTitle();
   };
 
-  // ── CV ─────────────────────────────────────────────────────────────────────
+  // ── CV ─────────────
   const handleViewCV = async () => {
     if (!onViewCV || cvLoading) return;
     setCvLoading("view");

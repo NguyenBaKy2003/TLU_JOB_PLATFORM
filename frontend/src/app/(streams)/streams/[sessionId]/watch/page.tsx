@@ -72,7 +72,7 @@ export default function CandidateViewerPage() {
 
   const currentUserId = user?.id;
 
-  // ── Load session ───────────────────────────────────────────────
+  // ── Load session ───────────────────
   useEffect(() => {
     service.getSession(sessionId)
       .then(s => { setSession(s); setViewerCount(s.viewerCount || 0); })
@@ -80,7 +80,7 @@ export default function CandidateViewerPage() {
       .finally(() => setLoadingSession(false));
   }, [sessionId]);
 
-  // ── Join ───────────────────────────────────────────────────────
+  // ── Join ───────────────────────────
   const handleJoin = useCallback(async () => {
     setJoining(true);
     try {
@@ -98,7 +98,7 @@ export default function CandidateViewerPage() {
     }
   }, [sessionId]);
 
-  // ── Leave on unmount ───────────────────────────────────────────
+  // ── Leave on unmount ───────────────
   const sessionIdRef = useRef(sessionId);
   const hasJoinedRef = useRef(hasJoined);
   useEffect(() => { hasJoinedRef.current = hasJoined; }, [hasJoined]);
@@ -110,7 +110,7 @@ export default function CandidateViewerPage() {
     };
   }, []);
 
-  // ── Stream events ──────────────────────────────────────────────
+  // ── Stream events ──────────────────
   useEffect(() => {
     if (!isConnected) return;
     const unsub = subscribeTopic(
@@ -156,7 +156,7 @@ export default function CandidateViewerPage() {
     return () => unsub();
   }, [sessionId, subscribeTopic, isConnected]);
 
-  // ── Chat messages ──────────────────────────────────────────────
+  // ── Chat messages ──────────────────
   useEffect(() => {
     if (!isConnected) return;
     const unsub = subscribeTopic(
@@ -176,7 +176,7 @@ export default function CandidateViewerPage() {
     return () => unsub();
   }, [sessionId, subscribeTopic, currentUserId, isConnected]);
 
-  // ── Q&A messages ───────────────────────────────────────────────
+  // ── Q&A messages ───────────────────
   useEffect(() => {
     if (!isConnected) return;
     const unsub = subscribeTopic(
@@ -196,7 +196,7 @@ export default function CandidateViewerPage() {
     return () => unsub();
   }, [sessionId, subscribeTopic, currentUserId, isConnected]);
 
-  // ── Interview invite ───────────────────────────────────────────
+  // ── Interview invite ───────────────
   useEffect(() => {
     if (!isConnected) return;
     const unsub = subscribeTopic(
@@ -206,7 +206,7 @@ export default function CandidateViewerPage() {
     return () => unsub();
   }, [subscribeTopic, isConnected]);
 
-  // ── Send handlers ──────────────────────────────────────────────
+  // ── Send handlers ──────────────────
   const handleSendChat = useCallback((msg: string) => {
     setSending(true);
     try {
@@ -246,7 +246,7 @@ export default function CandidateViewerPage() {
     router.back();
   }, [sessionId, hasJoined, router]);
 
-  // ── Apply from stream ──────────────────────────────────────────
+  // ── Apply from stream ──────────────
   const handleApplyFromStream = useCallback(
     async (cvUrl: string, coverLetter: string, expectedSalary: string) => {
       if (!spotlightJob) return;
@@ -268,11 +268,11 @@ export default function CandidateViewerPage() {
     [spotlightJob],
   );
 
-  // ── Guards ─────────────────────────────────────────────────────
+  // ── Guards ─────────────────────────
   if (loadingSession) return <LoadingScreen />;
   if (error)          return <ErrorScreen message={error} onBack={() => router.back()} />;
 
-  // ── Màn hình chờ ───────────────────────────────────────────────
+  // ── Màn hình chờ ───────────────────
   if (!hasJoined || !token) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -336,7 +336,7 @@ export default function CandidateViewerPage() {
     );
   }
 
-  // ── Live viewer ────────────────────────────────────────────────
+  // ── Live viewer ────────────────────
   const chatMessages = messages.filter(m => m.type === "CHAT" || m.type === "SYSTEM");
   const qaMessages   = messages.filter(m => m.type === "Q_AND_A");
   const messageCount = messages.filter(m => m.type !== "SYSTEM").length;

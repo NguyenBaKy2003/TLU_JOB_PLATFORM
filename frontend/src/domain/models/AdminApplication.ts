@@ -9,7 +9,7 @@ export type ApplicationStatus =
   | 'CANCELLED'
   | 'PENDING';
 
-// ─── Nested objects (từ list response) ───────────────────────────────────────
+// ─── Nested objects (từ list response) ───────────
 
 export interface AdminApplicationCandidate {
   id:        string;
@@ -40,7 +40,7 @@ export interface AdminApplicationCompany {
   city:     string | null;
 }
 
-// ─── List item ────────────────────────────────────────────────────────────────
+// ─── List item ────────
 
 export interface AdminApplication {
   id:           string;
@@ -62,7 +62,7 @@ export interface AdminApplication {
 export const getCandidateName  = (a: AdminApplication) => a.candidate?.fullName  ?? '—';
 export const getCandidateEmail = (a: AdminApplication) => a.candidate?.email     ?? '—';
 
-// ─── Status log ───────────────────────────────────────────────────────────────
+// ─── Status log ───────
 
 export interface ApplicationStatusLog {
   id:         string;
@@ -73,14 +73,14 @@ export interface ApplicationStatusLog {
   changedAt:  string;
 }
 
-// ─── Detail item (từ /{id}) ───────────────────────────────────────────────────
+// ─── Detail item (từ /{id}) ───────────────────────
 
 export interface AdminApplicationDetail extends AdminApplication {
   coverLetter: string | null;
   statusLogs:  ApplicationStatusLog[];
 }
 
-// ─── Pagination & filters ─────────────────────────────────────────────────────
+// ─── Pagination & filters ─────────────────────────
 
 export interface AdminApplicationPage {
   content:       AdminApplication[];

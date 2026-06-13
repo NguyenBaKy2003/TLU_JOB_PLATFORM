@@ -7,7 +7,7 @@ import {
 import type { JobPostDetail } from "@/domain/models/Job";
 import { JOB_TYPE_LABELS, JOB_LEVEL_LABELS, WORK_LOC_LABELS } from "@/domain/models/Job";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 export function formatSalary(job: JobPostDetail): string {
   const { salary } = job;
@@ -28,7 +28,7 @@ export function formatDate(dateStr: string | null | undefined): string {
   });
 }
 
-// ── CompanyLogo ───────────────────────────────────────────────────────────────
+// ── CompanyLogo ───────
 
 const LOGO_COLORS = [
   "from-blue-500 to-blue-700",
@@ -51,7 +51,7 @@ export function CompanyLogo({
   );
 }
 
-// ── MetaChip ──────────────────────────────────────────────────────────────────
+// ── MetaChip ──────────
 
 export function MetaChip({
   icon, label, featured = false,
@@ -69,7 +69,7 @@ export function MetaChip({
   );
 }
 
-// ── Section ───────────────────────────────────────────────────────────────────
+// ── Section ───────────
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -80,7 +80,7 @@ export function Section({ title, children }: { title: string; children: React.Re
   );
 }
 
-// ── HtmlContent ───────────────────────────────────────────────────────────────
+// ── HtmlContent ───────
 
 export function HtmlContent({ html }: { html: string }) {
   return (
@@ -91,7 +91,7 @@ export function HtmlContent({ html }: { html: string }) {
   );
 }
 
-// ── SkillLevel colors ─────────────────────────────────────────────────────────
+// ── SkillLevel colors ─
 
 const LEVEL_COLORS: Record<string, string> = {
   "Cơ bản":    "bg-gray-100 text-gray-600",
@@ -99,7 +99,7 @@ const LEVEL_COLORS: Record<string, string> = {
   "Nâng cao":  "bg-violet-50 text-violet-700",
 };
 
-// ── JobHeroCard ───────────────────────────────────────────────────────────────
+// ── JobHeroCard ───────
 
 interface JobHeroCardProps {
   job:         JobPostDetail;
@@ -229,7 +229,7 @@ export function JobHeroCard({ job, saved, onSave, onShare, actionSlot }: JobHero
   );
 }
 
-// ── JobDescriptionCards ───────────────────────────────────────────────────────
+// ── JobDescriptionCards ───────────────────────────
 
 export function JobDescriptionCards({ job }: { job: JobPostDetail }) {
   return (
@@ -289,7 +289,7 @@ export function JobDescriptionCards({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── JobInfoSidebar ────────────────────────────────────────────────────────────
+// ── JobInfoSidebar ────
 
 export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
   const rows = [
@@ -319,7 +319,7 @@ export function JobInfoSidebar({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── CompanyCard ───────────────────────────────────────────────────────────────
+// ── CompanyCard ───────
 
 import Link from "next/link";
 
@@ -346,7 +346,7 @@ export function CompanyCard({ job }: { job: JobPostDetail }) {
   );
 }
 
-// ── AppliedBadge ──────────────────────────────────────────────────────────────
+// ── AppliedBadge ──────
 
 export function AppliedBadge() {
   return (
@@ -358,7 +358,7 @@ export function AppliedBadge() {
   );
 }
 
-// ── JobDetailSkeleton ─────────────────────────────────────────────────────────
+// ── JobDetailSkeleton ─
 
 export function JobDetailSkeleton() {
   return (

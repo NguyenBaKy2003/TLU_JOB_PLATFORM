@@ -15,7 +15,7 @@ import type { AutocompleteSuggestion } from "@/domain/models/AISearch";
 
 const aiSearchService = new AISearchService(new AISearchRepository());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function getSuggestionIcon(type: AutocompleteSuggestion["type"]) {
   switch (type) {
@@ -33,7 +33,7 @@ function getSuggestionBadge(type: AutocompleteSuggestion["type"]) {
   }
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+// ── Props ─────────────
 
 interface CompaniesAISearchBarProps {
   keyword: string;
@@ -41,7 +41,7 @@ interface CompaniesAISearchBarProps {
   onSearch: (keyword: string, location: string) => void;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 export function CompaniesAISearchBar({ keyword, location, onSearch }: CompaniesAISearchBarProps) {
   const { isAuthenticated } = useAuth();
@@ -88,7 +88,7 @@ export function CompaniesAISearchBar({ keyword, location, onSearch }: CompaniesA
 
   const suggestions: AutocompleteSuggestion[] = autocompleteData?.suggestions ?? [];
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
+  // ── Handlers ────────
 
   const handleSearch = useCallback((kw: string, loc?: string) => {
     if (kw.trim()) trackSearch(kw.trim());
@@ -129,7 +129,7 @@ export function CompaniesAISearchBar({ keyword, location, onSearch }: CompaniesA
     }
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ───────────
 
   return (
     <div ref={wrapperRef} className="relative max-w-3xl mx-auto">
@@ -191,7 +191,7 @@ export function CompaniesAISearchBar({ keyword, location, onSearch }: CompaniesA
         </button>
       </div>
 
-      {/* ── AI Autocomplete Dropdown ─────────────────────────────────────────── */}
+      {/* ── AI Autocomplete Dropdown ─────────────── */}
       <AnimatePresence>
         {isOpen && draftKeyword.length >= 1 && (
           <motion.div

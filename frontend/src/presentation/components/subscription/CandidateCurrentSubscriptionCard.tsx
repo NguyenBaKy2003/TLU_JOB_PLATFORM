@@ -8,7 +8,7 @@ import type {
   CandidateQuota,
 } from "@/domain/models/CandidateSubscription";
 
-// ── Quota bar ─────────────────────────────────────────────────────────────────
+// ── Quota bar ─────────
 
 function QuotaBar({
   label,
@@ -59,7 +59,7 @@ function QuotaBar({
   );
 }
 
-// ── Feature chip ──────────────────────────────────────────────────────────────
+// ── Feature chip ──────
 
 function FeatureChip({
   active,
@@ -81,7 +81,7 @@ function FeatureChip({
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────
 
 interface Props {
   sub: CandidateSubscription;

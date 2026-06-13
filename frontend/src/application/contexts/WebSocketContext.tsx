@@ -187,7 +187,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadInitialNotifications]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────
   // subscribeTopic — thiết kế đúng cho race condition giữa mount và connect:
   //
   // Luồng 1 (đã connected khi gọi):
@@ -205,7 +205,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   // Luồng 3 (CandidateViewerPage thêm isConnected vào dep array):
   //   → Khi WS reconnect (isConnected: false→true), useEffect re-run
   //   → subscribeTopic được gọi lại với handler mới nhất → subscribe đúng
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────
   const subscribeTopic = useCallback(
     (topic: string, handler: (body: any) => void): (() => void) => {
       // Luôn cập nhật handler mới nhất vào pending
@@ -282,7 +282,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
 
-        // ── Chat messages ────────────────────────────────────────────────
+        // ── Chat messages ────────────────────
         client.subscribe("/user/queue/messages", (message: IMessage) => {
           const incoming: IncomingMessage = JSON.parse(message.body);
           messageHandlersRef.current.forEach((h) => h(incoming));
@@ -323,13 +323,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           handleNewNotif(JSON.parse(message.body));
         });
 
-        // ── Unread count (legacy) ────────────────────────────────────────
+        // ── Unread count (legacy) ────────────
         client.subscribe("/user/queue/unread-count", (message: IMessage) => {
           const count = parseInt(message.body, 10);
           if (!isNaN(count)) setUnreadCount(count);
         });
 
-        // ── Single read ──────────────────────────────────────────────────
+        // ── Single read ──────────────────────
         client.subscribe("/user/queue/notification-read", (message: IMessage) => {
           let readId: string;
           try {
@@ -347,7 +347,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           );
         });
 
-        // ── All read ─────────────────────────────────────────────────────
+        // ── All read ─────────────────────────
         client.subscribe("/user/queue/all-read", () => {
           setNotifications((prev) =>
             prev.map((n) => ({
@@ -360,7 +360,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
           emitAllRead();
         });
 
-        // ── Notification deleted ──────────────────────────────────────────
+        // ── Notification deleted ──────────────
         client.subscribe("/user/queue/notification-deleted", (message: IMessage) => {
           const deletedId = message.body.replace(/"/g, "");
           setNotifications((prev) => {

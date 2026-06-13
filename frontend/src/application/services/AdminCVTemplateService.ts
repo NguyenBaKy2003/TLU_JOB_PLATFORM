@@ -62,7 +62,7 @@ export class AdminCVTemplateService {
     return this.repo.uploadThumbnail(id, file);
   }
 
-  // ── Validators ─────────────────────────────────────────────────────────
+  // ── Validators ─
 
   private validateCreate(data: CreateCVTemplateRequest) {
     if (!data.name?.trim()) throw new Error("Tên template không được để trống.");

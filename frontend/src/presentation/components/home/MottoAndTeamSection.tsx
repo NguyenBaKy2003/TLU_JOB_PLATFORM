@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useInView } from "./useInView";
 
-// ── Motto Section (Image 1 — trên) ───────────────────────────────────────────
+// ── Motto Section (Image 1 — trên) ───────────────
 function MottoSection() {
   const { ref, inView } = useInView();
 
@@ -56,7 +56,7 @@ function MottoSection() {
   );
 }
 
-// ── Team Section (Image 2 — dưới, nền xanh đậm) ──────────────────────────────
+// ── Team Section (Image 2 — dưới, nền xanh đậm) ──
 const DEPARTMENTS = [
   {
     title: "Kỹ thuật & Công nghệ",
@@ -163,7 +163,7 @@ function TeamSection() {
   );
 }
 
-// ── Export combined ───────────────────────────────────────────────────────────
+// ── Export combined ───
 export function MottoAndTeamSection() {
   return (
     <>

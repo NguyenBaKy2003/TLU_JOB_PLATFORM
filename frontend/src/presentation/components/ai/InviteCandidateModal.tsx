@@ -12,7 +12,7 @@ const aiService = new AiService(new AiRepository());
 
 const MAX_MESSAGE_LENGTH = 1000;
 
-// ── Result view ───────────────────────────────────────────────────────────────
+// ── Result view ───────
 
 function InviteSuccessView({ result, onClose }: {
   result: InviteCandidateResponse; onClose: () => void;
@@ -77,7 +77,7 @@ function InviteSuccessView({ result, onClose }: {
   );
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
+// ── Modal ─────────────
 
 interface Props {
   jobPostId:          string;
@@ -110,7 +110,7 @@ export function InviteCandidateModal({
         message.trim() || undefined,
       );
 
-      // ── Toast thành công ──────────────────────────────────────────────
+      // ── Toast thành công ──────────────────
       toast.success(
         "Đã gửi lời mời",
         res.emailDispatched

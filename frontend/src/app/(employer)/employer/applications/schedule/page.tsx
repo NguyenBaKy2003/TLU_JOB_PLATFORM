@@ -24,7 +24,7 @@ import { extractErrorMessage }   from "@/lib/extractErrorMessage";
 import type { InterviewScheduleItem } from "@/domain/models/Application";
 import { useRouter } from "next/navigation";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants ─────────
 
 const VI_WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 const VI_MONTHS   = [
@@ -34,7 +34,7 @@ const VI_MONTHS   = [
 
 type ViewMode = "list" | "week";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────
 
 function isOnline(location: string | null | undefined): boolean {
   return /meet|zoom|teams|skype|online|remote/i.test(location ?? "");
@@ -71,7 +71,7 @@ function initials(name: string | null | undefined): string {
   return name.split(" ").slice(-2).map(w => w[0]).join("").toUpperCase();
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────
 
 function Avatar({ item, size = 28 }: { item: InterviewScheduleItem; size?: number }) {
   const sz = `${size}px`;
@@ -117,7 +117,7 @@ function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode
   );
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// ── Stat card ─────────
 
 function StatCard({
   label, value, variant = "default",
@@ -144,7 +144,7 @@ function StatCard({
   );
 }
 
-// ── Interview card (list view) ─────────────────────────────────────────────────
+// ── Interview card (list view) ─────────────────────
 
 function InterviewCard({
   item,
@@ -236,7 +236,7 @@ function InterviewCard({
   );
 }
 
-// ── Week calendar ─────────────────────────────────────────────────────────────
+// ── Week calendar ─────
 
 function WeekCalendar({
   weekDays,
@@ -320,11 +320,11 @@ function WeekCalendar({
   );
 }
 
-// ── Stable service instance ───────────────────────────────────────────────────
+// ── Stable service instance ───────────────────────
 
 const service = new ApplicationService(new ApplicationRepository());
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────
 
 export default function InterviewSchedulePage() {
   const toast  = useToast();
@@ -347,7 +347,7 @@ export default function InterviewSchedulePage() {
 
   const weekDays = useMemo(() => getWeekDays(weekBase), [weekBase]);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // ── Fetch ─────────
 
   const loadList = useCallback(async (p: number, from: string, to: string) => {
     setLoading(true);
@@ -395,7 +395,7 @@ export default function InterviewSchedulePage() {
     if (viewMode === "week") loadWeek(weekBase);
   }, [viewMode, weekBase, loadWeek]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────
 
   const handleRefresh = useCallback(() => {
     if (viewMode === "list") loadList(page, filterFrom, filterTo);
@@ -421,7 +421,7 @@ export default function InterviewSchedulePage() {
   const handleNavigate = useCallback((appId: string) =>
     router.push(`/employer/applications/${appId}`), [router]);
 
-  // ── Derived state ─────────────────────────────────────────────────────────
+  // ── Derived state ─
 
   const filtered = useMemo(() => {
     if (!search.trim()) return items;
@@ -452,7 +452,7 @@ export default function InterviewSchedulePage() {
     Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)),
   [grouped]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <div className="flex flex-col gap-5 pb-10">

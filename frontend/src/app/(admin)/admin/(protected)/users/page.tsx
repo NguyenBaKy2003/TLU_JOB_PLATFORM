@@ -21,7 +21,7 @@ import { AdminUserService } from '@/application/services/AdminUserService';
 import { useToast } from '@/presentation/components/ui/toast';
 import { extractErrorMessage } from '@/lib/extractErrorMessage';
 import { UserPlus } from 'lucide-react';
-// ─── Static config ────────────────────────────────────────────────────────────
+// ─── Static config ────
 
 const roleOptions = [
   { value: 'ADMIN',     label: 'Admin' },
@@ -58,7 +58,7 @@ const roleConfig: Record<AdminUserRole, { icon: React.ReactNode; label: string; 
   },
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────
 
 function statusToActive(status: string): boolean | '' {
   if (status === 'active')   return true;
@@ -66,7 +66,7 @@ function statusToActive(status: string): boolean | '' {
   return '';
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ────────
 
 export default function AdminUsersPage() {
   const toast    = useToast();
@@ -77,7 +77,7 @@ export default function AdminUsersPage() {
   const isFetching  = useRef(false);
   const pageSizeRef = useRef(10); // ← ref để tránh stale closure trong fetchUsers
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── State ──────────
   const [users,         setUsers]         = useState<AdminUser[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [exporting,     setExporting]     = useState<'excel' | 'pdf' | null>(null);
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
     loading: boolean;
   }>({ isOpen: false, user: null, loading: false });
 
-  // ── Filters ────────────────────────────────────────────────────────────────
+  // ── Filters ────────
   const filterConfigs = [
     { key: 'keyword', type: 'input'  as const, label: 'Tìm kiếm',   placeholder: 'Tìm theo tên, email...' },
     { key: 'role',    type: 'select' as const, label: 'Vai trò',    options: roleOptions   },
@@ -181,7 +181,7 @@ export default function AdminUsersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.keyword, filters.role, filters.status]);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ─────
   const handlePageChange = useCallback((page: number) => {
     if (!Number.isFinite(page)) return;
     fetchUsers(
@@ -201,7 +201,7 @@ export default function AdminUsersPage() {
     );
   }, [fetchUsers, getFilterValue]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ────────
   const handleToggleActive = async (userId: string) => {
     try {
       const user   = users.find(u => u.id === userId);
@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────
   const currentFilterSnapshot = useCallback(() => ({
     keyword: getFilterValue('keyword') || '',
     role:    (getFilterValue('role') || '') as AdminUserRole | '',
@@ -273,7 +273,7 @@ export default function AdminUsersPage() {
     }
   }, [currentFilterSnapshot]);
 
-  // ── Filter handlers ────────────────────────────────────────────────────────
+  // ── Filter handlers 
   const handleFilterChange = useCallback((key: string, value: unknown) => {
     setFilter(key, value);
   }, [setFilter]);
@@ -292,7 +292,7 @@ export default function AdminUsersPage() {
     toastRef.current.info('Làm mới', 'Đang tải lại dữ liệu...');
   }, [fetchUsers, getFilterValue, currentPage]);
 
-  // ── Table columns ──────────────────────────────────────────────────────────
+  // ── Table columns ──
   const columns: Column<AdminUser>[] = [
     {
       key:      'fullName',
@@ -388,7 +388,7 @@ export default function AdminUsersPage() {
   const startIndex = totalElements === 0 ? 0 : currentPage * pageSize + 1;
   const endIndex   = Math.min((currentPage + 1) * pageSize, totalElements);
 
-  // ── Role form fields ───────────────────────────────────────────────────────
+  // ── Role form fields ───────────────────────────
   const roleFormFields: FormField[] = [
     {
       name:        'role',
@@ -430,7 +430,7 @@ const createUserFormFields: FormField[] = [
     placeholder: 'Chọn vai trò',
   },
 ];
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ─────────
   return (
     <div className="space-y-6">
 

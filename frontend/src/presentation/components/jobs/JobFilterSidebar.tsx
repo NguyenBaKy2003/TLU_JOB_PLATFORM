@@ -10,7 +10,7 @@ import {
 import type { JobType, JobLevel } from "@/domain/models/Job";
 import { JOB_TYPE_LABELS, JOB_LEVEL_LABELS } from "@/domain/models/Job";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────
 
 export interface JobFilters {
   jobTypes:     JobType[];
@@ -35,7 +35,7 @@ interface Props {
   onClearAll?: () => void;
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ────
 
 function Section({
   title, children, icon: Icon, defaultOpen = true, count = 0,
@@ -141,7 +141,7 @@ function RadioRow({ label, checked, onChange, icon }: {
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Main ──────────────
 
 export function JobFilterSidebar({ appliedFilters, onApply, onClearAll }: Props) {
   // draft = trạng thái đang chỉnh, chưa apply
@@ -198,7 +198,7 @@ export function JobFilterSidebar({ appliedFilters, onApply, onClearAll }: Props)
   return (
     <aside className="w-64 shrink-0 flex flex-col gap-0">
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ─── */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -283,7 +283,7 @@ export function JobFilterSidebar({ appliedFilters, onApply, onClearAll }: Props)
         </AnimatePresence>
       </div>
 
-      {/* ── Filter sections (chỉnh draft) ───────────────────────────────────── */}
+      {/* ── Filter sections (chỉnh draft) ───────── */}
 
       {/* Ngày đăng */}
       <Section title="Ngày đăng" icon={Calendar}>
@@ -414,7 +414,7 @@ export function JobFilterSidebar({ appliedFilters, onApply, onClearAll }: Props)
         </div>
       </Section>
 
-      {/* ── Apply button ─────────────────────────────────────────────────────── */}
+      {/* ── Apply button ─────────────────────────── */}
       <div className="mt-4 space-y-2">
         <motion.button
           onClick={handleApply}

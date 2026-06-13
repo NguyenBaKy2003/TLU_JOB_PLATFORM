@@ -41,7 +41,7 @@ export function AccountSection({ email }: Props) {
   const [newPw,     setNewPw]     = useState("");
   const [confirmPw, setConfirmPw] = useState("");
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ──────
 
   const handleChangeEmail = async () => {
     if (newEmail !== confirmEmail) {
@@ -103,7 +103,7 @@ export function AccountSection({ email }: Props) {
     setShowPw(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────
 
   return (
     <>
@@ -139,7 +139,7 @@ export function AccountSection({ email }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Email modal ─────────────────────────────────────────────────── */}
+      {/* ── Email modal ─────────────────────── */}
       {showEmail && (
         <SettingsModal title="Đổi địa chỉ Email" onClose={closeEmail}>
           <div className="flex flex-col gap-4">
@@ -191,7 +191,7 @@ export function AccountSection({ email }: Props) {
         </SettingsModal>
       )}
 
-      {/* ── Password modal ───────────────────────────────────────────────── */}
+      {/* ── Password modal ───────────────────── */}
       {showPassword && (
         <SettingsModal title="Đổi mật khẩu" onClose={closePassword}>
           <div className="flex flex-col gap-4">
