@@ -37,13 +37,14 @@ export interface WorkExperience {
 }
 
 export interface ApplicableCV {
-  id:         string;
-  title:      string;
-  type:       "UPLOADED" | "ONLINE";
-  fileUrl:    string | null;
-  slug:       string | null;
-  primary:    boolean;
-  createdAt:  string | null;
+  id:             string;
+  title:          string;
+  type:           "UPLOADED" | "ONLINE";
+  fileUrl?:       string;  // UPLOADED only
+  slug?:          string;  // ONLINE only
+  exportedPdfUrl?: string; // ONLINE only — thêm dòng này
+  primary:        boolean;
+  createdAt?:     string;
 }
 
 export interface Education {

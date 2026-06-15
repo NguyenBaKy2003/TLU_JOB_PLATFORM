@@ -28,6 +28,11 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
     private static final int MIN_MEANINGFUL_LINES = 3;
     private static final int LINE_MEANINGFUL_THRESHOLD = 15;
 
+    // overallScore = skill*50% + experience*35% + education*15%
+    private static final double WEIGHT_SKILL = 0.50;
+    private static final double WEIGHT_EXPERIENCE = 0.35;
+    private static final double WEIGHT_EDUCATION = 0.15;
+
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final String systemInstruction;
@@ -54,14 +59,11 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
 
         String cvText = nullSafe(request.getCvText()).trim();
 
-        // Guard 1 — CV rỗng hoàn toàn
         if (cvText.isBlank()) {
-            log.warn("CV text is blank, skipping AI — applicationId={}",
-                    request.getApplicationId());
+            log.warn("CV text is blank, skipping AI — applicationId={}", request.getApplicationId());
             return emptyCvResult("CV không có nội dung. Vui lòng kiểm tra lại file đã upload.");
         }
 
-        // Guard 2 — CV chỉ có tiêu đề section, chưa điền nội dung
         if (!isCvMeaningful(cvText)) {
             log.warn("CV appears template-only ({} chars, <{} meaningful lines) — applicationId={}",
                     cvText.length(), MIN_MEANINGFUL_LINES, request.getApplicationId());
@@ -75,13 +77,13 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
             String user = buildUserContent(cvText);
 
             String raw = chatClient.prompt()
-                    .system(system) // instruction — AI coi là "luật"
-                    .user(user) // CV text thuần — AI coi là "dữ liệu"
+                    .system(system)
+                    .user(user)
                     .call()
                     .content();
 
             CvAnalysisResult result = parseResponse(raw);
-            return validate(result);
+            return validateAndScore(result);
 
         } catch (JsonProcessingException e) {
             log.error("CV analysis: AI returned invalid JSON — applicationId={}: {}",
@@ -96,10 +98,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
 
     // ── Prompt builders ─────
 
-    /**
-     * System message: chứa toàn bộ instruction + thông tin JD.
-     * Tách khỏi CV text để tránh prompt injection từ nội dung CV.
-     */
     private String buildSystemInstruction(CvAnalysisRequest request) {
         return systemInstruction
                 .replace("$jobTitle$", nullSafe(request.getJobTitle()))
@@ -108,9 +106,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .replace("$jobRequirements$", nullSafe(request.getJobRequirements()));
     }
 
-    /**
-     * User message: chỉ chứa raw CV text — không có instruction nào.
-     */
     private String buildUserContent(String cvText) {
         return userTemplate.replace("$cvText$", truncate(cvText, 6000));
     }
@@ -126,15 +121,26 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
     }
 
     /**
-     * Clamp scores về [0,100] và null-safe các list,
-     * phòng AI trả về giá trị ngoài range hoặc thiếu field.
+     * Clamp scores về [0,100], null-safe lists,
+     * và tính overallScore ở Java thay vì để AI tính.
+     *
+     * Formula: skill*50% + experience*35% + education*15%
      */
-    private CvAnalysisResult validate(CvAnalysisResult r) {
+    private CvAnalysisResult validateAndScore(CvAnalysisResult r) {
+        int skill = clamp(r.getSkillMatchScore());
+        int experience = clamp(r.getExperienceScore());
+        int education = clamp(r.getEducationScore());
+
+        int overall = (int) Math.round(
+                skill * WEIGHT_SKILL +
+                        experience * WEIGHT_EXPERIENCE +
+                        education * WEIGHT_EDUCATION);
+
         return r.toBuilder()
-                .overallScore(clamp(r.getOverallScore()))
-                .skillMatchScore(clamp(r.getSkillMatchScore()))
-                .experienceScore(clamp(r.getExperienceScore()))
-                .educationScore(clamp(r.getEducationScore()))
+                .overallScore(overall)
+                .skillMatchScore(skill)
+                .experienceScore(experience)
+                .educationScore(education)
                 .strengths(r.getStrengths() != null ? r.getStrengths() : List.of())
                 .gaps(r.getGaps() != null ? r.getGaps() : List.of())
                 .build();
@@ -142,19 +148,13 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
 
     // ── Guard helpers ───────
 
-    /**
-     * CV có nghĩa khi: đủ dài VÀ có ít nhất N dòng nội dung thực
-     * (không chỉ là heading như "KỸ NĂNG", "HỌC VẤN"...).
-     */
     private boolean isCvMeaningful(String cvText) {
         if (cvText.length() < MIN_CV_LENGTH)
             return false;
-
         long meaningfulLines = cvText.lines()
                 .map(String::trim)
                 .filter(line -> line.length() > LINE_MEANINGFUL_THRESHOLD)
                 .count();
-
         return meaningfulLines >= MIN_MEANINGFUL_LINES;
     }
 

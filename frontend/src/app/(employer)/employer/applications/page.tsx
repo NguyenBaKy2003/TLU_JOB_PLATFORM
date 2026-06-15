@@ -509,7 +509,6 @@ export default function EmployerApplicationsPage() {
         pageSizeOptions={PAGE_SIZE_OPTIONS}
         pageSize={filters.pageSize}
         onPageSizeChange={handlePageSizeChange}
-        onExportExcel={handleExportExcel}
         loading={loading}
       />
 

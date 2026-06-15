@@ -35,9 +35,7 @@ public class AutoSuggestCandidatesUseCase {
                                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
 
                 List<CandidateProfileSummary> pool = candidateRepo
-                                .findByJobSearchStatusIn(
-                                                List.of("ACTIVELY_LOOKING", "OPEN_TO_OFFERS"),
-                                                PageRequest.of(0, 200))
+                                .findAiPool(List.of("ACTIVELY_LOOKING", "OPEN_TO_OFFERS"), 200)
                                 .stream()
                                 .map(CandidateSummaryMapper::toSummary)
                                 .toList();
