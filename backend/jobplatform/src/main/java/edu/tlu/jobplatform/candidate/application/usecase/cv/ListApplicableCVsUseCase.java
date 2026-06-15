@@ -60,8 +60,9 @@ public class ListApplicableCVsUseCase {
                 private UUID id;
                 private String title;
                 private String type; // "UPLOADED" | "ONLINE"
-                private String fileUrl; // null nếu ONLINE
-                private String slug; // null nếu UPLOADED
+                private String fileUrl; // UPLOADED: S3 URL của file PDF gốc
+                private String slug; // ONLINE only
+                private String exportedPdfUrl; // ONLINE only — S3 URL PDF đã render, dùng để AI score
                 private boolean primary;
                 private LocalDateTime createdAt;
 
@@ -82,6 +83,7 @@ public class ListApplicableCVsUseCase {
                                         .title(cv.getTitle())
                                         .type("ONLINE")
                                         .slug(cv.getSlug())
+                                        .exportedPdfUrl(cv.getExportedPdfUrl()) // ← thêm dòng này
                                         .primary(cv.isPrimary())
                                         .createdAt(cv.getCreatedAt())
                                         .build();

@@ -295,4 +295,13 @@ public class CandidateProfile {
         return Collections.unmodifiableList(benefits);
     }
 
+    public record CandidateBasicInfo(
+            UUID userId,
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String avatarUrl,
+            java.time.LocalDateTime boostedUntil) {
+    }
 }

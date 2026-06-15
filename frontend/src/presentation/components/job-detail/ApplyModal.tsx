@@ -37,6 +37,21 @@ function formatBytes(bytes: number): string {
     : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Resolve cvUrl để gửi lên backend:
+ *
+ * UPLOADED → fileUrl (S3 URL trực tiếp)
+ * ONLINE   → exportedPdfUrl nếu có (PDF đã render, AI score chính xác nhất)
+ *            fallback về slug (backend OpenAIScoreAdapter sẽ xử lý)
+ */
+function resolveCvUrl(cv: ApplicableCV): string {
+  if (cv.type === "UPLOADED") {
+    return cv.fileUrl ?? "";
+  }
+  // ONLINE: ưu tiên PDF đã render
+  return cv.exportedPdfUrl ?? cv.slug ?? "";
+}
+
 // ── Upload zone ───────
 
 interface UploadZoneProps {
@@ -68,7 +83,6 @@ function UploadZone({ onUploaded, onError }: UploadZoneProps) {
     setErrMsg("");
     try {
       const cv = await candidateService.uploadCV({ file: f, setAsPrimary: false });
-      // Chuyển CandidateCV → ApplicableCV shape để thêm vào danh sách
       const applicable: ApplicableCV = {
         id:      cv.id,
         title:   cv.title,
@@ -91,7 +105,6 @@ function UploadZone({ onUploaded, onError }: UploadZoneProps) {
     startUpload(files[0]);
   };
 
-  // Drag & drop
   const onDragOver  = (e: React.DragEvent) => { e.preventDefault(); setIsDrag(true);  };
   const onDragLeave = ()                    => setIsDrag(false);
   const onDrop      = (e: React.DragEvent) => {
@@ -283,10 +296,9 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
     if (!selectedCvId) { setSubmitError("Vui lòng chọn CV để ứng tuyển."); return; }
 
     const selected = cvList.find(cv => cv.id === selectedCvId);
-    const cvUrl = selected?.type === "ONLINE"
-      ? selected.slug ?? ""
-      : selected?.fileUrl ?? "";
+    if (!selected) { setSubmitError("CV đã chọn không hợp lệ. Vui lòng chọn CV khác."); return; }
 
+    const cvUrl = resolveCvUrl(selected);
     if (!cvUrl) {
       setSubmitError("CV đã chọn không hợp lệ. Vui lòng chọn CV khác.");
       return;
@@ -302,8 +314,6 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
     }
   };
 
-  // ── Redirect sang /cv để tạo CV online, giữ intent ──
-
   const handleCreateOnlineCV = () => {
     router.push("/cv?from=apply");
   };
@@ -312,8 +322,8 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
     focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
     placeholder:text-gray-300 transition-all bg-white`;
 
-  const isEmpty   = !cvLoading && !cvError && cvList.length === 0;
-  const hasError  = !cvLoading && cvError;
+  const isEmpty  = !cvLoading && !cvError && cvList.length === 0;
+  const hasError = !cvLoading && cvError;
 
   return (
     <div
@@ -357,7 +367,6 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
                 border border-red-100">{cvError}</p>
             ) : (
               <>
-                {/* Danh sách CV có sẵn */}
                 {cvList.length > 0 && (
                   <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-0.5 mb-3">
                     {cvList.map(cv => (
@@ -371,7 +380,6 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
                   </div>
                 )}
 
-                {/* Divider */}
                 {cvList.length > 0 && (
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex-1 h-px bg-gray-100" />
@@ -380,25 +388,20 @@ export function ApplyModal({ jobTitle, onClose, onSubmit }: ApplyModalProps) {
                   </div>
                 )}
 
-                {/* Trạng thái rỗng */}
                 {isEmpty && (
                   <p className="text-sm text-gray-400 text-center mb-3">
                     Bạn chưa có CV nào. Tải lên hoặc tạo CV online bên dưới.
                   </p>
                 )}
 
-                {/* Upload CV mới */}
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-gray-500">
-                    Tải CV mới lên
-                  </p>
+                  <p className="text-xs font-medium text-gray-500">Tải CV mới lên</p>
                   <UploadZone
                     onUploaded={handleUploaded}
                     onError={msg => setSubmitError(msg)}
                   />
                 </div>
 
-                {/* Tạo CV online → /cv */}
                 <button
                   type="button"
                   onClick={handleCreateOnlineCV}

@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,5 +85,13 @@ public class UserRepositoryAdapter implements UserRepository {
     public Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable) {
         String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
         return jpaRepo.searchUsers(kw, role, active, pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<User> findAllByIds(Collection<UUID> ids) {
+        return jpaRepo.findAllById(ids)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

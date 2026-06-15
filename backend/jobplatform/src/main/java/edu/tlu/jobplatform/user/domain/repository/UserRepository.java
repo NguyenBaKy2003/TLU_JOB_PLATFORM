@@ -5,6 +5,8 @@ import edu.tlu.jobplatform.user.domain.model.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +31,8 @@ public interface UserRepository {
     Page<User> findByRole(UserRole role, Pageable pageable);
 
     Page<User> searchByKeyword(String keyword, Pageable pageable);
+
+    List<User> findAllByIds(Collection<UUID> ids);
 
     Page<User> searchUsers(String keyword, UserRole role, Boolean active, Pageable pageable);
 }

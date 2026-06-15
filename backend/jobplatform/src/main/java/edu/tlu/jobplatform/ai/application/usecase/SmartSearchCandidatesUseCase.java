@@ -8,7 +8,6 @@ import edu.tlu.jobplatform.candidate.domain.repository.CandidateProfileRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,9 +24,7 @@ public class SmartSearchCandidatesUseCase {
         public CandidateSearchResult execute(Command cmd) {
                 // Lấy pool ứng viên đang tìm việc — giới hạn 200 để không quá tải token
                 List<CandidateProfileSummary> pool = candidateRepo
-                                .findByJobSearchStatusIn(
-                                                List.of("ACTIVELY_LOOKING", "OPEN_TO_OFFERS"),
-                                                PageRequest.of(0, 200))
+                                .findAiPool(List.of("ACTIVELY_LOOKING", "OPEN_TO_OFFERS"), 200)
                                 .stream()
                                 .map(CandidateSummaryMapper::toSummary)
                                 .toList();
@@ -48,7 +45,7 @@ public class SmartSearchCandidatesUseCase {
                                 .jobRequirements(cmd.requirements())
                                 .jobLevel(cmd.level())
                                 .location(cmd.location())
-                                .requiredSkills(cmd.requiredSkills()) // ← truyền từ Command
+                                .requiredSkills(cmd.requiredSkills())
                                 .maxResults(cmd.maxResults() > 0 ? cmd.maxResults() : 10)
                                 .build();
 

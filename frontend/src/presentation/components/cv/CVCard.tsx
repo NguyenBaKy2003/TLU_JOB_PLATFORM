@@ -178,7 +178,7 @@ export function CVCard({ cv, onDuplicate, onDelete, onPublish, onArchive, onRest
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="group relative bg-white rounded-xl border border-gray-200 hover:border-[#3D5A80]/40 hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="group relative bg-white rounded-xl border border-gray-200 hover:border-[#3D5A80]/40 hover:shadow-md transition-all duration-200">
       {/* Thumbnail */}
       <Link href={`/cv/${cv.id}/edit`}>
         <CVThumbnail title={cv.title} status={cv.status} />
