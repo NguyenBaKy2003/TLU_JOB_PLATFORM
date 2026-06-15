@@ -11,9 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate; //  LocalDate, không phải LocalDateTime
-import java.time.temporal.ChronoUnit; //  thêm import này
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,21 +27,53 @@ public class CalculateCompetitionRateUseCase {
         private final JobPostRepository jobPostRepo;
         private final JobCompetitionPort competitionPort;
 
+        // ── Single — dùng khi chỉ cần 1 job (detail page, v.v.) ──────────────────
+
         public CompetitionRateResult execute(UUID jobPostId) {
                 JobPost job = jobPostRepo.findById(jobPostId)
                                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", jobPostId));
+                return calculate(
+                                job,
+                                applicationRepo.countByJobPostId(jobPostId),
+                                applicationRepo.averageAIScoreByJobPostId(jobPostId).orElse(0.0));
+        }
 
-                int totalApplicants = applicationRepo.countByJobPostId(jobPostId);
+        // ── Batch — dùng khi có sẵn danh sách jobs (search, listing) ────────────
+        //
+        // Nhận jobs thay vì chỉ IDs để tránh query lại JobPost từng cái.
+        // 2 queries batch thay vì N × 3 queries (findById + count + avgScore).
 
-                double avgAIScore = applicationRepo.averageAIScoreByJobPostId(jobPostId)
-                                .orElse(0.0);
+        public Map<UUID, CompetitionRateResult> executeAll(Set<JobPost> jobs) {
+                if (jobs == null || jobs.isEmpty())
+                        return Map.of();
 
+                Set<UUID> jobIds = jobs.stream().map(JobPost::getId).collect(Collectors.toSet());
+
+                // 1 query đếm tất cả
+                Map<UUID, Integer> counts = applicationRepo.countByJobPostIds(jobIds);
+                // 1 query avg tất cả
+                Map<UUID, Double> avgScores = applicationRepo.avgAiScoreByJobPostIds(jobIds);
+
+                Map<UUID, JobPost> jobMap = jobs.stream()
+                                .collect(Collectors.toMap(JobPost::getId, j -> j));
+
+                return jobIds.stream().collect(Collectors.toMap(
+                                id -> id,
+                                id -> calculate(
+                                                jobMap.get(id),
+                                                counts.getOrDefault(id, 0),
+                                                avgScores.getOrDefault(id, 0.0))));
+        }
+
+        // ── Shared builder ────────────────────────────────────────────────────────
+
+        private CompetitionRateResult calculate(JobPost job, int totalApplicants, double avgAIScore) {
                 long daysLeft = job.getDeadline() != null
                                 ? ChronoUnit.DAYS.between(LocalDate.now(), job.getDeadline())
                                 : 30L;
 
                 CompetitionRateRequest request = CompetitionRateRequest.builder()
-                                .jobPostId(jobPostId)
+                                .jobPostId(job.getId())
                                 .totalApplicants(totalApplicants)
                                 .hiringQuota(job.getVacancies() != null ? job.getVacancies() : 1)
                                 .averageAIScore(avgAIScore)

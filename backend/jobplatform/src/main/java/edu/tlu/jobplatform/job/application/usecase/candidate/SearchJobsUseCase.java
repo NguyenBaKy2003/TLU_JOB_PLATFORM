@@ -44,17 +44,20 @@ public class SearchJobsUseCase {
                                 query.levels(),
                                 pageable);
 
+                // Batch load — không gọi DB trong loop
                 Set<UUID> companyIds = jobs.stream()
                                 .map(JobPost::getCompanyId)
                                 .collect(Collectors.toSet());
+                Set<JobPost> jobSet = jobs.stream().collect(Collectors.toSet());
 
                 Map<UUID, CompanySnapshot> companyMap = companyQueryPort.findByIds(companyIds);
+                // 2 queries thay vì N × 3
+                Map<UUID, CompetitionRateResult> competitionMap = competitionUseCase.executeAll(jobSet);
 
-                return jobs.map(job -> {
-                        CompanySnapshot company = companyMap.get(job.getCompanyId());
-                        CompetitionRateResult competition = competitionUseCase.execute(job.getId());
-                        return new Result(job, company, competition);
-                });
+                return jobs.map(job -> new Result(
+                                job,
+                                companyMap.get(job.getCompanyId()),
+                                competitionMap.get(job.getId())));
         }
 
         public record SearchQuery(
