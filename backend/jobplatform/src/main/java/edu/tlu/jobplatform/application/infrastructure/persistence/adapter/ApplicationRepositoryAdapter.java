@@ -7,6 +7,8 @@ import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.infrastructure.persistence.entity.ApplicationJpaEntity;
 import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatsProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatusCountProjection;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.JobPostAvgScoreProjection;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.JobPostCountProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.repository.ApplicationJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -254,4 +257,19 @@ public class ApplicationRepositoryAdapter implements ApplicationRepository {
                 p.getTotalPass() != null ? p.getTotalPass() : 0,
                 p.getCurrentApplicantCount() != null ? p.getCurrentApplicantCount() : 0);
     }
+
+    public Map<UUID, Integer> countByJobPostIds(Set<UUID> jobIds) {
+        return jpaRepo.countByJobPostIds(jobIds).stream()
+                .collect(Collectors.toMap(
+                        JobPostCountProjection::getJobPostId,
+                        JobPostCountProjection::getCount));
+    }
+
+    public Map<UUID, Double> avgAiScoreByJobPostIds(Set<UUID> jobIds) {
+        return jpaRepo.avgAiScoreByJobPostIds(jobIds).stream()
+                .collect(Collectors.toMap(
+                        JobPostAvgScoreProjection::getJobPostId,
+                        JobPostAvgScoreProjection::getAvgScore));
+    }
+
 }

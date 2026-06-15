@@ -8,9 +8,12 @@ import edu.tlu.jobplatform.company.infrastructure.persistence.repository.Company
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -57,5 +60,15 @@ public class CompanyGalleryRepositoryAdapter implements CompanyGalleryRepository
     @Override
     public int countByCompanyId(UUID companyId) {
         return jpaRepository.countByCompanyId(companyId);
+    }
+
+    @Override
+    public Map<UUID, List<CompanyGalleryImage>> findByCompanyIds(Collection<UUID> companyIds) {
+        if (companyIds == null || companyIds.isEmpty())
+            return Map.of();
+        return jpaRepository.findByCompanyIdIn(companyIds)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.groupingBy(CompanyGalleryImage::getCompanyId));
     }
 }

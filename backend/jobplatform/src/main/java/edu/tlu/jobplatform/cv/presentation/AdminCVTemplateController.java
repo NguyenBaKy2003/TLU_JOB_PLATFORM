@@ -47,7 +47,7 @@ public class AdminCVTemplateController {
         private final ToggleCVTemplateUseCase toggleUseCase;
         private final GetCVTemplateDetailUseCase getDetailUseCase;
         private final UploadCVTemplateThumbnailUseCase uploadThumbnailUseCase;
-
+        private final DeleteCVTemplateUseCase deleteUseCase;
         // ── GET /api/v1/admin/cv-templates ─
 
         @Operation(summary = "Danh sách tất cả templates (kể cả inactive)")
@@ -188,5 +188,17 @@ public class AdminCVTemplateController {
                 return ResponseEntity.ok(ApiResponse.success(
                                 AdminCVTemplateResponse.fromList(template),
                                 "Thumbnail đã được cập nhật."));
+        }
+
+        @Operation(summary = "Xoá template", description = """
+                        Chỉ xoá được template đang **inactive**.
+                        Gọi `/deactivate` trước nếu template đang active.
+                        """)
+        @DeleteMapping("/{templateId}")
+        @RateLimit(policy = "admin-write", scope = RateLimitPolicy.Scope.USER)
+        @Loggable(action = "ADMIN_DELETE_CV_TEMPLATE", resourceType = "CVTemplate")
+        public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID templateId) {
+                deleteUseCase.execute(templateId);
+                return ResponseEntity.ok(ApiResponse.success(null, "Template đã được xoá."));
         }
 }
