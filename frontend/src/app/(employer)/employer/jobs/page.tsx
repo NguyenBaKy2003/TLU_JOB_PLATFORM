@@ -309,8 +309,6 @@ export default function EmployerJobsPage() {
         pageSizeOptions={PAGE_SIZE_OPTIONS}
         pageSize={filters.pageSize}
         onPageSizeChange={handlePageSizeChange}
-        onExportPdf={handleExportPdf}
-        onExportExcel={handleExportExcel}
         loading={loading}
       />
 

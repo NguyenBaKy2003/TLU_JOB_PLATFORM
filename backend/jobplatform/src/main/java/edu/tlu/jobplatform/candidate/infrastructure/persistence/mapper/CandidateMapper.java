@@ -24,8 +24,8 @@ public class CandidateMapper {
 
         // ── CandidateProfile ──
 
-        public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
-                CandidateProfile profile = CandidateProfile.builder()
+        private CandidateProfile buildProfile(CandidateProfileJpaEntity e) {
+                return CandidateProfile.builder()
                                 .id(e.getId())
                                 .userId(e.getUserId())
                                 .firstName(e.getFirstName())
@@ -68,11 +68,12 @@ public class CandidateMapper {
                                 .createdAt(e.getCreatedAt())
                                 .updatedAt(e.getUpdatedAt())
                                 .build();
+        }
 
-                // Inject email từ bảng users — userId luôn có vì NOT NULL constraint
+        public CandidateProfile toDomain(CandidateProfileJpaEntity e) {
+                CandidateProfile profile = buildProfile(e);
                 userJpaRepo.findById(e.getUserId())
                                 .ifPresent(u -> profile.setEmail(u.getEmail()));
-
                 return profile;
         }
 
@@ -335,6 +336,12 @@ public class CandidateMapper {
                 e.setParsedContent(cv.getParsedContent());
         }
 
+        public CandidateProfile toDomainWithEmail(CandidateProfileJpaEntity e, String email) {
+                CandidateProfile profile = buildProfile(e); // tách phần build ra method riêng
+                if (email != null)
+                        profile.setEmail(email);
+                return profile;
+        }
         // ── Private utils ──
 
         /**

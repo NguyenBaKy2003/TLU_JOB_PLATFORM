@@ -174,7 +174,7 @@ export function InviteCandidateModal({
                   <Bell size={14} className="text-gray-400" /> Thông báo trong app
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Mail size={14} className="text-gray-400" /> Email (nếu có)
+                  <Mail size={14} className="text-gray-400" /> Email
                 </div>
               </div>
 
