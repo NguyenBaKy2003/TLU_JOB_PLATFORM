@@ -245,23 +245,30 @@ function JobCard({
       <p className="text-base font-semibold text-gray-800 mb-4">{job.salaryDisplay}</p>
 
       {/* Stats - 2. Thêm "mt-auto" vào đây để ép nguyên khối Stats và Nút xuống đáy */}
-      <div className="flex items-center gap-4 pt-4 border-t border-gray-50 mt-auto">
-        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+      <div className="grid grid-cols-2 gap-y-3 pt-4 border-t border-gray-50 mt-auto">
+        {/* Cột 1: Lượt xem */}
+        <div className="flex items-center gap-1.5 text-base text-gray-500">
           <Eye size={13} className="text-gray-400 shrink-0" />
           <span>{job.viewCount} lượt xem</span>
         </div>
-        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+
+        {/* Cột 2: Đơn ứng tuyển */}
+        <div className="flex items-center gap-1.5 text-base text-gray-500">
           <Users size={13} className="text-gray-400 shrink-0" />
           <Link href={`/employer/jobs/${job.id}/applications`}
             className="hover:text-violet-600 transition-colors">
             {job.applicationCount} đơn
           </Link>
         </div>
-        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+
+        {/* Cột 3 (trở thành hàng 2, cột 1): Vị trí */}
+        <div className="flex items-center gap-1.5 text-base text-gray-500">
           <Users size={13} className="text-gray-400 shrink-0" />
           <span>{job.vacancies} vị trí</span>
         </div>
-        <div className="ml-auto flex items-center gap-1 text-base whitespace-nowrap">
+
+        {/* Cột 4 (trở thành hàng 2, cột 2): Hạn nộp */}
+        <div className="flex items-center gap-1 text-base">
           <Clock size={12} className={deadline.urgent ? "text-red-400 shrink-0" : "text-gray-400 shrink-0"} />
           <span className={deadline.urgent ? "text-red-500 font-medium" : "text-gray-400"}>
             {deadline.text}

@@ -74,7 +74,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
                 className="
                   w-full px-4 py-2.5 text-[16px] text-gray-900
                   border border-gray-200 rounded-xl
-                  focus:outline-none focus:ring-2 focus:ring-[#3D5A80]/30 focus:border-[#3D5A80]
+                  focus:outline-none focus:ring-2 focus:ring-[#04389E]/30 focus:border-[#04389E]
                   placeholder:text-gray-300 transition-all
                 "
               />
@@ -92,7 +92,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
               {templates.length === 0 ? (
                 <p className="text-[16px] text-gray-400 py-6 text-center">Không có template khả dụng</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {templates.map((tpl) => (
                     <TemplateCard
                       key={tpl.id}
@@ -121,7 +121,7 @@ export function CreateCVModal({ templates, creating, onClose, onCreate }: Props)
               disabled={!canSubmit}
               className="
                 flex items-center gap-2 px-5 py-2.5
-                bg-[#3D5A80] hover:bg-[#2E4565]
+                bg-[#04389E] hover:bg-[#032a76]
                 text-white text-[16px] font-semibold rounded-xl
                 transition-all duration-150 shadow-sm
                 disabled:opacity-50 disabled:cursor-not-allowed
@@ -160,15 +160,15 @@ function TemplateCard({
       type="button"
       onClick={onSelect}
       className={`
-        relative group text-left rounded-xl overflow-hidden border-2 transition-all duration-150
+        relative group text-left rounded-2xl overflow-hidden border-[2.5px] transition-all duration-150 flex flex-col
         ${selected
-          ? "border-[#3D5A80] shadow-md shadow-[#3D5A80]/10"
+          ? "border-[#04389E] shadow-md shadow-[#04389E]/20"
           : "border-gray-200 hover:border-gray-300"
         }
       `}
     >
       {/* Thumbnail */}
-      <div className="aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative">
         {template.thumbnailUrl ? (
           <img
             src={template.thumbnailUrl}
@@ -183,24 +183,25 @@ function TemplateCard({
             <div className="h-1 bg-gray-400 rounded-full w-4/6" />
           </div>
         )}
-      </div>
 
-      {/* Name */}
-      <div className={`px-2.5 py-2 text-center ${selected ? "bg-[#3D5A80]" : "bg-white"}`}>
-        <p className={`text-[11px] font-semibold truncate ${selected ? "text-white" : "text-gray-700"}`}>
-          {template.name}
-        </p>
-        {template.premium && (
-          <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wide">Premium</span>
+        {/* Selected check - Đổi màu tick xanh theo chuẩn */}
+        {selected && (
+          <div className="absolute top-2 right-2 bg-white rounded-full shadow-sm">
+            <CheckCircle2 className="w-6 h-6 text-[#04389E] fill-white" />
+          </div>
         )}
       </div>
 
-      {/* Selected check */}
-      {selected && (
-        <div className="absolute top-2 right-2">
-          <CheckCircle2 className="w-5 h-5 text-[#3D5A80] fill-white" />
-        </div>
-      )}
+      <div className={`w-full px-2 py-3 text-center flex-1 flex flex-col justify-center ${selected ? "bg-[#04389E]" : "bg-white"}`}>
+        <p className={`text-[15px] font-bold truncate ${selected ? "text-white" : "text-gray-800"}`}>
+          {template.name}
+        </p>
+        {template.premium && (
+          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wide mt-0.5">
+            Premium
+          </span>
+        )}
+      </div>
     </button>
   );
 }

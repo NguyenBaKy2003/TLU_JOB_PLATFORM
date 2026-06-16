@@ -165,7 +165,7 @@ function PersonalInfoEditor({
           disabled={saving}
           className="
             flex items-center gap-2 px-5 py-2.5
-            bg-[#3D5A80] hover:bg-[#2E4565]
+            bg-[#04389E] hover:bg-[#032E6E] active:bg-[#032E6E] text-white
             text-white text-xs font-bold rounded-xl
             transition-all active:scale-95 disabled:opacity-60 shadow-sm
           "
@@ -387,7 +387,7 @@ export function CVEditorPanel({
   onRealtimeSectionUpdate,
 }: Props) {
   return (
-    <main className="flex-1 min-w-0 bg-slate-100 flex flex-col overflow-hidden p-3 md:p-4">
+    <main className="flex-1 min-w-0 flex flex-col overflow-hidden md:p-4">
       <div className="flex-1 overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
         {activeTab === "personal" ? (
           <PersonalInfoEditor

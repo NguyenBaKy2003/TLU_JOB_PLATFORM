@@ -132,15 +132,17 @@ export default function CVPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F6F3]">
-      <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-[#DFEAFE] flex flex-col w-full">
+      <div className="max-w-7xl mx-auto px-6 py-10 w-full flex-1 flex flex-col">
         <CVPageHeader
           count={cvs.length}
           onCreateClick={() => setShowCreateModal(true)}
         />
-
+      <div className="flex-1 flex flex-col items-center justify-center"></div>
         {cvs.length === 0 ? (
-          <CVEmptyState onCreateClick={() => setShowCreateModal(true)} />
+            <div className="flex-1 flex flex-col items-center justify-center">
+                <CVEmptyState onCreateClick={() => setShowCreateModal(true)} />
+            </div>
         ) : (
           <CVGrid
             cvs={cvs}

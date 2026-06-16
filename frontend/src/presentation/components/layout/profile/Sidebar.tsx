@@ -150,9 +150,15 @@ function SidebarContent({
 
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-        <div className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-[#1253ED]`}>
-          <Briefcase size={18} className="text-white" />
+        {/* Thay thế icon Briefcase bằng thẻ img */}
+        <div className="flex items-center justify-center w-15 h-15 shrink-0">
+          <img 
+            src="/Logo.svg" 
+            alt="Logo" 
+            className="w-full h-full object-contain" 
+          />
         </div>
+
         {(!collapsed || isMobile) && (
           <div className="leading-tight min-w-0">
             <p className="text-[16px] font-bold text-gray-900 truncate">
@@ -161,6 +167,7 @@ function SidebarContent({
             <p className="text-[11px] text-gray-400">{brandLabel}</p>
           </div>
         )}
+        
         {isMobile && (
           <button onClick={onClose} className="ml-auto p-1 text-gray-400 hover:text-gray-600 rounded-lg">
             <X size={18} />

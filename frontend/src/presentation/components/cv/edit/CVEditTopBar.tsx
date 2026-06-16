@@ -68,7 +68,7 @@ export function CVEditTopBar({
   const isPublished = cv.status === "PUBLISHED";
 
   return (
-    <header className="flex-shrink-0 h-14 bg-white border-b border-slate-200 flex items-center gap-2 px-3 md:px-4 shadow-sm">
+    <header className="flex-shrink-0 h-14 flex items-center gap-2 px-3 md:px-4 ">
       {/* Back */}
       <button
         onClick={onBack}
@@ -90,7 +90,7 @@ export function CVEditTopBar({
               if (e.key === "Enter")  commitTitle();
               if (e.key === "Escape") { setEditingTitle(false); setTitleValue(cv.title ?? ""); }
             }}
-            className="text-sm font-semibold text-slate-800 bg-slate-100 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-[#3D5A80]/30 w-full max-w-xs"
+            className="text-sm font-semibold text-slate-800  rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-[#04389E]/30 w-full max-w-xs"
           />
         ) : (
           <button
@@ -125,7 +125,7 @@ export function CVEditTopBar({
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <button
           onClick={onAiOptimize}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg transition-all"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#04389E] bg-[#ffff] border border-[#04389E] rounded-lg transition-all"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden md:inline">AI Tối ưu</span>
@@ -198,7 +198,7 @@ export function CVEditTopBar({
           className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
             isPublished
               ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
-              : "bg-[#3D5A80] text-white hover:bg-[#2E4565] active:scale-95"
+              : "bg-[#04389E] text-white hover:bg-[#032a76] active:scale-95"
           }`}
         >
           {isPublished

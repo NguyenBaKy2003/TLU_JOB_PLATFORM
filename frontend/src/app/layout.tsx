@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     // 3. TRUYỀN BIẾN FONT INTER VÀO CLASS CỦA HTML
-    <html lang="vi" className={`${inter.variable} bg-[#DFEAFE]`}>
+    <html lang="vi" className={`${inter.variable} !bg-[#DFEAFE]`}>
       <body className="font-sans">
         <ReactQueryProvider>
           <AuthProvider>

@@ -35,7 +35,7 @@ function ActionBar({ onPrint }: { onPrint: () => void }) {
         <button
           onClick={onPrint}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-            bg-[#3D5A80] hover:bg-[#2E4565] text-white rounded-lg transition-colors"
+            bg-[#04389E] hover:bg-[#032a76] text-white rounded-lg transition-colors"
         >
           <Printer className="w-3.5 h-3.5" />
           In CV
@@ -110,7 +110,8 @@ export default function CVPublicViewPage() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-[#F0EEE9]">
+      {/* Đổi màu nền từ #F0EEE9 sang #DFEAFE */}
+      <div className="min-h-screen bg-[#DFEAFE]">
         <ActionBar onPrint={handlePrint} />
 
         <div className="max-w-4xl mx-auto px-4 py-8">

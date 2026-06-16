@@ -71,8 +71,8 @@ function QuickChip({
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium
         border transition-all duration-200 whitespace-nowrap
         ${active
-          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-          : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+          ? "bg-[#04389E] text-white border-[#04389E] shadow-sm"
+          : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-[#04389E]"
         }`}
     >
       <span>{icon}</span>
@@ -87,7 +87,7 @@ function FeaturedSectionHeader({ count }: { count: number }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full
-        bg-blue-600 text-white text-xs font-semibold shadow-sm">
+        bg-[#04389E] text-white text-xs font-semibold shadow-sm">
         <Sparkles size={11} />
         Tin nổi bật
       </div>
@@ -112,13 +112,11 @@ function RegularSectionHeader({ count, total }: { count: number; total: number }
   );
 }
 
-// ── Grid wrapper — dùng chung để tránh lặp className ─────────────────────────
+// ── Grid wrapper ─────────────────────────
 
 function JobGrid({ children }: { children: React.ReactNode }) {
   return (
-    // items-stretch: các cell trong cùng hàng stretch đều nhau
-    // JobCard dùng h-full để lấp đầy cell → card ngang hàng luôn cùng chiều cao
-    <div className="grid grid-cols-1 md:grid-cols-2  gap-4 items-stretch">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
       {children}
     </div>
   );
@@ -168,7 +166,7 @@ function JobsPageInner() {
         keyword:         kw || undefined,
         city:            ct || undefined,
         workLocType:     f.workLocType || undefined,
-        currency:        f.currency   || undefined,
+        currency:        f.currency  || undefined,
         minSalary:       f.minSalary  ? Number(f.minSalary) : undefined,
         maxSalary:       f.maxSalary  ? Number(f.maxSalary) : undefined,
         postedWithinDays,
@@ -274,31 +272,16 @@ function JobsPageInner() {
   // ── Render ─────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    // Thay đổi màu nền thành #DFEAFE
+    <div className="min-h-screen bg-[#DFEAFE]">
 
       {/* ── Hero ───── */}
-      <section className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700">
-        {/* overflow-hidden tách riêng để không clip dropdown */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl" />
-        </div>
-
-        <div className="relative max-w-4xl mx-auto px-4 pt-12 pb-10">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
-              bg-white/10 border border-white/20 text-white/90 text-xs font-medium">
-              <Sparkles size={11} />
-              {total > 0 ? `${total.toLocaleString()} việc làm đang tuyển` : "Tìm việc thông minh"}
-            </span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-bold text-white text-center mb-2 leading-tight tracking-tight">
-            Khám phá cơ hội việc làm
+      <section className="relative pt-10 pb-8">
+        <div className="relative max-w-4xl mx-auto px-4">
+          
+          <h1 className="text-2xl sm:text-[32px] font-bold text-gray-900 text-center mb-8 leading-tight tracking-tight">
+            Khám phá công việc phù hợp nhất
           </h1>
-          <p className="text-blue-100 text-sm text-center mb-8">
-            Hàng nghìn công việc từ các công ty hàng đầu đang chờ bạn
-          </p>
 
           <JobsAISearchBar
             keyword={keyword}
@@ -307,7 +290,6 @@ function JobsPageInner() {
           />
 
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-            <span className="text-blue-200 text-xs">Phổ biến:</span>
             {QUICK_FILTERS.map(qf => (
               <QuickChip
                 key={qf.value}
@@ -328,27 +310,26 @@ function JobsPageInner() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="bg-white border-b border-gray-100"
+            className="bg-white/50 border-b border-white/40"
           >
-            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5
-              flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-500">Kết quả cho:</span>
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-600">Kết quả cho:</span>
               {keyword && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1
-                  bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
+                  bg-[#04389E]/10 text-[#04389E] text-xs font-medium rounded-full border border-[#04389E]/20">
                   {keyword}
                   <button onClick={() => {
                     setKeyword(""); setPage(0);
                     router.replace("/jobs", { scroll: false });
                     fetchJobs("", city, appliedFilters, 0);
-                  }} className="text-blue-400 hover:text-blue-600">
+                  }} className="text-[#04389E]/60 hover:text-[#04389E]">
                     <X size={10} />
                   </button>
                 </span>
               )}
               {city && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1
-                  bg-gray-50 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
+                  bg-white text-gray-700 text-xs font-medium rounded-full border border-gray-200">
                   <MapPin size={10} /> {city}
                   <button onClick={() => {
                     setCity(""); setPage(0);
@@ -372,8 +353,8 @@ function JobsPageInner() {
 
         {/* Mobile filter toggle */}
         <div className="lg:hidden flex items-center justify-between mb-4">
-          <p className="text-xs text-gray-500">
-            <strong className="text-gray-800">{total.toLocaleString()}</strong> việc làm
+          <p className="text-xs text-gray-600">
+            <strong className="text-gray-900">{total.toLocaleString()}</strong> việc làm
           </p>
           <button
             onClick={() => setMobileFilterOpen(v => !v)}
@@ -384,7 +365,7 @@ function JobsPageInner() {
             <SlidersHorizontal size={14} />
             Bộ lọc
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 bg-blue-600 text-white text-[10px] font-bold
+              <span className="w-4 h-4 bg-[#04389E] text-white text-[10px] font-bold
                 rounded-full flex items-center justify-center">
                 {activeFilterCount}
               </span>
@@ -429,8 +410,8 @@ function JobsPageInner() {
         <div className="flex gap-6 items-start">
 
           {/* Desktop sidebar */}
-          <aside className="hidden lg:block shrink-0 sticky top-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <aside className="hidden lg:block shrink-0 sticky top-6 w-[280px]">
+            <div className="bg-white rounded-xl shadow-sm p-4 border-0">
               <JobFilterSidebar
                 appliedFilters={appliedFilters}
                 onApply={handleApplyFilters}
@@ -441,17 +422,13 @@ function JobsPageInner() {
 
           {/* Job list */}
           <div className="flex-1 min-w-0">
-
             {/* Header count + clear */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Briefcase size={14} className="text-blue-600" />
-                </div>
                 <p className="text-sm text-gray-600">
-                  <strong className="text-gray-900">{total.toLocaleString()}</strong> việc làm
+                  Hiển thị <strong className="text-gray-900">{total.toLocaleString()}</strong> việc làm
                   {(keyword || city) && (
-                    <span className="text-gray-400"> được tìm thấy</span>
+                    <span className="text-gray-500"> được tìm thấy</span>
                   )}
                 </p>
               </div>
@@ -475,13 +452,13 @@ function JobsPageInner() {
             {/* ── Loading skeleton ──────────────── */}
             {loading && (
               <>
-                <div className="mb-3 h-5 w-32 bg-blue-100 rounded-full animate-pulse" />
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                <div className="mb-3 h-5 w-32 bg-white rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <SkeletonCard featured />
                   <SkeletonCard featured />
                 </div>
-                <div className="mb-3 h-5 w-28 bg-gray-100 rounded-full animate-pulse" />
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="mb-3 h-5 w-28 bg-white rounded-full animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
               </>
@@ -489,8 +466,8 @@ function JobsPageInner() {
 
             {/* ── Empty ────────────────────────── */}
             {!loading && jobs.length === 0 && (
-              <div className="col-span-full py-24 flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+              <div className="col-span-full py-24 flex flex-col items-center gap-4 bg-white rounded-xl shadow-sm">
+                <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center">
                   <Search size={28} className="text-gray-300" />
                 </div>
                 <div className="text-center">
@@ -499,8 +476,7 @@ function JobsPageInner() {
                 </div>
                 <button
                   onClick={handleClearAll}
-                  className="px-5 py-2.5 text-sm font-medium text-blue-600
-                    bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-[#04389E] rounded-xl hover:bg-[#032a76] transition-colors"
                 >
                   Xóa bộ lọc
                 </button>
@@ -562,8 +538,8 @@ function JobsPageInner() {
 export default function JobsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#DFEAFE] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#04389E] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <JobsPageInner />
