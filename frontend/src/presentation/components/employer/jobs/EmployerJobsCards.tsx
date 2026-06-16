@@ -172,133 +172,136 @@ function JobCard({
   const canSuggest = job.status === "PUBLISHED";
 
   return (
-    <>
-      <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm
-        hover:border-gray-200 hover:shadow-md transition-all duration-200 p-5">
+  <>
+    {/* 1. Thêm "flex flex-col h-full" vào thẻ bọc ngoài cùng */}
+    <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm
+      hover:border-gray-200 hover:shadow-md transition-all duration-200 p-5
+      flex flex-col h-full">
 
-        {/* Rejection banner */}
-        {job.status === "REJECTED" && job.rejectionReason && (
-          <button onClick={() => setShowRejection(true)}
-            className="w-full mb-3 flex items-center gap-2 px-3 py-2 rounded-xl
-              bg-red-50 border border-red-100 text-base text-red-600
-              hover:bg-red-100 transition-colors text-left">
-            <XCircle size={13} className="shrink-0" />
-            <span className="flex-1 truncate">Bài đăng bị từ chối — Xem lý do</span>
-            <ChevronRight size={13} className="shrink-0" />
-          </button>
-        )}
+      {/* Rejection banner */}
+      {job.status === "REJECTED" && job.rejectionReason && (
+        <button onClick={() => setShowRejection(true)}
+          className="w-full mb-3 flex items-center gap-2 px-3 py-2 rounded-xl
+            bg-red-50 border border-red-100 text-base text-red-600
+            hover:bg-red-100 transition-colors text-left shrink-0">
+          <XCircle size={13} className="shrink-0" />
+          <span className="flex-1 truncate">Bài đăng bị từ chối — Xem lý do</span>
+          <ChevronRight size={13} className="shrink-0" />
+        </button>
+      )}
 
-        {/* Top row */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <Link href={`/employer/jobs/${job.id}/edit`}
-              className="text-base font-semibold text-gray-900 hover:text-violet-600
-                transition-colors line-clamp-2 leading-snug">
-              {job.title}
-            </Link>
-            <p className="text-base text-gray-400 mt-0.5">
-              {job.category} · {levelLabel(job.level ?? "")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {statusBadge(job.status)}
-            {acting
-              ? <span className="w-8 h-8 flex items-center justify-center">
-                  <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                </span>
-              : <JobActionMenu
-                  jobId={job.id}
-                  status={job.status}
-                  onSubmit={() => onSubmit(job.id)}
-                  onClose={() => onClose(job.id)}
-                  onDelete={() => onDelete(job.id)}
-                  onEdit={() => router.push(`/employer/jobs/${job.id}/edit`)}
-                  onView={() => router.push(`/jobs/${job.id}`)}
-                />
-            }
-          </div>
-        </div>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {job.workLocationType && workTypeBadge(job.workLocationType)}
-          {job.workLocationCity && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-              text-base font-medium bg-gray-100 text-gray-600">
-              <MapPin size={11} />{job.workLocationCity}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-            text-base font-medium bg-gray-100 text-gray-600">
-            <Briefcase size={11} />
-            {job.jobType === "FULL_TIME" ? "Full-time"
-              : job.jobType === "PART_TIME" ? "Part-time"
-              : job.jobType}
-          </span>
-        </div>
-
-        {/* Salary */}
-        <p className="text-base font-semibold text-gray-800 mb-4">{job.salaryDisplay}</p>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 pt-4 border-t border-gray-50">
-          <div className="flex items-center gap-1.5 text-base text-gray-500">
-            <Eye size={13} className="text-gray-400" />
-            <span>{job.viewCount} lượt xem</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-base text-gray-500">
-            <Users size={13} className="text-gray-400" />
-            <Link href={`/employer/jobs/${job.id}/applications`}
-              className="hover:text-violet-600 transition-colors">
-              {job.applicationCount} đơn
-            </Link>
-          </div>
-          <div className="flex items-center gap-1.5 text-base text-gray-500">
-            <Users size={13} className="text-gray-400" />
-            <span>{job.vacancies} vị trí</span>
-          </div>
-          <div className="ml-auto flex items-center gap-1 text-base">
-            <Clock size={12} className={deadline.urgent ? "text-red-400" : "text-gray-400"} />
-            <span className={deadline.urgent ? "text-red-500 font-medium" : "text-gray-400"}>
-              {deadline.text}
-            </span>
-          </div>
-        </div>
-
-        {/* ── AI Suggest button — chỉ hiện khi PUBLISHED ── */}
-        {canSuggest && (
-          <button
-            onClick={() => setShowSuggest(true)}
-            className="mt-3 w-full flex items-center justify-center gap-1.5
-              py-2 rounded-xl text-base font-medium
-              text-violet-600 bg-violet-50 border border-violet-100
-              hover:bg-violet-100 transition-colors"
+      {/* Top row */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex-1 min-w-0">
+          <Link 
+            href={`/employer/jobs/${job.id}/edit`}
+            className="text-base font-semibold text-gray-900 hover:text-violet-600
+              transition-colors line-clamp-2 leading-snug min-h-[44px]"
           >
-            <Sparkles size={13} />
-            Gợi ý ứng viên phù hợp
-          </button>
-        )}
+            {job.title}
+          </Link>
+          <p className="text-base text-gray-400 mt-0.5 truncate">
+            {job.category} · {levelLabel(job.level ?? "")}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {statusBadge(job.status)}
+          {acting
+            ? <span className="w-8 h-8 flex items-center justify-center">
+                <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              </span>
+            : <JobActionMenu
+                jobId={job.id}
+                status={job.status}
+                onSubmit={() => onSubmit(job.id)}
+                onClose={() => onClose(job.id)}
+                onDelete={() => onDelete(job.id)}
+                onEdit={() => router.push(`/employer/jobs/${job.id}/edit`)}
+                onView={() => router.push(`/jobs/${job.id}`)}
+              />
+          }
+        </div>
       </div>
 
-      {/* Rejection modal */}
-      {showRejection && job.rejectionReason && (
-        <RejectionReasonModal
-          jobId={job.id}
-          reason={job.rejectionReason}
-          onClose={() => setShowRejection(false)}
-        />
-      )}
+      {/* Tags */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {job.workLocationType && workTypeBadge(job.workLocationType)}
+        {job.workLocationCity && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+            text-base font-medium bg-gray-100 text-gray-600">
+            <MapPin size={11} />{job.workLocationCity}
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+          text-base font-medium bg-gray-100 text-gray-600">
+          <Briefcase size={11} />
+          {job.jobType === "FULL_TIME" ? "Full-time"
+            : job.jobType === "PART_TIME" ? "Part-time"
+            : job.jobType}
+        </span>
+      </div>
 
-      {/* Suggest panel (slide-over) */}
-      {showSuggest && (
-        <CandidateSuggestPanel
-          jobPostId={job.id}
-          jobTitle={job.title}
-          onClose={() => setShowSuggest(false)}
-        />
+      {/* Salary */}
+      <p className="text-base font-semibold text-gray-800 mb-4">{job.salaryDisplay}</p>
+
+      {/* Stats - 2. Thêm "mt-auto" vào đây để ép nguyên khối Stats và Nút xuống đáy */}
+      <div className="flex items-center gap-4 pt-4 border-t border-gray-50 mt-auto">
+        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+          <Eye size={13} className="text-gray-400 shrink-0" />
+          <span>{job.viewCount} lượt xem</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+          <Users size={13} className="text-gray-400 shrink-0" />
+          <Link href={`/employer/jobs/${job.id}/applications`}
+            className="hover:text-violet-600 transition-colors">
+            {job.applicationCount} đơn
+          </Link>
+        </div>
+        <div className="flex items-center gap-1.5 text-base text-gray-500 whitespace-nowrap">
+          <Users size={13} className="text-gray-400 shrink-0" />
+          <span>{job.vacancies} vị trí</span>
+        </div>
+        <div className="ml-auto flex items-center gap-1 text-base whitespace-nowrap">
+          <Clock size={12} className={deadline.urgent ? "text-red-400 shrink-0" : "text-gray-400 shrink-0"} />
+          <span className={deadline.urgent ? "text-red-500 font-medium" : "text-gray-400"}>
+            {deadline.text}
+          </span>
+        </div>
+      </div>
+
+      {/* AI Suggest button */}
+      {canSuggest && (
+        <button
+          onClick={() => setShowSuggest(true)}
+          className="mt-3 w-full flex items-center justify-center gap-1.5
+            py-2 rounded-xl text-base font-medium
+            text-white bg-[#155DFC] border border-[#155DFC] hover:bg-[#1253ED] transition-colors shrink-0"
+        >
+          <Sparkles size={13} />
+          Gợi ý ứng viên phù hợp
+        </button>
       )}
-    </>
-  );
+    </div>
+
+    {/* Rejection modal */}
+    {showRejection && job.rejectionReason && (
+      <RejectionReasonModal
+        jobId={job.id}
+        reason={job.rejectionReason}
+        onClose={() => setShowRejection(false)}
+      />
+    )}
+
+    {/* Suggest panel (slide-over) */}
+    {showSuggest && (
+      <CandidateSuggestPanel
+        jobPostId={job.id}
+        jobTitle={job.title}
+        onClose={() => setShowSuggest(false)}
+      />
+    )}
+  </>
+);
 }
 
 // ── Grid ──────────────
@@ -313,8 +316,8 @@ export function EmployerJobsCards({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {jobs.map(job => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {jobs.map((job) => (
         <JobCard
           key={job.id}
           job={job}

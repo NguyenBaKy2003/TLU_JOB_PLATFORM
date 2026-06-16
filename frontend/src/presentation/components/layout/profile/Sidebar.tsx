@@ -79,9 +79,9 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px] transition-all group
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[16px] transition-all group text-slate-600
         ${active
-          ? "bg-blue-50 text-blue-600 font-medium"
+          ? "bg-[#DFEAFE]  font-medium font-bold"
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
         }`}
     >
@@ -150,8 +150,7 @@ function SidebarContent({
 
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-        <div className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0
-          ${isEmployer ? "bg-violet-600" : "bg-blue-600"}`}>
+        <div className={`flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-[#1253ED]`}>
           <Briefcase size={18} className="text-white" />
         </div>
         {(!collapsed || isMobile) && (
@@ -191,7 +190,7 @@ function SidebarContent({
             href="/employer/jobs/new"
             onClick={isMobile ? onClose : undefined}
             className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl
-              text-[16px] font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              text-[16px] font-semibold text-white bg-[#1253ED] hover:bg-[#0d3fc2] transition-colors"
           >
             <PlusCircle size={16} />
             Đăng tin tuyển dụng
@@ -203,10 +202,10 @@ function SidebarContent({
       <nav className="flex flex-col gap-0.5 px-2 pt-4 flex-1 overflow-y-auto">
         {(!collapsed || isMobile) && (
           <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-            Menu
+            Main
           </p>
         )}
-        {navItems.map(item => (
+        {navItems.map((item) => (
           <NavLink
             key={item.href}
             item={item}
@@ -218,8 +217,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* Bottom */}
-      <div className="flex flex-col gap-0.5 px-2 pb-4 border-t border-gray-100 pt-3">
+      <div className="flex flex-col gap-0.5 px-2 pb-12 border-t border-gray-100 pt-3">
         <Link
           href={isEmployer ? "/employer/help" : "/help"}
           onClick={isMobile ? onClose : undefined}

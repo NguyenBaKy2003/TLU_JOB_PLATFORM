@@ -100,19 +100,21 @@ export default function EmployerLayoutClient({
   // NORMAL EMPLOYER LAYOUT
   // ============================================
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar
-        activeHref={pathname || undefined}
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((v) => !v)}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-        notificationCount={unreadCount}
-      />
+    <div className="flex h-screen overflow-hidden bg-[#DFEAFE] p-3 sm:p-5 gap-4">
+      
+    
+      <div className="h-full rounded-2xl shadow-sm overflow-hidden flex-shrink-0 z-10 bg-white">
+        <Sidebar
+          activeHref={pathname || undefined}
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => setMobileOpen(false)}
+          notificationCount={unreadCount}
+        />
+      </div>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden ">
         {/* Header */}
         <Header
           title={getPageTitle(pathname)}
@@ -122,7 +124,7 @@ export default function EmployerLayoutClient({
         />
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 ">
           {children}
         </main>
       </div>

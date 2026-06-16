@@ -5,6 +5,8 @@ import {
   Briefcase, MapPin, Coins,
   Sparkles, Eye, ArrowRight,
   Bolt, CalendarClock, Download,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { ApplicationStatusBadge }    from "@/presentation/components/applications/ApplicationStatusBadge";
 import { ApplicationDetailDrawer }   from "@/presentation/components/applications/ApplicationDetailDrawer";
@@ -72,13 +74,15 @@ function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: number | string; color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-      </div>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex items-center gap-3 w-full h-full">
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+      {icon}
     </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-xl font-bold text-gray-800">{value}</p>
+    </div>
+  </div>
   );
 }
 
@@ -88,22 +92,21 @@ function InterviewScheduleCard({ scheduled, onClick }: { scheduled: number; onCl
   return (
     <button
       onClick={onClick}
-      className="group bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl
-        border border-purple-100 shadow-sm px-5 py-4 flex items-center gap-3
-        hover:border-purple-300 hover:shadow-md transition-all duration-200 text-left w-full"
+      className="group bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex flex-col gap-3 hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left w-full"
     >
-      <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center
-        group-hover:bg-purple-200 transition-colors flex-shrink-0">
-        <Calendar size={18} className="text-purple-600" />
+      <div className="flex items-center gap-3 w-full">
+        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors flex-shrink-0">
+          <Calendar size={18} className="text-gray-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-500">Có lịch phỏng vấn</p>
+          <p className="text-xl font-bold text-gray-800">{scheduled}</p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-purple-400">Có lịch phỏng vấn</p>
-        <p className="text-xl font-bold text-purple-900">{scheduled}</p>
-      </div>
-      <div className="flex items-center gap-1 text-xs font-medium text-purple-500
-        group-hover:text-purple-700 transition-colors flex-shrink-0">
-        Xem lịch
-        <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+
+      <div className="flex items-center justify-between w-full pt-3 border-t border-gray-100 text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors mt-1">
+        <span>Xem lịch</span>
+        <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
       </div>
     </button>
   );
@@ -252,8 +255,9 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 text-[14px] leading-tight truncate">{fullName}</p>
-            <p className="text-xs text-gray-400 truncate mt-0.5">{app.candidate?.email ?? app.candidateEmail}</p>
-            {app.candidate?.phone && <p className="text-xs text-gray-400">{app.candidate.phone}</p>}
+            <span className="text-[12px] font-medium text-slate-500 font-bold">
+              {app.job?.title ?? "Không rõ vị trí"}
+            </span>
           </div>
           <ApplicationStatusBadge status={app.status} />
         </div>
@@ -262,70 +266,61 @@ function ApplicationCard({ app, onSchedule, onDetail }: ApplicationCardProps) {
       <div className="mx-5 h-px bg-gray-50" />
 
       {/* Job info */}
-      <div className="px-5 py-3.5 flex flex-col gap-2 flex-1">
-        {app.job?.title && (
-          <p className="text-[13.5px] font-medium text-gray-800 leading-snug line-clamp-2">
-            {app.job.title}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-1.5">
-          {jType && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-              bg-indigo-50 text-indigo-700 text-[11px] font-medium">
-              <Briefcase size={10} /> {jType}
-            </span>
-          )}
-          {level && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-              bg-purple-50 text-purple-700 text-[11px] font-medium">
-              <BsLadder size={10} /> {level}
-            </span>
-          )}
-          {city && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-              bg-gray-100 text-gray-600 text-[11px]">
-              <MapPin size={10} /> {city}
-            </span>
-          )}
+      <div className="px-5 py-4 flex flex-col gap-4 flex-1">
+      {/* Thông tin liên hệ & cá nhân */}
+      <div className="flex flex-col gap-2.5 text-[13px] text-gray-700">
+        <div className="flex items-center gap-3">
+          <Mail size={16} className="text-gray-500" />
+          <span>{app.candidate?.email ?? app.candidateEmail ?? "Chưa cập nhật"}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {salary && (
-            <span className="flex items-center gap-1 text-xs text-gray-500">
-              <Coins size={11} className="text-gray-400" />
-              {salary.length > 28 ? salary.slice(0, 28) + "…" : salary}
-            </span>
-          )}
-          {deadline && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
-              <CalendarClock size={11} /> Hạn {deadline}
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <Phone size={16} className="text-gray-500" />
+          <span>{app.candidate?.phone ?? "Chưa cập nhật"}</span>
         </div>
-        {app.aiScore != null ? (
-          <div className="mt-1.5 pt-3 border-t border-gray-50">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="flex items-center gap-1 text-xs text-gray-400">
-                <Sparkles size={11} /> AI Score
-              </span>
-              <span className={`text-xs font-semibold ${colors.label}`}>
-                {app.aiScore}/100 · {app.aiScoreLabel ?? ""}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${colors.bar}`}
-                style={{ width: `${app.aiScore}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="mt-1.5 pt-3 border-t border-gray-50">
-            <span className="text-xs text-gray-300 flex items-center gap-1">
-              <Sparkles size={11} /> Chưa có điểm AI
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <MapPin size={16} className="text-gray-500" />
+          {/* Tuỳ vào data model, có thể là app.candidate?.city hoặc city của job */}
+          <span>{city ?? "Chưa cập nhật"}</span>
+        </div>
+        
       </div>
+
+      <div className="border-t border-gray-100" />
+
+      {/* AI Score */}
+      {app.aiScore != null ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-[14px] font-medium text-gray-900">
+              {/* Có thể dùng icon ListChecks hoặc Star tùy bộ icon bạn có */}
+              <Sparkles size={16} className="text-gray-800" /> AI Score
+            </span>
+            <span className={`text-[13px] ${colors.label}`}>
+              {app.aiScore}/100 - {app.aiScoreLabel ?? "Ít phù hợp"}
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${colors.bar}`}
+              style={{ width: `${app.aiScore}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-[14px] font-medium text-gray-400">
+          <Sparkles size={16} /> Chưa có điểm AI
+        </div>
+      )}
+
+  {/* Thông tin ứng tuyển */}
+    <div className="flex flex-col gap-1 mt-1">
+      <span className="text-[13px] text-gray-600">Ứng tuyển</span>
+      <span className="text-[18px] font-medium text-gray-900 font-bold">
+        {app.job?.title ?? "Không rõ vị trí"}
+      </span>
+      
+    </div>
+  </div>
 
       <div className="mx-5 h-px bg-gray-50" />
 
@@ -473,7 +468,7 @@ export default function EmployerApplicationsPage() {
     <div className="flex flex-col gap-6">
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border p-5 rounded-2xl bg-white shadow-sm !bg-[#EFF5FF]">
         <StatCard
           icon={<Users size={18} className="text-blue-600" />}
           label="Tổng đơn"

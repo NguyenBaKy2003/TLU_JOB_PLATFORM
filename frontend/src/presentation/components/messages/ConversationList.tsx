@@ -88,7 +88,8 @@ export function ConversationList({
   );
 
   return (
-    <div className="flex flex-col h-full border-r border-gray-100 bg-white">
+    
+    <div className="flex flex-col h-full max-h-full overflow-hidden border-r border-gray-100 bg-white">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 border-b border-gray-50 shrink-0">
         <div className="flex items-center justify-between mb-3">
@@ -135,8 +136,7 @@ export function ConversationList({
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+      <div className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <ConvSkeleton key={i} />
