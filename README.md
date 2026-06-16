@@ -71,6 +71,113 @@ cd backend
 
 ---
 
+## 🔄 Quy Trình Phát Triển (Development Workflow)
+
+### Kiến trúc Nhánh (Branching Strategy)
+
+Dự án sử dụng mô hình phát triển theo Sprint với cấu trúc nhánh như sau:
+
+```
+main (Production)
+├── develop (Development)
+│   └── sprint/Q1-SP1 (Sprint Release)
+│       ├── fix/frontend/LoginForm/Task001-AuthValidation
+│       ├── feature/backend/UserService/Task002-CreateUser
+│       ├── fix/frontend/Dashboard/Task003-LayoutFix
+│       └── feature/mobile/Profile/Task004-EditProfile
+```
+
+### Các Loại Nhánh
+
+| Loại | Format | Mục đích |
+|------|--------|---------|
+| **Feature** | `feature/{Vai trò}/{Tên tính năng}/Task{số}` | Phát triển tính năng mới |
+| **Fix** | `fix/{Vai trò}/{Tên lỗi}/Task{số}` | Sửa lỗi hoặc cải thiện |
+
+**Vai trò bao gồm**: `frontend`, `backend`, `mobile`, `devops`, v.v.
+
+### Quy Trình Làm Việc
+
+#### 1️⃣ **Checkout từ nhánh Deploy**
+```bash
+# Cập nhật nhánh develop mới nhất
+git checkout develop
+git pull origin develop
+
+# Checkout từ nhánh sprint/Q1-SP1
+git checkout sprint/Q1-SP1
+git pull origin sprint/Q1-SP1
+```
+
+#### 2️⃣ **Tạo Nhánh Công Việc Cá Nhân**
+```bash
+# Tạo nhánh mới để code
+git checkout -b fix/frontend/LoginForm/Task001-AuthValidation
+
+# Hoặc nếu là feature
+git checkout -b feature/backend/UserService/Task002-CreateUser
+```
+
+**Quy tắc đặt tên:**
+- Sử dụng kebab-case (dấu gạch ngang) cho tên tác vụ
+- Giữi ngắn gọn, mô tả rõ ràng nội dung công việc
+- Ví dụ: `Task001-AuthValidation`, `Task002-CreateUser`
+
+#### 3️⃣ **Phát Triển và Commit**
+```bash
+# Thực hiện các thay đổi và commit
+git add .
+git commit -m "feat: thêm xác thực đăng nhập [Task001]"
+```
+
+#### 4️⃣ **Push Code lên Repository**
+```bash
+# Push nhánh công việc lên remote
+git push origin fix/frontend/LoginForm/Task001-AuthValidation
+```
+
+#### 5️⃣ **Tạo Pull Request**
+- Mở GitHub và tạo **Pull Request (PR)** từ nhánh công việc vào nhánh `sprint/Q1-SP1`
+- **Base branch**: `sprint/Q1-SP1`
+- **Compare branch**: `fix/frontend/LoginForm/Task001-AuthValidation`
+- Tiêu đề PR: `[Task001] Thêm xác thực đăng nhập`
+- Mô tả PR bao gồm:
+  - Mô tả chi tiết thay đổi
+  - Link vấn đề liên quan (nếu có)
+  - Screenshots (nếu là UI changes)
+
+#### 6️⃣ **Review và Merge**
+- Chờ đợi code review từ team members
+- Giải quyết các comments/suggestions
+- Merge PR vào `sprint/Q1-SP1` sau khi được approve
+
+#### 7️⃣ **Cập Nhật Nhánh Local**
+```bash
+# Quay về nhánh sprint/Q1-SP1
+git checkout sprint/Q1-SP1
+git pull origin sprint/Q1-SP1
+
+# Xóa nhánh công việc đã merge
+git branch -d fix/frontend/LoginForm/Task001-AuthValidation
+git push origin --delete fix/frontend/LoginForm/Task001-AuthValidation
+```
+
+### Quy Tắc Chung
+
+✅ **Nên làm:**
+- Commit thường xuyên với message rõ ràng
+- Pull latest changes trước khi làm việc
+- Tạo PR nhỏ, dễ review (< 400 dòng code)
+- Giải quyết conflicts kịp thời
+
+❌ **Không nên làm:**
+- Commit trực tiếp lên `develop` hoặc `sprint/Q1-SP1`
+- Push code mà chưa test
+- Để PR chưa giải quyết conflicts
+- Tạo nhánh với tên không rõ ràng
+
+---
+
 ## 📖 Tài Liệu Tham Khảo
 
 ### Frontend (Next.js)
