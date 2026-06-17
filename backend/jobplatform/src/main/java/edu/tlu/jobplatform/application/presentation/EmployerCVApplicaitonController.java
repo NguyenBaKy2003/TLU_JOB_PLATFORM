@@ -17,20 +17,6 @@ import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 
 import java.util.UUID;
 
-/**
- * Employer xem / tải CV của ứng viên đã nộp đơn vào công ty mình.
- *
- * Quyền truy cập được kiểm tra 2 lớp:
- * 1. Employer phải là owner của một company.
- * 2. Application được yêu cầu phải thuộc về company đó.
- *
- * GET /api/v1/employer/applications/{applicationId}/cv/view — Xem inline
- * GET /api/v1/employer/applications/{applicationId}/cv/download — Download
- * GET /api/v1/employer/applications/{applicationId}/cv/{cvId}/view — Xem cv cụ
- * thể
- * GET /api/v1/employer/applications/{applicationId}/cv/{cvId}/download —
- * Download cv cụ thể
- */
 @RestController
 @RequestMapping("/api/v1/employer/applications")
 @RequiredArgsConstructor

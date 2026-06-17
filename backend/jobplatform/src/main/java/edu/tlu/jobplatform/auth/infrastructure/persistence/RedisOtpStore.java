@@ -8,12 +8,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Optional;
 
-/**
- * RedisOtpStore — implement OtpStorePort bằng Redis.
- *
- * Key: otp:{purpose}:{email}
- * VD: otp:verify-email:user@example.com
- */
 @Component
 @RequiredArgsConstructor
 public class RedisOtpStore implements OtpStorePort {

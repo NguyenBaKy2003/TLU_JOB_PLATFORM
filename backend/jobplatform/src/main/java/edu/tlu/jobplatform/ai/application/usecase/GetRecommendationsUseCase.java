@@ -40,11 +40,9 @@ public class GetRecommendationsUseCase {
         @Cacheable(value = "recommendations", key = "#candidateId")
         public RecommendationBundle execute(UUID candidateId) {
 
-                // ── 1. Candidate profile ──────────────────────────────────────────────
                 CandidateProfile candidate = candidateRepo.findById(candidateId)
                                 .orElseThrow(() -> ResourceNotFoundException.of("Candidate", candidateId));
 
-                // ── 2. Lịch sử hành vi ───────────────────────────────────────────────
                 LocalDateTime since = LocalDateTime.now().minusDays(30);
 
                 List<String> keywords = searchEventRepo.findKeywordsByCandidate(candidateId, since, 20);
@@ -63,13 +61,11 @@ public class GetRecommendationsUseCase {
                                                 .collect(Collectors.joining(", ")))
                                 .orElse(null);
 
-                // ORDER BY featured DESC, published_at DESC (hardcode trong SQL)
                 List<JobPost> publishedJobs = jobSearchPort.search(
                                 null, null, null, null, null, null,
                                 null, null, null, null, null,
                                 PageRequest.of(0, 6)).getContent();
 
-                // ── 4. Company name map — query một lần, truyền xuống adapter ─────────
                 Set<UUID> companyIds = publishedJobs.stream()
                                 .map(JobPost::getCompanyId)
                                 .filter(Objects::nonNull)
@@ -84,7 +80,6 @@ public class GetRecommendationsUseCase {
                                                                                 ? e.getValue().name()
                                                                                 : ""));
 
-                // ── 5. Build request — adapter chỉ đọc, không query DB ───────────────
                 CandidateTrendRequest request = CandidateTrendRequest.builder()
                                 .candidateId(candidateId)
                                 .recentKeywords(keywords)
@@ -98,14 +93,11 @@ public class GetRecommendationsUseCase {
                                 .companyNameMap(companyNameMap)
                                 .build();
 
-                // ── 6. Gọi AI ─────────────────────────────────────────────────────────
                 JobRecommendResult jobs = trendPort.recommendJobs(request);
                 CompanyRecommendResult companies = trendPort.recommendCompanies(request);
 
                 return new RecommendationBundle(jobs, companies);
         }
-
-        // ── Bundle ────────────────────────────────────────────────────────────────
 
         @Getter
         @NoArgsConstructor

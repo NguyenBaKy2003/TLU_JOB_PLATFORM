@@ -4,22 +4,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Output Port để lưu trữ, tìm kiếm và xóa refresh token.
- *
- * UseCase gọi interface này — không biết Redis hay bất kỳ storage nào tồn tại.
- * Implementation: RedisTokenStoreAdapter trong infrastructure/adapter.
- *
- * Redis key design:
- * 
- * <pre>
- *   refresh:{userId}:{tokenId}  → JWT refresh token string  (TTL 30 ngày)
- *   blacklist:{jti}             → "1"                       (TTL = remaining của access token)
- * </pre>
- *
- * Dùng {userId} trong key để có thể xóa toàn bộ session của 1 user:
- * KEYS refresh:{userId}:* → deleteAll()
- */
 public interface TokenStorePort {
 
     /**

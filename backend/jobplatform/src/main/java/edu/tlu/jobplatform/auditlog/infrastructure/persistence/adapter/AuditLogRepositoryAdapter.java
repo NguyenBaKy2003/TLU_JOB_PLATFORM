@@ -21,14 +21,10 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
 
     private final AuditLogJpaRepository jpa;
 
-    // ── Write ────────
-
     @Override
     public void save(AuditLog log) {
         jpa.save(toEntity(log));
     }
-
-    // ── Read — by actor ───────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findByActorId(String actorId, String action,
@@ -40,16 +36,12 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
                 pageable).map(this::toDomain);
     }
 
-    // ── Read — by resource ────────────────────────────────────────────
-
     @Override
     public Page<AuditLog> findByResource(String resourceType, String resourceId,
             Pageable pageable) {
         return jpa.findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
                 resourceType, resourceId, pageable).map(this::toDomain);
     }
-
-    // ── Read — system wide ────────────────────────────────────────────
 
     @Override
     public Page<AuditLog> findAll(String actorId, String action,
@@ -61,8 +53,6 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
                 pageable).map(this::toDomain);
     }
 
-    // ── Stats ────────
-
     @Override
     public Map<String, Long> countByAction(LocalDateTime from, LocalDateTime to) {
         List<Object[]> rows = jpa.countGroupByAction(from, to);
@@ -73,15 +63,11 @@ public class AuditLogRepositoryAdapter implements AuditLogRepository {
         return result;
     }
 
-    // ── Brute-force detection ─────────────────────────────────────────
-
     @Override
     public long countFailures(String actorId, String action, LocalDateTime after) {
         return jpa.countByActionAndActorIdAndResultAndOccurredAtAfter(
                 action, actorId, "FAILURE", after);
     }
-
-    // ── Mappers ──────
 
     private AuditLogJpaEntity toEntity(AuditLog d) {
         return AuditLogJpaEntity.builder()

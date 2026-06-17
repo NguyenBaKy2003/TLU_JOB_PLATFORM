@@ -11,18 +11,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class InviteCandidateRequest {
 
-    /**
-     * Profile ID của ứng viên — lấy từ
-     * CandidateSearchResult.MatchedCandidate.candidateProfileId.
-     * Đây là CandidateProfile.id, không phải userId.
-     */
     @NotNull(message = "candidateProfileId không được để trống")
     private UUID candidateProfileId;
 
-    /**
-     * Lời nhắn cá nhân từ employer gửi kèm lời mời.
-     * Optional — nếu null thì dùng message mặc định trong template.
-     */
     @Size(max = 1000, message = "Lời nhắn không được vượt quá 1000 ký tự")
     private String personalMessage;
 }

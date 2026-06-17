@@ -13,10 +13,6 @@ public class ResolveCandidateIdUseCase {
 
     private final CandidateProfileRepository candidateRepo;
 
-    /**
-     * Đổi userId (từ JWT) → candidateProfileId.
-     * Throw ResourceNotFoundException nếu chưa tạo profile.
-     */
     public UUID execute(UUID userId) {
         return candidateRepo.findByUserId(userId)
                 .map(p -> p.getId())

@@ -11,22 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Adapter: implement TokenStorePort bằng Redis.
- *
- * Key design:
- * 
- * <pre>
- *   refresh:{userId}:{tokenId}  → JWT refresh token (TTL 30 ngày)
- *   blacklist:{jti}             → "1"               (TTL = remaining của access token)
- * </pre>
- *
- * Tại sao dùng userId trong key?
- * → KEYS refresh:{userId}:* cho phép xóa toàn bộ session của 1 user
- * → Tránh collision, dễ debug khi cần inspect Redis
- *
- * StringRedisTemplate bean được khai báo trong shared/config/RedisConfig.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

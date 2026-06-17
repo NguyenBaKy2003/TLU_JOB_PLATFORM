@@ -25,7 +25,7 @@ import java.util.UUID;
 public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final ProfileCreationService profileCreationService; // ← thay eventPublisher
+    private final ProfileCreationService profileCreationService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
@@ -43,7 +43,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationException("Không lấy được email từ " + provider);
         }
 
-        // ── GUARD: Không cho tài khoản ADMIN đăng nhập qua OAuth2 ──
         userRepository.findByEmail(email.toLowerCase()).ifPresent(existing -> {
             if (existing.getRole() == UserRole.ADMIN) {
                 log.warn("OAuth2 login blocked for ADMIN account: {}", email);
@@ -78,13 +77,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     // ── Session helper ─
 
-    /**
-     * Đọc portalType từ HttpSession hiện tại.
-     * Session được tạo bởi CustomAuthorizationRequestResolver khi bắt đầu OAuth2
-     * flow.
-     * Fallback về "CANDIDATE" nếu không tìm thấy (session hết hạn, direct access,
-     * v.v.)
-     */
     private String readPortalTypeFromSession() {
         try {
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -116,7 +108,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                         ? name.trim()
                         : email.split("@")[0])
                 .avatarUrl(avatar)
-                .role(role) // ← không hardcode CANDIDATE nữa
+                .role(role)
                 .authProvider(provider)
                 .authProviderId(providerId)
                 .active(true)
@@ -129,13 +121,10 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private User syncOAuth2User(User existing, String provider,
             String providerId, String avatar) {
-        // Không thay đổi role của user cũ — chỉ sync provider info và avatar
         existing.linkOAuth2Provider(provider, providerId);
         existing.syncOAuth2Profile(avatar);
         return userRepository.save(existing);
     }
-
-    // ── Attribute extractors
 
     private String extractProviderId(Map<String, Object> attrs, String provider) {
         return switch (provider) {

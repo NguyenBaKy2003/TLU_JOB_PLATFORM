@@ -4,22 +4,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Output Port để lưu trữ password reset token.
- *
- * UseCase không biết Redis tồn tại — chỉ gọi interface này.
- * Implementation: RedisPasswordResetTokenAdapter (infrastructure/adapter).
- *
- * Redis key design:
- * <pre>
- *   pwd_reset:{userId}  → reset token (UUID string), TTL 15 phút
- * </pre>
- *
- * Thiết kế 1 user chỉ có tối đa 1 reset token tại 1 thời điểm:
- *   - Mỗi lần request mới → ghi đè token cũ (key theo userId, không phải token)
- *   - Tránh brute force: token cũ tự động bị vô hiệu khi user request lại
- *   - Redis TTL tự xóa sau 15 phút — không cần cronjob cleanup
- */
 public interface PasswordResetTokenPort {
 
     Duration TOKEN_TTL = Duration.ofMinutes(15);

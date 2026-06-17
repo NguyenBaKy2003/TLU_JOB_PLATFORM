@@ -89,8 +89,6 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
         }
     }
 
-    // ── Prompt builders ───────────────────────────────────────────────────────
-
     private String buildSystem(PassProbabilityRequest req) {
         return systemTemplate
                 .replace("$jobTitle$", nullSafe(req.getJobTitle()))
@@ -110,15 +108,6 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
 
     // ── Probability blending ──────────────────────────────────────────────────
 
-    /**
-     * Blend xác suất từ 3 nguồn:
-     *
-     * 1. contentProb (60%) — matchScore từ AI: CV có phù hợp với JD không
-     * 2. poolProb (30%) — tỉ lệ quota/applicants: cơ hội từ pool cạnh tranh
-     * 3. historicalProb (10%) — lịch sử candidate: tỉ lệ pass phỏng vấn trước đây
-     *
-     * profileFactor: nhân thêm hệ số dựa trên độ hoàn thiện hồ sơ (0.8 → 1.2)
-     */
     private double blendWithPoolStats(int matchScore, int applicants, int quota,
             int profileCompleteness, int historicalApply, int historicalPass) {
 
@@ -126,22 +115,19 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
 
         double poolProb = (quota > 0 && applicants > 0)
                 ? Math.min(1.0, (double) quota / applicants)
-                : 0.2; // default nếu chưa có ứng viên
+                : 0.2;
 
-        // Lịch sử candidate: tỉ lệ pass/apply, default 0.3 nếu chưa có lịch sử
         double historicalProb = (historicalApply > 0)
                 ? Math.min(1.0, (double) historicalPass / historicalApply)
                 : 0.3;
 
-        double profileFactor = 0.8 + (profileCompleteness / 100.0) * 0.4; // 0.8 → 1.2
+        double profileFactor = 0.8 + (profileCompleteness / 100.0) * 0.4;
 
         double blended = (contentProb * 0.60 + poolProb * 0.30 + historicalProb * 0.10)
                 * profileFactor;
 
         return Math.min(0.97, Math.max(0.02, blended));
     }
-
-    // ── Result factories ──────────────────────────────────────────────────────
 
     private PassProbabilityResult noCvResult() {
         return PassProbabilityResult.builder()
@@ -166,8 +152,6 @@ public class OpenAIPassProbabilityAdapter implements PassProbabilityPort {
                 .summary("Không thể phân tích tự động. Vui lòng thử lại sau.")
                 .build();
     }
-
-    // ── Utilities ─────────────────────────────────────────────────────────────
 
     private String truncate(String s, int max) {
         return s.length() <= max ? s : s.substring(0, max) + "...[truncated]";

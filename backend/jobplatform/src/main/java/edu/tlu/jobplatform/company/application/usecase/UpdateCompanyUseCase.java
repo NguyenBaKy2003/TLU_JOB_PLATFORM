@@ -13,15 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-/**
- * UseCase: Cập nhật thông tin hồ sơ công ty.
- *
- * Business Rules:
- * BR-01: Chỉ owner hoặc ADMIN mới được cập nhật
- * BR-02: Sau khi cập nhật thông tin quan trọng (tên, địa chỉ),
- * nếu đang VERIFIED → giữ nguyên VERIFIED (không reset)
- * BR-03: Công ty bị SUSPENDED không được cập nhật
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

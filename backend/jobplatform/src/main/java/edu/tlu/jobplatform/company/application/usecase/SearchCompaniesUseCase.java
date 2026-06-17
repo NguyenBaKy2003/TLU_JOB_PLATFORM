@@ -19,13 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Tìm kiếm đa điều kiện công ty VERIFIED.
- *
- * Filter: keyword, city, size, minRating, planCode — tất cả optional.
- * Sort: plan tier (ENTERPRISE→BUSINESS→STARTER→FREE) → rating DESC → created_at
- * ASC.
- */
 @Component
 @RequiredArgsConstructor
 public class SearchCompaniesUseCase {

@@ -23,7 +23,6 @@ public class UpdateProfileUrlUseCase {
                 .orElseThrow(() -> new BusinessRuleException(
                         "Hồ sơ ứng viên không tồn tại.", "PROFILE_NOT_FOUND"));
 
-        // Validate slug và build URL đầy đủ
         String newUrl = profileUrlService.validateAndBuildUrl(slug, profile.getId());
 
         profile.updateProfileUrl(newUrl);

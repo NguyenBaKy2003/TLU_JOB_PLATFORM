@@ -85,7 +85,7 @@ public class CompareCandidatesUseCase {
         return CandidateComparisonRequest.CandidateProfile.builder()
                 .applicationId(appId)
                 .candidateName(candidateProfile.getLastName() + " " + candidateProfile.getFirstName())
-                .cvText("") // Không gửi full CV, dùng scores
+                .cvText("")
                 .aiScore(score.getScore())
                 .skillMatchScore(score.getSkillMatchScore())
                 .experienceScore(score.getExperienceScore())
@@ -113,9 +113,6 @@ public class CompareCandidatesUseCase {
                 .build();
     }
 
-    /**
-     * Command record
-     */
     public record Command(UUID jobPostId, List<UUID> applicationIds) {
         public Command {
             if (jobPostId == null) {

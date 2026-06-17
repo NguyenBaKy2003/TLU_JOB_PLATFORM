@@ -21,12 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Candidate / Employer / Admin xem lịch sử hành động của chính mình.
- *
- * actorId lấy từ SecurityContext — không nhận từ request param.
- * Đảm bảo user chỉ xem được log của mình.
- */
 @RestController
 @RequestMapping("/api/v1/me/audit-logs")
 @RequiredArgsConstructor
@@ -35,35 +29,35 @@ import java.util.UUID;
 @PreAuthorize("isAuthenticated()")
 public class MyAuditLogController {
 
-    private final GetMyAuditLogsUseCase getMyLogsUseCase;
+        private final GetMyAuditLogsUseCase getMyLogsUseCase;
 
-    @Operation(summary = "Lịch sử hành động của tôi", description = """
-            Trả về các action do chính tài khoản thực hiện.
+        @Operation(summary = "Lịch sử hành động của tôi", description = """
+                        Trả về các action do chính tài khoản thực hiện.
 
-            Ví dụ action: `USER_LOGIN`, `CANDIDATE_SUBMIT_APPLICATION`,
-            `CANDIDATE_UPLOAD_CV`, `EMPLOYER_CREATE_JOB_POST`...
+                        Ví dụ action: `USER_LOGIN`, `CANDIDATE_SUBMIT_APPLICATION`,
+                        `CANDIDATE_UPLOAD_CV`, `EMPLOYER_CREATE_JOB_POST`...
 
-            **Lưu ý:** Chỉ xem được log của chính mình.
-            Admin muốn xem log của user khác → dùng `/api/v1/admin/audit-logs/user/{userId}`.
-            """)
-    @GetMapping
-    @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
-    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getMyLogs(
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) String resourceType,
-            @RequestParam(required = false) String result,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+                        **Lưu ý:** Chỉ xem được log của chính mình.
+                        Admin muốn xem log của user khác → dùng `/api/v1/admin/audit-logs/user/{userId}`.
+                        """)
+        @GetMapping
+        @RateLimit(policy = "candidate-read", scope = RateLimitPolicy.Scope.USER)
+        public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getMyLogs(
+                        @RequestParam(required = false) String action,
+                        @RequestParam(required = false) String resourceType,
+                        @RequestParam(required = false) String result,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "20") int size) {
 
-        UUID actorId = SecurityUtils.getCurrentUserIdOrThrow();
-        var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
+                UUID actorId = SecurityUtils.getCurrentUserIdOrThrow();
+                var pageable = PageRequest.of(page, size, Sort.by("occurredAt").descending());
 
-        var logs = getMyLogsUseCase
-                .execute(actorId, action, resourceType, from, to, pageable)
-                .map(AuditLogResponse::from);
+                var logs = getMyLogsUseCase
+                                .execute(actorId, action, resourceType, from, to, pageable)
+                                .map(AuditLogResponse::from);
 
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
-    }
+                return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
+        }
 }

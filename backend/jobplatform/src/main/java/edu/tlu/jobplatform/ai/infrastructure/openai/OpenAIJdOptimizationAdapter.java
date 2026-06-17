@@ -40,7 +40,6 @@ public class OpenAIJdOptimizationAdapter implements JdOptimizationPort {
         log.info("JD optimization: title='{}'", truncate(request.getOriginalTitle(), 50));
 
         try {
-            // Đọc file và replace — thêm $benefits$
             String prompt = promptTemplate
                     .getContentAsString(StandardCharsets.UTF_8)
                     .replace("$title$", nullSafe(request.getOriginalTitle()))
@@ -55,7 +54,6 @@ public class OpenAIJdOptimizationAdapter implements JdOptimizationPort {
 
             JsonNode root = objectMapper.readTree(clean);
 
-            // Fix tất cả các trường có thể bị AI trả về dạng Object
             boolean fixed = false;
             fixed |= fixFieldToString(root, "improvedDescription");
             fixed |= fixFieldToString(root, "improvedRequirements");
@@ -78,11 +76,6 @@ public class OpenAIJdOptimizationAdapter implements JdOptimizationPort {
         }
     }
 
-    /**
-     * Fix trường bị AI trả về dạng Object thay vì String
-     * 
-     * @return true nếu đã fix
-     */
     private boolean fixFieldToString(JsonNode root, String fieldName) {
         JsonNode field = root.get(fieldName);
 

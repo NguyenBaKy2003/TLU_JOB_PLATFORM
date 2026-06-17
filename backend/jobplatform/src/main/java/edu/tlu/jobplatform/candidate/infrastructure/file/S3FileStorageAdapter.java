@@ -56,7 +56,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
     // ── Download ──
 
     @Override
-    public FileResult download(String fileUrl) { // ← FileResult, không phải DownloadResult
+    public FileResult download(String fileUrl) {
         String key = extractKeyFromUrl(fileUrl);
         if (key == null) {
             log.warn("Cannot extract S3 key from url={}", fileUrl);
@@ -101,7 +101,6 @@ public class S3FileStorageAdapter implements FileStoragePort {
                     .bucket(bucket).key(key).build());
             log.info("Deleted from S3: key={}", key);
         } catch (Exception e) {
-            // Không throw — xóa file thất bại không nên block business flow
             log.error("S3 delete failed: key={} error={}", key, e.getMessage());
         }
     }

@@ -29,7 +29,7 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
 
         private final ChatClient chatClient;
         private final ObjectMapper objectMapper;
-        private final CompanyRepository companyRepo; // chỉ dùng cho recommendCompanies
+        private final CompanyRepository companyRepo;
 
         @Value("classpath:prompts/job-recommend.st")
         private Resource promptTemplate;
@@ -44,7 +44,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                 this.chatClient = chatClient;
                 this.objectMapper = objectMapper;
                 this.companyRepo = companyRepo;
-                // JobPostRepository đã bị xóa — job pool được inject qua CandidateTrendRequest
         }
 
         // ── recommendJobs ─────────────────────────────────────────────────────────
@@ -53,7 +52,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
         public JobRecommendResult recommendJobs(CandidateTrendRequest req) {
                 log.info("Job recommendation: candidateId={}", req.getCandidateId());
                 try {
-                        // Lấy job pool và company map từ request — không query DB ở đây
                         List<JobPost> openJobs = req.getPublishedJobs();
                         Map<UUID, String> companyNameMap = req.getCompanyNameMap();
 
@@ -73,7 +71,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                                 return buildTopJobsResult(openJobs, companyNameMap);
                         }
 
-                        // ── Gọi AI ───────────────────────────────────────────────────────
                         String jobPool = openJobs.stream()
                                         .map(j -> "[%s] %s — %s — %s".formatted(
                                                         j.getId(), j.getTitle(),
@@ -132,8 +129,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                 }
         }
 
-        // ── recommendCompanies ────────────────────────────────────────────────────
-
         @Override
         public CompanyRecommendResult recommendCompanies(CandidateTrendRequest req) {
                 log.info("Company recommendation: candidateId={}", req.getCandidateId());
@@ -186,7 +181,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                                                 .build();
                         }
 
-                        // ── Gọi AI ───────────────────────────────────────────────────────
                         String companyPool = activeCompanies.stream()
                                         .map(c -> "[%s] %s — %s — %d vị trí đang tuyển".formatted(
                                                         c.getId(), c.getName(),
@@ -243,8 +237,6 @@ public class OpenAIJobRecommendAdapter implements CandidateTrendAnalysisPort {
                                         .build();
                 }
         }
-
-        // ── Helpers ───────────────────────────────────────────────────────────────
 
         private JobRecommendResult buildTopJobsResult(List<JobPost> jobs,
                         Map<UUID, String> companyNameMap) {

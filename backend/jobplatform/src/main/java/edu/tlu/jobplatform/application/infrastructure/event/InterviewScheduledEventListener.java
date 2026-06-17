@@ -13,20 +13,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/**
- * Lắng nghe InterviewScheduledEvent → gửi email cho ứng viên.
- *
- * Sau fix: tất cả field cần thiết (candidateEmail, candidateName, companyName)
- * đã được ApplicationDomainEventPublisher resolve TRONG transaction.
- * Listener chỉ còn nhiệm vụ format và gửi — không query DB nữa.
- *
- * Pattern:
- * @TransactionalEventListener(AFTER_COMMIT) — chỉ chạy sau khi transaction
- * commit thành công, tránh gửi email khi UseCase bị rollback.
- *
- * @Async("aiTaskExecutor") — không block thread của UseCase,
- * email fail không ảnh hưởng response trả về client.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -68,46 +54,26 @@ public class InterviewScheduledEventListener {
                     event.getApplicationId(), toEmail);
 
         } catch (Exception e) {
-            // Không re-throw — email fail không được ảnh hưởng luồng chính
             log.error("Failed to send interview email: applicationId={}",
                     event.getApplicationId(), e);
         }
     }
 
-    // ── Resolve helpers
-
-    /**
-     * candidateName đã được publisher set sẵn.
-     * Fallback "Ứng viên" chỉ dùng khi event cũ chưa có field này.
-     */
     private String resolveCandidateName(InterviewScheduledEvent event) {
         String name = event.getCandidateName();
         return (name != null && !name.isBlank()) ? name : "Ứng viên";
     }
 
-    /**
-     * companyName đã được publisher set sẵn.
-     * Fallback "Nhà tuyển dụng" chỉ dùng khi event cũ chưa có field này.
-     */
     private String resolveCompanyName(InterviewScheduledEvent event) {
         String name = event.getCompanyName();
         return (name != null && !name.isBlank()) ? name : "Nhà tuyển dụng";
     }
 
-    /**
-     * jobTitle chưa có trong Application aggregate.
-     * Nếu cần chính xác, truyền jobTitle vào event từ ScheduleInterviewUseCase.
-     */
     private String resolveJobTitle(InterviewScheduledEvent event) {
         String title = event.getJobTitle();
         return (title != null && !title.isBlank()) ? title : "Vị trí ứng tuyển";
     }
 
-    // ── Format helper ──
-
-    /**
-     * "2026-04-25T10:29:00" → "10:29 - Thứ Sáu, 25/04/2026"
-     */
     private String formatInterviewAt(String interviewAt) {
         if (interviewAt == null)
             return "Chưa xác định";

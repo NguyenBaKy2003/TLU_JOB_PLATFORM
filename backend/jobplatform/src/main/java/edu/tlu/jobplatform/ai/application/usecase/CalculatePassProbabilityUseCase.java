@@ -82,8 +82,6 @@ public class CalculatePassProbabilityUseCase {
         return probabilityPort.calculate(request);
     }
 
-    // ── CV text extraction ────────────────────────────────────────────────────
-
     /**
      * Priority:
      * 1. Uploaded CV primary → extract text từ PDF trên S3
@@ -144,14 +142,11 @@ public class CalculatePassProbabilityUseCase {
             log.info("No exportedPdfUrl on Online CV, using entity extraction: cvId={}", cv.getId());
         }
 
-        // Fallback: serialize entity thành plain text có cấu trúc
         String text = cvTextExtractor.extract(cv);
         log.info("Using entity text for Online CV: candidateId={} cvId={} chars={}",
                 candidateId, cv.getId(), text.length());
         return text;
     }
-
-    // ── Profile completeness ──────────────────────────────────────────────────
 
     private int calculateProfileCompleteness(CandidateProfile c) {
         int score = 0;

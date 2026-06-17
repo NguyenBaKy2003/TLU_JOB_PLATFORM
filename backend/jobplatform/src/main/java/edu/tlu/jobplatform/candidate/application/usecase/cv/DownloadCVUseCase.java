@@ -11,10 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Dùng chung cho cả "view" (inline) và "download" (attachment).
- * Controller chịu trách nhiệm set Content-Disposition phù hợp.
- */
 @Service
 @RequiredArgsConstructor
 public class DownloadCVUseCase {
@@ -36,7 +32,6 @@ public class DownloadCVUseCase {
                 .orElseThrow(() -> new BusinessRuleException(
                         "CV không tồn tại.", "CV_NOT_FOUND"));
 
-        // Chỉ candidate sở hữu CV mới được tải
         if (!cv.getCandidateId().equals(candidateId)) {
             throw new BusinessRuleException(
                     "Bạn không có quyền truy cập CV này.", "CV_ACCESS_DENIED");
@@ -47,10 +42,8 @@ public class DownloadCVUseCase {
                     "CV này không có file đính kèm.", "CV_NO_FILE");
         }
 
-        // Lấy file từ S3 qua FileStoragePort
         FileStoragePort.FileResult file = fileStorage.download(cv.getFileUrl());
 
-        // Tên file hiển thị khi download
         String fileName = sanitizeFileName(cv.getTitle()) + "." + getExtension(cv.getFileUrl());
 
         return new Result(
@@ -78,7 +71,7 @@ public class DownloadCVUseCase {
         int dot = url.lastIndexOf('.');
         if (dot < 0 || dot >= url.length() - 1)
             return "pdf";
-        String ext = url.substring(dot + 1).split("\\?")[0]; // bỏ query params
+        String ext = url.substring(dot + 1).split("\\?")[0];
         return ext.isBlank() ? "pdf" : ext;
     }
 }

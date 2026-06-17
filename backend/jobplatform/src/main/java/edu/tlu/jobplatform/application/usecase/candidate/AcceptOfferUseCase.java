@@ -32,13 +32,11 @@ public class AcceptOfferUseCase {
 
         UUID currentUserId = SecurityUtils.getCurrentUserIdOrThrow();
 
-        // Chỉ chính ứng viên sở hữu đơn mới được thực hiện
         if (!app.getCandidateId().equals(currentUserId)) {
             throw new BusinessRuleException(
                     "Bạn không có quyền thực hiện hành động này.", "FORBIDDEN");
         }
 
-        // Dùng assertCanTransitionTo() — đã xử lý BusinessRuleException bên trong
         app.getStatus().assertCanTransitionTo(ApplicationStatus.ACCEPTED);
 
         ApplicationStatus previousStatus = app.getStatus();

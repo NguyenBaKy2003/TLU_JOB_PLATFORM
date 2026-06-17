@@ -75,19 +75,6 @@ public class OpenAIScoreAdapter implements AIScorePort {
                 .build();
     }
 
-    // ── CV text resolution ────────────────────────────────────────────────────
-
-    /**
-     * Resolve cvUrl → plain text mà AI có thể đọc.
-     *
-     * Online CV slug (không bắt đầu bằng "http"):
-     * 1. Lookup slug → OnlineCV
-     * 2. Nếu có exportedPdfUrl → extract text từ PDF trên S3
-     * 3. Fallback → serialize entity thành text
-     *
-     * Uploaded CV (S3 URL):
-     * → Extract text từ PDF trực tiếp
-     */
     private String resolveCvText(UUID applicationId, String cvUrl) {
         if (!StringUtils.hasText(cvUrl)) {
             log.warn("cvUrl is blank: applicationId={}", applicationId);
@@ -98,7 +85,6 @@ public class OpenAIScoreAdapter implements AIScorePort {
             return resolveOnlineCvText(applicationId, cvUrl);
         }
 
-        // Uploaded CV — flow cũ
         String text = pdfExtractor.extractFromUrl(cvUrl);
         if (!StringUtils.hasText(text)) {
             log.warn("CV text empty for applicationId={} cvUrl={}", applicationId, cvUrl);
@@ -115,7 +101,6 @@ public class OpenAIScoreAdapter implements AIScorePort {
             return "";
         }
 
-        // Ưu tiên: extract từ PDF đã render sẵn
         String exportedPdfUrl = cv.getExportedPdfUrl();
         if (StringUtils.hasText(exportedPdfUrl)) {
             log.info("Extracting text from exported PDF: cvId={} pdfUrl={}", cv.getId(), exportedPdfUrl);
@@ -128,19 +113,12 @@ public class OpenAIScoreAdapter implements AIScorePort {
             log.info("No exportedPdfUrl found, using entity text extraction: cvId={}", cv.getId());
         }
 
-        // Fallback: serialize entity trực tiếp
         return cvTextExtractor.extract(cv);
     }
 
-    /**
-     * Online CV slug không bắt đầu bằng "http" và không chứa "/".
-     * Ví dụ: "cv-minimal-f15ea7", "test-f15ea7"
-     */
     private boolean isOnlineCvSlug(String cvUrl) {
         return !cvUrl.startsWith("http") && !cvUrl.contains("/");
     }
-
-    // ── Job text parsing ──────────────────────────────────────────────────────
 
     private String parseSection(String fullText, String prefix) {
         if (fullText == null)

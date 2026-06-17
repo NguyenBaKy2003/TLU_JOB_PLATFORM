@@ -1,9 +1,9 @@
 package edu.tlu.jobplatform.application.infrastructure.persistence.projection;
 
 public interface ApplicationStatsProjection {
-    Integer getTotalApply(); // int → Integer
+    Integer getTotalApply();
 
-    Integer getTotalPass(); // int → Integer
+    Integer getTotalPass();
 
-    Integer getCurrentApplicantCount(); // int → Integer
+    Integer getCurrentApplicantCount();
 }

@@ -25,7 +25,7 @@ public class UpdateApplicationStatusUseCase {
     private final ApplicationRepository applicationRepo;
     private final ApplicationDomainService domainService;
     private final ApplicationDomainEventPublisher eventPublisher;
-    private final CompanyRepository companyRepository; // inject thêm
+    private final CompanyRepository companyRepository;
 
     @Transactional
     public Application execute(UUID applicationId, ApplicationStatus newStatus, String note) {
@@ -33,8 +33,6 @@ public class UpdateApplicationStatusUseCase {
         Application app = applicationRepo.findById(applicationId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Application", applicationId));
 
-        // Lấy ownerId của company → so sánh với userId đang đăng nhập
-        // (giống pattern UpdateCompanyUseCase)
         UUID companyOwnerId = companyRepository.findById(app.getCompanyId())
                 .map(CompanyProfile::getOwnerId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Company", app.getCompanyId()));

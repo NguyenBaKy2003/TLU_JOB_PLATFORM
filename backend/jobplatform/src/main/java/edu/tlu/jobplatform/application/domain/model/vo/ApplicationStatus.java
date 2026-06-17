@@ -14,7 +14,7 @@ public enum ApplicationStatus {
     INTERVIEWED,
     OFFERED,
     ACCEPTED,
-    DECLINED, // Ứng viên từ chối offer
+    DECLINED,
     HIRED,
     REJECTED,
     WITHDRAWN,

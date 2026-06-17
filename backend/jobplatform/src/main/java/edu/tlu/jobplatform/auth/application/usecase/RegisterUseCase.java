@@ -18,19 +18,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * UseCase: Đăng ký tài khoản mới.
- *
- * Flow:
- * 1. Validate email unique + password strength
- * 2. Tạo User (verified = false)
- * 3. Sinh OTP → lưu Redis → gửi email
- * 4. Trả về userId + email + role
- * (Không đăng nhập ngay — phải verify email trước)
- *
- * Profile mặc định (CandidateProfile / CompanyProfile) được tạo
- * trong VerifyEmailUseCase SAU KHI user xác thực email thành công.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,22 +30,18 @@ public class RegisterUseCase {
     private final PasswordEncoder passwordEncoder;
     private final OtpStorePort otpStore;
     private final EmailService emailService;
-    // ApplicationEventPublisher đã được xóa — profile tạo sau verify email
 
     @Transactional
     public Result execute(Command cmd) {
 
-        // BR-01: Email unique
         if (userRepository.existsByEmail(cmd.email())) {
             throw new BusinessRuleException(
                     "Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.",
                     "EMAIL_ALREADY_EXISTS");
         }
 
-        // BR-02: Password đủ mạnh
         validatePassword(cmd.password());
 
-        // Tạo User (verified = false, chưa có profile)
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .email(cmd.email().toLowerCase().trim())
@@ -73,7 +56,6 @@ public class RegisterUseCase {
 
         User saved = userRepository.save(user);
 
-        // Sinh OTP → Redis → Email
         String otp = generateOtp();
         otpStore.save(OTP_PURPOSE, saved.getEmail(), otp, OTP_TTL);
         emailService.sendVerificationOtp(saved.getEmail(), saved.getFullName(), otp);
@@ -83,8 +65,6 @@ public class RegisterUseCase {
 
         return new Result(saved.getId(), saved.getEmail(), saved.getRole().name());
     }
-
-    // ── Helpers ─
 
     private String generateOtp() {
         int code = new SecureRandom().nextInt(900_000) + 100_000;

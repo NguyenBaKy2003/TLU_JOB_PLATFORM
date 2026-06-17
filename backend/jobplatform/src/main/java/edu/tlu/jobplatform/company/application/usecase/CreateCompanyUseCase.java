@@ -14,15 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * UseCase: Tạo hồ sơ công ty mới.
- *
- * Business Rules:
- * BR-01: 1 user EMPLOYER chỉ được tạo 1 hồ sơ công ty
- * BR-02: Tên công ty phải unique
- * BR-03: Mặc định status = UNVERIFIED, chờ admin duyệt
- * BR-04: Slug tự động sinh từ tên công ty
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

@@ -8,7 +8,6 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import edu.tlu.jobplatform.application.presentation.dto.response.ApplicationDetailResponse.CandidateInfo;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile;
 import edu.tlu.jobplatform.candidate.domain.model.CandidateProfile.CandidateBasicInfo;
 

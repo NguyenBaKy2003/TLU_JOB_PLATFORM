@@ -15,16 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.UUID;
 
-/**
- * UseCase: Đăng nhập bằng email + password.
- *
- * Business Rules:
- * BR-01: Email không tồn tại → message chung (tránh user enumeration)
- * BR-02: Password sai → cùng message BR-01
- * BR-03: OAuth2-only account → hướng dẫn dùng Google/FaceBook
- * BR-04: Email chưa verify → yêu cầu xác thực email
- * BR-05: Account bị khóa → liên hệ support
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -50,7 +40,6 @@ public class LoginUseCase {
                                         "USE_OAUTH2");
                 }
 
-                // BR-06: bỏ save ở đây
                 if (user.isTemporarilyLocked()) {
                         throw new BusinessRuleException(
                                         "Tài khoản tạm thời bị khóa. Vui lòng thử lại sau %d phút."
@@ -77,7 +66,6 @@ public class LoginUseCase {
                         }
                 }
 
-                // active trước, verified sau
                 if (!user.isActive()) {
                         throw new BusinessRuleException(
                                         "Tài khoản đã bị khóa. Vui lòng liên hệ: support@jobplatform.vn",
@@ -100,7 +88,7 @@ public class LoginUseCase {
 
                 tokenStore.save(user.getId(), tokenId, refreshToken, REFRESH_TTL);
 
-                user.recordLogin(); // reset failedAttempts + set lastLoginAt
+                user.recordLogin();
                 userRepository.save(user);
 
                 log.info("User logged in: {} [{}]", user.getEmail(), user.getId());

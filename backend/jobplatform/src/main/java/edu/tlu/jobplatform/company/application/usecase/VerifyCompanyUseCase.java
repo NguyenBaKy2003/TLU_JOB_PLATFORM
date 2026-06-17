@@ -14,17 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-/**
- * UseCase: Admin duyệt / từ chối xác thực công ty.
- *
- * Chỉ ADMIN mới được gọi UseCase này.
- * 
- * @PreAuthorize ở Controller đảm bảo điều này.
- *
- *               Sau khi verify thành công → fire CompanyVerifiedEvent:
- *               → Notification domain gửi email chúc mừng cho employer
- *               → Search domain index công ty vào Elasticsearch
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
