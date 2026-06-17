@@ -21,7 +21,6 @@ public class DeleteExperienceUseCase {
                 .orElseThrow(() -> new BusinessRuleException(
                         "Hồ sơ ứng viên không tồn tại.", "PROFILE_NOT_FOUND"));
 
-        // removeExperience là no-op nếu id không tồn tại — không cần throw
         profile.removeExperience(experienceId);
 
         profileRepository.save(profile);

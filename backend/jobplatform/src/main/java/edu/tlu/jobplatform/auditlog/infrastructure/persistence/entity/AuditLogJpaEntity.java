@@ -5,10 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * @Entity chỉ sống ở infrastructure layer.
- *         Domain model AuditLog là POJO thuần — không phụ thuộc JPA.
- */
 @Entity
 @Table(name = "audit_logs", indexes = {
         @Index(name = "idx_audit_actor", columnList = "actor_id, occurred_at DESC"),

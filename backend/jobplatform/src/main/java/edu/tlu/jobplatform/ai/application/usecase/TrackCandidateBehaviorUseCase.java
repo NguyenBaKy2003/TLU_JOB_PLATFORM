@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-// TrackCandidateBehaviorUseCase.java — ghi nhận hành vi real-time
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,8 +20,6 @@ public class TrackCandidateBehaviorUseCase {
 
         private final SearchEventRepository searchEventRepo;
         private final RedisTemplate<String, String> redisTemplate;
-
-        // ── Đã có ──────────────────────────────────────────────
 
         @Async("aiTaskExecutor")
         public void trackSearch(UUID candidateId, String keyword) {
@@ -34,7 +31,6 @@ public class TrackCandidateBehaviorUseCase {
                                 .keyword(keyword.toLowerCase().trim())
                                 .occurredAt(LocalDateTime.now()).build());
 
-                // Cập nhật Redis autocomplete
                 String personalKey = "autocomplete:personal:" + candidateId;
                 redisTemplate.opsForZSet().add(personalKey, keyword.toLowerCase(), System.currentTimeMillis());
                 redisTemplate.opsForZSet().removeRange(personalKey, 0, -51);
@@ -53,8 +49,6 @@ public class TrackCandidateBehaviorUseCase {
                                 .dwellSeconds(dwellSeconds)
                                 .occurredAt(LocalDateTime.now()).build());
         }
-
-        // ── Thêm mới ───────────────────────────────────────────
 
         @Async("aiTaskExecutor")
         public void trackJobSave(UUID candidateId, UUID jobPostId) {
@@ -85,17 +79,13 @@ public class TrackCandidateBehaviorUseCase {
                         return;
                 }
 
-                // Track bình thường
                 searchEventRepo.saveCompanyView(candidateId, companyId);
         }
-
-        // ── Helper ─────────────────────────────────────────────
 
         private void save(SearchEvent event) {
                 try {
                         searchEventRepo.save(event);
                 } catch (Exception e) {
-                        // Tracking không được làm crash luồng chính
                         log.warn("Failed to track event {}: {}", event.getEventType(), e.getMessage());
                 }
         }

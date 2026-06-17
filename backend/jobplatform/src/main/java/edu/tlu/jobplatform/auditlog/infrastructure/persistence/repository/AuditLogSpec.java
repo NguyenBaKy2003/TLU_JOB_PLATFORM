@@ -13,10 +13,6 @@ public final class AuditLogSpec {
     private AuditLogSpec() {
     }
 
-    /**
-     * Tất cả param đều nullable — chỉ thêm predicate khi có giá trị.
-     * Tránh hoàn toàn pattern "? IS NULL" gây lỗi trên PostgreSQL.
-     */
     public static Specification<AuditLogJpaEntity> filter(
             String actorId,
             String action,

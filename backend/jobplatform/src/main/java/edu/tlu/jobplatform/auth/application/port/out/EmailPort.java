@@ -1,18 +1,5 @@
 package edu.tlu.jobplatform.auth.application.port.out;
 
-/**
- * Output Port để gửi email transactional.
- *
- * Domain UseCase không biết dùng SendGrid, SMTP hay gì khác.
- * Interface chỉ mô tả "cần gửi email gì" — không quan tâm "gửi bằng cách nào".
- *
- * Implementations:
- * - ConsoleEmailAdapter (Sprint 1 dev: chỉ log ra console)
- * - SendGridEmailAdapter (Sprint 4 production)
- *
- * Để đổi từ console sang SendGrid:
- * → Chỉ thêm @Primary vào SendGridEmailAdapter, UseCase không cần sửa.
- */
 public interface EmailPort {
 
     /**

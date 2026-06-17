@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.*;
 public class LiveKitWebhookHandler {
 
     private final ObjectMapper objectMapper;
-    // EndLiveStreamUseCase chỉ dùng khi LiveKit báo room_finished từ phía server
-    // (trường hợp host mất kết nối mà không bấm End)
 
     @Value("${livekit.webhook-secret:}")
     private String webhookSecret;
@@ -57,19 +55,15 @@ public class LiveKitWebhookHandler {
     private void handleRoomFinished(JsonNode event) {
         String roomName = event.path("room").path("name").asText();
         log.info("[LiveKit] Room kết thúc: {}", roomName);
-        // roomName = "session-{sessionId}"
-        // Có thể trigger EndLiveStreamUseCase nếu host ngắt kết nối đột ngột
     }
 
     private void handleEgressEnded(JsonNode event) {
-        // Egress = recording job đã hoàn tất, file đã upload lên S3
         String egressId = event.path("egressInfo").path("egressId").asText();
         String fileUrl = event.path("egressInfo").path("fileResults")
                 .path(0).path("location").asText();
         String roomName = event.path("egressInfo").path("roomName").asText();
 
         log.info("[LiveKit] Egress hoàn tất. Room={}, fileUrl={}", roomName, fileUrl);
-        // TODO: publish RecordingReadyEvent → batch job xử lý AI summary
     }
 
     private void handleParticipantJoined(JsonNode event) {

@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,8 +39,6 @@ public class AutoSuggestCandidatesUseCase {
                                 .map(CandidateSummaryMapper::toSummary)
                                 .toList();
 
-                // ── Lấy danh sách skill có cấu trúc từ JobPost ──────────────────────
-                // Ưu tiên skill đánh dấu required=true; nếu không có thì lấy hết.
                 List<String> requiredSkills = job.getSkills().stream()
                                 .filter(JobPostSkill::isRequired)
                                 .map(JobPostSkill::getSkillName)
@@ -58,7 +55,7 @@ public class AutoSuggestCandidatesUseCase {
                                 .jobTitle(job.getTitle())
                                 .jobRequirements(job.getRequirements())
                                 .jobLevel(job.getLevel())
-                                .requiredSkills(requiredSkills) // ← truyền skill cấu trúc
+                                .requiredSkills(requiredSkills)
                                 .location(job.getWorkLocation() != null
                                                 ? job.getWorkLocation().getCity()
                                                 : null)

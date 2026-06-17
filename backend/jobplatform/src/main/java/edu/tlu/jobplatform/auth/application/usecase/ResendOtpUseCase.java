@@ -12,15 +12,6 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
 
-/**
- * UseCase: Gửi lại OTP xác thực email.
- *
- * Business Rules:
- * BR-01: Email phải tồn tại trong hệ thống
- * BR-02: Tài khoản chưa được verified
- * BR-03: Tạo OTP mới, ghi đè OTP cũ trong Redis (TTL reset về 10 phút)
- * BR-04: Gửi OTP qua email
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,22 +27,18 @@ public class ResendOtpUseCase {
     public void execute(String email) {
         String normalizedEmail = email.toLowerCase().trim();
 
-        // BR-01: User phải tồn tại
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BusinessRuleException(
                         "Email không tồn tại trong hệ thống.", "USER_NOT_FOUND"));
 
-        // BR-02: Chưa verified
         if (user.isVerified()) {
             throw new BusinessRuleException(
                     "Tài khoản này đã được xác thực.", "ALREADY_VERIFIED");
         }
 
-        // BR-03: Tạo OTP mới, ghi đè OTP cũ (nếu có)
         String otp = generateOtp();
         otpStore.save(PURPOSE, normalizedEmail, otp, Duration.ofMinutes(OTP_TTL_MINUTES));
 
-        // BR-04: Gửi email
         emailPort.sendOtpEmail(normalizedEmail, otp);
 
         log.info("OTP resent to: {}", normalizedEmail);

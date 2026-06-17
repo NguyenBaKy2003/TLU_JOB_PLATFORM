@@ -27,93 +27,94 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GetMyReviewsUseCase {
 
-    private final CompanyReviewRepository reviewRepository;
-    private final CompanyRepository companyRepository;
+        private final CompanyReviewRepository reviewRepository;
+        private final CompanyRepository companyRepository;
 
-    @Getter
-    @Builder
-    public static class Query {
-        private UUID reviewerId;
-        private ReviewStatus status; // null = tất cả
-        private String keyword; // tìm theo tên công ty / tiêu đề
-        private LocalDateTime createdAtFrom;
-        private LocalDateTime createdAtTo;
-        private int page;
-        private int size;
-    }
+        @Getter
+        @Builder
+        public static class Query {
+                private UUID reviewerId;
+                private ReviewStatus status;
+                private String keyword;
+                private LocalDateTime createdAtFrom;
+                private LocalDateTime createdAtTo;
+                private int page;
+                private int size;
+        }
 
-    public record Result(
-            PageResponse<ReviewResponse> reviews,
-            Map<ReviewStatus, Long> statusCounts,
-            long total) {
-    }
+        public record Result(
+                        PageResponse<ReviewResponse> reviews,
+                        Map<ReviewStatus, Long> statusCounts,
+                        long total) {
+        }
 
-    @Transactional(readOnly = true)
-    public Result execute(Query query) {
+        @Transactional(readOnly = true)
+        public Result execute(Query query) {
 
-        var pageable = PageRequest.of(
-                query.getPage(),
-                query.getSize(),
-                Sort.by("createdAt").descending());
+                var pageable = PageRequest.of(
+                                query.getPage(),
+                                query.getSize(),
+                                Sort.by("createdAt").descending());
 
-        boolean noFilter = query.getStatus() == null
-                && isBlank(query.getKeyword())
-                && query.getCreatedAtFrom() == null
-                && query.getCreatedAtTo() == null;
+                boolean noFilter = query.getStatus() == null
+                                && isBlank(query.getKeyword())
+                                && query.getCreatedAtFrom() == null
+                                && query.getCreatedAtTo() == null;
 
-        // 1. Fetch page
-        Page<ReviewResponse> rawPage = noFilter
-                ? reviewRepository.findByReviewerId(query.getReviewerId(), pageable)
-                        .map(r -> ReviewResponse.from(r, r.isAnonymous() ? "Ẩn danh" : null))
-                : reviewRepository.searchByReviewerId(
-                        query.getReviewerId(),
-                        query.getStatus(),
-                        query.getKeyword(),
-                        query.getCreatedAtFrom(),
-                        query.getCreatedAtTo(),
-                        pageable)
-                        .map(r -> ReviewResponse.from(r, r.isAnonymous() ? "Ẩn danh" : null));
+                // 1. Fetch page
+                Page<ReviewResponse> rawPage = noFilter
+                                ? reviewRepository.findByReviewerId(query.getReviewerId(), pageable)
+                                                .map(r -> ReviewResponse.from(r, r.isAnonymous() ? "Ẩn danh" : null))
+                                : reviewRepository.searchByReviewerId(
+                                                query.getReviewerId(),
+                                                query.getStatus(),
+                                                query.getKeyword(),
+                                                query.getCreatedAtFrom(),
+                                                query.getCreatedAtTo(),
+                                                pageable)
+                                                .map(r -> ReviewResponse.from(r, r.isAnonymous() ? "Ẩn danh" : null));
 
-        // 2. Batch-fetch companies — 1 query
-        Set<UUID> companyIds = rawPage.getContent().stream()
-                .map(ReviewResponse::getCompanyId)
-                .collect(Collectors.toSet());
+                // 2. Batch-fetch companies — 1 query
+                Set<UUID> companyIds = rawPage.getContent().stream()
+                                .map(ReviewResponse::getCompanyId)
+                                .collect(Collectors.toSet());
 
-        Map<UUID, ReviewResponse.CompanySnapshot> snapshotMap = companyRepository.findAllById(companyIds).stream()
-                .collect(Collectors.toMap(
-                        CompanyProfile::getId,
-                        c -> new ReviewResponse.CompanySnapshot(
-                                c.getName(),
-                                c.getSlug(),
-                                c.getLogoUrl(),
-                                c.getIndustry(),
-                                c.getCity())));
+                Map<UUID, ReviewResponse.CompanySnapshot> snapshotMap = companyRepository.findAllById(companyIds)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                CompanyProfile::getId,
+                                                c -> new ReviewResponse.CompanySnapshot(
+                                                                c.getName(),
+                                                                c.getSlug(),
+                                                                c.getLogoUrl(),
+                                                                c.getIndustry(),
+                                                                c.getCity())));
 
-        // 3. Enrich với company snapshot
-        Page<ReviewResponse> enrichedPage = rawPage.map(response -> {
-            var snap = snapshotMap.get(response.getCompanyId());
-            if (snap != null) {
-                response.setCompanyName(snap.name());
-                response.setCompanySlug(snap.slug());
-                response.setCompanyLogoUrl(snap.logoUrl());
-                response.setCompanyIndustry(snap.industry());
-                response.setCompanyLocation(snap.location());
-            }
-            return response;
-        });
+                // 3. Enrich với company snapshot
+                Page<ReviewResponse> enrichedPage = rawPage.map(response -> {
+                        var snap = snapshotMap.get(response.getCompanyId());
+                        if (snap != null) {
+                                response.setCompanyName(snap.name());
+                                response.setCompanySlug(snap.slug());
+                                response.setCompanyLogoUrl(snap.logoUrl());
+                                response.setCompanyIndustry(snap.industry());
+                                response.setCompanyLocation(snap.location());
+                        }
+                        return response;
+                });
 
-        // 4. Count theo status — 1 query
-        Map<ReviewStatus, Long> statusCounts = reviewRepository.countByStatusForReviewer(query.getReviewerId());
+                // 4. Count theo status — 1 query
+                Map<ReviewStatus, Long> statusCounts = reviewRepository.countByStatusForReviewer(query.getReviewerId());
 
-        long total = statusCounts.values().stream().mapToLong(Long::longValue).sum();
+                long total = statusCounts.values().stream().mapToLong(Long::longValue).sum();
 
-        log.info("GetMyReviews: reviewerId={}, status={}, keyword={}, total={}",
-                query.getReviewerId(), query.getStatus(), query.getKeyword(), total);
+                log.info("GetMyReviews: reviewerId={}, status={}, keyword={}, total={}",
+                                query.getReviewerId(), query.getStatus(), query.getKeyword(), total);
 
-        return new Result(PageResponse.from(enrichedPage), statusCounts, total);
-    }
+                return new Result(PageResponse.from(enrichedPage), statusCounts, total);
+        }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.isBlank();
-    }
+        private static boolean isBlank(String s) {
+                return s == null || s.isBlank();
+        }
 }

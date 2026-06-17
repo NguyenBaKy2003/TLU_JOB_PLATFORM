@@ -11,10 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * UseCase: Tổng quan dashboard admin.
- * Tổng hợp số liệu từ nhiều domain.
- */
 @Service
 @RequiredArgsConstructor
 public class AdminDashboardUseCase {
@@ -45,7 +41,7 @@ public class AdminDashboardUseCase {
         public record DashboardStats(
                         long totalUsers,
                         long totalCompanies,
-                        long pendingCompanies, // chờ duyệt
+                        long pendingCompanies,
                         long activeJobs,
                         long totalJobs,
                         long totalApplications) {

@@ -20,30 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * UseCase: Ứng viên nộp đơn ứng tuyển.
- *
- * Flow:
- * 1. Validate: job đang nhận CV, chưa nộp trước đó, có CV
- * 2. Trừ applicationQuota (ConsumeCandidateQuotaUseCase)
- * 3. Tạo Application (SUBMITTED)
- * 4. Tăng applicationCount của JobPost
- * 5. Fire ApplicationSubmittedEvent (email xác nhận)
- * 6. Trigger AI scoring bất đồng bộ
- *
- * Quota rollback:
- * Nếu bước 3-4 thất bại sau khi đã trừ quota ở bước 2,
- * 
- * @Transactional sẽ rollback toàn bộ DB — bao gồm cả việc
- *                trừ quota (vì ConsumeCandidateQuotaUseCase.execute() cũng
- *                chạy trong cùng transaction này, không có REQUIRES_NEW).
- *                → Không cần try/catch hoàn quota thủ công.
- *
- *                Candidate KHÔNG có gói (FREE_CANDIDATE free hoặc chưa mua):
- *                ConsumeCandidateQuotaUseCase ném BusinessRuleException
- *                "NO_ACTIVE_CANDIDATE_SUBSCRIPTION" → trả 400 cho client.
- *                Frontend cần bắt errorCode này để hiện popup "Mua gói".
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

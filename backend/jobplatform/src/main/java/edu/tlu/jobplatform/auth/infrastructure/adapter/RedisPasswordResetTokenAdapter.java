@@ -9,19 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Adapter: implement PasswordResetTokenPort bằng Redis.
- *
- * Redis key: "pwd_reset:{userId}"
- * Value:     UUID token string
- * TTL:       15 phút (định nghĩa trong PasswordResetTokenPort.TOKEN_TTL)
- *
- * Tại sao key theo userId (không phải token)?
- *   → 1 user chỉ có 1 token hợp lệ tại 1 thời điểm
- *   → Ghi đè tự động khi user request lại
- *   → Tra cứu O(1) khi verify: get(userId) → compare với token trong request
- *   → Không cần reverse lookup (token → userId)
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

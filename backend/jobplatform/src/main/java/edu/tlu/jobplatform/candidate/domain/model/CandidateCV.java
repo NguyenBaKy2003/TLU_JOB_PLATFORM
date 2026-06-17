@@ -6,10 +6,6 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Một CV của candidate.
- * Có thể là: uploaded file (PDF/DOC) hoặc online CV (tạo trên hệ thống).
- */
 @Getter
 @Builder
 public class CandidateCV {
@@ -22,13 +18,11 @@ public class CandidateCV {
     private final UUID candidateId;
     private String title;
     private CVType type;
-    private String fileUrl; // null nếu ONLINE
-    private String parsedContent; // text extract từ PDF
-    private boolean primary; // CV chính dùng để apply
+    private String fileUrl;
+    private String parsedContent;
+    private boolean primary;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    // ── Business Rules
 
     public void markAsPrimary() {
         this.primary = true;

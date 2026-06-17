@@ -13,20 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Set primary CV — hỗ trợ cả UPLOADED lẫn ONLINE.
- *
- * Kind được tự detect từ DB: không cần client truyền lên.
- * → Tránh lỗi khi FE không biết CV thuộc loại nào.
- *
- * Logic:
- * 1. Tìm cvId trong candidate_cvs (UPLOADED) → nếu có dùng kind UPLOADED
- * 2. Nếu không có → tìm trong online_cvs → nếu có dùng kind ONLINE
- * 3. Không tìm thấy ở đâu → 404
- * 4. Unmark tất cả uploaded + online CVs của candidate
- * 5. Mark target
- * 6. Save cả 2 bộ trong 1 transaction
- */
 @Service
 @RequiredArgsConstructor
 public class SetPrimaryCVUseCase {
@@ -37,8 +23,6 @@ public class SetPrimaryCVUseCase {
     public enum CVKind {
         UPLOADED, ONLINE
     }
-
-    // ── Public API (không cần kind — tự detect) ───────────────────────────────
 
     @Transactional
     public void execute(UUID candidateId, UUID cvId) {
@@ -59,7 +43,7 @@ public class SetPrimaryCVUseCase {
             allUploaded.stream()
                     .filter(cv -> cv.getId().equals(cvId))
                     .findFirst()
-                    .orElseThrow(() -> notFound(cvId)) // không xảy ra vì detect đã check
+                    .orElseThrow(() -> notFound(cvId))
                     .markAsPrimary();
         } else {
             OnlineCV target = allOnline.stream()
@@ -74,20 +58,14 @@ public class SetPrimaryCVUseCase {
             target.markAsPrimary();
         }
 
-        // ── Persist cả 2 bộ trong 1 transaction ──
         cvRepository.saveAll(allUploaded);
         onlineCVRepository.saveAll(allOnline);
     }
 
-    // ── Overload với kind tường minh — giữ backward-compat ───────────────────
-
     @Transactional
     public void execute(UUID candidateId, UUID cvId, CVKind kind) {
-        // Delegate về execute không có kind — tự detect vẫn đúng
         execute(candidateId, cvId);
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
      * Xác định CV thuộc loại nào dựa trên danh sách đã load sẵn.

@@ -26,7 +26,7 @@ public class ApachePDFParserAdapter implements CVParserPort {
         try {
             byte[] bytes = inputStream.readAllBytes();
 
-            try (PDDocument document = Loader.loadPDF(bytes)) { // PDFBox 3.x API
+            try (PDDocument document = Loader.loadPDF(bytes)) {
                 if (document.isEncrypted()) {
                     log.warn("CVParser: PDF is encrypted, skipping parse");
                     return "";

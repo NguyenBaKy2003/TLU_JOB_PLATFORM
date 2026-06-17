@@ -26,7 +26,7 @@ public class ScheduleInterviewUseCase {
     private final ApplicationRepository applicationRepo;
     private final ApplicationDomainService domainService;
     private final ApplicationDomainEventPublisher eventPublisher;
-    private final CompanyRepository companyRepository; // inject thêm
+    private final CompanyRepository companyRepository;
 
     @Transactional
     public Application execute(UUID applicationId, Command cmd) {
@@ -34,7 +34,6 @@ public class ScheduleInterviewUseCase {
         Application app = applicationRepo.findById(applicationId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Application", applicationId));
 
-        // Fix: lấy ownerId từ company → so sánh với userId đang đăng nhập
         UUID companyOwnerId = companyRepository.findById(app.getCompanyId())
                 .map(CompanyProfile::getOwnerId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Company", app.getCompanyId()));

@@ -22,7 +22,6 @@ public class SmartSearchCandidatesUseCase {
         private final CandidateSearchPort searchPort;
 
         public CandidateSearchResult execute(Command cmd) {
-                // Lấy pool ứng viên đang tìm việc — giới hạn 200 để không quá tải token
                 List<CandidateProfileSummary> pool = candidateRepo
                                 .findAiPool(List.of("ACTIVELY_LOOKING", "OPEN_TO_OFFERS"), 200)
                                 .stream()
@@ -59,7 +58,7 @@ public class SmartSearchCandidatesUseCase {
                         String requirements,
                         String level,
                         String location,
-                        List<String> requiredSkills, // ← skill cấu trúc từ caller
+                        List<String> requiredSkills,
                         int maxResults) {
         }
 }

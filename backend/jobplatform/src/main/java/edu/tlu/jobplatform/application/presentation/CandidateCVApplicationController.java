@@ -17,16 +17,6 @@ import edu.tlu.jobplatform.ratelimit.presentation.annotation.RateLimit;
 
 import java.util.UUID;
 
-/**
- * Candidate xem / tải CV mà mình đã nộp trong một application.
- *
- * Quyền truy cập được kiểm tra 2 lớp:
- * 1. Người dùng phải có role CANDIDATE.
- * 2. Application được yêu cầu phải thuộc về chính candidate đang đăng nhập.
- *
- * GET /api/v1/candidate/applications/{applicationId}/cv/view — Xem inline
- * GET /api/v1/candidate/applications/{applicationId}/cv/download — Download
- */
 @RestController
 @RequestMapping("/api/v1/candidate/applications")
 @RequiredArgsConstructor

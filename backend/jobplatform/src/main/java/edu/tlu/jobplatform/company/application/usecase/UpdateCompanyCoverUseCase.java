@@ -40,7 +40,7 @@ public class UpdateCompanyCoverUseCase {
                     file.getContentType(),
                     COVER_FOLDER);
 
-            company.updateMedia(null, url); // null = giữ nguyên logoUrl
+            company.updateMedia(null, url);
         } catch (IOException e) {
             throw new BusinessRuleException("Không thể đọc file.", "FILE_READ_ERROR");
         }

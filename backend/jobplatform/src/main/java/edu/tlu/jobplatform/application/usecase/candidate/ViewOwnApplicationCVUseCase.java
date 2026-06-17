@@ -14,15 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Candidate xem / tải CV mà mình đã nộp trong một application.
- *
- * Điều kiện truy cập:
- * 1. Application phải tồn tại.
- * 2. application.candidateId phải khớp với candidate đang đăng nhập
- * → tránh candidate A xem CV của candidate B.
- * 3. cvUrl của Application phải có giá trị.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

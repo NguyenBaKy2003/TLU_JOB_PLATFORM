@@ -121,7 +121,6 @@ public class AuthController {
                 try {
                         resendOtpUseCase.execute(req.email());
                 } catch (BusinessRuleException e) {
-                        // Không lộ lý do thất bại (user not found / already verified)
                         log.debug("resendOtp silenced: code={} email={}", e.getErrorCode(), req.email());
                 }
 
@@ -284,9 +283,6 @@ public class AuthController {
                                         "INVALID_PORTAL");
                 }
 
-                // Gắn portal vào URL dưới dạng query param "portal" — KHÔNG dùng "state"
-                // vì Spring Security sẽ ghi đè "state" bằng CSRF token của nó.
-                // CustomAuthorizationRequestResolver đọc "portal" param và lưu vào session.
                 String url = UriComponentsBuilder
                                 .fromUriString(baseUrl + "/oauth2/authorization/" + provider.toLowerCase())
                                 .queryParam("portal", normalizedPortal)

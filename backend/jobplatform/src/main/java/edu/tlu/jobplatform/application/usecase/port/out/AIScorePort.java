@@ -4,14 +4,6 @@ import edu.tlu.jobplatform.application.domain.model.vo.AIScore;
 
 import java.util.UUID;
 
-/**
- * Output Port: Trigger AI scoring cho đơn ứng tuyển.
- *
- * Sprint 5: AIScoreAdapter gọi Spring AI / OpenAI để tính điểm.
- * Hiện tại: MockAIScoreAdapter trả về điểm ngẫu nhiên.
- *
- * Được gọi bất đồng bộ (@Async) sau khi submit đơn.
- */
 public interface AIScorePort {
 
     /**

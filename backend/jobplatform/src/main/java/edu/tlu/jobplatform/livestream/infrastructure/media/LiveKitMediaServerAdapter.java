@@ -47,15 +47,11 @@ public class LiveKitMediaServerAdapter implements MediaServerPort {
 
     @Override
     public void endRoom(UUID sessionId) {
-        // Local dev: room closes automatically when all participants leave.
-        // Production: inject RoomServiceClient and call deleteRoom().
         log.info("[LiveKit] Ending room: {}", roomName(sessionId));
     }
 
     @Override
     public String getRecordingUrl(UUID sessionId) {
-        // Local dev: Egress not configured — returning null.
-        // Production: LiveKit Egress uploads to S3; URL delivered via webhook.
         log.info("[LiveKit] getRecordingUrl — Egress not configured, returning null for session: {}", sessionId);
         return null;
     }
@@ -70,7 +66,6 @@ public class LiveKitMediaServerAdapter implements MediaServerPort {
             token.setIdentity(identity);
             token.setTtl(TTL_MS); // milliseconds
 
-            // Each permission is its own grant class — VideoGrant is not instantiable
             token.addGrants(
                     new RoomJoin(true),
                     new RoomName(room),

@@ -15,13 +15,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-/**
- * Lấy danh sách CV candidate có thể chọn khi nộp đơn:
- * - CV uploaded: tất cả
- * - CV online: chỉ PUBLISHED
- *
- * Trả về ApplicableCV — DTO gọn, đủ để frontend render dropdown chọn CV.
- */
 @Service
 @RequiredArgsConstructor
 public class ListApplicableCVsUseCase {
@@ -51,18 +44,16 @@ public class ListApplicableCVsUseCase {
                                 .toList();
         }
 
-        // ── Result DTO ────────────────────────────────────────────────────────────
-
         @Getter
         @Builder
         public static class ApplicableCV {
 
                 private UUID id;
                 private String title;
-                private String type; // "UPLOADED" | "ONLINE"
-                private String fileUrl; // UPLOADED: S3 URL của file PDF gốc
-                private String slug; // ONLINE only
-                private String exportedPdfUrl; // ONLINE only — S3 URL PDF đã render, dùng để AI score
+                private String type;
+                private String fileUrl;
+                private String slug;
+                private String exportedPdfUrl;
                 private boolean primary;
                 private LocalDateTime createdAt;
 
@@ -83,7 +74,7 @@ public class ListApplicableCVsUseCase {
                                         .title(cv.getTitle())
                                         .type("ONLINE")
                                         .slug(cv.getSlug())
-                                        .exportedPdfUrl(cv.getExportedPdfUrl()) // ← thêm dòng này
+                                        .exportedPdfUrl(cv.getExportedPdfUrl())
                                         .primary(cv.isPrimary())
                                         .createdAt(cv.getCreatedAt())
                                         .build();

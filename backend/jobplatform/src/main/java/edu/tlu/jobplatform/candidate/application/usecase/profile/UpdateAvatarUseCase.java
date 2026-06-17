@@ -23,7 +23,7 @@ public class UpdateAvatarUseCase {
             "image/jpeg", "image/png", "image/webp");
 
     private final CandidateProfileRepository profileRepository;
-    private final FileStoragePort fileStorage; // dùng cùng port với UploadCVUseCase
+    private final FileStoragePort fileStorage;
 
     @Transactional
     public CandidateProfile execute(UUID userId, MultipartFile file) {

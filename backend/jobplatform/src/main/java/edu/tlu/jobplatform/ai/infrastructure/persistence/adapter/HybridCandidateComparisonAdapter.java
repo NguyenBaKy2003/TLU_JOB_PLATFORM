@@ -41,8 +41,7 @@ public class HybridCandidateComparisonAdapter implements CandidateComparisonPort
                 log.info("Candidate comparison: jobPostId={} count={}",
                                 req.getJobPostId(), req.getCandidates().size());
 
-                // Nếu ≤ 3 ứng viên: gọi AI để có phân tích sâu
-                // Nếu > 3 ứng viên: pre-sort bằng AI score, chỉ gửi top N cho AI
+                // Nếu > 6 ứng viên: pre-sort bằng AI score, chỉ gửi top N cho AI
                 List<CandidateComparisonRequest.CandidateProfile> toAnalyze = req.getCandidates().size() > 6
                                 ? req.getCandidates().stream()
                                                 .sorted(Comparator.comparingInt(
@@ -52,7 +51,6 @@ public class HybridCandidateComparisonAdapter implements CandidateComparisonPort
                                 : req.getCandidates();
 
                 try {
-                        // Tạo summary của từng candidate để gửi AI (không gửi full CV)
                         String candidatesSummary = buildCandidatesSummary(toAnalyze);
 
                         String prompt = promptTemplate
@@ -72,7 +70,6 @@ public class HybridCandidateComparisonAdapter implements CandidateComparisonPort
 
                 } catch (Exception e) {
                         log.error("Candidate comparison failed: {}", e.getMessage());
-                        // Fallback: sort thuần bằng AI score, không có narrative
                         return buildFallbackResult(req.getCandidates());
                 }
         }

@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CompetitionScoreEngine {
 
-    /**
-     * Tính competition score dựa trên 5 tiêu chí.
-     * Không gọi AI — pure business logic.
-     */
     public CompetitionRateResult calculate(CompetitionRateRequest req) {
         double ratio = req.getHiringQuota() > 0
                 ? (double) req.getTotalApplicants() / req.getHiringQuota()
@@ -41,7 +37,7 @@ public class CompetitionScoreEngine {
         return CompetitionRateResult.builder()
                 .competitionScore(total)
                 .level(toLevel(total))
-                .trend(Trend.STABLE) // cần historical data để tính trend
+                .trend(Trend.STABLE)
                 .totalApplicants(req.getTotalApplicants())
                 .averageAIScore(req.getAverageAIScore())
                 .hiringQuota(req.getHiringQuota())
@@ -59,8 +55,6 @@ public class CompetitionScoreEngine {
     }
 
     private double calculateApplicantScore(double ratio) {
-        // ratio < 5 → ít cạnh tranh → score thấp
-        // ratio > 30 → rất cạnh tranh → score cao (30 điểm)
         if (ratio <= 3)
             return 5;
         if (ratio <= 10)
@@ -71,7 +65,6 @@ public class CompetitionScoreEngine {
     }
 
     private double calculatePoolQualityScore(double avgScore) {
-        // avgScore 0-100 (AI score trung bình) → 0-25 điểm
         return avgScore * 0.25;
     }
 
@@ -84,7 +77,7 @@ public class CompetitionScoreEngine {
         if (level == null)
             return 7.5;
         return switch (level.toUpperCase()) {
-            case "INTERN", "FRESHER", "JUNIOR" -> 13.0; // ít barrier → đông người apply
+            case "INTERN", "FRESHER", "JUNIOR" -> 13.0;
             case "MIDDLE" -> 8.0;
             case "SENIOR", "LEAD", "MANAGER" -> 4.0;
             default -> 7.5;

@@ -44,14 +44,8 @@ public class UploadCVUseCase {
                         String contentType,
                         long fileSize,
                         InputStream inputStream,
-                        /**
-                         * true = đặt CV mới này làm primary ngay sau khi upload.
-                         * false = giữ nguyên primary hiện tại.
-                         * null = tự động: primary nếu là CV đầu tiên, không primary nếu đã có CV khác.
-                         */
                         Boolean setAsPrimary) {
 
-                /** Factory method — hành vi tự động (backward compatible) */
                 public static Command auto(UUID candidateId, String title, String fileName,
                                 String contentType, long fileSize, InputStream inputStream) {
                         return new Command(candidateId, title, fileName, contentType, fileSize, inputStream, null);
@@ -68,7 +62,6 @@ public class UploadCVUseCase {
                 List<CandidateCV> existing = cvRepository.findAllByCandidateId(cmd.candidateId());
                 cvDomainService.validateCanAddCV(existing.size());
 
-                // Đọc bytes một lần
                 byte[] fileBytes;
                 try {
                         fileBytes = cmd.inputStream().readAllBytes();
@@ -76,35 +69,24 @@ public class UploadCVUseCase {
                         throw new BusinessRuleException("Không thể đọc file. Vui lòng thử lại.", "FILE_READ_ERROR");
                 }
 
-                // Upload lên S3
                 String fileUrl = fileStorage.upload(
                                 new java.io.ByteArrayInputStream(fileBytes),
                                 cmd.fileName(), cmd.contentType(), CV_FOLDER);
 
-                // Parse nội dung — best-effort
                 String parsedContent = "";
                 try {
                         parsedContent = cvParser.parse(
                                         new java.io.ByteArrayInputStream(fileBytes), cmd.contentType());
-                        // Loại bỏ null byte (0x00) và các ký tự điều khiển không hợp lệ
-                        // trước khi lưu vào PostgreSQL (cột text UTF8), tránh lỗi:
-                        // "invalid byte sequence for encoding UTF8: 0x00"
                         parsedContent = sanitizeForDb(parsedContent);
                 } catch (Exception e) {
                         log.warn("CV parse failed for candidateId={}: {}", cmd.candidateId(), e.getMessage());
                 }
 
-                // ── Quyết định primary ─
-                // Logic:
-                // setAsPrimary = null → tự động: primary nếu chưa có CV nào
-                // setAsPrimary = true → user chủ động muốn set primary
-                // setAsPrimary = false → giữ nguyên primary hiện tại
                 boolean isFirstCV = existing.isEmpty();
                 boolean makePrimary = cmd.setAsPrimary() != null
                                 ? cmd.setAsPrimary()
                                 : isFirstCV;
 
-                // Nếu cần set primary → unset primary của CV cũ
                 if (makePrimary && !isFirstCV) {
                         List<CandidateCV> updated = existing.stream()
                                         .map(cv -> {
@@ -151,14 +133,6 @@ public class UploadCVUseCase {
                 return saved;
         }
 
-        /**
-         * Loại bỏ null byte (0x00) và các ký tự điều khiển khác mà PostgreSQL
-         * không thể lưu trong cột text UTF8. Nếu không xử lý, insert sẽ bị lỗi:
-         * "ERROR: invalid byte sequence for encoding "UTF8": 0x00".
-         *
-         * Giữ lại tab (\t), newline (\n), carriage return (\r) vì chúng hợp lệ
-         * và cần thiết cho định dạng nội dung CV.
-         */
         private String sanitizeForDb(String input) {
                 if (input == null) {
                         return "";

@@ -34,14 +34,12 @@ public class DeleteCVUseCase {
 
         boolean wasPrimary = cv.isPrimary();
 
-        // Xóa file trên storage nếu là UPLOADED
         if (cv.isUploaded() && cv.getFileUrl() != null) {
             fileStorage.delete(cv.getFileUrl());
         }
 
         cvRepository.deleteById(cvId);
 
-        // BR-03: Nếu xóa primary → tự động chọn CV mới nhất làm primary
         if (wasPrimary) {
             List<CandidateCV> remaining = cvRepository.findAllByCandidateId(candidateId);
             List<CandidateCV> updated = cvDomainService.handlePrimaryDeleted(remaining);

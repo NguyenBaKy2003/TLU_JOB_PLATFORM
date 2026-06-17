@@ -13,13 +13,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CandidateMapper {
 
-        /**
-         * Inject UserJpaRepository để lấy email khi map sang domain.
-         *
-         * Email nằm trong bảng users, không persist trong candidate_profiles.
-         * Tất cả caller của toDomain() đều nhận CandidateProfile có email sẵn —
-         * không cần workaround ở từng UseCase hay EventListener.
-         */
         private final UserJpaRepository userJpaRepo;
 
         // ── CandidateProfile ──
@@ -117,7 +110,6 @@ public class CandidateMapper {
                 e.setCurrency(p.getCurrency());
                 e.setBoostedUntil(p.getBoostedUntil());
 
-                // Skills — dedup theo name (case-insensitive) trước khi insert
                 e.getSkills().clear();
                 p.getSkills().stream()
                                 .filter(distinctByName())
@@ -337,17 +329,13 @@ public class CandidateMapper {
         }
 
         public CandidateProfile toDomainWithEmail(CandidateProfileJpaEntity e, String email) {
-                CandidateProfile profile = buildProfile(e); // tách phần build ra method riêng
+                CandidateProfile profile = buildProfile(e);
                 if (email != null)
                         profile.setEmail(email);
                 return profile;
         }
         // ── Private utils ──
 
-        /**
-         * Stateful predicate — giữ lại phần tử đầu tiên theo name (case-insensitive).
-         * Dùng như safety net ở tầng persistence; dedup chính vẫn nên ở domain/usecase.
-         */
         private static java.util.function.Predicate<Skill> distinctByName() {
                 Set<String> seen = new LinkedHashSet<>();
                 return s -> seen.add(s.getName().toLowerCase());

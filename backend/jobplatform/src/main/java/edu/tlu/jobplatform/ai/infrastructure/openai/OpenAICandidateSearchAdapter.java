@@ -67,10 +67,6 @@ public class OpenAICandidateSearchAdapter
             CandidateSearchRequest req,
             List<CandidateProfileSummary> pool) {
         try {
-            // ── Build candidate pool string ──────────────────────────────────
-            // Bao gồm cả học vấn (toàn bộ bằng cấp) và kinh nghiệm chi tiết
-            // (vị trí, công ty, thời gian, mô tả) cùng số năm thực tế
-            // để AI có đủ dữ liệu phân tích matchReason/experienceSummary.
             String candidatePool = pool.stream()
                     .map(c -> """
                             [%s] %s | %s | %s
@@ -86,9 +82,6 @@ public class OpenAICandidateSearchAdapter
                             nullSafe(c.getExperienceDetails())))
                     .collect(Collectors.joining("\n"));
 
-            // ── Build requiredSkills string cho prompt ───────────────────────
-            // Nếu caller truyền danh sách skill có cấu trúc thì dùng;
-            // ngược lại báo AI suy ra từ phần requirements.
             String requiredSkillsText = (req.getRequiredSkills() != null
                     && !req.getRequiredSkills().isEmpty())
                             ? String.join(", ", req.getRequiredSkills())
@@ -110,7 +103,6 @@ public class OpenAICandidateSearchAdapter
                     .replaceAll("(?s)^```json\\s*", "")
                     .replaceAll("(?s)```\\s*$", "").trim();
 
-            // ── Parse & sanitize ─────────────────────────────────────────────
             ObjectNode root = (ObjectNode) objectMapper.readTree(clean);
             sanitizeStringField(root, "searchSummary");
 
@@ -138,7 +130,6 @@ public class OpenAICandidateSearchAdapter
 
             CandidateSearchResult result = objectMapper.treeToValue(root, CandidateSearchResult.class);
 
-            // ── Lọc bỏ candidateId không tồn tại trong pool ─────────────────
             Set<UUID> validIds = pool.stream()
                     .map(CandidateProfileSummary::getId)
                     .collect(Collectors.toSet());
@@ -152,11 +143,8 @@ public class OpenAICandidateSearchAdapter
                     .limit(req.getMaxResults())
                     .toList();
 
-            // ── Override matchedSkills / missingSkills bằng so khớp thật ────
-            // Không tin AI tính — tự tính để đảm bảo chính xác 100%.
             if (req.getRequiredSkills() != null && !req.getRequiredSkills().isEmpty()) {
 
-                // Index: candidateId → Set<skillName lowercase>
                 Map<UUID, Set<String>> skillsById = pool.stream()
                         .collect(Collectors.toMap(
                                 CandidateProfileSummary::getId,

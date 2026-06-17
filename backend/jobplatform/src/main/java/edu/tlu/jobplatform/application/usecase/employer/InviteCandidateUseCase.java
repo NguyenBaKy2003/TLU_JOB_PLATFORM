@@ -21,15 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Employer mời ứng viên apply vào một JD.
- *
- * Luồng:
- * 1. Verify employer sở hữu jobPost.
- * 2. Lookup CandidateProfile bằng profile id (từ AI search result).
- * 3. Tạo notification cho ứng viên (DB + realtime qua event/WS).
- * 4. Dispatch email async (không block response).
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -61,7 +52,7 @@ public class InviteCandidateUseCase {
             throw new BusinessRuleException(
                     "Chỉ có thể mời ứng viên cho bài đăng đang tuyển.", "JOB_NOT_PUBLISHED");
 
-        // ── 2. Load candidate ─────────────────────────────────────────────
+        // ── 2. Load candidate
         // candidateProfileId từ AI search = CandidateProfile.id (không phải userId)
         CandidateProfile candidate = candidateProfileRepo.findById(cmd.candidateProfileId())
                 .orElseThrow(() -> ResourceNotFoundException.of("CandidateProfile", cmd.candidateProfileId()));
@@ -74,7 +65,7 @@ public class InviteCandidateUseCase {
         // Link ứng viên click để xem JD và apply
         String applyLink = buildApplyLink(job.getSlug(), jobPostId);
 
-        // ── 3. Tạo notification (DB + realtime qua event) ─────────────────
+        // ── 3. Tạo notification (DB + realtime qua event)
         boolean notificationSaved = false;
         try {
             createNotificationUseCase.execute(new CreateNotificationUseCase.Command(
@@ -87,12 +78,11 @@ public class InviteCandidateUseCase {
             log.info("Invite notification saved: candidateUserId={} jobPostId={}",
                     candidate.getUserId(), jobPostId);
         } catch (Exception e) {
-            // Notification fail không block — vẫn gửi email
             log.error("Failed to save invite notification: candidateUserId={} error={}",
                     candidate.getUserId(), e.getMessage());
         }
 
-        // ── 4. Dispatch email async ───────────────────────────────────────
+        // ── 4. Dispatch email async
         boolean emailDispatched = false;
         if (candidateEmail != null && !candidateEmail.isBlank()) {
             emailService.sendJobInvitationEmail(
@@ -119,7 +109,7 @@ public class InviteCandidateUseCase {
                 .build();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers
 
     private String buildFullName(CandidateProfile p) {
         String first = p.getFirstName() != null ? p.getFirstName() : "";

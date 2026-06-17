@@ -50,8 +50,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         this.userTemplate = userResource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    // ── Public API ──────────
-
     @Override
     public CvAnalysisResult analyze(CvAnalysisRequest request) {
         log.info("CV analysis start: applicationId={} jobTitle='{}'",
@@ -96,8 +94,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         }
     }
 
-    // ── Prompt builders ─────
-
     private String buildSystemInstruction(CvAnalysisRequest request) {
         return systemInstruction
                 .replace("$jobTitle$", nullSafe(request.getJobTitle()))
@@ -110,8 +106,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         return userTemplate.replace("$cvText$", truncate(cvText, 6000));
     }
 
-    // ── Response handling ───
-
     private CvAnalysisResult parseResponse(String raw) throws JsonProcessingException {
         String clean = raw.trim()
                 .replaceAll("(?s)^```json\\s*", "")
@@ -120,12 +114,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
         return objectMapper.readValue(clean, CvAnalysisResult.class);
     }
 
-    /**
-     * Clamp scores về [0,100], null-safe lists,
-     * và tính overallScore ở Java thay vì để AI tính.
-     *
-     * Formula: skill*50% + experience*35% + education*15%
-     */
     private CvAnalysisResult validateAndScore(CvAnalysisResult r) {
         int skill = clamp(r.getSkillMatchScore());
         int experience = clamp(r.getExperienceScore());
@@ -146,8 +134,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .build();
     }
 
-    // ── Guard helpers ───────
-
     private boolean isCvMeaningful(String cvText) {
         if (cvText.length() < MIN_CV_LENGTH)
             return false;
@@ -157,8 +143,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .count();
         return meaningfulLines >= MIN_MEANINGFUL_LINES;
     }
-
-    // ── Result factories ────
 
     private CvAnalysisResult emptyCvResult(String reason) {
         return CvAnalysisResult.builder()
@@ -179,8 +163,6 @@ public class OpenAICvAnalysisAdapter implements CvAnalysisPort {
                 .summary("Lỗi hệ thống. Vui lòng xem xét CV thủ công.")
                 .build();
     }
-
-    // ── Utilities ───────────
 
     private int clamp(Integer value) {
         if (value == null)

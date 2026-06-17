@@ -15,12 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Admin quản lý bài đăng:
- * - Xem danh sách theo status
- * - Force-close bài vi phạm
- * - Force-delete bài vi phạm
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,7 +36,6 @@ public class AdminJobUseCase {
         return Optional.empty();
     }
 
-    /** Admin đóng bài đăng vi phạm */
     @Transactional
     public JobPost forceClose(UUID jobPostId, String reason) {
         JobPost job = jobPostRepo.findById(jobPostId)
@@ -57,7 +50,6 @@ public class AdminJobUseCase {
         return jobPostRepo.save(job);
     }
 
-    /** Admin xóa bài đăng vi phạm */
     @Transactional
     public void forceDelete(UUID jobPostId) {
         JobPost job = jobPostRepo.findById(jobPostId)
@@ -68,7 +60,6 @@ public class AdminJobUseCase {
         log.warn("Admin force-deleted job: {}", jobPostId);
     }
 
-    /** Tìm kiếm đa điều kiện cho admin */
     @Transactional(readOnly = true)
     public Page<JobPost> adminSearch(String keyword, JobStatus status,
             String city, String category, Pageable pageable) {

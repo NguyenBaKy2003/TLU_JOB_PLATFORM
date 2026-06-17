@@ -17,18 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.UUID;
 
-/**
- * UseCase: Xác thực email bằng OTP.
- *
- * Sau khi verify thành công:
- * 1. Đánh dấu user.verified = true
- * 2. Publish UserRegisteredEvent → tạo profile mặc định (CandidateProfile /
- * CompanyProfile)
- * 3. Trả về AuthToken → frontend đăng nhập luôn, tiếp tục các bước điền thông
- * tin.
- *
- * Không cần quay lại trang login.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

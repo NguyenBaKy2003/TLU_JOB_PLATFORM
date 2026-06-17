@@ -25,7 +25,7 @@ public class PdfTextExtractor {
 
     private static final int MAX_CHARS = 8000;
 
-    private final S3Presigner s3Presigner; // inject bean từ S3Config
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket}")
     private String bucket;
@@ -40,7 +40,6 @@ public class PdfTextExtractor {
             return "";
 
         try {
-            // Đổi S3 URL → presigned URL
             String downloadUrl = toPresignedUrl(pdfUrl);
             return downloadAndExtract(downloadUrl);
         } catch (Exception e) {
@@ -52,8 +51,7 @@ public class PdfTextExtractor {
     private String toPresignedUrl(String s3Url) {
         String path = URI.create(s3Url).getPath();
         String key = path.startsWith("/") ? path.substring(1) : path;
-        log.info("S3 key extracted: '{}'", key); // thêm dòng này
-
+        log.info("S3 key extracted: '{}'", key);
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(10))
                 .getObjectRequest(r -> r.bucket(bucket).key(key))
@@ -73,7 +71,7 @@ public class PdfTextExtractor {
         HttpResponse<InputStream> response = HTTP.send(
                 request, HttpResponse.BodyHandlers.ofInputStream());
 
-        log.info("PDF download status: {}", response.statusCode()); // thêm
+        log.info("PDF download status: {}", response.statusCode());
 
         if (response.statusCode() != 200) {
             log.warn("Failed to download PDF: status={}", response.statusCode());
@@ -82,7 +80,7 @@ public class PdfTextExtractor {
 
         try (InputStream is = response.body()) {
             byte[] bytes = is.readAllBytes();
-            log.info("PDF bytes downloaded: {}", bytes.length); // thêm
+            log.info("PDF bytes downloaded: {}", bytes.length);
 
             PDDocument doc = Loader.loadPDF(bytes);
             try {
@@ -94,10 +92,6 @@ public class PdfTextExtractor {
                 stripper.setSortByPosition(true);
                 String text = stripper.getText(doc).trim();
 
-                // Làm sạch text trước khi dùng tiếp:
-                // - loại bỏ null byte (0x00) và control char không hợp lệ
-                // (nguyên nhân lỗi PostgreSQL "invalid byte sequence for encoding UTF8: 0x00")
-                // - normalize NFC để ghép dấu tiếng Việt đúng cách
                 text = sanitizeExtractedText(text);
 
                 log.info("PDF text extracted: {} chars", text.length()); // thêm
@@ -110,15 +104,6 @@ public class PdfTextExtractor {
         }
     }
 
-    /**
-     * Làm sạch text trích xuất từ PDF:
-     * 1. Loại bỏ null byte (0x00) và các control char khác mà PostgreSQL
-     * không thể lưu trong cột text UTF8.
-     * 2. Loại bỏ ký tự Unicode replacement (U+FFFD, "�") — dấu hiệu PDF dùng
-     * font với CMap/ToUnicode không chuẩn, PDFBox không map được glyph.
-     * 3. Normalize Unicode về dạng NFC (ghép dấu) — phổ biến với font tiếng Việt
-     * extract ra dạng tổ hợp (chữ cái + dấu rời).
-     */
     private String sanitizeExtractedText(String text) {
         if (text == null || text.isEmpty()) {
             return "";

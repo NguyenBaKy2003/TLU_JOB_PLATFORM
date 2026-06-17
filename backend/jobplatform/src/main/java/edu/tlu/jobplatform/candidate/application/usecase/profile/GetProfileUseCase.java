@@ -33,9 +33,7 @@ public class GetProfileUseCase {
                 return CandidateProfile.builder()
                                 .id(profile.getId())
                                 .userId(profile.getUserId())
-                                // ── Từ users table
                                 .email(user.getEmail())
-                                // ── Từ candidate_profiles table ──
                                 .firstName(profile.getFirstName())
                                 .lastName(profile.getLastName())
                                 .headline(profile.getHeadline())
@@ -62,15 +60,6 @@ public class GetProfileUseCase {
                                 .build();
         }
 
-        // ──
-
-        /**
-         * Giữ lại skill đầu tiên của mỗi name (case-insensitive).
-         * Thứ tự gốc được bảo toàn nhờ LinkedHashMap.
-         *
-         * Đây là safety-net tại READ. Fix gốc rễ phải ở UpdateProfileUseCase
-         * — xem comment trong file đó.
-         */
         private List<Skill> deduplicateSkills(List<Skill> skills) {
                 if (skills == null || skills.isEmpty())
                         return Collections.emptyList();
