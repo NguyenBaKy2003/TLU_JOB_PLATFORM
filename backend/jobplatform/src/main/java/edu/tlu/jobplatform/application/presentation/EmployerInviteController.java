@@ -19,33 +19,25 @@ import java.util.UUID;
 @Tag(name = "Candidate Invite (Employer)", description = "Employer mời ứng viên từ AI search apply vào JD")
 public class EmployerInviteController {
 
-    private final InviteCandidateUseCase inviteUseCase;
+        private final InviteCandidateUseCase inviteUseCase;
 
-    /**
-     * POST /api/v1/jobs/{jobPostId}/invite-candidate
-     *
-     * Body: { candidateProfileId, personalMessage? }
-     *
-     * Response: { jobPostId, candidateProfileId, candidateName, jobTitle,
-     * emailDispatched, notificationSaved, invitedAt }
-     */
-    @Operation(summary = "Mời ứng viên ứng tuyển — gửi notification + email")
-    @PostMapping("/api/v1/jobs/{jobPostId}/invite-candidate")
-    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<InviteCandidateResponse>> invite(
-            @PathVariable UUID jobPostId,
-            @Valid @RequestBody InviteCandidateRequest req) {
+        @Operation(summary = "Mời ứng viên ứng tuyển — gửi notification + email")
+        @PostMapping("/api/v1/jobs/{jobPostId}/invite-candidate")
+        @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN', 'SUPER_ADMIN')")
+        public ResponseEntity<ApiResponse<InviteCandidateResponse>> invite(
+                        @PathVariable UUID jobPostId,
+                        @Valid @RequestBody InviteCandidateRequest req) {
 
-        InviteCandidateResponse result = inviteUseCase.execute(
-                jobPostId,
-                new InviteCandidateUseCase.Command(
-                        req.getCandidateProfileId(),
-                        req.getPersonalMessage()));
+                InviteCandidateResponse result = inviteUseCase.execute(
+                                jobPostId,
+                                new InviteCandidateUseCase.Command(
+                                                req.getCandidateProfileId(),
+                                                req.getPersonalMessage()));
 
-        String message = result.isEmailDispatched()
-                ? "Đã gửi lời mời đến " + result.getCandidateName() + " qua email và thông báo."
-                : "Đã gửi thông báo đến " + result.getCandidateName() + " (không có email để gửi).";
+                String message = result.isEmailDispatched()
+                                ? "Đã gửi lời mời đến " + result.getCandidateName() + " qua email và thông báo."
+                                : "Đã gửi thông báo đến " + result.getCandidateName() + " (không có email để gửi).";
 
-        return ResponseEntity.ok(ApiResponse.success(result, message));
-    }
+                return ResponseEntity.ok(ApiResponse.success(result, message));
+        }
 }

@@ -40,7 +40,7 @@ export default function EmployerStreamDashboard() {
   const openDetail = (id: string) => router.push(`/employer/streams/${id}`);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 rounded-xl">
       {/* Header */}
 
 

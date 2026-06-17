@@ -26,17 +26,12 @@ public class UploadGalleryImageUseCase {
     private final CompanyGalleryRepository galleryRepository;
     private final FileStoragePort fileStorage;
 
-    /**
-     * Upload nhiều ảnh cùng lúc.
-     * captions có thể null hoặc ít phần tử hơn files — tự fallback về null.
-     */
     @Transactional
     public List<CompanyGalleryImage> execute(UUID companyId,
             List<MultipartFile> files,
             List<String> captions) {
         int current = galleryRepository.countByCompanyId(companyId);
 
-        // ── Guard: kiểm tra tổng số ảnh trước khi upload ──
         if (current + files.size() > MAX_GALLERY_IMAGES)
             throw new BusinessRuleException(
                     "Vượt quá giới hạn " + MAX_GALLERY_IMAGES + " ảnh. "
@@ -44,7 +39,6 @@ public class UploadGalleryImageUseCase {
                             + (MAX_GALLERY_IMAGES - current) + " ảnh.",
                     "GALLERY_LIMIT_EXCEEDED");
 
-        // ── Validate tất cả file trước khi upload bất kỳ file nào ─
         for (MultipartFile file : files) {
             if (file.getSize() > MAX_FILE_SIZE)
                 throw new BusinessRuleException(
@@ -58,7 +52,6 @@ public class UploadGalleryImageUseCase {
                         "INVALID_FILE_TYPE");
         }
 
-        // ── Upload và lưu từng ảnh
         List<CompanyGalleryImage> results = new ArrayList<>();
 
         for (int i = 0; i < files.size(); i++) {

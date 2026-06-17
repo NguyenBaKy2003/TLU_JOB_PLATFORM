@@ -51,7 +51,6 @@ export function CVEditPanel({ cv, saving, onUpdatePersonalInfo, onUpdateSection 
     }}>
       {/* Header */}
       <div style={{
-        padding: "16px 20px",
         borderBottom: "1px solid #e5e7eb",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexShrink: 0

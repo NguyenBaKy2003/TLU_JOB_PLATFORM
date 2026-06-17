@@ -22,14 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Admin quản lý gói đăng ký:
- * - Xem subscription của công ty
- * - Cấp thêm quota (ưu đãi / bug fix)
- * - Gia hạn thủ công (khách hàng VIP)
- * - Thu hồi subscription vi phạm
- * - Quản lý plan (tạo / ẩn plan)
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -74,14 +66,12 @@ public class AdminSubscriptionUseCase {
                         "Công ty này không có subscription đang active.", "NO_ACTIVE_SUBSCRIPTION"));
     }
 
-    /** Cấp thêm quota đăng bài (hỗ trợ khách hàng, bug fix) */
     @Transactional
     public CompanySubscription grantJobPostQuota(UUID companyId, int amount, String reason) {
         if (amount <= 0 || amount > 100)
             throw new BusinessRuleException("Số quota cấp phải từ 1 đến 100.", "INVALID_AMOUNT");
 
         CompanySubscription sub = getActive(companyId);
-        // Refund N lần để tăng quota (dùng refund logic hiện có)
         for (int i = 0; i < amount; i++)
             sub.refundJobPost(1);
         CompanySubscription saved = subscriptionRepo.save(sub);

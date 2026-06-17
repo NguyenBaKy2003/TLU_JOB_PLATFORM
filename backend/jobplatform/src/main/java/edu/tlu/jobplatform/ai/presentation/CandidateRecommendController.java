@@ -37,7 +37,6 @@ public class CandidateRecommendController {
     public ResponseEntity<ApiResponse<GetRecommendationsUseCase.RecommendationBundle>> getRecommendations(
             @CurrentUser UUID userId) {
 
-        // userId → candidateProfileId
         UUID candidateId = resolveCandidateId.execute(userId);
         return ResponseEntity.ok(ApiResponse.success(
                 recommendUseCase.execute(candidateId)));

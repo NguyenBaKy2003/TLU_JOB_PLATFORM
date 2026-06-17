@@ -40,7 +40,7 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                                // ── 401 / 403 custom response ────────────────────────────────────────
+                                // ── 401 / 403 custom response
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((req, res, e) -> {
                                                         res.setStatus(401);
@@ -57,7 +57,7 @@ public class SecurityConfig {
                                                                                         + "\"errorCode\":\"FORBIDDEN\"}");
                                                 }))
 
-                                // ── Authorization rules ──────────────────────────────────────────────
+                                // ── Authorization rules
                                 .authorizeHttpRequests(auth -> auth
 
                                                 // Auth
@@ -73,7 +73,7 @@ public class SecurityConfig {
                                                 // Payment callback (VNPay, etc.)
                                                 .requestMatchers("/api/v1/payments/callback/**").permitAll()
 
-                                                // ── Public GET endpoints ─────────────────────────────────────
+                                                // ── Public GET endpoints
                                                 .requestMatchers(HttpMethod.GET,
                                                                 "/api/v1/jobs/**",
                                                                 "/api/v1/companies/**",
@@ -92,7 +92,6 @@ public class SecurityConfig {
                                                 .authenticated()
 
                                                 // ── Tạm thời permitAll (dọn dần về authenticated) ────────────
-                                                // TODO: thu hẹp các rule này về đúng role cần thiết
                                                 .requestMatchers("/api/v1/admin/**").permitAll()
                                                 .requestMatchers("/api/v1/subscriptions/**").permitAll()
                                                 .requestMatchers("/api/v1/candidate/**").permitAll()

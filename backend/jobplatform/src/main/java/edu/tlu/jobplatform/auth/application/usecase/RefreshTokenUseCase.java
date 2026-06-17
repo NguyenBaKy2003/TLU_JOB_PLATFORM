@@ -13,15 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-/**
- * UseCase: Cấp lại access token bằng refresh token.
- *
- * Flow:
- * 1. Validate JWT signature + expiry của refresh token
- * 2. Kiểm tra tokenId còn tồn tại trong Redis (chưa bị logout)
- * 3. Load user, kiểm tra vẫn active
- * 4. Cấp access token mới — giữ nguyên refresh token và tokenId
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,7 +24,6 @@ public class RefreshTokenUseCase {
 
         public AuthToken execute(String refreshToken) {
 
-                // Validate JWT
                 if (!jwtTokenProvider.validateToken(refreshToken)) {
                         throw new BusinessRuleException(
                                         "Refresh token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.",
@@ -43,13 +33,11 @@ public class RefreshTokenUseCase {
                 UUID userId = jwtTokenProvider.extractUserId(refreshToken);
                 String tokenId = jwtTokenProvider.extractTokenId(refreshToken);
 
-                // Kiểm tra còn trong Redis (chưa logout)
                 tokenStore.find(userId, tokenId)
                                 .orElseThrow(() -> new BusinessRuleException(
                                                 "Phiên đăng nhập không còn hiệu lực. Vui lòng đăng nhập lại.",
                                                 "SESSION_EXPIRED"));
 
-                // Load user
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> ResourceNotFoundException.user(userId));
 
@@ -58,7 +46,6 @@ public class RefreshTokenUseCase {
                                         "Tài khoản không thể đăng nhập.", "ACCOUNT_INACTIVE");
                 }
 
-                // Cấp access token mới, giữ nguyên refresh token
                 String newAccessToken = jwtTokenProvider.generateAccessToken(user, tokenId);
                 log.debug("Token refreshed for user: {}", userId);
 

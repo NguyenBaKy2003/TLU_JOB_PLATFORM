@@ -10,32 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-/**
- * Domain Service: Tập trung các business rules validation cho Company Review.
- * 
- * Error Codes:
- * - COMPANY_NOT_FOUND: Công ty không tồn tại
- * - REVIEW_COMPANY_NOT_VERIFIED: Công ty chưa được xác thực
- * - REVIEW_COMPANY_SUSPENDED: Công ty đang bị tạm ngưng
- * - REVIEW_INVALID_RATING: Rating không hợp lệ (phải từ 1-5)
- * - REVIEW_ALREADY_PROCESSED: Review đã được xử lý
- * - REVIEW_REJECTION_REASON_REQUIRED: Thiếu hoặc sai định dạng lý do từ chối
- */
 @Service
 @RequiredArgsConstructor
 public class ReviewValidationService {
 
     private final CompanyRepository companyRepository;
 
-    /**
-     * Validate user có thể review công ty không.
-     * 
-     * Business Rules:
-     * 1. Công ty phải tồn tại
-     * 2. Công ty phải được xác thực (verified)
-     * 3. Công ty không bị tạm ngưng (suspended)
-     * 4. User chưa review công ty này (checked in UseCase)
-     */
     public void validateCanReview(UUID companyId, UUID reviewerId) {
         CompanyProfile company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new BusinessRuleException(

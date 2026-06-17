@@ -291,8 +291,8 @@ export default function EmployerJobsPage() {
       <div className="flex items-center justify-between gap-4">
         <div />
         <Link href="/employer/jobs/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white
-            text-[16px] font-semibold rounded-xl hover:bg-violet-700 transition-colors">
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#172B85] text-white
+            text-[16px] font-semibold rounded-xl hover:bg-[#121F60] transition-colors">
           <PlusCircle size={16} /> Đăng tin mới
         </Link>
       </div>

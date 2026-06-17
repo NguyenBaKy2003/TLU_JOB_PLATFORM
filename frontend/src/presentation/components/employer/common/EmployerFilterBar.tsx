@@ -94,31 +94,32 @@ export function EmployerFilterBar({
   const showTopRow          = statusTabs || hasExportButtons || hasPageSizeSelector;
 
   return (
-    <div className="flex flex-col gap-3">
-
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex flex-col gap-4">
       {/* ── Row 1: Status tabs + Page size + Export ─────────────────────── */}
       {showTopRow && (
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap text-white">
           {statusTabs && (
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto shrink-0">
-              {statusTabs.map(tab => (
+            <div className="flex gap-1 bg-[#1253ED] rounded-xl p-1 overflow-x-auto shrink-0">
+              {statusTabs.map((tab) => (
                 <button
                   key={tab.value}
                   onClick={() => onStatusChange?.(tab.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
                     rounded-lg whitespace-nowrap transition-all ${
                     activeStatus === tab.value
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                      ? "bg-[#DFEAFE] text-gray-900 shadow-sm" 
+                      : "text-white hover:bg-white/10" 
                   }`}
                 >
                   {tab.label}
                   {tab.count !== undefined && tab.count > 0 && (
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
-                      activeStatus === tab.value
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-gray-200 text-gray-500"
-                    }`}>
+                    <span
+                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                        activeStatus === tab.value
+                          ? "bg-white text-[#1253ED]" 
+                          : "bg-white/20 text-white" 
+                      }`}
+                    >
                       {tab.count}
                     </span>
                   )}
@@ -184,7 +185,7 @@ export function EmployerFilterBar({
                 type="date"
                 value={dateFrom}
                 onChange={e => setDateFrom(e.target.value)}
-                className="pl-9 pr-3 py-2 text-sm bg-white border border-gray-200
+                className="pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200
                   rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
                   focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all"
               />
@@ -200,7 +201,7 @@ export function EmployerFilterBar({
                 value={dateTo}
                 min={dateFrom || undefined}
                 onChange={e => setDateTo(e.target.value)}
-                className="pl-9 pr-3 py-2 text-sm bg-white border border-gray-200
+                className="pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200
                   rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
                   focus:border-blue-400 text-gray-700 disabled:opacity-50 transition-all"
               />
@@ -218,16 +219,16 @@ export function EmployerFilterBar({
             onKeyDown={handleKeyDown}
             placeholder={searchPlaceholder}
             disabled={loading}
-            className="w-full pl-9 pr-4 py-2 text-[16px] bg-white border border-gray-200
+            className="w-full pl-9 pr-4 py-2 text-[15px] bg-gray-50 border border-gray-200
               rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20
-              focus:border-blue-400 placeholder:text-gray-300 disabled:opacity-50 transition-all"
+              focus:border-blue-400 placeholder:text-gray-400 disabled:opacity-50 transition-all"
           />
         </div>
 
         <button
           onClick={triggerSearch}
           disabled={loading}
-          className="flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium
+          className="flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium
             text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:scale-95
             disabled:opacity-50 transition-all shrink-0"
         >

@@ -15,12 +15,8 @@ public interface AuditLogJpaRepository
                 extends JpaRepository<AuditLogJpaEntity, Long>,
                 JpaSpecificationExecutor<AuditLogJpaEntity> {
 
-        // ── By resource — không có nullable param → giữ derived query ────
-
         Page<AuditLogJpaEntity> findByResourceTypeAndResourceIdOrderByOccurredAtDesc(
                         String resourceType, String resourceId, Pageable pageable);
-
-        // ── Stats ────────
 
         @Query("""
                         SELECT a.action, COUNT(a)
@@ -32,8 +28,6 @@ public interface AuditLogJpaRepository
         List<Object[]> countGroupByAction(
                         @Param("from") LocalDateTime from,
                         @Param("to") LocalDateTime to);
-
-        // ── Brute-force detection — không có nullable param ───────────────
 
         long countByActionAndActorIdAndResultAndOccurredAtAfter(
                         String action, String actorId, String result, LocalDateTime after);

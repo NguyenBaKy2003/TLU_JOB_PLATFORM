@@ -32,11 +32,9 @@ public class AdminCompanyUseCase {
         return companyRepo.findAll(pageable);
     }
 
-    /** Tìm kiếm đa điều kiện — tất cả filter đều optional */
     @Transactional(readOnly = true)
     public Page<CompanyProfile> adminSearch(VerificationStatus status, String keyword,
             String city, String size, String planCode, Double minRating, Pageable pageable) {
-        // Chuyển enum → String cho native query; null = không filter
         String statusStr = status != null ? status.name() : null;
         return companyRepo.adminSearch(statusStr, keyword, city, size, planCode, minRating, pageable);
     }

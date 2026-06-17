@@ -1,4 +1,3 @@
-// src/app/(main)/companies/page.tsx
 "use client";
 
 import { Suspense, useState, useEffect, useRef } from "react";
@@ -117,7 +116,6 @@ function CompaniesPageInner() {
 
   // ── Handlers ──────
 
-  // Handler cho CompaniesAISearchBar — nhận (keyword, location) đã commit
   const handleSearch = (kw: string, loc: string) => {
     setAppliedKeyword(kw);
     setAppliedLocation(loc);
@@ -141,8 +139,8 @@ function CompaniesPageInner() {
     router.replace("/companies", { scroll: false });
   };
 
-  const companies     = result?.content       ?? [];
-  const totalPages    = result?.totalPages    ?? 0;
+  const companies     = result?.content      ?? [];
+  const totalPages    = result?.totalPages   ?? 0;
   const totalElements = result?.totalElements ?? 0;
 
   const activeFilterCount = [
@@ -154,24 +152,21 @@ function CompaniesPageInner() {
   // ── Render ─────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    // 1. Đổi màu nền chính của trang
+    <div className="min-h-screen bg-[#DFEAFE]">
 
       {/* ── Hero ───── */}
-      {/* section không có overflow-hidden → dropdown AI không bị clip */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        {/* blur balls tách riêng với overflow-hidden để không clip dropdown */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-16 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-3">Khám phá công ty hàng đầu</h1>
-          <p className="text-blue-100 text-sm mb-8 max-w-2xl mx-auto">
+      <section className="relative pt-10 pb-8">
+        <div className="relative max-w-6xl mx-auto px-4 text-center">
+          
+          {/* 2. Đổi màu chữ tối màu cho phù hợp nền sáng */}
+          <h1 className="text-2xl sm:text-[32px] font-bold text-gray-900 mb-3 leading-tight tracking-tight">
+            Khám phá công ty hàng đầu
+          </h1>
+          <p className="text-gray-600 text-sm mb-8 max-w-2xl mx-auto">
             Tìm kiếm công ty phù hợp với bạn qua hàng ngàn đánh giá thực tế
           </p>
 
-          {/* AI Search bar — thay thế search bar thủ công */}
           <CompaniesAISearchBar
             keyword={appliedKeyword}
             location={appliedLocation}
@@ -185,16 +180,16 @@ function CompaniesPageInner() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
-                className="flex items-center justify-center gap-2 mt-4 flex-wrap"
+                className="flex items-center justify-center gap-2 mt-5 flex-wrap"
               >
-                <span className="text-blue-100 text-sm">Kết quả cho:</span>
+                <span className="text-gray-600 text-sm">Kết quả cho:</span>
                 {appliedKeyword && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1
-                    bg-white/20 text-white text-sm font-medium rounded-full border border-white/30">
+                    bg-[#04389E]/10 text-[#04389E] text-sm font-medium rounded-full border border-[#04389E]/20">
                     {appliedKeyword}
                     <button
                       onClick={() => handleSearch("", appliedLocation)}
-                      className="text-white/60 hover:text-white"
+                      className="text-[#04389E]/60 hover:text-[#04389E]"
                     >
                       <X size={12} />
                     </button>
@@ -202,11 +197,11 @@ function CompaniesPageInner() {
                 )}
                 {appliedLocation && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1
-                    bg-white/20 text-white text-sm font-medium rounded-full border border-white/30">
+                    bg-white text-gray-700 text-sm font-medium rounded-full border border-gray-200">
                     <MapPin size={11} /> {appliedLocation}
                     <button
                       onClick={() => handleSearch(appliedKeyword, "")}
-                      className="text-white/60 hover:text-white"
+                      className="text-gray-400 hover:text-gray-600"
                     >
                       <X size={12} />
                     </button>
@@ -223,8 +218,8 @@ function CompaniesPageInner() {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
           {/* Desktop sidebar */}
-          <div className="hidden lg:flex lg:flex-col w-56 shrink-0 self-start sticky top-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="hidden lg:flex lg:flex-col w-64 shrink-0 self-start sticky top-6">
+            <div className="bg-white rounded-2xl shadow-sm p-4 border-0">
               <FilterSidebar
                 filters={filters}
                 onChange={handleFilterChange}
@@ -237,12 +232,12 @@ function CompaniesPageInner() {
           <div className="flex-1 min-w-0">
 
             {/* Toolbar */}
-            <div className="bg-white rounded-xl p-3 sm:p-4 mb-5 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl p-3 sm:p-4 mb-5 shadow-sm border-0">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-sm text-gray-600">
                   {loading
                     ? <span className="text-gray-400">Đang tải...</span>
-                    : <><strong className="text-gray-900">{totalElements.toLocaleString()}</strong> công ty</>
+                    : <>Hiển thị <strong className="text-gray-900">{totalElements.toLocaleString()}</strong> công ty</>
                   }
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -276,16 +271,16 @@ function CompaniesPageInner() {
                     </span>
                   )}
 
-                  <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                  <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-50 rounded-lg">
                     <button
                       onClick={() => setViewMode("list")}
-                      className={`p-1.5 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
+                      className={`p-1.5 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-[#04389E]" : "text-gray-500"}`}
                     >
                       <List size={15} />
                     </button>
                     <button
                       onClick={() => setViewMode("grid")}
-                      className={`p-1.5 rounded-md transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
+                      className={`p-1.5 rounded-md transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-[#04389E]" : "text-gray-500"}`}
                     >
                       <LayoutGrid size={15} />
                     </button>
@@ -294,11 +289,11 @@ function CompaniesPageInner() {
                   <button
                     onClick={() => setShowMobileFilter(true)}
                     className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5
-                      bg-blue-50 text-blue-600 rounded-lg text-xs font-medium"
+                      bg-[#04389E]/10 text-[#04389E] rounded-lg text-xs font-medium"
                   >
-                    <Filter size={12} /> Lọc
+                    <Filter size={12} /> Bộ lọc
                     {activeFilterCount > 0 && (
-                      <span className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded-full">
+                      <span className="px-1.5 py-0.5 text-[10px] bg-[#04389E] text-white rounded-full">
                         {activeFilterCount}
                       </span>
                     )}
@@ -330,12 +325,12 @@ function CompaniesPageInner() {
                 <motion.div
                   key="error"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="text-center py-16 bg-white rounded-2xl border border-gray-100"
+                  className="text-center py-16 bg-white rounded-2xl shadow-sm"
                 >
                   <p className="text-gray-500 text-sm mb-4">{error}</p>
                   <button
                     onClick={() => setFilters(f => ({ ...f }))}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                    className="px-4 py-2 bg-[#04389E] text-white rounded-lg text-sm hover:bg-[#032a76] transition-colors"
                   >
                     Thử lại
                   </button>
@@ -347,15 +342,15 @@ function CompaniesPageInner() {
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="text-center py-16 bg-white rounded-2xl border border-gray-100"
+                  className="text-center py-16 bg-white rounded-2xl shadow-sm"
                 >
                   <Search className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-600 font-medium text-sm">Không tìm thấy công ty phù hợp</p>
                   <p className="text-gray-400 text-xs mt-1">Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
                   <button
                     onClick={handleClearAll}
-                    className="mt-4 px-4 py-2 text-sm text-blue-600 bg-blue-50
-                      rounded-xl hover:bg-blue-100 transition-colors"
+                    className="mt-4 px-5 py-2.5 text-sm font-medium text-white bg-[#04389E]
+                      rounded-xl hover:bg-[#032a76] transition-colors"
                   >
                     Xóa bộ lọc
                   </button>
@@ -431,8 +426,8 @@ function CompaniesPageInner() {
                 bg-white border-t border-gray-100 p-4 shadow-lg">
                 <button
                   onClick={() => setShowMobileFilter(false)}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold
-                    hover:bg-blue-700 transition-colors"
+                  className="w-full py-3 bg-[#04389E] text-white rounded-xl font-semibold
+                    hover:bg-[#032a76] transition-colors"
                 >
                   Xem kết quả {!loading && `(${totalElements})`}
                 </button>
@@ -448,8 +443,8 @@ function CompaniesPageInner() {
 export default function CompaniesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#DFEAFE] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#04389E] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <CompaniesPageInner />

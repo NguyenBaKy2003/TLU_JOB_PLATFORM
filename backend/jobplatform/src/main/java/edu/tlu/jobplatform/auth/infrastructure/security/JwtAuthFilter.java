@@ -18,18 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Filter kiểm tra JWT trên mọi HTTP request.
- *
- * Flow:
- * 1. Trích xuất token từ "Authorization: Bearer {token}"
- * 2. Validate JWT (signature + expiry)
- * 3. Kiểm tra jti không nằm trong blacklist (đã logout)
- * 4. Set Authentication vào SecurityContext
- *
- * Không bao giờ throw exception — nếu token invalid thì để
- * SecurityContext trống; Spring Security chặn endpoint protected sau đó.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -63,8 +51,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String userId = jwtTokenProvider.extractUserId(token).toString();
             String role = jwtTokenProvider.extractRole(token);
 
-            // principal = userId string → SecurityUtils.getCurrentUserId() lấy bằng
-            // getName()
             var auth = new UsernamePasswordAuthenticationToken(
                     userId, null,
                     List.of(new SimpleGrantedAuthority("ROLE_" + role)));
@@ -77,7 +63,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
     }
 
-    /** Lấy token từ header "Authorization: Bearer {token}" */
     private String extractBearerToken(HttpServletRequest req) {
         String header = req.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
@@ -86,7 +71,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return null;
     }
 
-    /** Skip filter cho các path public — không cần kiểm tra JWT */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String path = req.getRequestURI();

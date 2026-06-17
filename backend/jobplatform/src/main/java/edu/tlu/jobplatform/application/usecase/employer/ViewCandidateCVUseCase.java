@@ -21,21 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Employer xem / tải CV của ứng viên đã nộp đơn vào công ty mình.
- *
- * Điều kiện truy cập:
- * 1. Employer phải sở hữu công ty (findByOwnerId)
- * 2. Phải có Application của ứng viên này vào 1 job của công ty đó
- * 3. cvUrl của Application phải khớp với CV được yêu cầu
- * 4. Công ty phải còn quota "xem CV" trong gói subscription hiện tại
- *
- * Nếu thiếu 1 trong các điều kiện trên → FORBIDDEN / QUOTA_EXCEEDED.
- *
- * Lưu ý: mỗi lần xem CV thành công của 1 application sẽ trừ 1 lượt quota,
- * trừ khi application đó đã được xem trước đó (để tránh trừ trùng khi
- * employer mở lại CV nhiều lần).
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,11 +40,6 @@ public class ViewCandidateCVUseCase {
             long contentLength) {
     }
 
-    /**
-     * @param applicationId ID đơn ứng tuyển — dùng để kiểm tra quyền
-     * @param cvId          ID CV muốn xem (optional — nếu null, dùng cvUrl từ
-     *                      Application)
-     */
     @Transactional
     public Result execute(UUID applicationId, UUID cvId) {
 
@@ -128,8 +108,6 @@ public class ViewCandidateCVUseCase {
                 file.contentType(),
                 file.contentLength());
     }
-
-    // ── Helpers
 
     private static String sanitizeFileName(String title) {
         if (title == null || title.isBlank())

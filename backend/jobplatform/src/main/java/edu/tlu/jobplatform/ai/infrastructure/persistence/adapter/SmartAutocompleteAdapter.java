@@ -38,7 +38,6 @@ public class SmartAutocompleteAdapter implements SearchAutocompletePort {
                 String q = partial.trim().toLowerCase();
                 List<AutocompleteResult.SuggestedQuery> results = new ArrayList<>();
 
-                // Tầng 1: Lịch sử cá nhân — chỉ khi đã đăng nhập
                 if (candidateId != null) {
                         String personalKey = "autocomplete:personal:" + candidateId;
                         Set<String> personal = redisTemplate.opsForZSet()
@@ -57,7 +56,6 @@ public class SmartAutocompleteAdapter implements SearchAutocompletePort {
                         }
                 }
 
-                // Tầng 2: Trending toàn platform — luôn chạy
                 Set<String> trending = redisTemplate.opsForZSet()
                                 .reverseRangeByScore(TRENDING_KEY, 0, Double.MAX_VALUE, 0, 50);
                 if (trending != null) {
@@ -74,7 +72,6 @@ public class SmartAutocompleteAdapter implements SearchAutocompletePort {
                                         .forEach(results::add);
                 }
 
-                // Tầng 3: AI gợi ý — lịch sử cá nhân nếu đăng nhập, rỗng nếu chưa
                 if (results.size() < 5) {
                         List<String> history = candidateId != null
                                         ? searchEventRepo.findRecentKeywordsByCandidate(candidateId, 10)

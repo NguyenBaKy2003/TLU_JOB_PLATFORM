@@ -20,26 +20,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
 
-/**
- * Xử lý sau khi OAuth2 login thành công.
- *
- * Flow:
- * 1. Lấy domain User từ OAuth2UserPrincipal
- * 2. Kiểm tra account active
- * 3. Đọc portalType từ session (được lưu bởi
- * CustomAuthorizationRequestResolver)
- * 4. Kiểm tra portal access — nhất quán với LoginUseCase#validatePortalAccess:
- * - Sai portal → redirect về frontend với error PORTAL_ACCESS_DENIED
- * 5. Tạo JWT token pair, lưu refresh token vào Redis
- * 6. Xóa portalType khỏi session (cleanup)
- * 7. Redirect về frontend với token + portal trong query params
- *
- * Redirect thành công:
- * {frontendUrl}/auth/oauth2/callback?accessToken=...&refreshToken=...&expiresIn=900&portal=EMPLOYER
- *
- * Redirect lỗi:
- * {frontendUrl}/auth/oauth2/callback?error=PORTAL_ACCESS_DENIED
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -86,7 +66,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             log.warn("OAuth2 portal mismatch: email={} role={} attemptedPortal={}",
                     user.getEmail(), user.getRole(), portalType);
             redirectError(req, res, "PORTAL_ACCESS_DENIED", portalType);
-            cleanupSession(req); // cleanup SAU redirect
+            cleanupSession(req);
             return;
         }
 
@@ -147,10 +127,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     // ── Business logic helpers ─
 
-    /**
-     * Nhất quán với LoginUseCase#validatePortalAccess.
-     * CANDIDATE chỉ vào portal CANDIDATE, EMPLOYER chỉ vào portal EMPLOYER.
-     */
     private boolean isPortalAllowed(User user, String portalType) {
         return switch (portalType) {
             case "EMPLOYER" -> user.getRole() == UserRole.EMPLOYER;
@@ -177,8 +153,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String loginPath = switch (errorCode) {
             case "PORTAL_ACCESS_DENIED" ->
-                // Redirect về đúng portal mà user đang cố vào
-                // Route Next.js: /auth/employer/login (không phải /employer/auth/login)
                 "EMPLOYER".equals(attemptedPortal) ? "/auth/employer/login" : "/auth/login";
             case "ACCOUNT_LOCKED" -> "/auth/login";
             default -> "/auth/login";

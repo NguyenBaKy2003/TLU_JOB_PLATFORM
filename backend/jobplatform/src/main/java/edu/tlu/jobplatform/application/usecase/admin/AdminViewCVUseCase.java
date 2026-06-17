@@ -13,10 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Admin xem bất kỳ CV nào để kiểm duyệt vi phạm.
- * Không cần kiểm tra ownership.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

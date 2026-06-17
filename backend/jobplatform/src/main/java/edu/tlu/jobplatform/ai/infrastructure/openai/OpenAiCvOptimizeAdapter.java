@@ -16,20 +16,6 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * Implements AiCvOptimizePort → gọi Spring AI ChatClient.
- *
- * Cùng pattern với OpenAIJdOptimizationAdapter:
- * - Đọc prompt từ file .st (classpath:prompts/cv-optimizer.st)
- * - Replace placeholder bằng String.replace()
- * - Gọi chatClient.prompt().user(prompt).call().content()
- * - Parse JSON → CvOptimizationResult
- * - Fallback result nếu AI lỗi (không crash request)
- *
- * Đặt tại: ai/infrastructure/openai/ — cùng package với các adapter AI khác.
- * Spring scan thấy @Component → inject vào AiOptimizeCVUseCase qua
- * AiCvOptimizePort.
- */
 @Slf4j
 @Component
 @Profile("!test")
@@ -68,7 +54,6 @@ public class OpenAiCvOptimizeAdapter implements AiCvOptimizePort {
 
             JsonNode root = objectMapper.readTree(clean);
 
-            // Defensive: fix các field AI có thể trả sai kiểu
             fixFieldToString(root, "overallSummary");
             fixFieldToString(root, "suggestedSummary");
 
@@ -88,8 +73,6 @@ public class OpenAiCvOptimizeAdapter implements AiCvOptimizePort {
         }
     }
 
-    // ── Helpers — cùng pattern với OpenAIJdOptimizationAdapter ────────
-
     private String cleanJsonResponse(String raw) {
         if (raw == null || raw.isBlank())
             return "{}";
@@ -104,10 +87,6 @@ public class OpenAiCvOptimizeAdapter implements AiCvOptimizePort {
         return clean;
     }
 
-    /**
-     * Fix field bị AI trả về dạng Object/Array thay vì String.
-     * Cùng pattern với OpenAIJdOptimizationAdapter.fixFieldToString().
-     */
     private void fixFieldToString(JsonNode root, String field) {
         JsonNode node = root.get(field);
         if (node == null || node.isNull()) {

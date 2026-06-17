@@ -226,8 +226,8 @@ function DropdownUserInfo({
           href={pricingHref}
           onClick={onClose}
           className="mt-3 flex items-center justify-center gap-1.5 w-full py-1.5
-            rounded-xl text-[11px] font-semibold text-blue-700 bg-blue-50
-            hover:bg-blue-100 transition-colors"
+            rounded-xl text-[11px] font-semibold text-[#04389E] bg-[#04389E]/10
+            hover:bg-[#04389E]/20 transition-colors"
         >
           <Crown size={10} />
           Nâng cấp gói
@@ -422,21 +422,21 @@ export function Header() {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Thay đổi duy nhất — switch role link */}
-                {(user.subscription?.free ?? true)&& (
-                    <Link
-                      href={
-                        isEmployer
-                          ? "/employer/subscription"
-                          : "/candidate/subscription"
-                      }
-                      className="hidden lg:flex items-center gap-1.5 text-[14px] font-medium
-      text-violet-600 hover:text-violet-700 transition-colors px-3 py-1.5
-      rounded-lg hover:bg-violet-50 border border-violet-200 hover:border-violet-300"
-                    >
-                      <Crown size={13} />
-                      Nâng cấp gói
-                    </Link>
-                  )}
+                {(user.subscription?.free ?? true) && (
+                  <Link
+                    href={
+                      isEmployer
+                        ? "/employer/subscription"
+                        : "/candidate/subscription"
+                    }
+                    className="hidden lg:flex items-center gap-1.5 text-[14px] font-medium
+                      text-[#04389E] hover:text-[#032a76] transition-colors px-3 py-1.5
+                      rounded-lg hover:bg-[#04389E]/10 border border-[#04389E]/20 hover:border-[#04389E]/40"
+                  >
+                    <Crown size={13} />
+                    Nâng cấp gói
+                  </Link>
+                )}
 
                 {/* Avatar + dropdown */}
                 <div ref={dropdownRef} className="relative">

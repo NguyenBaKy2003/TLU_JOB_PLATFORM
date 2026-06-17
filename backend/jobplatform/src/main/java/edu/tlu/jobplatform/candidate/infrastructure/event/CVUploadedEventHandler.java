@@ -19,6 +19,5 @@ public class CVUploadedEventHandler {
                 event.isPrimary(),
                 event.getParsedText().length());
 
-        // Sprint 5: embeddingPort.embed(event.getCvId(), event.getParsedText());
     }
 }

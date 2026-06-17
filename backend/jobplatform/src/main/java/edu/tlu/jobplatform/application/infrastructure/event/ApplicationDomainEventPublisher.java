@@ -41,19 +41,16 @@ public class ApplicationDomainEventPublisher {
 
         private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-        // ── publishApplicationSubmitted ─
-
         public void publishApplicationSubmitted(Application app, String jobTitle) {
                 eventPublisher.publishEvent(new ApplicationSubmittedEvent(
                                 app.getId(),
                                 app.getJobPostId(),
                                 app.getCandidateId(),
-                                null, // cvId — không có trong model
+                                null,
                                 app.getCompanyId(),
                                 jobTitle,
-                                null, // candidateName — consumer tự resolve
-                                null // employerEmail — consumer tự resolve
-                ));
+                                null,
+                                null));
                 log.debug("ApplicationSubmittedEvent fired: {}", app.getId());
         }
 
@@ -63,33 +60,19 @@ public class ApplicationDomainEventPublisher {
                 eventPublisher.publishEvent(new ApplicationStatusChangedEvent(
                                 app.getId(),
                                 app.getCandidateId(),
-                                null, // candidateEmail — consumer tự resolve
-                                null, // jobTitle — consumer tự resolve
+                                null,
+                                null,
                                 prevStatus.name(),
                                 app.getStatus().name(),
                                 app.getRejectionReason()));
                 log.debug("ApplicationStatusChangedEvent fired: {} → {}", prevStatus, app.getStatus());
         }
 
-        // ── publishInterviewScheduled ─
-
-        /**
-         * Resolve candidateEmail, candidateName, companyName TRONG transaction
-         * (http-nio thread).
-         *
-         * Lý do: InterviewScheduledEventListener chạy @Async sau AFTER_COMMIT —
-         * lúc đó JPA session đã đóng, CandidateMapper.toDomain() không thể
-         * inject email từ bảng users nữa → profile.getEmail() trả về null.
-         *
-         * Bằng cách resolve tại đây (trong transaction), CandidateMapper.toDomain()
-         * hoạt động đúng: query candidate_profiles → query users → inject email.
-         */
         public void publishInterviewScheduled(Application app) {
                 String interviewAt = app.getInterviewScheduledAt() != null
                                 ? app.getInterviewScheduledAt().format(ISO)
                                 : null;
 
-                // Resolve candidate — CandidateMapper.toDomain() inject email từ users table
                 CandidateProfile candidate = candidateRepo.findByUserId(app.getCandidateId())
                                 .orElse(null);
 
@@ -100,7 +83,6 @@ public class ApplicationDomainEventPublisher {
                                                 .collect(Collectors.joining(" "))
                                 : null;
 
-                // Resolve company name
                 String companyName = companyRepo.findById(app.getCompanyId())
                                 .map(CompanyProfile::getName)
                                 .orElse(null);
@@ -111,16 +93,16 @@ public class ApplicationDomainEventPublisher {
                 }
 
                 eventPublisher.publishEvent(new InterviewScheduledEvent(
-                                app.getId(), // applicationId
-                                app.getCandidateId(), // candidateId
-                                app.getCompanyId(), // companyId
-                                candidateEmail, // ← resolved, không còn null
-                                candidateName, // ← resolved, không còn null
-                                null, // employerEmail — không cần cho email này
-                                companyName, // ← resolved, không còn null
-                                null, // jobTitle — listener fallback "Vị trí ứng tuyển"
-                                interviewAt, // ISO string: "2026-04-25T10:29:00"
-                                null, // format (ONLINE/OFFLINE) — không có trong model
+                                app.getId(),
+                                app.getCandidateId(),
+                                app.getCompanyId(),
+                                candidateEmail,
+                                candidateName,
+                                null,
+                                companyName,
+                                null,
+                                interviewAt,
+                                null,
                                 app.getInterviewLocation(),
                                 app.getInterviewNote()));
 

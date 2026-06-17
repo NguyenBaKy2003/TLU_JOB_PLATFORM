@@ -11,10 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-/**
- * GET /api/v1/companies/{id}/jobs
- * Lấy danh sách việc làm PUBLISHED của một công ty.
- */
 @Service
 @RequiredArgsConstructor
 public class GetCompanyJobsUseCase {

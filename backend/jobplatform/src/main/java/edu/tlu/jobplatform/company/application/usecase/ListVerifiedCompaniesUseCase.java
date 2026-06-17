@@ -16,12 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Public listing công ty đã xác thực, sort theo plan tier:
- * ENTERPRISE → BUSINESS → STARTER → FREE_COMPANY / không sub
- *
- * Mỗi công ty trả thêm planCode để FE render badge.
- */
 @Component
 @RequiredArgsConstructor
 public class ListVerifiedCompaniesUseCase {
@@ -51,8 +45,7 @@ public class ListVerifiedCompaniesUseCase {
                 c,
                 teamMemberRepository.findVisibleByCompanyId(c.getId()),
                 galleryRepository.findByCompanyId(c.getId()),
-                planCodeMap.get(c.getId()) // null = FREE / không sub
-        ));
+                planCodeMap.get(c.getId())));
 
         return PageResponse.from(result);
     }

@@ -13,11 +13,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Mapper dùng chung để chuyển CandidateProfile -> CandidateProfileSummary
- * cho cả SmartSearch và AutoSuggest, đảm bảo dữ liệu gửi cho AI
- * (học vấn, kinh nghiệm, số năm) là chính xác và đầy đủ.
- */
 public final class CandidateSummaryMapper {
 
     private static final DateTimeFormatter PERIOD_FMT = DateTimeFormatter.ofPattern("MM/yyyy");
@@ -84,13 +79,6 @@ public final class CandidateSummaryMapper {
                 .collect(Collectors.joining("; "));
     }
 
-    /**
-     * Tổng số năm kinh nghiệm tính từ ngày bắt đầu/kết thúc thực tế của từng
-     * công việc, thay vì ước lượng kiểu experiences.size() * 2.
-     *
-     * Lưu ý: cộng dồn theo từng job, nếu có job chồng thời gian thì tổng
-     * sẽ bị cộng dư — chấp nhận được cho mục đích ước lượng độ phù hợp.
-     */
     private static int calculateTotalExperienceYears(List<WorkExperience> experiences) {
         long totalMonths = experiences.stream()
                 .mapToLong(e -> {

@@ -37,7 +37,6 @@ public class AdminSetupController {
                         @RequestHeader("Setup-Secret") String requestSecret,
                         @Valid @RequestBody RegisterRequest request) {
 
-                // Không log secret — chỉ log kết quả xác thực
                 if (!setupSecret.equals(requestSecret)) {
                         log.warn("Setup secret mismatch — unauthorized setup attempt");
                         return ResponseEntity.status(403)
@@ -56,7 +55,7 @@ public class AdminSetupController {
                                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                                 .role(UserRole.ADMIN)
                                 .active(true)
-                                .verified(true) // admin không cần verify email
+                                .verified(true)
                                 .build();
 
                 User saved = userRepository.save(admin);

@@ -4,6 +4,8 @@ import edu.tlu.jobplatform.application.domain.model.vo.ApplicationStatus;
 import edu.tlu.jobplatform.application.infrastructure.persistence.entity.ApplicationJpaEntity;
 import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatsProjection;
 import edu.tlu.jobplatform.application.infrastructure.persistence.projection.ApplicationStatusCountProjection;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.JobPostAvgScoreProjection;
+import edu.tlu.jobplatform.application.infrastructure.persistence.projection.JobPostCountProjection;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -46,12 +49,6 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationJpaEn
 
   // ── Admin: listAll with optional status + keyword search ──
 
-  /**
-   * Tìm tất cả đơn, lọc theo status (nullable) và keyword (nullable).
-   * Keyword so khớp ILIKE với: candidate full name, candidate email, job title.
-   *
-   * JOIN sang candidate_profile và job_post để search cross-entity.
-   */
   @Query("""
       SELECT a FROM ApplicationJpaEntity a
       JOIN CandidateProfileJpaEntity cp ON cp.userId = a.candidateId
@@ -108,7 +105,7 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationJpaEn
       WHERE a.jobPostId = :jobPostId
       ORDER BY
           CASE WHEN cp.boostedUntil > CURRENT_TIMESTAMP THEN 0 ELSE 1 END ASC,
-          a.appliedAt DESC
+          a.aiScore DESC NULLS LAST
       """)
   Page<ApplicationJpaEntity> findByJobPostIdOrderByBoostFirst(
       @Param("jobPostId") UUID jobPostId,
@@ -121,7 +118,7 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationJpaEn
         AND a.status = :status
       ORDER BY
           CASE WHEN cp.boostedUntil > CURRENT_TIMESTAMP THEN 0 ELSE 1 END ASC,
-          a.appliedAt DESC
+          a.aiScore DESC NULLS LAST
       """)
   Page<ApplicationJpaEntity> findByJobPostIdAndStatusOrderByBoostFirst(
       @Param("jobPostId") UUID jobPostId,
@@ -215,4 +212,22 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationJpaEn
   ApplicationStatsProjection getStats(
       @Param("candidateId") UUID candidateId,
       @Param("jobPostId") UUID jobPostId);
+
+  @Query("""
+      SELECT a.jobPostId AS jobPostId, COUNT(a) AS count
+      FROM ApplicationJpaEntity a
+      WHERE a.jobPostId IN :jobIds
+      GROUP BY a.jobPostId
+      """)
+  List<JobPostCountProjection> countByJobPostIds(@Param("jobIds") Set<UUID> jobIds);
+
+  @Query("""
+      SELECT a.jobPostId AS jobPostId, AVG(a.aiScore) AS avgScore
+      FROM ApplicationJpaEntity a
+      WHERE a.jobPostId IN :jobIds
+        AND a.aiScore IS NOT NULL
+      GROUP BY a.jobPostId
+      """)
+  List<JobPostAvgScoreProjection> avgAiScoreByJobPostIds(@Param("jobIds") Set<UUID> jobIds);
+
 }

@@ -13,44 +13,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
-/**
- * Tạo và xác thực JWT token.
- *
- * Access Token payload:
- * 
- * <pre>
- * {
- *   "sub"  : "{userId}",      ← UUID của user
- *   "email": "...",
- *   "role" : "CANDIDATE",
- *   "tid"  : "{tokenId}",     ← liên kết với refresh token trong Redis
- *   "jti"  : "{unique-uuid}", ← JWT ID, dùng để blacklist khi logout
- *   "iat"  : ...,
- *   "exp"  : ...
- * }
- * </pre>
- *
- * Refresh Token payload:
- * 
- * <pre>
- * {
- *   "sub"  : "{userId}",
- *   "tid"  : "{tokenId}",    ← PHẢI trùng tokenId với access token cùng phiên
- *   "type" : "refresh",
- *   "exp"  : ...
- * }
- * </pre>
- *
- * Config trong application.yml:
- * 
- * <pre>
- * app:
- *   jwt:
- *     secret: "your-256-bit-secret-key-minimum-32-chars"
- *     access-token-expiry-ms: 900000     # 15 phút
- *     refresh-token-expiry-ms: 2592000000 # 30 ngày
- * </pre>
- */
 @Slf4j
 @Component
 public class JwtTokenProvider {
@@ -72,8 +34,6 @@ public class JwtTokenProvider {
         this.refreshTokenExpiryMs = refreshMs;
     }
 
-    // ── Tạo token ──
-
     public String generateAccessToken(User user, String tokenId) {
         Instant now = Instant.now();
         return Jwts.builder()
@@ -81,7 +41,7 @@ public class JwtTokenProvider {
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
                 .claim("tid", tokenId)
-                .id(UUID.randomUUID().toString()) // jti — unique per token
+                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(accessTokenExpiryMs)))
                 .signWith(secretKey, Jwts.SIG.HS256)
@@ -100,8 +60,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // ── Xác thực token
-
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
@@ -117,8 +75,6 @@ public class JwtTokenProvider {
         }
         return false;
     }
-
-    // ── Đọc claims ─
 
     public UUID extractUserId(String token) {
         return UUID.fromString(parseClaims(token).getSubject());
@@ -140,7 +96,6 @@ public class JwtTokenProvider {
         return parseClaims(token).getId();
     }
 
-    /** Số giây access token còn lại — để set TTL blacklist chính xác */
     public long getRemainingSeconds(String token) {
         try {
             Date exp = parseClaims(token).getExpiration();
@@ -150,12 +105,9 @@ public class JwtTokenProvider {
         }
     }
 
-    /** Số giây access token sống — trả về cho client để biết khi nào cần refresh */
     public long getAccessTokenExpirySeconds() {
         return accessTokenExpiryMs / 1000;
     }
-
-    // ── Helper
 
     private Claims parseClaims(String token) {
         return Jwts.parser()

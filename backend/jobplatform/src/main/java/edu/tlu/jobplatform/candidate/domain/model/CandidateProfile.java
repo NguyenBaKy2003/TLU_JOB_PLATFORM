@@ -19,14 +19,12 @@ public class CandidateProfile {
     private final UUID id;
     private final UUID userId;
 
-    // Từ bảng users — inject sau khi load, không persist
     private String email;
 
     public void setEmail(String email) {
         this.email = email;
     }
 
-    // ── Scalar fields ──
     private String firstName;
     private String lastName;
     private String headline;
@@ -45,30 +43,17 @@ public class CandidateProfile {
 
     private LocalDateTime boostedUntil;
 
-    /**
-     * Kiểm tra profile đang được boost hiệu lực hay không.
-     * Tính tại runtime — không cần scheduler hay DB flag.
-     */
     public boolean isBoosted() {
         return boostedUntil != null
                 && LocalDateTime.now().isBefore(boostedUntil);
     }
 
-    /**
-     * Boost profile lên top tìm kiếm.
-     * Luôn set từ now() + duration, không cộng dồn từ boostedUntil cũ.
-     *
-     * @param until thời điểm hết hiệu lực, phải là tương lai
-     */
     public void boost(LocalDateTime until) {
         if (until == null || !LocalDateTime.now().isBefore(until))
             throw new IllegalArgumentException("boostedUntil phải là thời điểm trong tương lai.");
         this.boostedUntil = until;
     }
 
-    /**
-     * Xóa boost — admin revoke hoặc candidate tự tắt.
-     */
     public void clearBoost() {
         this.boostedUntil = null;
     }
@@ -91,8 +76,6 @@ public class CandidateProfile {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ── updateBasicInfo — FULL replace (dùng khi gửi toàn bộ form)
-
     public void updateBasicInfo(
             String firstName, String lastName,
             String headline, String summary,
@@ -113,13 +96,6 @@ public class CandidateProfile {
         this.currency = currency;
         this.updatedAt = LocalDateTime.now();
     }
-
-    // ── patchBasicInfo — PARTIAL update với Optional<T>
-    //
-    // Ba trạng thái của mỗi Optional parameter:
-    // null = frontend không gửi field → giữ nguyên giá trị cũ
-    // Optional.empty() = frontend gửi null → xóa (set null / 0)
-    // Optional.of(v) = frontend gửi giá trị v → cập nhật thành v
 
     public void patchBasicInfo(
             Optional<String> firstName,
@@ -266,8 +242,8 @@ public class CandidateProfile {
     }
 
     public void replaceSkills(List<Skill> incoming) {
-        this.skills.clear(); // ← clear trước, Hibernate sẽ DELETE rồi INSERT
-        this.skills.addAll(incoming); // ← không dùng = new ArrayList() vì mất tracking
+        this.skills.clear();
+        this.skills.addAll(incoming);
         this.updatedAt = LocalDateTime.now();
     }
 

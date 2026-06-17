@@ -1,6 +1,8 @@
 package edu.tlu.jobplatform.company.application.usecase;
 
+import edu.tlu.jobplatform.company.domain.model.CompanyGalleryImage;
 import edu.tlu.jobplatform.company.domain.model.CompanyProfile;
+import edu.tlu.jobplatform.company.domain.model.CompanyTeamMember;
 import edu.tlu.jobplatform.company.domain.repository.CompanyGalleryRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyRepository;
 import edu.tlu.jobplatform.company.domain.repository.CompanyTeamMemberRepository;
@@ -11,68 +13,59 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Tìm kiếm đa điều kiện công ty VERIFIED.
- *
- * Filter: keyword, city, size, minRating, planCode — tất cả optional.
- * Sort: plan tier (ENTERPRISE→BUSINESS→STARTER→FREE) → rating DESC → created_at
- * ASC.
- */
 @Component
 @RequiredArgsConstructor
 public class SearchCompaniesUseCase {
 
-    private final CompanyRepository companyRepository;
-    private final CompanyTeamMemberRepository teamMemberRepository;
-    private final CompanyGalleryRepository galleryRepository;
+        private final CompanyRepository companyRepository;
+        private final CompanyTeamMemberRepository teamMemberRepository;
+        private final CompanyGalleryRepository galleryRepository;
 
-    public record Command(
-            String keyword,
-            String city,
-            String size,
-            String planCode,
-            Double minRating,
-            int page,
-            int size_) {
-    }
+        public record Command(
+                        String keyword,
+                        String city,
+                        String size,
+                        String planCode,
+                        Double minRating,
+                        int page,
+                        int size_) {
+        }
 
-    public PageResponse<CompanyResponse> execute(Command cmd) {
-        var pageable = PageRequest.of(cmd.page(), cmd.size_());
+        public PageResponse<CompanyResponse> execute(Command cmd) {
+                var pageable = PageRequest.of(cmd.page(), cmd.size_());
 
-        // 1. Query DB — tất cả filter null-safe
-        Page<CompanyProfile> companyPage = companyRepository.search(
-                blankToNull(cmd.keyword()),
-                blankToNull(cmd.city()),
-                blankToNull(cmd.size()),
-                blankToNull(cmd.planCode()),
-                cmd.minRating(),
-                pageable);
+                Page<CompanyProfile> companyPage = companyRepository.search(
+                                blankToNull(cmd.keyword()), blankToNull(cmd.city()),
+                                blankToNull(cmd.size()), blankToNull(cmd.planCode()),
+                                cmd.minRating(), pageable);
 
-        // 2. Enrich stats batch
-        companyRepository.enrichWithStats(companyPage.getContent());
+                companyRepository.enrichWithStats(companyPage.getContent());
 
-        // 3. Batch planCode lookup
-        Set<UUID> ids = companyPage.getContent().stream()
-                .map(CompanyProfile::getId)
-                .collect(Collectors.toSet());
-        Map<UUID, String> planCodeMap = companyRepository.findActivePlanCodesByCompanyIds(ids);
+                Set<UUID> ids = companyPage.getContent().stream()
+                                .map(CompanyProfile::getId)
+                                .collect(Collectors.toSet());
 
-        // 4. Map → response
-        Page<CompanyResponse> result = companyPage.map(c -> CompanyResponse.from(
-                c,
-                teamMemberRepository.findVisibleByCompanyId(c.getId()),
-                galleryRepository.findByCompanyId(c.getId()),
-                planCodeMap.get(c.getId())));
+                // 3 batch queries thay vì N×2
+                Map<UUID, String> planCodeMap = companyRepository.findActivePlanCodesByCompanyIds(ids);
+                Map<UUID, List<CompanyTeamMember>> teamMap = teamMemberRepository.findVisibleByCompanyIds(ids);
+                Map<UUID, List<CompanyGalleryImage>> galleryMap = galleryRepository.findByCompanyIds(ids);
 
-        return PageResponse.from(result);
-    }
+                Page<CompanyResponse> result = companyPage.map(c -> CompanyResponse.from(
+                                c,
+                                teamMap.getOrDefault(c.getId(), List.of()),
+                                galleryMap.getOrDefault(c.getId(), List.of()),
+                                planCodeMap.get(c.getId())));
 
-    private static String blankToNull(String s) {
-        return (s == null || s.isBlank()) ? null : s.trim();
-    }
+                return PageResponse.from(result);
+        }
+
+        private static String blankToNull(String s) {
+                return (s == null || s.isBlank()) ? null : s.trim();
+        }
 }

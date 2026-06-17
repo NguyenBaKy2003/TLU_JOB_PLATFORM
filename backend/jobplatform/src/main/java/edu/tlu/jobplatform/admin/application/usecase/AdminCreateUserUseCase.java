@@ -55,7 +55,6 @@ public class AdminCreateUserUseCase {
         User saved = userRepo.save(user);
         log.info("Admin created user: id={} email={} role={}", saved.getId(), saved.getEmail(), saved.getRole());
 
-        // Tạo profile + gán Free plan tương ứng với role
         profileCreationService.createProfileForUser(saved);
 
         return saved;

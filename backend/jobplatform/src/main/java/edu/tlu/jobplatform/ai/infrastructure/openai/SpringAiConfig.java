@@ -19,7 +19,7 @@ public class SpringAiConfig {
         public ChatClient jsonChatClient(OpenAiChatModel chatModel) {
                 return ChatClient.builder(chatModel)
                                 .defaultOptions(OpenAiChatOptions.builder()
-                                                .model(defaultModel) // Dùng model từ config
+                                                .model(defaultModel)
                                                 .temperature(0.1)
                                                 .responseFormat(ResponseFormat.builder()
                                                                 .type(ResponseFormat.Type.JSON_OBJECT)

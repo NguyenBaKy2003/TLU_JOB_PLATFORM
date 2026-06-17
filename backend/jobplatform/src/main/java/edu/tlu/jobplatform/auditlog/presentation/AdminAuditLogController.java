@@ -23,13 +23,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Endpoints:
- * GET /api/v1/admin/audit-logs — toàn bộ log, filter đa điều kiện
- * GET /api/v1/admin/audit-logs/user/{userId} — log của 1 user
- * GET /api/v1/admin/audit-logs/resource/{type}/{id} — log của 1 entity
- * GET /api/v1/admin/audit-logs/stats — thống kê action counts
- */
 @RestController
 @RequestMapping("/api/v1/admin/audit-logs")
 @RequiredArgsConstructor
@@ -41,8 +34,6 @@ public class AdminAuditLogController {
         private final GetSystemAuditLogsUseCase getSystemLogsUseCase;
         private final GetUserAuditLogsUseCase getUserLogsUseCase;
         private final GetResourceAuditLogsUseCase getResourceLogsUseCase;
-
-        // ── GET / ────────
 
         @Operation(summary = "Toàn bộ audit log hệ thống", description = """
                         Filter theo actorId, action, resourceType, result (SUCCESS/FAILURE), khoảng thời gian.
@@ -68,8 +59,6 @@ public class AdminAuditLogController {
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
         }
 
-        // ── GET /user/{userId} ────────────────────────────────────────────
-
         @Operation(summary = "Audit log của 1 user cụ thể")
         @GetMapping("/user/{userId}")
         @RateLimit(policy = "admin-read", scope = RateLimitPolicy.Scope.USER)
@@ -86,8 +75,6 @@ public class AdminAuditLogController {
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
         }
-
-        // ── GET /resource/{type}/{id} ─────────────────────────────────────
 
         @Operation(summary = "Audit log của 1 entity cụ thể", description = """
                         Xem toàn bộ thay đổi của một entity theo thời gian.
@@ -112,8 +99,6 @@ public class AdminAuditLogController {
 
                 return ResponseEntity.ok(ApiResponse.success(PageResponse.from(logs)));
         }
-
-        // ── GET /stats ───
 
         @Operation(summary = "Thống kê action counts", description = """
                         Đếm số lần xuất hiện của từng action trong khoảng thời gian.

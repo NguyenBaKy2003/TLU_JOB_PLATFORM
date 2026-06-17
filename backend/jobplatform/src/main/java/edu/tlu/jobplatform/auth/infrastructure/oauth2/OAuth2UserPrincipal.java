@@ -10,14 +10,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Wraps domain User thành OAuth2User cho Spring Security.
- * Trả về bởi OAuth2UserService, được OAuth2SuccessHandler nhận lại.
- */
 @Getter
 public class OAuth2UserPrincipal implements OAuth2User {
 
-    private final User                domainUser;
+    private final User domainUser;
     private final Map<String, Object> attributes;
 
     public OAuth2UserPrincipal(User domainUser, Map<String, Object> attributes) {
@@ -26,7 +22,9 @@ public class OAuth2UserPrincipal implements OAuth2User {
     }
 
     @Override
-    public Map<String, Object> getAttributes() { return attributes; }
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -35,5 +33,7 @@ public class OAuth2UserPrincipal implements OAuth2User {
 
     /** getName() = userId string — Spring Security dùng làm principal name */
     @Override
-    public String getName() { return domainUser.getId().toString(); }
+    public String getName() {
+        return domainUser.getId().toString();
+    }
 }

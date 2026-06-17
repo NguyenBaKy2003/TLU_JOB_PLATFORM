@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface ApplicationRepository {
@@ -113,4 +114,8 @@ public interface ApplicationRepository {
 
         record ApplicationStats(int totalApply, int totalPass, int currentApplicantCount) {
         }
+
+        Map<UUID, Integer> countByJobPostIds(Set<UUID> jobIds);
+
+        Map<UUID, Double> avgAiScoreByJobPostIds(Set<UUID> jobIds);
 }
