@@ -333,7 +333,7 @@ export default function CVEditPage() {
     cv.sections.find((s) => s.id === activeSectionId) ?? null;
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-slate-50 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#DFEAFE] overflow-hidden">
       {/* Top Bar */}
       <CVEditTopBar
         cv={cv}
@@ -353,7 +353,6 @@ export default function CVEditPage() {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — hidden on mobile unless mobileView === "sidebar" */}
         <div
           className={`
             flex-shrink-0

@@ -83,13 +83,16 @@ export function DashboardLayout({
         notificationCount={unreadCount}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header tự lấy unreadCount từ useWebSocket() — không cần truyền prop */}
-        <Header
-          title={topbarTitle}
-          subtitle={topbarSubtitle}
-          onMenuToggle={() => setMobileOpen(v => !v)}
-        />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* Header: dùng sticky để dính lên trên */}
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+          <Header
+            title={topbarTitle}
+            subtitle={topbarSubtitle}
+            onMenuToggle={() => setMobileOpen(v => !v)}
+          />
+        </header>
+        
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
         </main>

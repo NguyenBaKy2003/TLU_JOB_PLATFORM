@@ -37,46 +37,45 @@ const LINKS = [
 ];
 
 const SOCIALS = [
-  { Icon: Instagram,    href: "#", label: "Instagram",   color: "hover:text-pink-500 hover:bg-pink-50" },
-  { Icon: Facebook,     href: "#", label: "Facebook",    color: "hover:text-blue-600 hover:bg-blue-50" },
-  { Icon: WhatsAppIcon, href: "#", label: "WhatsApp",    color: "hover:text-green-500 hover:bg-green-50" },
-  { Icon: Linkedin,     href: "#", label: "LinkedIn",    color: "hover:text-blue-700 hover:bg-blue-50" },
-  { Icon: Twitter,      href: "#", label: "X (Twitter)", color: "hover:text-gray-900 hover:bg-gray-100" },
+  { Icon: Instagram,    href: "#", label: "Instagram",   color: "hover:text-pink-400 hover:bg-white/10" },
+  { Icon: Facebook,     href: "#", label: "Facebook",    color: "hover:text-blue-400 hover:bg-white/10" },
+  { Icon: WhatsAppIcon, href: "#", label: "WhatsApp",    color: "hover:text-green-400 hover:bg-white/10" },
+  { Icon: Linkedin,     href: "#", label: "LinkedIn",    color: "hover:text-blue-300 hover:bg-white/10" },
+  { Icon: Twitter,      href: "#", label: "X (Twitter)", color: "hover:text-gray-200 hover:bg-white/10" },
 ];
 
 // ─── Component ────────────
 
 export function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-100">
+    <footer className="bg-[#04389E] border-t border-[#04389E]">
       {/* Main content */}
-      <div className="max-w-[1232px] mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-[1232px] mx-auto px-4 py-12 text-white">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 text-white">
 
           {/* ── Col 1: Brand ── */}
           <div className="md:col-span-1">
             <Link href="/" className="inline-block mb-4">
-              <img src="/Logo.svg" alt="Job" className="h-10 w-auto" />
+              <img src="/Logo.svg" alt="Job" className="h-13 w-auto brightness-0 invert" />
             </Link>
-            <p className="text-[16px] text-gray-500 leading-relaxed mb-6">
+            <p className="text-[16px] text-blue-100 leading-relaxed mb-6">
               Job là nền tảng tuyển dụng và tìm kiếm việc làm thông minh, giúp
               kết nối ứng viên với nhà tuyển dụng hàng đầu. Với bộ công cụ tìm
               kiếm nhanh, tính năng tạo CV chuyên nghiệp và thuật toán kết nối
               thông minh, Job giúp quá trình tuyển dụng trở nên dễ dàng và hiệu
               quả hơn bao giờ hết.
             </p>
-            
           </div>
 
           {/* ── Col 2: Dịch vụ  */}
           <div>
-            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">Dịch vụ</h3>
+            <h3 className="text-[16px] font-semibold text-white mb-4">Dịch vụ</h3>
             <ul className="space-y-2.5">
               {SERVICES.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-[16px] text-gray-500 hover:text-blue-600 transition-colors"
+                    className="text-[16px] text-blue-100 hover:text-white transition-colors"
                   >
                     {label}
                   </Link>
@@ -87,13 +86,13 @@ export function Footer() {
 
           {/* ── Col 3: Liên kết ────────────── */}
           <div>
-            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">Liên kết</h3>
+            <h3 className="text-[16px] font-semibold text-white mb-4">Liên kết</h3>
             <ul className="space-y-2.5">
               {LINKS.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-[16px] text-gray-500 hover:text-blue-600 transition-colors"
+                    className="text-[16px] text-blue-100 hover:text-white transition-colors"
                   >
                     {label}
                   </Link>
@@ -104,30 +103,30 @@ export function Footer() {
 
           {/* ── Col 4: Liên hệ  */}
           <div >
-            <h3 className="text-[16px] font-semibold text-gray-900 mb-4">
+            <h3 className="text-[16px] font-semibold text-white mb-4">
               Liên hệ với chúng mình
             </h3>
 
             {/* Social icons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-6  ">
               {SOCIALS.map(({ Icon, href, label, color }) => (
                 <a
                   key={label}
                   href={href}
                   aria-label={label}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 transition-all duration-150 ${color}`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg bg-white text-[#04389E] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${color}`}
                 >
                   <Icon size={18} />
                 </a>
               ))}
             </div>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2.5 text-[16px] text-gray-500">
-                <MapPin size={16} className="text-blue-500  mt-0.5" />
+              <li className="flex items-start gap-2.5 text-[16px] text-blue-100">
+                <MapPin size={16} className="text-white mt-0.5" />
                 <span>140, Nguyễn Trãi, Hà Nội</span>
               </li>
-              <li className="flex items-center gap-2.5 text-[16px] text-gray-500">
-                <Phone size={16} className="text-blue-500 " />
+              <li className="flex items-center gap-2.5 text-[16px] text-blue-100">
+                <Phone size={16} className="text-white" />
                 <span>1(647)558-5560</span>
               </li>
             </ul>
@@ -137,9 +136,9 @@ export function Footer() {
       </div>
 
       {/* ── Bottom bar ── */}
-      <div className="border-t border-gray-100">
-        <div className=" container mx-auto px-4 h-12 flex items-center justify-between">
-          <p className="text-xs text-gray-400">
+      <div className="border-t border-white/10 bg-[#DCE0E9]">
+        <div className="container mx-auto px-4 h-12 flex items-center justify-between">
+          <p className="text-xs text-black">
             CareerUp Copyright © {new Date().getFullYear()}
           </p>
 
@@ -160,7 +159,7 @@ export function Footer() {
             <div className="h-6 w-8 rounded bg-[#e30613] flex items-center justify-center">
               <span className="text-white text-[9px] font-bold">⬡</span>
             </div>
-            <div className="h-6 px-2 rounded bg-black flex items-center justify-center gap-0.5">
+            <div className="h-6 px-2 rounded bg-black flex items-center justify-center gap-0.5 border border-white/20">
               <svg viewBox="0 0 24 24" width="10" height="10" fill="white">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
               </svg>

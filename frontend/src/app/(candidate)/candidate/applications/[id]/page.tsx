@@ -55,10 +55,10 @@ function PageSkeleton() {
 
 // ── AI Score ring ─────
 function ScoreRing({ score }: { score: number }) {
-  const r      = 28;
-  const circ   = 2 * Math.PI * r;
+  const r = 28;
+  const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
-  const color  = score >= 80 ? "#10b981" : score >= 60 ? "#3b82f6" : "#f59e0b";
+  const color = "#172B85"; 
   return (
     <svg width="72" height="72" className="shrink-0 -rotate-90">
       <circle cx="36" cy="36" r={r} fill="none" stroke="#f3f4f6" strokeWidth="6" />
@@ -84,10 +84,10 @@ function ScoreBar({ label, value, icon }: {
       <span className="text-gray-400 shrink-0">{icon}</span>
       <span className="text-xs text-gray-500 w-28 shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-500 ${color}`}
+        <div className="h-full rounded-full transition-all duration-500 bg-[#172B85]"
           style={{ width: `${value}%` }} />
       </div>
-      <span className="text-xs font-semibold text-gray-700 w-8 text-right">{value}%</span>
+      <span className="text-xs font-semibold text-[#172B85] w-8 text-right">{value}%</span>
     </div>
   );
 }

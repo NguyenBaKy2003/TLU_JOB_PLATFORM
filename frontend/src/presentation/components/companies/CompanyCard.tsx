@@ -57,7 +57,7 @@ function StarRating({ value }: { value: number }) {
   );
 }
 
-// ── Props — nhận CompanyProfile trực tiếp ─────────
+// ── Props ─────────
 
 interface Props {
   company: CompanyProfile;
@@ -67,9 +67,6 @@ interface Props {
 // ── Component ─────────
 
 export function CompanyCard({ company, index = 0 }: Props) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isSaved,   setIsSaved]   = useState(false);
-
   const hasPlan = isPaidPlan(company.planCode);
   const rating  = company.averageRating  ?? 0;
   const jobs    = company.activeJobCount ?? 0;
@@ -83,24 +80,12 @@ export function CompanyCard({ company, index = 0 }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
       whileHover={{ y: -4 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
     >
       <Link href={`/companies/${company.id}`} className="block group">
-        <div className={`relative bg-white rounded-2xl transition-all duration-300 overflow-hidden
-          ${hasPlan
-            ? "border-[1.5px] border-violet-300 shadow-md shadow-violet-100/40"
-            : isHovered
-              ? "border border-blue-200 shadow-lg shadow-blue-100/50"
-              : "border border-gray-100 shadow-sm"
-          }`}>
+        <div className="relative bg-white rounded-2xl transition-all duration-300 overflow-hidden shadow-sm group-hover:shadow-md group-hover:shadow-[#04389E]/20">
 
-          {/* Plan tint */}
-          {hasPlan && <div className="absolute inset-0 bg-violet-50/20 pointer-events-none" />}
-          {/* Plan stripe */}
-          {hasPlan && <div className="absolute top-0 left-0 right-0 h-0.5 bg-violet-400" />}
-
-
+          {/* Plan tint (Màu nền mờ cho cty có gói cước) */}
+          {hasPlan && <div className=" inset-0 bg-[#04389E]/5 pointer-events-none" />}
 
           <div className="p-4 sm:p-5">
             {/* Plan badge */}
@@ -113,8 +98,8 @@ export function CompanyCard({ company, index = 0 }: Props) {
             {/* Header */}
             <div className="flex gap-3 pr-8">
               <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0
-                shadow-sm transition-shadow ${isHovered ? "shadow-md" : ""}
-                ${hasPlan ? "ring-2 ring-violet-200 ring-offset-1" : ""}`}>
+                shadow-sm transition-shadow group-hover:shadow-md
+                ${hasPlan ? "ring-2 ring-[#04389E]/30 ring-offset-1" : ""}`}>
                 <CompanyAvatar name={company.name} logoUrl={company.logoUrl} />
               </div>
 
@@ -122,16 +107,16 @@ export function CompanyCard({ company, index = 0 }: Props) {
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h3 className={`text-base font-bold transition-colors line-clamp-1
                     ${hasPlan
-                      ? "text-violet-900 group-hover:text-violet-700"
-                      : "text-gray-900 group-hover:text-blue-600"
+                      ? "text-[#04389E]"
+                      : "text-gray-900 group-hover:text-[#04389E]"
                     }`}>
                     {company.name}
                   </h3>
                   {company.verificationStatus === "VERIFIED" && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5
-                      bg-blue-50 rounded-full border border-blue-100 shrink-0">
-                      <BadgeCheck className="w-3 h-3 text-blue-600" />
-                      <span className="text-[10px] font-semibold text-blue-600 hidden xs:inline">Đã xác thực</span>
+                      bg-[#04389E]/10 rounded-full border border-[#04389E]/20 shrink-0">
+                      <BadgeCheck className="w-3 h-3 text-[#04389E]" />
+                      <span className="text-[10px] font-semibold text-[#04389E] hidden xs:inline">Đã xác thực</span>
                     </span>
                   )}
                 </div>
@@ -184,8 +169,8 @@ export function CompanyCard({ company, index = 0 }: Props) {
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-2">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                  ${hasPlan ? "bg-violet-50" : "bg-blue-50"}`}>
-                  <Briefcase className={`w-3.5 h-3.5 ${hasPlan ? "text-violet-600" : "text-blue-600"}`} />
+                  ${hasPlan ? "bg-[#04389E]/10" : "bg-gray-50"}`}>
+                  <Briefcase className={`w-3.5 h-3.5 ${hasPlan ? "text-[#04389E]" : "text-gray-500"}`} />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-gray-900">{formatJobs(jobs)}</div>
@@ -219,13 +204,8 @@ export function CompanyCard({ company, index = 0 }: Props) {
             </div>
           </div>
 
-          {/* Bottom accent */}
-          <motion.div
-            className={`absolute bottom-0 left-0 h-0.5 rounded-b-2xl
-              ${hasPlan ? "bg-violet-400" : "bg-gradient-to-r from-blue-500 to-indigo-500"}`}
-            initial={{ width: hasPlan ? "100%" : "0%" }}
-            animate={{ width: hasPlan ? "100%" : isHovered ? "100%" : "0%" }}
-            transition={{ duration: 0.3 }}
+          <div
+            className="absolute bottom-0 left-0 h-[3px] bg-[#04389E] transition-all duration-300 ease-in-out w-0 group-hover:w-full"
           />
         </div>
       </Link>

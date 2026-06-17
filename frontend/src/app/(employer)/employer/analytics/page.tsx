@@ -289,7 +289,7 @@ export default function AnalyticsPage() {
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-3.5 text-[13px] font-medium transition-colors ${
                 activeTab === tab
-                  ? "text-indigo-600 border-b-2 border-indigo-500 bg-indigo-50/40"
+                  ? "text-[#172B85] border-b-2 border-[#172B85] bg-[#172B85]/10"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >

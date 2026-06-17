@@ -18,6 +18,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+     fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "sans-serif"],
+      },
       colors: {
 
         // ── Primary ───
