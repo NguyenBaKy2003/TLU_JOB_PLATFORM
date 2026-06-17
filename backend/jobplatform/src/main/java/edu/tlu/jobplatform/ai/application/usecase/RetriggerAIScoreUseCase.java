@@ -1,10 +1,8 @@
 package edu.tlu.jobplatform.ai.application.usecase;
 
-import edu.tlu.jobplatform.application.domain.model.Application;
 import edu.tlu.jobplatform.application.domain.model.vo.AIScore;
 import edu.tlu.jobplatform.application.domain.repository.ApplicationRepository;
 import edu.tlu.jobplatform.application.usecase.port.out.AIScorePort;
-import edu.tlu.jobplatform.job.domain.model.JobPost;
 import edu.tlu.jobplatform.job.domain.repository.JobPostRepository;
 import edu.tlu.jobplatform.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,19 +22,31 @@ public class RetriggerAIScoreUseCase {
     private final JobPostRepository jobPostRepo;
     private final AIScorePort aiScorePort;
 
-    @Async("aiTaskExecutor")
-    @Transactional
+    @Transactional(readOnly = true)
     public void execute(UUID applicationId) {
-        Application app = applicationRepo.findById(applicationId)
+        var app = applicationRepo.findById(applicationId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Application", applicationId));
-        JobPost job = jobPostRepo.findById(app.getJobPostId())
+        var job = jobPostRepo.findById(app.getJobPostId())
                 .orElseThrow(() -> ResourceNotFoundException.of("JobPost", app.getJobPostId()));
 
-        AIScore score = aiScorePort.calculateScore(applicationId, app.getCvUrl(), job.toFullText());
-        if (score != null) {
-            app.attachAIScore(score);
-            applicationRepo.save(app);
-            log.info("AI rescore done: applicationId={} score={}", applicationId, score.getScore());
+        triggerAIScoring(applicationId, app.getCvUrl(), job.toFullText());
+    }
+
+    @Async("aiTaskExecutor")
+    protected void triggerAIScoring(UUID applicationId, String cvUrl, String jobFullText) {
+        try {
+            AIScore score = aiScorePort.calculateScore(applicationId, cvUrl, jobFullText);
+            if (score != null) {
+                applicationRepo.findById(applicationId).ifPresent(app -> {
+                    app.attachAIScore(score);
+                    applicationRepo.save(app);
+                    log.info("[AIScore] Re-attached: applicationId={} score={}",
+                            applicationId, score.getScore());
+                });
+            }
+        } catch (Exception e) {
+            log.warn("[AIScore] Retrigger failed: applicationId={} reason={}",
+                    applicationId, e.getMessage());
         }
     }
 }

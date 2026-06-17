@@ -270,8 +270,6 @@ export default function EmployerJobsPage() {
 
   // ── Export ────────
 
-  const handleExportPdf   = useCallback(() => { toast.success("Đang xuất PDF",   "File sẽ được tải về sau vài giây."); }, [toast]);
-  const handleExportExcel = useCallback(() => { toast.success("Đang xuất Excel", "File sẽ được tải về sau vài giây."); }, [toast]);
 
   // ── Status tabs with count ────────────────────
 

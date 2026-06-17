@@ -55,17 +55,23 @@ function StatCard({
 }
 
 function QuotaBar({ label, used, total }: { label: string; used: number; total: number }) {
-  const pct  = total > 0 ? Math.round((used / total) * 100) : 0;
-  const warn = pct >= 80;
+  const unlimited = total === -1;
+  const pct = unlimited ? 100 : total > 0 ? Math.round((used / total) * 100) : 0;
+  const warn = !unlimited && pct >= 80;
+
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-[12px]">
         <span className="text-gray-600">{label}</span>
-        <span className={warn ? "text-red-500 font-semibold" : "text-gray-500"}>{used}/{total}</span>
+        <span className={warn ? "text-red-500 font-semibold" : "text-gray-500"}>
+          {used}/{unlimited ? "Không giới hạn" : total}
+        </span>
       </div>
       <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-700 ${warn ? "bg-red-400" : "bg-indigo-500"}`}
+          className={`h-full rounded-full transition-all duration-700 ${
+            unlimited ? "bg-indigo-300" : warn ? "bg-red-400" : "bg-indigo-500"
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -212,7 +218,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
           <p className="text-[13px] font-semibold text-gray-700">Hạn mức đăng tuyển</p>
-          <QuotaBar label="Job post"              used={d.quotaUsed}       total={d.quotaTotal}       />
+          <QuotaBar label="Job post" used={d.quotaUsed} total={d.quotaTotal} />
           <QuotaBar label="Livestream tuyển dụng" used={d.streamQuotaUsed} total={d.streamQuotaTotal} />
         </div>
 

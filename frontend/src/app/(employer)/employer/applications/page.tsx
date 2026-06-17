@@ -567,17 +567,6 @@ export default function EmployerApplicationsPage() {
           />
         )}
       </div>
-
-      {/* Drawers / Modals */}
-      {selectedId && (
-        <ApplicationDetailDrawer
-          applicationId={selectedId}
-          role="employer"
-          onClose={handleDetailClose}
-          onUpdated={handleUpdated}
-        />
-      )}
-
       {scheduleTarget && (
         <ScheduleInterviewModal
           applicationId={scheduleTarget.id}

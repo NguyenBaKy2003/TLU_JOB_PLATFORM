@@ -25,7 +25,7 @@ const STATUS_CONFIG = {
     bg: "bg-emerald-50",
     border: "border-emerald-100",
     label: "Đã kết thúc",
-    desc: "AI đang xử lý summary và analytics",
+    desc: "Phiên live stream đã được kết thúc",
   },
   CANCELLED: {
     icon: XCircle,

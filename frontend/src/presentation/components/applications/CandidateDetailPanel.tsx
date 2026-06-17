@@ -72,7 +72,7 @@ export function CandidateDetailPanel({
   };
 
   return (
-    <div className="flex flex-col gap-3 h-full overflow-y-auto pb-4">
+    <div className="flex flex-col gap-3 pb-4">
 
       {/* ── Header card ──────────────── */}
       <div className={`relative overflow-hidden rounded-2xl border shadow-sm

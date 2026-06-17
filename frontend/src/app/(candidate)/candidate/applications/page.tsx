@@ -362,7 +362,6 @@ export default function CandidateApplicationsPage() {
         pageSizeOptions={PAGE_SIZE_OPTIONS}
         pageSize={pageSize}
         onPageSizeChange={handlePageSizeChange}
-        onExportExcel={handleExportExcel}
       />
 
       {/* ── Result count ──────────────────────── */}

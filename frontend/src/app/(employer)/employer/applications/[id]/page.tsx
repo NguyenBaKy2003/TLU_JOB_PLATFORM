@@ -1,28 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, FileText, Clock,
-  MapPin, User, Mail, Phone,
-  Eye, Download, Loader2, Calendar,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Download,
+  Eye,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  Sparkles,
+  User,
 } from "lucide-react";
 
-import { ApplicationStatusBadge }   from "@/presentation/components/applications/ApplicationStatusBadge";
-import { StatusTimeline }           from "@/presentation/components/applications/StatusTimeline";
-import { AIScorePanel }             from "@/presentation/components/applications/AIScorePanel";
-import { StartConversationButton }  from "@/presentation/components/applications/StartConversationButton";
-import { ScheduleInterviewModal }   from "@/presentation/components/applications/ScheduleInterviewModal";
+import { ApplicationStatusBadge }  from "@/presentation/components/applications/ApplicationStatusBadge";
+import { StatusTimeline }          from "@/presentation/components/applications/StatusTimeline";
+import { AIScorePanel }            from "@/presentation/components/applications/AIScorePanel";
+import { StartConversationButton } from "@/presentation/components/applications/StartConversationButton";
+import { ScheduleInterviewModal }  from "@/presentation/components/applications/ScheduleInterviewModal";
 
 import { ApplicationService }    from "@/application/services/ApplicationService";
 import { ApplicationRepository } from "@/infrastructure/repositories/ApplicationRepository";
+import { AiService }             from "@/application/services/AiService";
+import { AiRepository }          from "@/infrastructure/repositories/AiRepository";
 
 import type { ApplicationDetail, ApplicationStatus } from "@/domain/models/Application";
 import { APPLICATION_STATUS_LABELS }                 from "@/domain/models/Application";
 import { extractErrorMessage }                       from "@/lib/extractErrorMessage";
 import { useToast }                                  from "@/presentation/components/ui/toast";
 
-const service = new ApplicationService(new ApplicationRepository());
+const service   = new ApplicationService(new ApplicationRepository());
+const aiService = new AiService(new AiRepository());
 
 const ALLOWED_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
   SUBMITTED:           ["REVIEWING", "REJECTED"],
@@ -45,32 +56,44 @@ export default function EmployerApplicationDetailPage() {
   const router = useRouter();
   const toast  = useToast();
 
+  // Stable ref to toast — prevents useEffect re-runs when toast object changes identity
+  const toastRef = useRef(toast);
+  useEffect(() => { toastRef.current = toast; });
+
   const [detail,         setDetail]         = useState<ApplicationDetail | null>(null);
   const [loading,        setLoading]        = useState(true);
   const [statusNote,     setStatusNote]     = useState("");
   const [updating,       setUpdating]       = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
-  // CV action states
   const [cvViewing,     setCvViewing]     = useState(false);
   const [cvDownloading, setCvDownloading] = useState(false);
 
-  // Interview scheduling state
   const [showSchedule, setShowSchedule] = useState(false);
+  const [rescoring,    setRescoring]    = useState(false);
 
+  // ── Initial load ─────────────────────────────────────────────────────────────
+  // Only re-run when params.id changes — toast intentionally excluded from deps
+  // to prevent the infinite re-render loop caused by toast object identity churn.
   useEffect(() => {
     if (!params.id) return;
+    let cancelled = false;
+
     (async () => {
       try {
         const data = await service.getEmployerDetail(params.id);
-        setDetail(data);
+        if (!cancelled) setDetail(data);
       } catch (e) {
-        toast.error("Lỗi", extractErrorMessage(e));
+        if (!cancelled) toastRef.current.error("Lỗi", extractErrorMessage(e));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [params.id, toast]);
+
+    return () => { cancelled = true; };
+  }, [params.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Status update ────────────────────────────────────────────────────────────
 
   const handleStatusChange = async (newStatus: ApplicationStatus) => {
     if (!detail) return;
@@ -82,20 +105,21 @@ export default function EmployerApplicationDetailPage() {
       setStatusNote("");
       setShowStatusMenu(false);
     } catch (e) {
-      toast.error("Lỗi cập nhật", extractErrorMessage(e));
+      toastRef.current.error("Lỗi cập nhật", extractErrorMessage(e));
     } finally {
       setUpdating(false);
     }
   };
 
-  // ── CV actions ──────────
+  // ── CV actions ───────────────────────────────────────────────────────────────
+
   const handleViewCV = async () => {
     if (!detail) return;
     setCvViewing(true);
     try {
       await service.viewCVAsEmployer(detail.id);
     } catch (e) {
-      toast.error("Không thể mở CV", extractErrorMessage(e));
+      toastRef.current.error("Không thể mở CV", extractErrorMessage(e));
     } finally {
       setCvViewing(false);
     }
@@ -108,13 +132,55 @@ export default function EmployerApplicationDetailPage() {
       const candidateName = detail.candidate?.fullName ?? "ung-vien";
       await service.downloadCVAsEmployer(detail.id, candidateName);
     } catch (e) {
-      toast.error("Không thể tải CV", extractErrorMessage(e));
+      toastRef.current.error("Không thể tải CV", extractErrorMessage(e));
     } finally {
       setCvDownloading(false);
     }
   };
 
-  // ── Interview scheduling ──────────
+  // ── AI Rescore ───────────────────────────────────────────────────────────────
+  // Backend scores asynchronously → poll until aiScore changes or timeout.
+
+  const handleRescore = async () => {
+    if (!detail || rescoring) return;
+    setRescoring(true);
+
+    const prevScoreSnapshot = JSON.stringify(detail.aiScore ?? null);
+
+    try {
+      const msg = await aiService.rescoreApplication(detail.id);
+      toastRef.current.success("Đang xử lý", msg);
+
+      const MAX_ATTEMPTS = 8;
+      const INTERVAL_MS  = 2500;
+
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        await new Promise<void>(r => setTimeout(r, INTERVAL_MS));
+        const refreshed = await service.getEmployerDetail(detail.id);
+
+        if (JSON.stringify(refreshed.aiScore ?? null) !== prevScoreSnapshot) {
+          setDetail(refreshed);
+          toastRef.current.success("Hoàn tất", "Điểm AI đã được tính lại.");
+          return;
+        }
+      }
+
+      // Poll exhausted — refresh UI anyway, notify user
+      const finalData = await service.getEmployerDetail(detail.id);
+      setDetail(finalData);
+      toastRef.current.success(
+        "Đang xử lý",
+        "Hệ thống vẫn đang tính, vui lòng kiểm tra lại sau ít phút.",
+      );
+    } catch (e) {
+      toastRef.current.error("Không thể tính lại điểm", extractErrorMessage(e));
+    } finally {
+      setRescoring(false);
+    }
+  };
+
+  // ── Interview scheduling ─────────────────────────────────────────────────────
+
   const canScheduleInterview = detail?.status === "SHORTLISTED";
 
   const handleScheduleSuccess = async () => {
@@ -123,12 +189,14 @@ export default function EmployerApplicationDetailPage() {
       const refreshed = await service.getEmployerDetail(detail.id);
       setDetail(refreshed);
     } catch (e) {
-      toast.error("Lỗi", extractErrorMessage(e));
+      toastRef.current.error("Lỗi", extractErrorMessage(e));
     }
     setShowSchedule(false);
   };
 
   const allowedNext = detail ? (ALLOWED_TRANSITIONS[detail.status] ?? []) : [];
+
+  // ── Loading / empty states ───────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -143,6 +211,8 @@ export default function EmployerApplicationDetailPage() {
       <div className="p-6 text-[16px] text-gray-500">Không tìm thấy dữ liệu</div>
     );
   }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -162,7 +232,7 @@ export default function EmployerApplicationDetailPage() {
       <div className="max-w-3xl mx-auto px-4 pb-10">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-5">
 
-          {/* ── Candidate info ─── */}
+          {/* ── Candidate info ───────────────────────────────────────────── */}
           {detail.candidate && (
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
               {detail.candidate.avatarUrl ? (
@@ -199,7 +269,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           )}
 
-          {/* ── Status + Update ── */}
+          {/* ── Status + Update ──────────────────────────────────────────── */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <ApplicationStatusBadge status={detail.status} />
 
@@ -235,7 +305,7 @@ export default function EmployerApplicationDetailPage() {
             )}
           </div>
 
-          {/* ── Schedule Interview (SHORTLISTED only) ── */}
+          {/* ── Schedule Interview CTA (SHORTLISTED only) ────────────────── */}
           {canScheduleInterview && (
             <div className="flex items-center justify-between gap-3 p-4 bg-purple-50
               border border-purple-100 rounded-2xl">
@@ -260,7 +330,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           )}
 
-          {/* ── Meta info ─ */}
+          {/* ── Meta info ────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <InfoItem
               label="Ngày nộp"
@@ -274,10 +344,40 @@ export default function EmployerApplicationDetailPage() {
             )}
           </div>
 
-          {/* ── AI Score ── */}
-          {detail.aiScore && <AIScorePanel score={detail.aiScore} />}
+          {/* ── AI Score ─────────────────────────────────────────────────── */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                AI Score
+              </p>
+              <button
+                onClick={handleRescore}
+                disabled={rescoring}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium
+                  text-blue-600 bg-blue-50 border border-blue-100 rounded-lg
+                  hover:bg-blue-100 transition-colors disabled:opacity-60"
+              >
+                {rescoring
+                  ? <Loader2 size={12} className="animate-spin" />
+                  : <Sparkles size={12} />
+                }
+                {rescoring ? "Đang tính..." : "Tính lại điểm"}
+              </button>
+            </div>
 
-          {/* ── Interview info ─── */}
+            {detail.aiScore ? (
+              <AIScorePanel score={detail.aiScore} />
+            ) : (
+              <p className="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">
+                {rescoring
+                  ? "Đang tính điểm AI..."
+                  : "Chưa có điểm AI. Bấm \"Tính lại điểm\" để chấm."
+                }
+              </p>
+            )}
+          </div>
+
+          {/* ── Interview info ────────────────────────────────────────────── */}
           {detail.interviewScheduledAt && (
             <div className="bg-purple-50 border border-purple-100 p-4 rounded-2xl">
               <p className="text-[16px] font-semibold text-purple-700 flex items-center gap-1.5 mb-2">
@@ -297,7 +397,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           )}
 
-          {/* ── CV actions  */}
+          {/* ── CV actions ───────────────────────────────────────────────── */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
               CV ứng viên
@@ -333,7 +433,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
           </div>
 
-          {/* ── Status timeline ── */}
+          {/* ── Status timeline ───────────────────────────────────────────── */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               Lịch sử trạng thái
@@ -344,7 +444,7 @@ export default function EmployerApplicationDetailPage() {
         </div>
       </div>
 
-      {/* ── Schedule Interview Modal ── */}
+      {/* ── Schedule Interview Modal ─────────────────────────────────────────── */}
       {showSchedule && detail && (
         <ScheduleInterviewModal
           applicationId={detail.id}

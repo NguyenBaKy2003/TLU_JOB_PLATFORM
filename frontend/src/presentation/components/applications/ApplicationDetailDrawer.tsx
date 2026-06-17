@@ -1,21 +1,27 @@
 "use client";
-import { useEffect, useState }         from "react";
-import { X, Clock, MapPin,
-         User, Mail, Phone,
-         Eye, Download, Loader2 }      from "lucide-react";
-import { ApplicationStatusBadge }      from "@/presentation/components/applications/ApplicationStatusBadge";
-import { StatusTimeline }              from "@/presentation/components/applications/StatusTimeline";
-import { AIScorePanel }                from "@/presentation/components/applications/AIScorePanel";
-import { StartConversationButton }     from "@/presentation/components/applications/StartConversationButton";
-import { ApplicationService }          from "@/application/services/ApplicationService";
-import { ApplicationRepository }       from "@/infrastructure/repositories/ApplicationRepository";
-import { useToast }                    from "@/presentation/components/ui/toast";
-import { extractErrorMessage }         from "@/lib/extractErrorMessage";
-import type { ApplicationDetail }      from "@/domain/models/Application";
-import type { ApplicationStatus }      from "@/domain/models/Application";
-import { APPLICATION_STATUS_LABELS }   from "@/domain/models/Application";
+import { useEffect, useState } from "react";
+import {
+  X, Clock, MapPin,
+  User, Mail, Phone,
+  Eye, Download, Loader2,
+  Sparkles,
+} from "lucide-react";
+import { ApplicationStatusBadge }  from "@/presentation/components/applications/ApplicationStatusBadge";
+import { StatusTimeline }          from "@/presentation/components/applications/StatusTimeline";
+import { AIScorePanel }            from "@/presentation/components/applications/AIScorePanel";
+import { StartConversationButton } from "@/presentation/components/applications/StartConversationButton";
+import { ApplicationService }      from "@/application/services/ApplicationService";
+import { ApplicationRepository }   from "@/infrastructure/repositories/ApplicationRepository";
+import { AiService }               from "@/application/services/AiService";
+import { AiRepository }            from "@/infrastructure/repositories/AiRepository";
+import { useToast }                from "@/presentation/components/ui/toast";
+import { extractErrorMessage }     from "@/lib/extractErrorMessage";
+import type { ApplicationDetail }  from "@/domain/models/Application";
+import type { ApplicationStatus }  from "@/domain/models/Application";
+import { APPLICATION_STATUS_LABELS } from "@/domain/models/Application";
 
-const service = new ApplicationService(new ApplicationRepository());
+const service   = new ApplicationService(new ApplicationRepository());
+const aiService = new AiService(new AiRepository());
 
 const ALLOWED_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
   SUBMITTED:           ["REVIEWING", "REJECTED"],
@@ -41,7 +47,12 @@ interface Props {
   role:          "employer" | "admin";
 }
 
-export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, role }: Props) {
+export function ApplicationDetailDrawer({
+  applicationId,
+  onClose,
+  onUpdated,
+  role,
+}: Props) {
   const toast = useToast();
 
   const [detail,         setDetail]         = useState<ApplicationDetail | null>(null);
@@ -53,6 +64,9 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
   // CV action states
   const [cvViewing,     setCvViewing]     = useState(false);
   const [cvDownloading, setCvDownloading] = useState(false);
+
+  // AI rescore state
+  const [rescoring, setRescoring] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -66,6 +80,8 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
       }
     })();
   }, [applicationId]);
+
+  // ── Status update ───────────────────────────────────────────────────────────
 
   const handleStatusChange = async (newStatus: ApplicationStatus) => {
     if (!detail) return;
@@ -84,9 +100,8 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
     }
   };
 
-  // ── CV actions ─────────
-  // Dùng service thay vì href trực tiếp → request đi qua auth middleware backend,
-  // không lộ S3 URL ra ngoài.
+  // ── CV actions ──────────────────────────────────────────────────────────────
+
   const handleViewCV = async () => {
     if (!detail) return;
     setCvViewing(true);
@@ -112,7 +127,52 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
     }
   };
 
+  // ── AI Rescore ──────────────────────────────────────────────────────────────
+  // Backend tính điểm bất đồng bộ → poll lại detail cho đến khi aiScore thay đổi.
+
+  const handleRescore = async () => {
+    if (!detail || rescoring) return;
+    setRescoring(true);
+
+    const prevScoreSnapshot = JSON.stringify(detail.aiScore ?? null);
+
+    try {
+      const msg = await aiService.rescoreApplication(detail.id);
+      toast.success("Đang xử lý", msg);
+
+      // Poll tối đa 8 lần × 2.5s ≈ 20s
+      const MAX_ATTEMPTS = 8;
+      const INTERVAL_MS  = 2500;
+
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        await new Promise(r => setTimeout(r, INTERVAL_MS));
+        const refreshed = await service.getEmployerDetail(applicationId);
+
+        if (JSON.stringify(refreshed.aiScore ?? null) !== prevScoreSnapshot) {
+          setDetail(refreshed);
+          onUpdated?.(refreshed);
+          toast.success("Hoàn tất", "Điểm AI đã được tính lại.");
+          return;
+        }
+      }
+
+      // Hết vòng poll mà điểm chưa đổi → vẫn refresh UI
+      const finalData = await service.getEmployerDetail(applicationId);
+      setDetail(finalData);
+      onUpdated?.(finalData);
+      toast.success("Đang xử lý", "Hệ thống vẫn đang tính, vui lòng kiểm tra lại sau ít phút.");
+    } catch (e) {
+      toast.error("Không thể tính lại điểm", extractErrorMessage(e));
+    } finally {
+      setRescoring(false);
+    }
+  };
+
+  // ── Derived ─────────────────────────────────────────────────────────────────
+
   const allowedNext = detail ? (ALLOWED_TRANSITIONS[detail.status] ?? []) : [];
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -126,7 +186,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
       <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-lg bg-white shadow-2xl
         flex flex-col overflow-hidden">
 
-        {/* ── Header ────── */}
+        {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
           <h3 className="text-[16px] font-semibold text-gray-800">Chi tiết đơn ứng tuyển</h3>
           <button
@@ -137,7 +197,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
           </button>
         </div>
 
-        {/* ── Body ──────── */}
+        {/* ── Body ────────────────────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-5">
 
           {/* Loading skeleton */}
@@ -151,7 +211,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
 
           {!loading && detail && (
             <>
-              {/* ── Candidate card ──────────── */}
+              {/* ── Candidate card ──────────────────────────────────────── */}
               {detail.candidate && (
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
                   {detail.candidate.avatarUrl ? (
@@ -192,7 +252,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Status + update ─────────── */}
+              {/* ── Status + update ─────────────────────────────────────── */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">Trạng thái:</span>
@@ -231,7 +291,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 )}
               </div>
 
-              {/* ── Status note (employer only) ────────────── */}
+              {/* ── Status note (employer only) ──────────────────────────── */}
               {role === "employer" && allowedNext.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-400">
@@ -247,7 +307,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Meta ────── */}
+              {/* ── Meta ────────────────────────────────────────────────── */}
               <div className="grid grid-cols-2 gap-2">
                 <InfoItem
                   label="Ngày nộp"
@@ -258,10 +318,40 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 )}
               </div>
 
-              {/* ── AI Score ── */}
-              {detail.aiScore && <AIScorePanel score={detail.aiScore} />}
+              {/* ── AI Score ────────────────────────────────────────────── */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Đánh giá AI
+                  </p>
+                  <button
+                    onClick={handleRescore}
+                    disabled={rescoring}
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium
+                      text-blue-600 bg-blue-50 border border-blue-100 rounded-lg
+                      hover:bg-blue-100 transition-colors disabled:opacity-60"
+                  >
+                    {rescoring
+                      ? <Loader2 size={12} className="animate-spin" />
+                      : <Sparkles size={12} />
+                    }
+                    {rescoring ? "Đang tính..." : "Tính lại điểm"}
+                  </button>
+                </div>
 
-              {/* ── Interview ─ */}
+                {detail.aiScore ? (
+                  <AIScorePanel score={detail.aiScore} />
+                ) : (
+                  <p className="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">
+                    {rescoring
+                      ? "Đang tính điểm AI..."
+                      : "Chưa có điểm AI. Bấm \"Tính lại điểm\" để chấm."
+                    }
+                  </p>
+                )}
+              </div>
+
+              {/* ── Interview ───────────────────────────────────────────── */}
               {detail.interviewScheduledAt && (
                 <div className="p-4 bg-purple-50 border border-purple-100 rounded-2xl">
                   <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
@@ -281,7 +371,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── Cover letter ────────────── */}
+              {/* ── Cover letter ─────────────────────────────────────────── */}
               {detail.coverLetter && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
@@ -293,11 +383,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               )}
 
-              {/* ── CV actions ─ */}
-              {/* FIX: Dùng service thay vì <a href={cvUrl}> trực tiếp.
-                  Request đi qua /employer/applications/{id}/cv/view|download
-                  → được kiểm tra auth 2 lớp ở backend (employer owner + application thuộc company).
-                  S3 URL không bị lộ ra client. */}
+              {/* ── CV actions ───────────────────────────────────────────── */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                   CV ứng viên
@@ -333,7 +419,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
                 </div>
               </div>
 
-              {/* ── Status timeline ─────────── */}
+              {/* ── Status timeline ──────────────────────────────────────── */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
                   Lịch sử trạng thái
@@ -344,7 +430,7 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
           )}
         </div>
 
-        {/* ── Footer ────── */}
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
         <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex justify-end">
           <button
             onClick={onClose}
@@ -358,6 +444,8 @@ export function ApplicationDetailDrawer({ applicationId, onClose, onUpdated, rol
     </>
   );
 }
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (

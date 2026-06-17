@@ -44,7 +44,7 @@ public class SearchEventRepositoryAdapter implements SearchEventRepository {
     @Override
     public List<String> findTopViewedJobTitles(UUID candidateId, LocalDateTime since, int limit) {
         return jpaRepo.findTopViewedJobTitles(
-                candidateId, since, PageRequest.of(0, limit)); //
+                candidateId, since, PageRequest.of(0, limit));
     }
 
     @Override
