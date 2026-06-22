@@ -155,8 +155,8 @@ springdoc:
   show-actuator: false
 aws:
   s3:
-    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXE2QKZCNY}
-    secret-key: ${AWS_SECRET_KEY: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}
+    access-key: ${AWS_ACCESS_KEY:AKIATVBF4TCXLZ7NMKXJ}
+    secret-key: ${AWS_SECRET_KEY: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}
     region: ${AWS_REGION:ap-southeast-2}
     bucket: ${AWS_S3_BUCKET:jobplatform-storage}
 management:
